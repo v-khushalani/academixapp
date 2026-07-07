@@ -1,118 +1,114 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Bell, Download, Wallet } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { toast } from "sonner";
+import { Bell, Plus, Trash2, Wallet } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { KpiCard } from "@/components/app/kpi-card";
-import { fees, revenueTrend } from "@/lib/mock/data";
+import { DataTable, type DTColumn } from "@/components/app/data-table";
+import { FeeFormDialog } from "@/components/app/fee-form-dialog";
+import { ConfirmDialog } from "@/components/app/confirm-dialog";
+import { feesApi } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
+import { can } from "@/lib/rbac";
 
 export const Route = createFileRoute("/app/fees")({
   component: FeesPage,
 });
 
-const inr = (n: number) => "₹" + n.toLocaleString("en-IN");
+const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
+
+type Row = Awaited<ReturnType<typeof feesApi.list>>[number];
 
 function FeesPage() {
-  const [q, setQ] = useState("");
+  const qc = useQueryClient();
+  const { roles } = useAuth();
+  const canWrite = can("fees:write", roles);
+  const { data = [], isLoading } = useQuery({ queryKey: ["fees"], queryFn: () => feesApi.list() });
   const [status, setStatus] = useState("all");
-  const rows = useMemo(() => fees.filter((f) => {
-    if (status !== "all" && f.status !== status) return false;
-    return `${f.studentName} ${f.batch}`.toLowerCase().includes(q.toLowerCase());
-  }), [q, status]);
+  const [open, setOpen] = useState(false);
+  const [deleting, setDeleting] = useState<Row | null>(null);
 
-  const outstanding = fees.reduce((a, b) => a + (b.amount - b.paid), 0);
-  const collected = fees.reduce((a, b) => a + b.paid, 0);
-  const overdueCount = fees.filter((f) => f.status === "overdue").length;
+  const filtered = useMemo(() => status === "all" ? data : data.filter((f) => f.status === status), [data, status]);
+
+  const outstanding = data.reduce((a, b) => a + (Number(b.amount) - Number(b.amount_paid)), 0);
+  const collected = data.reduce((a, b) => a + Number(b.amount_paid), 0);
+  const overdue = data.filter((f) => f.status === "overdue" || (f.due_date && f.status !== "paid" && new Date(f.due_date) < new Date())).length;
+
+  const removeMut = useMutation({
+    mutationFn: (id: string) => feesApi.remove(id),
+    onSuccess: () => { toast.success("Removed"); qc.invalidateQueries({ queryKey: ["fees"] }); setDeleting(null); },
+  });
+
+  const columns: DTColumn<Row>[] = [
+    { key: "student", header: "Student", sortable: true, value: (r) => r.student?.full_name ?? "",
+      cell: (r) => <div><p className="font-medium">{r.student?.full_name ?? "—"}</p><p className="text-xs text-muted-foreground">{r.student?.admission_no}</p></div> },
+    { key: "description", header: "For", value: (r) => r.description ?? "", cell: (r) => r.description ?? "—" },
+    { key: "amount", header: "Amount", sortable: true, value: (r) => Number(r.amount), cell: (r) => inr(Number(r.amount)) },
+    { key: "amount_paid", header: "Paid", sortable: true, value: (r) => Number(r.amount_paid), cell: (r) => inr(Number(r.amount_paid)) },
+    { key: "due_date", header: "Due", sortable: true, value: (r) => r.due_date ?? "", cell: (r) => r.due_date ?? "—" },
+    {
+      key: "status", header: "Status", sortable: true, value: (r) => r.status,
+      cell: (r) => {
+        const cls = r.status === "paid" ? "bg-success/10 text-success"
+          : r.status === "overdue" ? "bg-destructive/10 text-destructive"
+          : r.status === "partial" ? "bg-warning/10 text-warning" : "bg-muted text-muted-foreground";
+        return <Badge variant="secondary" className={cls}>{r.status}</Badge>;
+      },
+    },
+    {
+      key: "actions", header: "", className: "text-right",
+      cell: (r) => canWrite ? (
+        <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleting(r)}><Trash2 className="h-4 w-4" /></Button>
+      ) : null,
+    },
+  ];
 
   return (
     <>
       <PageHeader
         title="Fees"
         description="Collect faster. Chase smarter."
-        actions={<>
-          <Button variant="outline" size="sm" className="gap-1.5"><Download className="h-4 w-4" />Export</Button>
-          <Button size="sm">Record payment</Button>
-        </>}
+        actions={canWrite ? <Button size="sm" className="gap-1.5" onClick={() => setOpen(true)}><Plus className="h-4 w-4" />Record payment</Button> : null}
       />
       <PageBody>
         <div className="grid gap-4 sm:grid-cols-3">
           <KpiCard label="Outstanding" value={inr(outstanding)} icon={Wallet} tone="warning" />
-          <KpiCard label="Collected (Year)" value={inr(collected)} icon={Wallet} tone="success" />
-          <KpiCard label="Overdue students" value={overdueCount} icon={Bell} tone="danger" />
+          <KpiCard label="Collected" value={inr(collected)} icon={Wallet} tone="success" />
+          <KpiCard label="Overdue" value={overdue} icon={Bell} tone="danger" />
         </div>
-
-        <div className="mt-6 rounded-lg border border-border bg-card">
-          <div className="border-b border-border p-4">
-            <h3 className="text-sm font-semibold">Monthly Collection</h3>
-          </div>
-          <div className="p-4">
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={revenueTrend}>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
-                <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => inr(v)} />
-                <Bar dataKey="revenue" fill="var(--primary)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
         <div className="mt-6">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <Input placeholder="Search by student or batch" value={q} onChange={(e) => setQ(e.target.value)} className="h-9 max-w-xs" />
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="partial">Partial</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="overdue">Overdue</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="overflow-hidden rounded-lg border border-border bg-card">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">Student</th><th className="px-4 py-3">Batch</th>
-                  <th className="px-4 py-3">Amount</th><th className="px-4 py-3">Paid</th>
-                  <th className="px-4 py-3">Due</th><th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {rows.slice(0, 30).map((f) => (
-                  <tr key={f.id} className="hover:bg-muted/30">
-                    <td className="px-4 py-3 font-medium">{f.studentName}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{f.batch}</td>
-                    <td className="px-4 py-3">{inr(f.amount)}</td>
-                    <td className="px-4 py-3">{inr(f.paid)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{f.dueDate}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant="secondary" className={
-                        f.status === "paid" ? "bg-success/10 text-success"
-                          : f.status === "partial" ? "bg-warning/10 text-warning"
-                          : f.status === "overdue" ? "bg-destructive/10 text-destructive"
-                          : "bg-muted text-muted-foreground"
-                      }>{f.status}</Badge>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <Button size="sm" variant="ghost" className="gap-1.5"><Bell className="h-4 w-4" />Remind</Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            rows={filtered}
+            columns={columns}
+            searchKeys={["description"]}
+            searchPlaceholder="Search fees…"
+            exportName="fees"
+            exportTitle="Fees"
+            loading={isLoading}
+            toolbar={
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="partial">Partial</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectItem value="waived">Waived</SelectItem>
+                </SelectContent>
+              </Select>
+            }
+          />
         </div>
       </PageBody>
+      <FeeFormDialog open={open} onOpenChange={setOpen} />
+      <ConfirmDialog open={Boolean(deleting)} onOpenChange={(v) => !v && setDeleting(null)}
+        title="Remove fee entry?" confirmLabel="Remove" destructive
+        onConfirm={() => deleting && removeMut.mutate(deleting.id)} />
     </>
   );
 }

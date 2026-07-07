@@ -1,141 +1,143 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Download, Filter, Search, Phone, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { students } from "@/lib/mock/data";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DataTable, type DTColumn } from "@/components/app/data-table";
+import { StudentFormDialog } from "@/components/app/student-form-dialog";
+import { ConfirmDialog } from "@/components/app/confirm-dialog";
+import { studentsApi, type Student } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
+import { can } from "@/lib/rbac";
 
 export const Route = createFileRoute("/app/students")({
   component: StudentsPage,
 });
 
+type Row = Awaited<ReturnType<typeof studentsApi.list>>[number];
+
 function StudentsPage() {
-  const [q, setQ] = useState("");
-  const [cls, setCls] = useState<string>("all");
+  const { roles } = useAuth();
+  const canWrite = can("student:write", roles);
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const { data = [], isLoading } = useQuery({ queryKey: ["students"], queryFn: () => studentsApi.list() });
+
   const [status, setStatus] = useState<string>("all");
-  const [page, setPage] = useState(1);
-  const perPage = 12;
+  const [cls, setCls] = useState<string>("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<Student | null>(null);
+  const [deleting, setDeleting] = useState<Row | null>(null);
 
-  const filtered = useMemo(() => {
-    return students.filter((s) => {
-      if (cls !== "all" && s.class !== cls) return false;
-      if (status !== "all" && s.status !== status) return false;
-      if (q && !(`${s.name} ${s.admissionNo} ${s.batch}`.toLowerCase().includes(q.toLowerCase()))) return false;
-      return true;
-    });
-  }, [q, cls, status]);
+  const classes = useMemo(() => Array.from(new Set(data.map((s) => s.class).filter(Boolean))) as string[], [data]);
+  const filtered = useMemo(() => data.filter((s) => {
+    if (status !== "all" && s.status !== status) return false;
+    if (cls !== "all" && s.class !== cls) return false;
+    return true;
+  }), [data, status, cls]);
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / perPage));
-  const rows = filtered.slice((page - 1) * perPage, page * perPage);
-  const classes = Array.from(new Set(students.map((s) => s.class)));
+  const removeMut = useMutation({
+    mutationFn: (id: string) => studentsApi.remove(id),
+    onSuccess: () => {
+      toast.success("Student removed");
+      qc.invalidateQueries({ queryKey: ["students"] });
+      setDeleting(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const columns: DTColumn<Row>[] = [
+    {
+      key: "full_name", header: "Student", sortable: true,
+      value: (r) => r.full_name,
+      cell: (r) => (
+        <div>
+          <p className="font-medium">{r.full_name}</p>
+          <p className="text-xs text-muted-foreground">{r.school ?? "—"}</p>
+        </div>
+      ),
+    },
+    { key: "admission_no", header: "Admission #", sortable: true, value: (r) => r.admission_no,
+      cell: (r) => <span className="text-muted-foreground">{r.admission_no}</span> },
+    { key: "class", header: "Class", sortable: true, value: (r) => r.class ?? "", cell: (r) => r.class ?? "—" },
+    { key: "batch", header: "Batch", value: (r) => r.batch?.name ?? "", cell: (r) => r.batch?.name ?? <span className="text-muted-foreground">—</span> },
+    { key: "phone", header: "Phone", value: (r) => r.phone ?? "", cell: (r) => r.phone ?? "—" },
+    {
+      key: "status", header: "Status", sortable: true, value: (r) => r.status,
+      cell: (r) => (
+        <Badge variant="secondary" className={r.status === "active" ? "bg-success/10 text-success" : ""}>{r.status}</Badge>
+      ),
+    },
+    {
+      key: "actions", header: "", className: "text-right",
+      cell: (r) => canWrite ? (
+        <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+          <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
+          <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleting(r)}><Trash2 className="h-4 w-4" /></Button>
+        </div>
+      ) : null,
+    },
+  ];
 
   return (
     <>
       <PageHeader
         title="Students"
-        description={`${filtered.length} of ${students.length} students`}
-        actions={
-          <>
-            <Button variant="outline" size="sm" className="gap-1.5"><Download className="h-4 w-4" />Export</Button>
-            <Button size="sm">Add student</Button>
-          </>
-        }
+        description={`${filtered.length} of ${data.length} students`}
+        actions={canWrite ? (
+          <Button size="sm" className="gap-1.5" onClick={() => { setEditing(null); setDialogOpen(true); }}>
+            <Plus className="h-4 w-4" />Add student
+          </Button>
+        ) : null}
       />
       <PageBody>
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[220px] flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search by name, admission no, batch…" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} className="h-9 pl-9" />
-          </div>
-          <Select value={cls} onValueChange={(v) => { setCls(v); setPage(1); }}>
-            <SelectTrigger className="h-9 w-[140px]"><SelectValue placeholder="Class" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All classes</SelectItem>
-              {classes.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
-            <SelectTrigger className="h-9 w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm" className="gap-1.5"><Filter className="h-4 w-4" />More</Button>
-        </div>
-
-        <div className="overflow-hidden rounded-lg border border-border bg-card">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">Student</th>
-                  <th className="px-4 py-3">Admission #</th>
-                  <th className="px-4 py-3">Batch</th>
-                  <th className="px-4 py-3">Attendance</th>
-                  <th className="px-4 py-3">Pending Fees</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {rows.map((s) => (
-                  <tr key={s.id} className="hover:bg-muted/30">
-                    <td className="px-4 py-3">
-                      <Link to="/app/students/$id" params={{ id: s.id }} className="flex items-center gap-3">
-                        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent text-xs font-semibold text-primary">
-                          {s.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate font-medium text-foreground">{s.name}</p>
-                          <p className="truncate text-xs text-muted-foreground">{s.school}</p>
-                        </div>
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">{s.admissionNo}</td>
-                    <td className="px-4 py-3">{s.batch}</td>
-                    <td className="px-4 py-3">
-                      <span className={s.attendancePct >= 85 ? "text-success" : s.attendancePct >= 75 ? "text-foreground" : "text-warning"}>
-                        {s.attendancePct}%
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {s.pendingFees === 0 ? <span className="text-muted-foreground">—</span> : <span className="text-destructive">₹{s.pendingFees.toLocaleString("en-IN")}</span>}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge variant={s.status === "active" ? "secondary" : "outline"} className={s.status === "active" ? "bg-success/10 text-success" : ""}>
-                        {s.status}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="inline-flex items-center gap-1">
-                        <Button size="icon" variant="ghost" aria-label="Call"><Phone className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" aria-label="WhatsApp"><MessageCircle className="h-4 w-4" /></Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {rows.length === 0 && (
-                  <tr><td colSpan={7} className="px-4 py-16 text-center text-sm text-muted-foreground">No students match your filters.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex items-center justify-between border-t border-border px-4 py-3 text-xs text-muted-foreground">
-            <span>Page {page} of {pageCount}</span>
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
-              <Button size="sm" variant="outline" disabled={page === pageCount} onClick={() => setPage((p) => p + 1)}>Next</Button>
-            </div>
-          </div>
-        </div>
+        <DataTable
+          rows={filtered}
+          columns={columns}
+          searchKeys={["full_name", "admission_no", "phone", "email"]}
+          searchPlaceholder="Search by name, admission no, phone…"
+          exportName="students"
+          exportTitle="Students"
+          loading={isLoading}
+          onRowClick={(r) => navigate({ to: "/app/students/$id", params: { id: r.id } })}
+          toolbar={
+            <>
+              <Select value={cls} onValueChange={setCls}>
+                <SelectTrigger className="h-9 w-[140px]"><SelectValue placeholder="Class" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All classes</SelectItem>
+                  {classes.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger className="h-9 w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="alumni">Alumni</SelectItem>
+                  <SelectItem value="dropped">Dropped</SelectItem>
+                </SelectContent>
+              </Select>
+            </>
+          }
+        />
       </PageBody>
+
+      <StudentFormDialog open={dialogOpen} onOpenChange={setDialogOpen} student={editing} />
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        onOpenChange={(v) => !v && setDeleting(null)}
+        title="Remove student?"
+        description={`This will permanently remove ${deleting?.full_name}. This cannot be undone.`}
+        confirmLabel="Remove"
+        destructive
+        onConfirm={() => deleting && removeMut.mutate(deleting.id)}
+      />
     </>
   );
 }

@@ -1,109 +1,183 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Save } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { batchList, students } from "@/lib/mock/data";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { batchesApi, attendanceApi } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
+import { can } from "@/lib/rbac";
+import type { Database } from "@/integrations/supabase/types";
+
+type Status = Database["public"]["Enums"]["attendance_status"];
 
 export const Route = createFileRoute("/app/attendance")({
   component: AttendancePage,
 });
 
-type Status = "P" | "A" | "L";
+const STATUS_COLORS: Record<Status, string> = {
+  present: "bg-success text-success-foreground",
+  absent: "bg-destructive text-destructive-foreground",
+  late: "bg-warning text-warning-foreground",
+  excused: "bg-muted text-muted-foreground",
+};
 
 function AttendancePage() {
-  const [batchId, setBatchId] = useState(batchList[0].id);
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const batch = batchList.find((b) => b.id === batchId)!;
-  const roster = useMemo(() => students.filter((s) => s.batch === batch.name).slice(0, 20), [batch.name]);
+  const qc = useQueryClient();
+  const { user, roles } = useAuth();
+  const canWrite = can("attendance:write", roles);
+  const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
+  const [batchId, setBatchId] = useState<string>("");
+  const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
+
+  useEffect(() => { if (!batchId && batches[0]) setBatchId(batches[0].id); }, [batches, batchId]);
+
+  const { data: roster = [] } = useQuery({
+    queryKey: ["batch-roster", batchId],
+    queryFn: () => batchesApi.roster(batchId),
+    enabled: Boolean(batchId),
+  });
+
+  const { data: existing = [] } = useQuery({
+    queryKey: ["attendance", batchId, date],
+    queryFn: () => attendanceApi.listForBatchDate(batchId, date),
+    enabled: Boolean(batchId && date),
+  });
+
   const [marks, setMarks] = useState<Record<string, Status>>({});
 
-  useEffect(() => setMarks({}), [batchId, date]);
+  const initial = useMemo(() => {
+    const m: Record<string, Status> = {};
+    existing.forEach((a) => { m[a.student_id] = a.status; });
+    return m;
+  }, [existing]);
 
-  const setAll = (v: Status) => setMarks(Object.fromEntries(roster.map((s) => [s.id, v])));
-  const counts = { P: 0, A: 0, L: 0 } as Record<Status, number>;
-  roster.forEach((s) => { const v = marks[s.id]; if (v) counts[v]++; });
-  const unmarked = roster.length - counts.P - counts.A - counts.L;
+  useEffect(() => { setMarks({}); }, [batchId, date]);
+  const merged = { ...initial, ...marks };
+
+  const saveMut = useMutation({
+    mutationFn: async () => {
+      const rows = roster
+        .filter((s) => merged[s.id])
+        .map((s) => ({
+          student_id: s.id, batch_id: batchId, date, status: merged[s.id],
+          marked_by: user?.id,
+        }));
+      if (rows.length === 0) return;
+      await attendanceApi.upsertMany(rows);
+    },
+    onSuccess: () => {
+      toast.success("Attendance saved");
+      qc.invalidateQueries({ queryKey: ["attendance", batchId, date] });
+      setMarks({});
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  function markAll(s: Status) {
+    const m: Record<string, Status> = {};
+    roster.forEach((r) => { m[r.id] = s; });
+    setMarks(m);
+  }
+
+  const present = roster.filter((s) => merged[s.id] === "present").length;
+  const absent = roster.filter((s) => merged[s.id] === "absent").length;
 
   return (
     <>
       <PageHeader
         title="Attendance"
-        description="Fast marking. Press P / A / L on your keyboard while a row is focused."
-        actions={<Button size="sm">Save attendance</Button>}
+        description="Mark today’s attendance in seconds."
+        actions={canWrite && roster.length > 0 ? (
+          <Button size="sm" className="gap-1.5" onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
+            <Save className="h-4 w-4" />Save
+          </Button>
+        ) : null}
       />
       <PageBody>
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <Select value={batchId} onValueChange={setBatchId}>
-            <SelectTrigger className="h-9 w-[220px]"><SelectValue /></SelectTrigger>
-            <SelectContent>{batchList.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
-          </Select>
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 w-[170px]" />
-          <div className="ml-auto flex flex-wrap items-center gap-2 text-xs">
-            <Chip label={`Present ${counts.P}`} tone="success" />
-            <Chip label={`Absent ${counts.A}`} tone="danger" />
-            <Chip label={`Late ${counts.L}`} tone="warning" />
-            <Chip label={`Unmarked ${unmarked}`} tone="muted" />
+        <div className="mb-4 flex flex-wrap items-end gap-3">
+          <div className="space-y-1.5">
+            <Label>Batch</Label>
+            <Select value={batchId} onValueChange={setBatchId}>
+              <SelectTrigger className="h-9 w-[220px]"><SelectValue placeholder="Select batch" /></SelectTrigger>
+              <SelectContent>
+                {batches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
+          <div className="space-y-1.5">
+            <Label>Date</Label>
+            <Input type="date" className="h-9 w-[180px]" value={date} onChange={(e) => setDate(e.target.value)} />
+          </div>
+          {canWrite && roster.length > 0 && (
+            <div className="ml-auto flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => markAll("present")}>All present</Button>
+              <Button size="sm" variant="outline" onClick={() => markAll("absent")}>All absent</Button>
+            </div>
+          )}
         </div>
 
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => setAll("P")}>Mark all present</Button>
-          <Button size="sm" variant="outline" onClick={() => setMarks({})}>Clear</Button>
+        <div className="mb-4 grid gap-3 sm:grid-cols-3">
+          <Stat label="Roster" value={String(roster.length)} />
+          <Stat label="Present" value={String(present)} />
+          <Stat label="Absent" value={String(absent)} />
         </div>
 
         <div className="overflow-hidden rounded-lg border border-border bg-card">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-              <tr><th className="px-4 py-3">Student</th><th className="px-4 py-3">Admission #</th><th className="px-4 py-3 text-right">Status</th></tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {roster.map((s) => {
-                const cur = marks[s.id];
-                return (
-                  <tr key={s.id}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      const key = e.key.toUpperCase();
-                      if (key === "P" || key === "A" || key === "L") {
-                        e.preventDefault();
-                        setMarks((m) => ({ ...m, [s.id]: key as Status }));
-                      }
-                    }}
-                    className="outline-none focus:bg-accent/40">
-                    <td className="px-4 py-2.5 font-medium">{s.name}</td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{s.admissionNo}</td>
-                    <td className="px-4 py-2.5">
-                      <div className="flex justify-end gap-1">
-                        {(["P", "A", "L"] as const).map((k) => (
-                          <button key={k}
-                            onClick={() => setMarks((m) => ({ ...m, [s.id]: k }))}
-                            className={`h-7 w-7 rounded-md border text-xs font-semibold transition-colors ${cur === k
-                              ? k === "P" ? "border-success bg-success text-success-foreground"
-                                : k === "A" ? "border-destructive bg-destructive text-destructive-foreground"
-                                : "border-warning bg-warning text-warning-foreground"
-                              : "border-border bg-background text-muted-foreground hover:bg-muted"}`}>
-                            {k}
-                          </button>
-                        ))}
+          {roster.length === 0 ? (
+            <div className="p-8 text-center text-sm text-muted-foreground">No students in this batch.</div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3">Student</th>
+                  <th className="px-4 py-3">Admission #</th>
+                  <th className="px-4 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {roster.map((s) => (
+                  <tr key={s.id}>
+                    <td className="px-4 py-3 font-medium">{s.full_name}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{s.admission_no}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        {(["present","absent","late","excused"] as Status[]).map((st) => {
+                          const active = merged[s.id] === st;
+                          return (
+                            <button
+                              key={st}
+                              type="button"
+                              disabled={!canWrite}
+                              onClick={() => setMarks((m) => ({ ...m, [s.id]: st }))}
+                              className={`h-7 rounded-md border px-2.5 text-xs capitalize transition-colors ${active ? STATUS_COLORS[st] + " border-transparent" : "border-border bg-background text-muted-foreground hover:text-foreground"}`}
+                            >
+                              {st[0].toUpperCase()}
+                            </button>
+                          );
+                        })}
                       </div>
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </PageBody>
     </>
   );
 }
 
-function Chip({ label, tone }: { label: string; tone: "success" | "danger" | "warning" | "muted" }) {
-  const map = {
-    success: "bg-success/10 text-success", danger: "bg-destructive/10 text-destructive",
-    warning: "bg-warning/10 text-warning", muted: "bg-muted text-muted-foreground",
-  } as const;
-  return <span className={`rounded-md px-2 py-1 font-medium ${map[tone]}`}>{label}</span>;
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-4">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1.5 text-lg font-semibold">{value}</p>
+    </div>
+  );
 }

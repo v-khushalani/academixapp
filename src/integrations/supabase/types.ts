@@ -14,16 +14,539 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attendance: {
+        Row: {
+          batch_id: string | null
+          created_at: string
+          date: string
+          id: string
+          marked_by: string | null
+          remarks: string | null
+          status: Database["public"]["Enums"]["attendance_status"]
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          marked_by?: string | null
+          remarks?: string | null
+          status: Database["public"]["Enums"]["attendance_status"]
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          marked_by?: string | null
+          remarks?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      batches: {
+        Row: {
+          capacity: number
+          course_id: string | null
+          created_at: string
+          end_date: string | null
+          faculty_id: string | null
+          id: string
+          name: string
+          notes: string | null
+          room: string | null
+          schedule: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["batch_status"]
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          course_id?: string | null
+          created_at?: string
+          end_date?: string | null
+          faculty_id?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          room?: string | null
+          schedule?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["batch_status"]
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          course_id?: string | null
+          created_at?: string
+          end_date?: string | null
+          faculty_id?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          room?: string | null
+          schedule?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["batch_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "batches_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          code: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fees: {
+        Row: {
+          amount: number
+          amount_paid: number
+          batch_id: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          method: string | null
+          paid_date: string | null
+          receipt_no: string | null
+          status: Database["public"]["Enums"]["fee_status"]
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          amount_paid?: number
+          batch_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          method?: string | null
+          paid_date?: string | null
+          receipt_no?: string | null
+          status?: Database["public"]["Enums"]["fee_status"]
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          amount_paid?: number
+          batch_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          method?: string | null
+          paid_date?: string | null
+          receipt_no?: string | null
+          status?: Database["public"]["Enums"]["fee_status"]
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fees_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fees_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          assigned_to: string | null
+          course_interest: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          next_followup: string | null
+          notes: string | null
+          phone: string | null
+          source: string | null
+          stage: Database["public"]["Enums"]["lead_stage"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          course_interest?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          next_followup?: string | null
+          notes?: string | null
+          phone?: string | null
+          source?: string | null
+          stage?: Database["public"]["Enums"]["lead_stage"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          course_interest?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          next_followup?: string | null
+          notes?: string | null
+          phone?: string | null
+          source?: string | null
+          stage?: Database["public"]["Enums"]["lead_stage"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          address: string | null
+          admission_date: string
+          admission_no: string
+          batch_id: string | null
+          class: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          notes: string | null
+          parent_name: string | null
+          phone: string | null
+          school: string | null
+          status: Database["public"]["Enums"]["student_status"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          admission_date?: string
+          admission_no: string
+          batch_id?: string | null
+          class?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          notes?: string | null
+          parent_name?: string | null
+          phone?: string | null
+          school?: string | null
+          status?: Database["public"]["Enums"]["student_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          admission_date?: string
+          admission_no?: string
+          batch_id?: string | null
+          class?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          notes?: string | null
+          parent_name?: string | null
+          phone?: string | null
+          school?: string | null
+          status?: Database["public"]["Enums"]["student_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjects: {
+        Row: {
+          code: string | null
+          course_id: string | null
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subjects_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_results: {
+        Row: {
+          created_at: string
+          id: string
+          marks: number | null
+          remarks: string | null
+          student_id: string
+          test_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          marks?: number | null
+          remarks?: string | null
+          student_id: string
+          test_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          marks?: number | null
+          remarks?: string | null
+          student_id?: string
+          test_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_results_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tests: {
+        Row: {
+          batch_id: string | null
+          created_at: string
+          created_by: string | null
+          date: string
+          id: string
+          max_marks: number
+          status: Database["public"]["Enums"]["test_status"]
+          subject: string | null
+          title: string
+          type: Database["public"]["Enums"]["test_type"]
+          updated_at: string
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          id?: string
+          max_marks?: number
+          status?: Database["public"]["Enums"]["test_status"]
+          subject?: string | null
+          title: string
+          type?: Database["public"]["Enums"]["test_type"]
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          id?: string
+          max_marks?: number
+          status?: Database["public"]["Enums"]["test_status"]
+          subject?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["test_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tests_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_my_roles: {
+        Args: never
+        Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      has_any_role: {
+        Args: {
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "owner"
+        | "admin"
+        | "faculty"
+        | "receptionist"
+        | "counsellor"
+        | "accountant"
+        | "student"
+        | "parent"
+      attendance_status: "present" | "absent" | "late" | "excused"
+      batch_status: "active" | "upcoming" | "completed" | "cancelled"
+      fee_status: "pending" | "partial" | "paid" | "overdue" | "waived"
+      lead_stage:
+        | "new"
+        | "contacted"
+        | "visit_scheduled"
+        | "demo"
+        | "negotiation"
+        | "enrolled"
+        | "lost"
+      student_status: "active" | "inactive" | "alumni" | "dropped"
+      test_status: "scheduled" | "ongoing" | "completed" | "cancelled"
+      test_type: "quiz" | "unit" | "midterm" | "final" | "mock" | "practice"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +673,32 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "owner",
+        "admin",
+        "faculty",
+        "receptionist",
+        "counsellor",
+        "accountant",
+        "student",
+        "parent",
+      ],
+      attendance_status: ["present", "absent", "late", "excused"],
+      batch_status: ["active", "upcoming", "completed", "cancelled"],
+      fee_status: ["pending", "partial", "paid", "overdue", "waived"],
+      lead_stage: [
+        "new",
+        "contacted",
+        "visit_scheduled",
+        "demo",
+        "negotiation",
+        "enrolled",
+        "lost",
+      ],
+      student_status: ["active", "inactive", "alumni", "dropped"],
+      test_status: ["scheduled", "ongoing", "completed", "cancelled"],
+      test_type: ["quiz", "unit", "midterm", "final", "mock", "practice"],
+    },
   },
 } as const

@@ -1,82 +1,99 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Grid3x3, List, Plus, Search, Users } from "lucide-react";
+import { toast } from "sonner";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { batchList } from "@/lib/mock/data";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DataTable, type DTColumn } from "@/components/app/data-table";
+import { BatchFormDialog } from "@/components/app/batch-form-dialog";
+import { ConfirmDialog } from "@/components/app/confirm-dialog";
+import { batchesApi, type Batch } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
+import { can } from "@/lib/rbac";
 
 export const Route = createFileRoute("/app/batches")({
   component: BatchesPage,
 });
 
 function BatchesPage() {
-  const [view, setView] = useState<"grid" | "list">("grid");
-  const [q, setQ] = useState("");
-  const rows = batchList.filter((b) => (`${b.name} ${b.faculty}`).toLowerCase().includes(q.toLowerCase()));
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const { roles } = useAuth();
+  const canWrite = can("batch:write", roles);
+  const { data = [], isLoading } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
+  const [status, setStatus] = useState<string>("all");
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Batch | null>(null);
+  const [deleting, setDeleting] = useState<Batch | null>(null);
+
+  const filtered = status === "all" ? data : data.filter((b) => b.status === status);
+
+  const removeMut = useMutation({
+    mutationFn: (id: string) => batchesApi.remove(id),
+    onSuccess: () => { toast.success("Batch removed"); qc.invalidateQueries({ queryKey: ["batches"] }); setDeleting(null); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const columns: DTColumn<Batch>[] = [
+    { key: "name", header: "Batch", sortable: true, value: (r) => r.name, cell: (r) => <span className="font-medium">{r.name}</span> },
+    { key: "schedule", header: "Schedule", value: (r) => r.schedule ?? "", cell: (r) => r.schedule ?? "—" },
+    { key: "room", header: "Room", value: (r) => r.room ?? "", cell: (r) => r.room ?? "—" },
+    { key: "capacity", header: "Capacity", sortable: true, value: (r) => r.capacity },
+    { key: "start_date", header: "Starts", sortable: true, value: (r) => r.start_date ?? "", cell: (r) => r.start_date ?? "—" },
+    {
+      key: "status", header: "Status", sortable: true, value: (r) => r.status,
+      cell: (r) => <Badge variant="secondary" className={r.status === "active" ? "bg-success/10 text-success" : ""}>{r.status}</Badge>,
+    },
+    {
+      key: "actions", header: "", className: "text-right",
+      cell: (r) => canWrite ? (
+        <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+          <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
+          <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleting(r)}><Trash2 className="h-4 w-4" /></Button>
+        </div>
+      ) : null,
+    },
+  ];
 
   return (
     <>
       <PageHeader
         title="Batches"
-        description={`${rows.length} active batches`}
-        actions={<Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" />New batch</Button>}
+        description={`${filtered.length} batches`}
+        actions={canWrite ? <Button size="sm" className="gap-1.5" onClick={() => { setEditing(null); setOpen(true); }}><Plus className="h-4 w-4" />New batch</Button> : null}
       />
       <PageBody>
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[220px] flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search batches or faculty" value={q} onChange={(e) => setQ(e.target.value)} className="h-9 pl-9" />
-          </div>
-          <div className="flex items-center rounded-md border border-border bg-card p-0.5">
-            <Button size="sm" variant={view === "grid" ? "secondary" : "ghost"} className="h-7 px-2" onClick={() => setView("grid")}><Grid3x3 className="h-4 w-4" /></Button>
-            <Button size="sm" variant={view === "list" ? "secondary" : "ghost"} className="h-7 px-2" onClick={() => setView("list")}><List className="h-4 w-4" /></Button>
-          </div>
-        </div>
-
-        {view === "grid" ? (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {rows.map((b) => (
-              <Link key={b.id} to="/app/batches/$id" params={{ id: b.id }} className="group rounded-lg border border-border bg-card p-5 transition-colors hover:border-primary/30">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold">{b.name}</h3>
-                  <span className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground">{b.classroom}</span>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">{b.faculty}</p>
-                <p className="mt-3 text-xs text-muted-foreground">{b.timing}</p>
-                <div className="mt-4 flex items-center justify-between border-t border-border pt-4 text-sm">
-                  <span className="inline-flex items-center gap-1.5 text-muted-foreground"><Users className="h-4 w-4" />{b.strength}/{b.capacity}</span>
-                  <span className={b.attendancePct >= 85 ? "text-success" : "text-warning"}>{b.attendancePct}%</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-lg border border-border bg-card">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">Batch</th><th className="px-4 py-3">Faculty</th>
-                  <th className="px-4 py-3">Timing</th><th className="px-4 py-3">Room</th>
-                  <th className="px-4 py-3">Strength</th><th className="px-4 py-3">Attendance</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {rows.map((b) => (
-                  <tr key={b.id} className="hover:bg-muted/30">
-                    <td className="px-4 py-3 font-medium"><Link to="/app/batches/$id" params={{ id: b.id }}>{b.name}</Link></td>
-                    <td className="px-4 py-3">{b.faculty}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{b.timing}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{b.classroom}</td>
-                    <td className="px-4 py-3">{b.strength}/{b.capacity}</td>
-                    <td className="px-4 py-3">{b.attendancePct}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable
+          rows={filtered}
+          columns={columns}
+          searchKeys={["name", "schedule", "room"]}
+          searchPlaceholder="Search batches, schedule, room…"
+          exportName="batches"
+          exportTitle="Batches"
+          loading={isLoading}
+          onRowClick={(r) => navigate({ to: "/app/batches/$id", params: { id: r.id } })}
+          toolbar={
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="upcoming">Upcoming</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          }
+        />
       </PageBody>
+      <BatchFormDialog open={open} onOpenChange={setOpen} batch={editing} />
+      <ConfirmDialog open={Boolean(deleting)} onOpenChange={(v) => !v && setDeleting(null)}
+        title="Remove batch?" description={`Delete ${deleting?.name}. Students in this batch will become unassigned.`}
+        confirmLabel="Remove" destructive
+        onConfirm={() => deleting && removeMut.mutate(deleting.id)} />
     </>
   );
 }

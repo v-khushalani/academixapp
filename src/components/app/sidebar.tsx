@@ -1,60 +1,44 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
-  Users,
-  UserPlus,
-  Layers,
-  CalendarCheck,
-  Wallet,
-  FileText,
-  BookOpen,
-  FolderOpen,
-  Calendar,
-  GraduationCap,
-  BarChart3,
-  Bell,
-  Settings,
-  LogOut,
-  User,
+  LayoutDashboard, Users, UserPlus, Layers, CalendarCheck, Wallet,
+  FileText, BookOpen, FolderOpen, Calendar, GraduationCap, BarChart3,
+  Bell, Settings, LogOut, User,
 } from "lucide-react";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
+  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
+  SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/use-auth";
+import { canAccess, type ModuleKey } from "@/lib/rbac";
 
-type NavItem = { title: string; url: string; icon: typeof LayoutDashboard; exact?: boolean };
+type NavItem = { title: string; url: string; icon: typeof LayoutDashboard; key: ModuleKey; exact?: boolean };
 const nav: NavItem[] = [
-  { title: "Dashboard", url: "/app", icon: LayoutDashboard, exact: true },
-  { title: "Students", url: "/app/students", icon: Users },
-  { title: "Admissions", url: "/app/admissions", icon: UserPlus },
-  { title: "Batches", url: "/app/batches", icon: Layers },
-  { title: "Attendance", url: "/app/attendance", icon: CalendarCheck },
-  { title: "Fees", url: "/app/fees", icon: Wallet },
-  { title: "Tests", url: "/app/tests", icon: FileText },
-  { title: "Homework", url: "/app/homework", icon: BookOpen },
-  { title: "Study Material", url: "/app/study-material", icon: FolderOpen },
-  { title: "Timetable", url: "/app/timetable", icon: Calendar },
-  { title: "Faculty", url: "/app/faculty", icon: GraduationCap },
-  { title: "Reports", url: "/app/reports", icon: BarChart3 },
-  { title: "Notifications", url: "/app/notifications", icon: Bell },
-  { title: "Settings", url: "/app/settings", icon: Settings },
+  { title: "Dashboard", url: "/app", icon: LayoutDashboard, key: "dashboard", exact: true },
+  { title: "Students", url: "/app/students", icon: Users, key: "students" },
+  { title: "Admissions", url: "/app/admissions", icon: UserPlus, key: "admissions" },
+  { title: "Batches", url: "/app/batches", icon: Layers, key: "batches" },
+  { title: "Attendance", url: "/app/attendance", icon: CalendarCheck, key: "attendance" },
+  { title: "Fees", url: "/app/fees", icon: Wallet, key: "fees" },
+  { title: "Tests", url: "/app/tests", icon: FileText, key: "tests" },
+  { title: "Homework", url: "/app/homework", icon: BookOpen, key: "homework" },
+  { title: "Study Material", url: "/app/study-material", icon: FolderOpen, key: "study-material" },
+  { title: "Timetable", url: "/app/timetable", icon: Calendar, key: "timetable" },
+  { title: "Faculty", url: "/app/faculty", icon: GraduationCap, key: "faculty" },
+  { title: "Reports", url: "/app/reports", icon: BarChart3, key: "reports" },
+  { title: "Notifications", url: "/app/notifications", icon: Bell, key: "notifications" },
+  { title: "Settings", url: "/app/settings", icon: Settings, key: "settings" },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const { roles, signOut } = useAuth();
 
   const isActive = (url: string, exact?: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(url + "/");
+
+  const items = nav.filter((n) => roles.length === 0 || canAccess(n.key, roles));
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -65,22 +49,17 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold leading-tight text-foreground">
-                VK Academy
-              </p>
-              <p className="truncate text-[11px] leading-tight text-muted-foreground">
-                Institute OS
-              </p>
+              <p className="truncate text-sm font-semibold leading-tight text-foreground">VK Academy</p>
+              <p className="truncate text-[11px] leading-tight text-muted-foreground">Institute OS</p>
             </div>
           )}
         </div>
       </SidebarHeader>
-
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {nav.map((item) => {
+              {items.map((item) => {
                 const active = isActive(item.url, item.exact);
                 return (
                   <SidebarMenuItem key={item.url}>
@@ -97,7 +76,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
@@ -107,11 +85,9 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Sign out">
-              <Link to="/login" className="flex items-center gap-2">
-                <LogOut className="h-4 w-4 shrink-0" />
-                {!collapsed && <span>Sign out</span>}
-              </Link>
+            <SidebarMenuButton tooltip="Sign out" onClick={() => signOut()}>
+              <LogOut className="h-4 w-4 shrink-0" />
+              {!collapsed && <span>Sign out</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
