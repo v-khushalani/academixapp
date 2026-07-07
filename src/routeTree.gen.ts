@@ -9,38 +9,324 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppTimetableRouteImport } from './routes/app.timetable'
+import { Route as AppTestsRouteImport } from './routes/app.tests'
+import { Route as AppStudyMaterialRouteImport } from './routes/app.study-material'
+import { Route as AppStudentsRouteImport } from './routes/app.students'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppReportsRouteImport } from './routes/app.reports'
+import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
+import { Route as AppHomeworkRouteImport } from './routes/app.homework'
+import { Route as AppFeesRouteImport } from './routes/app.fees'
+import { Route as AppFacultyRouteImport } from './routes/app.faculty'
+import { Route as AppBatchesRouteImport } from './routes/app.batches'
+import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
+import { Route as AppAdmissionsRouteImport } from './routes/app.admissions'
+import { Route as AppTestsIdRouteImport } from './routes/app.tests.$id'
+import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
+import { Route as AppBatchesIdRouteImport } from './routes/app.batches.$id'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTimetableRoute = AppTimetableRouteImport.update({
+  id: '/timetable',
+  path: '/timetable',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTestsRoute = AppTestsRouteImport.update({
+  id: '/tests',
+  path: '/tests',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStudyMaterialRoute = AppStudyMaterialRouteImport.update({
+  id: '/study-material',
+  path: '/study-material',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStudentsRoute = AppStudentsRouteImport.update({
+  id: '/students',
+  path: '/students',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotificationsRoute = AppNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHomeworkRoute = AppHomeworkRouteImport.update({
+  id: '/homework',
+  path: '/homework',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFeesRoute = AppFeesRouteImport.update({
+  id: '/fees',
+  path: '/fees',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFacultyRoute = AppFacultyRouteImport.update({
+  id: '/faculty',
+  path: '/faculty',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBatchesRoute = AppBatchesRouteImport.update({
+  id: '/batches',
+  path: '/batches',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAttendanceRoute = AppAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdmissionsRoute = AppAdmissionsRouteImport.update({
+  id: '/admissions',
+  path: '/admissions',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTestsIdRoute = AppTestsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppTestsRoute,
+} as any)
+const AppStudentsIdRoute = AppStudentsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppStudentsRoute,
+} as any)
+const AppBatchesIdRoute = AppBatchesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppBatchesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/app/admissions': typeof AppAdmissionsRoute
+  '/app/attendance': typeof AppAttendanceRoute
+  '/app/batches': typeof AppBatchesRouteWithChildren
+  '/app/faculty': typeof AppFacultyRoute
+  '/app/fees': typeof AppFeesRoute
+  '/app/homework': typeof AppHomeworkRoute
+  '/app/notifications': typeof AppNotificationsRoute
+  '/app/reports': typeof AppReportsRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/students': typeof AppStudentsRouteWithChildren
+  '/app/study-material': typeof AppStudyMaterialRoute
+  '/app/tests': typeof AppTestsRouteWithChildren
+  '/app/timetable': typeof AppTimetableRoute
+  '/app/': typeof AppIndexRoute
+  '/app/batches/$id': typeof AppBatchesIdRoute
+  '/app/students/$id': typeof AppStudentsIdRoute
+  '/app/tests/$id': typeof AppTestsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/app/admissions': typeof AppAdmissionsRoute
+  '/app/attendance': typeof AppAttendanceRoute
+  '/app/batches': typeof AppBatchesRouteWithChildren
+  '/app/faculty': typeof AppFacultyRoute
+  '/app/fees': typeof AppFeesRoute
+  '/app/homework': typeof AppHomeworkRoute
+  '/app/notifications': typeof AppNotificationsRoute
+  '/app/reports': typeof AppReportsRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/students': typeof AppStudentsRouteWithChildren
+  '/app/study-material': typeof AppStudyMaterialRoute
+  '/app/tests': typeof AppTestsRouteWithChildren
+  '/app/timetable': typeof AppTimetableRoute
+  '/app': typeof AppIndexRoute
+  '/app/batches/$id': typeof AppBatchesIdRoute
+  '/app/students/$id': typeof AppStudentsIdRoute
+  '/app/tests/$id': typeof AppTestsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/app/admissions': typeof AppAdmissionsRoute
+  '/app/attendance': typeof AppAttendanceRoute
+  '/app/batches': typeof AppBatchesRouteWithChildren
+  '/app/faculty': typeof AppFacultyRoute
+  '/app/fees': typeof AppFeesRoute
+  '/app/homework': typeof AppHomeworkRoute
+  '/app/notifications': typeof AppNotificationsRoute
+  '/app/reports': typeof AppReportsRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/students': typeof AppStudentsRouteWithChildren
+  '/app/study-material': typeof AppStudyMaterialRoute
+  '/app/tests': typeof AppTestsRouteWithChildren
+  '/app/timetable': typeof AppTimetableRoute
+  '/app/': typeof AppIndexRoute
+  '/app/batches/$id': typeof AppBatchesIdRoute
+  '/app/students/$id': typeof AppStudentsIdRoute
+  '/app/tests/$id': typeof AppTestsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/forgot-password'
+    | '/login'
+    | '/signup'
+    | '/app/admissions'
+    | '/app/attendance'
+    | '/app/batches'
+    | '/app/faculty'
+    | '/app/fees'
+    | '/app/homework'
+    | '/app/notifications'
+    | '/app/reports'
+    | '/app/settings'
+    | '/app/students'
+    | '/app/study-material'
+    | '/app/tests'
+    | '/app/timetable'
+    | '/app/'
+    | '/app/batches/$id'
+    | '/app/students/$id'
+    | '/app/tests/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/forgot-password'
+    | '/login'
+    | '/signup'
+    | '/app/admissions'
+    | '/app/attendance'
+    | '/app/batches'
+    | '/app/faculty'
+    | '/app/fees'
+    | '/app/homework'
+    | '/app/notifications'
+    | '/app/reports'
+    | '/app/settings'
+    | '/app/students'
+    | '/app/study-material'
+    | '/app/tests'
+    | '/app/timetable'
+    | '/app'
+    | '/app/batches/$id'
+    | '/app/students/$id'
+    | '/app/tests/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/forgot-password'
+    | '/login'
+    | '/signup'
+    | '/app/admissions'
+    | '/app/attendance'
+    | '/app/batches'
+    | '/app/faculty'
+    | '/app/fees'
+    | '/app/homework'
+    | '/app/notifications'
+    | '/app/reports'
+    | '/app/settings'
+    | '/app/students'
+    | '/app/study-material'
+    | '/app/tests'
+    | '/app/timetable'
+    | '/app/'
+    | '/app/batches/$id'
+    | '/app/students/$id'
+    | '/app/tests/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +334,207 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/timetable': {
+      id: '/app/timetable'
+      path: '/timetable'
+      fullPath: '/app/timetable'
+      preLoaderRoute: typeof AppTimetableRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/tests': {
+      id: '/app/tests'
+      path: '/tests'
+      fullPath: '/app/tests'
+      preLoaderRoute: typeof AppTestsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/study-material': {
+      id: '/app/study-material'
+      path: '/study-material'
+      fullPath: '/app/study-material'
+      preLoaderRoute: typeof AppStudyMaterialRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/students': {
+      id: '/app/students'
+      path: '/students'
+      fullPath: '/app/students'
+      preLoaderRoute: typeof AppStudentsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/reports': {
+      id: '/app/reports'
+      path: '/reports'
+      fullPath: '/app/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/notifications': {
+      id: '/app/notifications'
+      path: '/notifications'
+      fullPath: '/app/notifications'
+      preLoaderRoute: typeof AppNotificationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/homework': {
+      id: '/app/homework'
+      path: '/homework'
+      fullPath: '/app/homework'
+      preLoaderRoute: typeof AppHomeworkRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/fees': {
+      id: '/app/fees'
+      path: '/fees'
+      fullPath: '/app/fees'
+      preLoaderRoute: typeof AppFeesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/faculty': {
+      id: '/app/faculty'
+      path: '/faculty'
+      fullPath: '/app/faculty'
+      preLoaderRoute: typeof AppFacultyRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/batches': {
+      id: '/app/batches'
+      path: '/batches'
+      fullPath: '/app/batches'
+      preLoaderRoute: typeof AppBatchesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/attendance': {
+      id: '/app/attendance'
+      path: '/attendance'
+      fullPath: '/app/attendance'
+      preLoaderRoute: typeof AppAttendanceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/admissions': {
+      id: '/app/admissions'
+      path: '/admissions'
+      fullPath: '/app/admissions'
+      preLoaderRoute: typeof AppAdmissionsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/tests/$id': {
+      id: '/app/tests/$id'
+      path: '/$id'
+      fullPath: '/app/tests/$id'
+      preLoaderRoute: typeof AppTestsIdRouteImport
+      parentRoute: typeof AppTestsRoute
+    }
+    '/app/students/$id': {
+      id: '/app/students/$id'
+      path: '/$id'
+      fullPath: '/app/students/$id'
+      preLoaderRoute: typeof AppStudentsIdRouteImport
+      parentRoute: typeof AppStudentsRoute
+    }
+    '/app/batches/$id': {
+      id: '/app/batches/$id'
+      path: '/$id'
+      fullPath: '/app/batches/$id'
+      preLoaderRoute: typeof AppBatchesIdRouteImport
+      parentRoute: typeof AppBatchesRoute
+    }
   }
 }
 
+interface AppBatchesRouteChildren {
+  AppBatchesIdRoute: typeof AppBatchesIdRoute
+}
+
+const AppBatchesRouteChildren: AppBatchesRouteChildren = {
+  AppBatchesIdRoute: AppBatchesIdRoute,
+}
+
+const AppBatchesRouteWithChildren = AppBatchesRoute._addFileChildren(
+  AppBatchesRouteChildren,
+)
+
+interface AppStudentsRouteChildren {
+  AppStudentsIdRoute: typeof AppStudentsIdRoute
+}
+
+const AppStudentsRouteChildren: AppStudentsRouteChildren = {
+  AppStudentsIdRoute: AppStudentsIdRoute,
+}
+
+const AppStudentsRouteWithChildren = AppStudentsRoute._addFileChildren(
+  AppStudentsRouteChildren,
+)
+
+interface AppTestsRouteChildren {
+  AppTestsIdRoute: typeof AppTestsIdRoute
+}
+
+const AppTestsRouteChildren: AppTestsRouteChildren = {
+  AppTestsIdRoute: AppTestsIdRoute,
+}
+
+const AppTestsRouteWithChildren = AppTestsRoute._addFileChildren(
+  AppTestsRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppAdmissionsRoute: typeof AppAdmissionsRoute
+  AppAttendanceRoute: typeof AppAttendanceRoute
+  AppBatchesRoute: typeof AppBatchesRouteWithChildren
+  AppFacultyRoute: typeof AppFacultyRoute
+  AppFeesRoute: typeof AppFeesRoute
+  AppHomeworkRoute: typeof AppHomeworkRoute
+  AppNotificationsRoute: typeof AppNotificationsRoute
+  AppReportsRoute: typeof AppReportsRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppStudentsRoute: typeof AppStudentsRouteWithChildren
+  AppStudyMaterialRoute: typeof AppStudyMaterialRoute
+  AppTestsRoute: typeof AppTestsRouteWithChildren
+  AppTimetableRoute: typeof AppTimetableRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAdmissionsRoute: AppAdmissionsRoute,
+  AppAttendanceRoute: AppAttendanceRoute,
+  AppBatchesRoute: AppBatchesRouteWithChildren,
+  AppFacultyRoute: AppFacultyRoute,
+  AppFeesRoute: AppFeesRoute,
+  AppHomeworkRoute: AppHomeworkRoute,
+  AppNotificationsRoute: AppNotificationsRoute,
+  AppReportsRoute: AppReportsRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppStudentsRoute: AppStudentsRouteWithChildren,
+  AppStudyMaterialRoute: AppStudyMaterialRoute,
+  AppTestsRoute: AppTestsRouteWithChildren,
+  AppTimetableRoute: AppTimetableRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

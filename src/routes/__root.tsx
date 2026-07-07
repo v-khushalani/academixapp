@@ -77,14 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "VK Academy — Institute Operating System" },
+      { name: "description", content: "The modern operating system for VK Academy. Manage students, admissions, batches, attendance, fees and tests from a single fast dashboard." },
+      { name: "author", content: "VK Academy" },
+      { property: "og:title", content: "VK Academy — Institute Operating System" },
+      { property: "og:description", content: "Manage your entire coaching institute from one premium, lightning-fast dashboard." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
