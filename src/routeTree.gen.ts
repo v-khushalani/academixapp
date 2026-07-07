@@ -25,6 +25,7 @@ import { Route as AppHomeworkRouteImport } from './routes/app.homework'
 import { Route as AppFeesRouteImport } from './routes/app.fees'
 import { Route as AppFacultyRouteImport } from './routes/app.faculty'
 import { Route as AppBatchesRouteImport } from './routes/app.batches'
+import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
 import { Route as AppTestsIdRouteImport } from './routes/app.tests.$id'
 import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
 import { Route as AppBatchesIdRouteImport } from './routes/app.batches.$id'
@@ -109,6 +110,11 @@ const AppBatchesRoute = AppBatchesRouteImport.update({
   path: '/batches',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAttendanceRoute = AppAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTestsIdRoute = AppTestsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/signup'
+    | '/app/attendance'
     | '/app/batches'
     | '/app/faculty'
     | '/app/fees'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/signup'
+    | '/app/attendance'
     | '/app/batches'
     | '/app/faculty'
     | '/app/fees'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/signup'
+    | '/app/attendance'
     | '/app/batches'
     | '/app/faculty'
     | '/app/fees'
@@ -375,6 +387,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBatchesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/attendance': {
+      id: '/app/attendance'
+      path: '/attendance'
+      fullPath: '/app/attendance'
+      preLoaderRoute: typeof AppAttendanceRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/tests/$id': {
       id: '/app/tests/$id'
       path: '/$id'
@@ -436,6 +455,7 @@ const AppTestsRouteWithChildren = AppTestsRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
+  AppAttendanceRoute: typeof AppAttendanceRoute
   AppBatchesRoute: typeof AppBatchesRouteWithChildren
   AppFacultyRoute: typeof AppFacultyRoute
   AppFeesRoute: typeof AppFeesRoute
@@ -450,6 +470,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAttendanceRoute: AppAttendanceRoute,
   AppBatchesRoute: AppBatchesRouteWithChildren,
   AppFacultyRoute: AppFacultyRoute,
   AppFeesRoute: AppFeesRoute,
