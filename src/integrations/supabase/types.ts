@@ -356,6 +356,7 @@ export type Database = {
           parent_phone: string | null
           phone: string | null
           photo_path: string | null
+          preferred_contact: string
           program: string | null
           scholarship_percent: number
           school: string | null
@@ -388,6 +389,7 @@ export type Database = {
           parent_phone?: string | null
           phone?: string | null
           photo_path?: string | null
+          preferred_contact?: string
           program?: string | null
           scholarship_percent?: number
           school?: string | null
@@ -420,6 +422,7 @@ export type Database = {
           parent_phone?: string | null
           phone?: string | null
           photo_path?: string | null
+          preferred_contact?: string
           program?: string | null
           scholarship_percent?: number
           school?: string | null
@@ -678,12 +681,13 @@ export type Database = {
               _parent_phone: string
               _phone: string
               _photo_path?: string
+              _preferred_contact?: string
               _program?: string
               _school: string
               _stream?: string
               _token: string
             }
-            Returns: string
+            Returns: undefined
           }
       get_my_roles: {
         Args: never
@@ -736,6 +740,7 @@ export type Database = {
           _mother_phone: string
           _phone: string
           _photo_path: string
+          _preferred_contact?: string
           _program: string
           _school: string
           _stream: string
