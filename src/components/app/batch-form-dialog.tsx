@@ -13,7 +13,7 @@ type Props = { open: boolean; onOpenChange: (v: boolean) => void; batch?: Batch 
 export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
   const qc = useQueryClient();
   const isEdit = Boolean(batch);
-  const [f, setF] = useState<BatchInsert>({ name: "", capacity: 30, status: "active" });
+  const [f, setF] = useState<BatchInsert>({ name: "", capacity: 30, status: "active", default_fee: 0 });
 
   useEffect(() => {
     if (batch) setF({
@@ -21,8 +21,9 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
       schedule: batch.schedule ?? "", room: batch.room ?? "",
       start_date: batch.start_date ?? undefined, end_date: batch.end_date ?? undefined,
       notes: batch.notes ?? "",
+      default_fee: batch.default_fee ?? 0,
     });
-    else if (open) setF({ name: "", capacity: 30, status: "active" });
+    else if (open) setF({ name: "", capacity: 30, status: "active", default_fee: 0 });
   }, [batch, open]);
 
   const mutation = useMutation({
@@ -45,6 +46,7 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
           <F label="Schedule"><Input placeholder="Mon/Wed/Fri 6-8 PM" value={f.schedule ?? ""} onChange={(e) => setF({ ...f, schedule: e.target.value })} /></F>
           <F label="Room"><Input value={f.room ?? ""} onChange={(e) => setF({ ...f, room: e.target.value })} /></F>
           <F label="Capacity"><Input type="number" min={1} value={f.capacity} onChange={(e) => setF({ ...f, capacity: Number(e.target.value) })} /></F>
+          <F label="Batch fee (₹)"><Input type="number" min={0} step="0.01" value={f.default_fee ?? 0} onChange={(e) => setF({ ...f, default_fee: Number(e.target.value) })} /></F>
           <F label="Status">
             <Select value={f.status ?? "active"} onValueChange={(v) => setF({ ...f, status: v as BatchInsert["status"] })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
