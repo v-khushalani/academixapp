@@ -15,6 +15,11 @@ export type Lead = Tables["leads"]["Row"];
 export type LeadInsert = Tables["leads"]["Insert"];
 export type Attendance = Tables["attendance"]["Row"];
 export type Profile = Tables["profiles"]["Row"];
+export type Faculty = Tables["faculty"]["Row"];
+export type FacultyInsert = Tables["faculty"]["Insert"];
+export type TimetableSlot = Tables["timetable_slots"]["Row"];
+export type TimetableSlotInsert = Tables["timetable_slots"]["Insert"];
+export type Subject = Tables["subjects"]["Row"];
 
 function orThrow<T>({ data, error }: { data: T | null; error: unknown }): T {
   if (error) throw error;
@@ -196,6 +201,57 @@ export const profilesApi = {
 export const rolesApi = {
   async listForUser(userId: string) {
     const { data, error } = await supabase.from("user_roles").select("*").eq("user_id", userId);
+    if (error) throw error; return data ?? [];
+  },
+};
+
+// ---------- Faculty ----------
+export const facultyApi = {
+  async list() {
+    const { data, error } = await supabase.from("faculty").select("*").order("full_name");
+    if (error) throw error; return data ?? [];
+  },
+  async create(input: FacultyInsert) {
+    return orThrow(await supabase.from("faculty").insert(input).select().single());
+  },
+  async update(id: string, input: Partial<FacultyInsert>) {
+    return orThrow(await supabase.from("faculty").update(input).eq("id", id).select().single());
+  },
+  async remove(id: string) {
+    const { error } = await supabase.from("faculty").delete().eq("id", id);
+    if (error) throw error;
+  },
+};
+
+// ---------- Timetable ----------
+export const timetableApi = {
+  async list() {
+    const { data, error } = await supabase
+      .from("timetable_slots")
+      .select("*, batch:batches(id,name), faculty:faculty(id,full_name)")
+      .order("day_of_week")
+      .order("start_time");
+    if (error) throw error; return data ?? [];
+  },
+  async create(input: TimetableSlotInsert) {
+    return orThrow(await supabase.from("timetable_slots").insert(input).select().single());
+  },
+  async update(id: string, input: Partial<TimetableSlotInsert>) {
+    return orThrow(await supabase.from("timetable_slots").update(input).eq("id", id).select().single());
+  },
+  async remove(id: string) {
+    const { error } = await supabase.from("timetable_slots").delete().eq("id", id);
+    if (error) throw error;
+  },
+};
+
+// ---------- Attendance (extended) ----------
+export const attendanceListApi = {
+  async listForDate(date: string) {
+    const { data, error } = await supabase
+      .from("attendance")
+      .select("*, student:students(id,full_name,admission_no,parent_name,parent_phone,phone), batch:batches(id,name)")
+      .eq("date", date);
     if (error) throw error; return data ?? [];
   },
 };
