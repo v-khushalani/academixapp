@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Save } from "lucide-react";
+import { MessageCircle, Save } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { batchesApi, attendanceApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import type { Database } from "@/integrations/supabase/types";
+import { WA_TEMPLATES, openWhatsApp, renderTemplate } from "@/lib/whatsapp";
 
 type Status = Database["public"]["Enums"]["attendance_status"];
 
@@ -87,6 +88,20 @@ function AttendancePage() {
   const present = roster.filter((s) => merged[s.id] === "present").length;
   const absent = roster.filter((s) => merged[s.id] === "absent").length;
 
+  const batchName = batches.find((b) => b.id === batchId)?.name ?? "—";
+
+  function sendAbsentReminder(s: (typeof roster)[number]) {
+    const phone = s.parent_phone ?? s.phone ?? null;
+    const msg = renderTemplate(WA_TEMPLATES.attendance_absent, {
+      student_name: s.full_name,
+      parent_name: s.parent_name ?? "Parent",
+      batch_name: batchName,
+      date,
+      academy_name: "VK Academy",
+    });
+    if (!openWhatsApp(phone, msg)) toast.error("No parent/student phone on file.");
+  }
+
   return (
     <>
       <PageHeader
@@ -145,7 +160,7 @@ function AttendancePage() {
                     <td className="px-4 py-3 font-medium">{s.full_name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{s.admission_no}</td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-1">
+                      <div className="flex items-center gap-1">
                         {(["present","absent","late","excused"] as Status[]).map((st) => {
                           const active = merged[s.id] === st;
                           return (
@@ -160,6 +175,14 @@ function AttendancePage() {
                             </button>
                           );
                         })}
+                        {merged[s.id] === "absent" && (
+                          <button type="button" onClick={() => sendAbsentReminder(s)}
+                            title="Send WhatsApp to parent"
+                            className="ml-2 inline-flex h-7 items-center gap-1 rounded-md border border-success/30 bg-success/10 px-2 text-xs text-success hover:bg-success/20">
+                            <MessageCircle className="h-3.5 w-3.5" />
+                            Send msg
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
