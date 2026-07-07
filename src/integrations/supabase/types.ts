@@ -336,22 +336,31 @@ export type Database = {
           address: string | null
           admission_date: string
           admission_no: string
+          approval_status: string
           batch_id: string | null
           class: string | null
           created_at: string
           discount: number
+          dob: string | null
           email: string | null
+          father_name: string | null
+          father_phone: string | null
           full_name: string
           id: string
+          mother_name: string | null
+          mother_phone: string | null
           notes: string | null
           onboarding_completed_at: string | null
           onboarding_token: string | null
           parent_name: string | null
           parent_phone: string | null
           phone: string | null
+          photo_path: string | null
+          program: string | null
           scholarship_percent: number
           school: string | null
           status: Database["public"]["Enums"]["student_status"]
+          stream: string | null
           updated_at: string
           user_id: string | null
         }
@@ -359,22 +368,31 @@ export type Database = {
           address?: string | null
           admission_date?: string
           admission_no: string
+          approval_status?: string
           batch_id?: string | null
           class?: string | null
           created_at?: string
           discount?: number
+          dob?: string | null
           email?: string | null
+          father_name?: string | null
+          father_phone?: string | null
           full_name: string
           id?: string
+          mother_name?: string | null
+          mother_phone?: string | null
           notes?: string | null
           onboarding_completed_at?: string | null
           onboarding_token?: string | null
           parent_name?: string | null
           parent_phone?: string | null
           phone?: string | null
+          photo_path?: string | null
+          program?: string | null
           scholarship_percent?: number
           school?: string | null
           status?: Database["public"]["Enums"]["student_status"]
+          stream?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -382,22 +400,31 @@ export type Database = {
           address?: string | null
           admission_date?: string
           admission_no?: string
+          approval_status?: string
           batch_id?: string | null
           class?: string | null
           created_at?: string
           discount?: number
+          dob?: string | null
           email?: string | null
+          father_name?: string | null
+          father_phone?: string | null
           full_name?: string
           id?: string
+          mother_name?: string | null
+          mother_phone?: string | null
           notes?: string | null
           onboarding_completed_at?: string | null
           onboarding_token?: string | null
           parent_name?: string | null
           parent_phone?: string | null
           phone?: string | null
+          photo_path?: string | null
+          program?: string | null
           scholarship_percent?: number
           school?: string | null
           status?: Database["public"]["Enums"]["student_status"]
+          stream?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -621,20 +648,43 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      complete_student_onboarding: {
-        Args: {
-          _address: string
-          _class: string
-          _email: string
-          _full_name: string
-          _parent_name: string
-          _parent_phone: string
-          _phone: string
-          _school: string
-          _token: string
-        }
-        Returns: string
-      }
+      complete_student_onboarding:
+        | {
+            Args: {
+              _address: string
+              _class: string
+              _email: string
+              _full_name: string
+              _parent_name: string
+              _parent_phone: string
+              _phone: string
+              _school: string
+              _token: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _address: string
+              _class: string
+              _dob?: string
+              _email: string
+              _father_name?: string
+              _father_phone?: string
+              _full_name: string
+              _mother_name?: string
+              _mother_phone?: string
+              _parent_name: string
+              _parent_phone: string
+              _phone: string
+              _photo_path?: string
+              _program?: string
+              _school: string
+              _stream?: string
+              _token: string
+            }
+            Returns: string
+          }
       get_my_roles: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]
@@ -668,6 +718,29 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      set_student_approval: {
+        Args: { _decision: string; _student_id: string }
+        Returns: undefined
+      }
+      submit_admission_application: {
+        Args: {
+          _address: string
+          _class: string
+          _dob: string
+          _email: string
+          _father_name: string
+          _father_phone: string
+          _full_name: string
+          _mother_name: string
+          _mother_phone: string
+          _phone: string
+          _photo_path: string
+          _program: string
+          _school: string
+          _stream: string
+        }
+        Returns: string
       }
     }
     Enums: {
