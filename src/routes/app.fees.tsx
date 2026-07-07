@@ -85,13 +85,14 @@ function FeesPage() {
       .select("parent_phone, phone, parent_name, full_name, batch:batches(name)")
       .eq("id", r.student_id)
       .maybeSingle();
-    const phone = student?.parent_phone ?? student?.phone ?? null;
+    const s = student as { parent_phone?: string | null; phone?: string | null; parent_name?: string | null; full_name?: string; batch?: { name?: string } | null } | null;
+    const phone = s?.parent_phone ?? s?.phone ?? null;
     const isPaid = r.status === "paid" || Number(r.amount_paid) >= Number(r.amount);
     const tpl = isPaid ? WA_TEMPLATES.fee_received : WA_TEMPLATES.fee_pending;
     const msg = renderTemplate(tpl, {
-      student_name: student?.full_name,
-      parent_name: student?.parent_name ?? "Parent",
-      batch_name: student?.batch?.name ?? "—",
+      student_name: s?.full_name,
+      parent_name: s?.parent_name ?? "Parent",
+      batch_name: s?.batch?.name ?? "—",
       amount: inr(Number(r.amount)),
       amount_paid: inr(Number(r.amount_paid)),
       amount_due: inr(Number(r.amount) - Number(r.amount_paid)),
