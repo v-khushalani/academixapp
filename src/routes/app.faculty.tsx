@@ -57,6 +57,14 @@ function FacultyPage() {
         actions={canWrite ? <Button size="sm" className="gap-1.5" onClick={() => { setEditing(null); setOpen(true); }}><Plus className="h-4 w-4" />Add faculty</Button> : null}
       />
       <PageBody>
+        <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/80 sm:text-sm">
+          <p className="font-semibold">Giving teachers portal access</p>
+          <ol className="mt-1 list-decimal space-y-0.5 pl-4">
+            <li>Ask the teacher to open the app and use <span className="font-mono">Sign up</span> with their email.</li>
+            <li>Open <span className="font-mono">Settings → Users &amp; roles</span> and grant them the <span className="font-mono">faculty</span> role.</li>
+            <li>They will only see Dashboard, Attendance, Tests and Timetable — they can fill attendance and enter test marks, nothing else.</li>
+          </ol>
+        </div>
         <DataTable
           rows={data}
           columns={columns}

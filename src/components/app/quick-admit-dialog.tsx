@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { openWhatsApp } from "@/lib/whatsapp";
 
@@ -19,13 +20,20 @@ export function QuickAdmitDialog({ open, onOpenChange }: Props) {
   const qc = useQueryClient();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [fatherName, setFatherName] = useState("");
+  const [fatherPhone, setFatherPhone] = useState("");
+  const [motherName, setMotherName] = useState("");
+  const [motherPhone, setMotherPhone] = useState("");
+  const [preferred, setPreferred] = useState<"father" | "mother">("father");
   const [link, setLink] = useState<string | null>(null);
   const [studentName, setStudentName] = useState<string>("");
   const [studentPhone, setStudentPhone] = useState<string>("");
 
   useEffect(() => {
     if (open) {
-      setFullName(""); setPhone(""); setLink(null); setStudentName(""); setStudentPhone("");
+      setFullName(""); setPhone(""); setFatherName(""); setFatherPhone("");
+      setMotherName(""); setMotherPhone(""); setPreferred("father");
+      setLink(null); setStudentName(""); setStudentPhone("");
     }
   }, [open]);
 
@@ -33,9 +41,24 @@ export function QuickAdmitDialog({ open, onOpenChange }: Props) {
     mutationFn: async () => {
       const token = makeToken();
       const admission_no = `ADM-${Date.now().toString().slice(-6)}`;
+      const parent_name = preferred === "mother" ? motherName.trim() : fatherName.trim();
+      const parent_phone = preferred === "mother" ? motherPhone.trim() : fatherPhone.trim();
       const { data, error } = await supabase
         .from("students")
-        .insert({ full_name: fullName.trim(), phone: phone.trim() || null, admission_no, onboarding_token: token, status: "active" })
+        .insert({
+          full_name: fullName.trim(),
+          phone: phone.trim() || null,
+          father_name: fatherName.trim() || null,
+          father_phone: fatherPhone.trim() || null,
+          mother_name: motherName.trim() || null,
+          mother_phone: motherPhone.trim() || null,
+          parent_name: parent_name || null,
+          parent_phone: parent_phone || null,
+          preferred_contact: preferred,
+          admission_no,
+          onboarding_token: token,
+          status: "active",
+        })
         .select("id, full_name, phone, onboarding_token")
         .single();
       if (error) throw error;
@@ -55,6 +78,8 @@ export function QuickAdmitDialog({ open, onOpenChange }: Props) {
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!fullName.trim()) { toast.error("Name is required"); return; }
+    if (!fatherName.trim() || !fatherPhone.trim()) { toast.error("Father's name & phone are required"); return; }
+    if (!motherName.trim() || !motherPhone.trim()) { toast.error("Mother's name & phone are required"); return; }
     mut.mutate();
   }
 
@@ -77,17 +102,45 @@ export function QuickAdmitDialog({ open, onOpenChange }: Props) {
         </DialogHeader>
 
         {!link ? (
-          <form onSubmit={onSubmit} className="space-y-3">
+          <form onSubmit={onSubmit} className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
             <div className="space-y-1.5">
               <Label>Student name</Label>
               <Input value={fullName} onChange={(e) => setFullName(e.target.value)} required autoFocus />
             </div>
             <div className="space-y-1.5">
-              <Label>Phone (WhatsApp)</Label>
+              <Label>Student phone (WhatsApp)</Label>
               <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="10-digit number" />
             </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Father's name *</Label>
+                <Input value={fatherName} onChange={(e) => setFatherName(e.target.value)} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Father's phone *</Label>
+                <Input value={fatherPhone} onChange={(e) => setFatherPhone(e.target.value)} required placeholder="10-digit" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Mother's name *</Label>
+                <Input value={motherName} onChange={(e) => setMotherName(e.target.value)} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Mother's phone *</Label>
+                <Input value={motherPhone} onChange={(e) => setMotherPhone(e.target.value)} required placeholder="10-digit" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Who monitors studies? (default WhatsApp contact)</Label>
+              <Select value={preferred} onValueChange={(v) => setPreferred(v as "father" | "mother")}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="father">Father</SelectItem>
+                  <SelectItem value="mother">Mother</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <p className="text-xs text-muted-foreground">
-              We'll create the student and give you a link. The student fills the remaining details themselves.
+              We'll create the student and give you a link. The student fills the remaining details themselves (DOB, class, address, photo, etc.).
             </p>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>

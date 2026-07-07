@@ -25,6 +25,8 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
     admission_no: "", full_name: "", phone: "", email: "", parent_name: "",
     class: "", school: "", address: "", status: "active",
     parent_phone: "", scholarship_percent: 0, discount: 0,
+    father_name: "", father_phone: "", mother_name: "", mother_phone: "",
+    preferred_contact: "father",
   });
 
   useEffect(() => {
@@ -36,6 +38,11 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
         email: student.email ?? "",
         parent_name: student.parent_name ?? "",
         parent_phone: student.parent_phone ?? "",
+        father_name: student.father_name ?? "",
+        father_phone: student.father_phone ?? "",
+        mother_name: student.mother_name ?? "",
+        mother_phone: student.mother_phone ?? "",
+        preferred_contact: (student.preferred_contact === "mother" ? "mother" : "father"),
         class: student.class ?? "",
         school: student.school ?? "",
         address: student.address ?? "",
@@ -50,6 +57,8 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
         full_name: "", phone: "", email: "", parent_name: "",
         parent_phone: "", class: "", school: "", address: "", status: "active",
         scholarship_percent: 0, discount: 0,
+        father_name: "", father_phone: "", mother_name: "", mother_phone: "",
+        preferred_contact: "father",
       });
     }
   }, [student, open]);
@@ -58,8 +67,15 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
 
   const mutation = useMutation({
     mutationFn: async (input: StudentInsert) => {
-      if (isEdit && student) return studentsApi.update(student.id, input);
-      return studentsApi.create(input);
+      const pc = input.preferred_contact === "mother" ? "mother" : "father";
+      const payload: StudentInsert = {
+        ...input,
+        preferred_contact: pc,
+        parent_name: pc === "mother" ? (input.mother_name ?? input.parent_name ?? "") : (input.father_name ?? input.parent_name ?? ""),
+        parent_phone: pc === "mother" ? (input.mother_phone ?? input.parent_phone ?? "") : (input.father_phone ?? input.parent_phone ?? ""),
+      };
+      if (isEdit && student) return studentsApi.update(student.id, payload);
+      return studentsApi.create(payload);
     },
     onSuccess: () => {
       toast.success(isEdit ? "Student updated" : "Student added");
@@ -72,6 +88,8 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!form.father_name?.trim() || !form.father_phone?.trim()) { toast.error("Father's name & phone are required"); return; }
+    if (!form.mother_name?.trim() || !form.mother_phone?.trim()) { toast.error("Mother's name & phone are required"); return; }
     mutation.mutate(form);
   }
 
@@ -86,8 +104,19 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
           <Field label="Full name"><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required /></Field>
           <Field label="Class"><Input value={form.class ?? ""} onChange={(e) => setForm({ ...form, class: e.target.value })} /></Field>
           <Field label="School"><Input value={form.school ?? ""} onChange={(e) => setForm({ ...form, school: e.target.value })} /></Field>
-          <Field label="Parent name"><Input value={form.parent_name ?? ""} onChange={(e) => setForm({ ...form, parent_name: e.target.value })} /></Field>
-          <Field label="Parent phone (WhatsApp)"><Input value={form.parent_phone ?? ""} onChange={(e) => setForm({ ...form, parent_phone: e.target.value })} placeholder="10-digit" /></Field>
+          <Field label="Father's name *"><Input value={form.father_name ?? ""} onChange={(e) => setForm({ ...form, father_name: e.target.value })} required /></Field>
+          <Field label="Father's phone *"><Input value={form.father_phone ?? ""} onChange={(e) => setForm({ ...form, father_phone: e.target.value })} placeholder="10-digit" required /></Field>
+          <Field label="Mother's name *"><Input value={form.mother_name ?? ""} onChange={(e) => setForm({ ...form, mother_name: e.target.value })} required /></Field>
+          <Field label="Mother's phone *"><Input value={form.mother_phone ?? ""} onChange={(e) => setForm({ ...form, mother_phone: e.target.value })} placeholder="10-digit" required /></Field>
+          <Field label="Default WhatsApp contact" className="sm:col-span-2">
+            <Select value={form.preferred_contact ?? "father"} onValueChange={(v) => setForm({ ...form, preferred_contact: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="father">Father</SelectItem>
+                <SelectItem value="mother">Mother</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
           <Field label="Phone"><Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
           <Field label="Email"><Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
           <Field label="Batch">

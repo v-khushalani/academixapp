@@ -92,10 +92,16 @@ function AttendancePage() {
   const batchName = batches.find((b) => b.id === batchId)?.name ?? "—";
 
   function sendAbsentReminder(s: (typeof roster)[number]) {
-    const phone = s.parent_phone ?? s.phone ?? null;
+    const useMother = s.preferred_contact === "mother";
+    const phone = useMother
+      ? (s.mother_phone ?? s.parent_phone ?? s.father_phone ?? s.phone ?? null)
+      : (s.father_phone ?? s.parent_phone ?? s.mother_phone ?? s.phone ?? null);
+    const parentName = useMother
+      ? (s.mother_name ?? s.parent_name ?? s.father_name ?? "Parent")
+      : (s.father_name ?? s.parent_name ?? s.mother_name ?? "Parent");
     const msg = renderTemplate(getTemplates().attendance_absent, {
       student_name: s.full_name,
-      parent_name: s.parent_name ?? "Parent",
+      parent_name: parentName,
       batch_name: batchName,
       date,
       academy_name: getInstitute().name,

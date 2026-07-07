@@ -24,6 +24,7 @@ function ApplyPage() {
       _address: v.address,
       _program: v.program, _stream: v.stream,
       _photo_path: photoPath ?? "",
+      _preferred_contact: v.preferred_contact,
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }

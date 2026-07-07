@@ -356,6 +356,7 @@ export type Database = {
           parent_phone: string | null
           phone: string | null
           photo_path: string | null
+          preferred_contact: string
           program: string | null
           scholarship_percent: number
           school: string | null
@@ -388,6 +389,7 @@ export type Database = {
           parent_phone?: string | null
           phone?: string | null
           photo_path?: string | null
+          preferred_contact?: string
           program?: string | null
           scholarship_percent?: number
           school?: string | null
@@ -420,6 +422,7 @@ export type Database = {
           parent_phone?: string | null
           phone?: string | null
           photo_path?: string | null
+          preferred_contact?: string
           program?: string | null
           scholarship_percent?: number
           school?: string | null
@@ -678,12 +681,13 @@ export type Database = {
               _parent_phone: string
               _phone: string
               _photo_path?: string
+              _preferred_contact?: string
               _program?: string
               _school: string
               _stream?: string
               _token: string
             }
-            Returns: string
+            Returns: undefined
           }
       get_my_roles: {
         Args: never
@@ -695,14 +699,22 @@ export type Database = {
           address: string
           admission_no: string
           class: string
+          dob: string
           email: string
+          father_name: string
+          father_phone: string
           full_name: string
           id: string
+          mother_name: string
+          mother_phone: string
           onboarding_completed_at: string
           parent_name: string
           parent_phone: string
           phone: string
+          preferred_contact: string
+          program: string
           school: string
+          stream: string
         }[]
       }
       has_any_role: {
@@ -736,6 +748,7 @@ export type Database = {
           _mother_phone: string
           _phone: string
           _photo_path: string
+          _preferred_contact?: string
           _program: string
           _school: string
           _stream: string

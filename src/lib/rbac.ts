@@ -7,18 +7,18 @@ export type ModuleKey =
 
 export const MODULE_ACCESS: Record<ModuleKey, AppRole[]> = {
   dashboard: ["owner","admin","faculty","receptionist","counsellor","accountant","student","parent"],
-  students: ["owner","admin","faculty","receptionist","counsellor","accountant"],
+  students: ["owner","admin","receptionist","counsellor","accountant"],
   admissions: ["owner","admin","receptionist","counsellor"],
-  batches: ["owner","admin","faculty","receptionist"],
+  batches: ["owner","admin","receptionist"],
   attendance: ["owner","admin","faculty","student","parent"],
   fees: ["owner","admin","accountant","receptionist","student","parent"],
   tests: ["owner","admin","faculty","student","parent"],
-  homework: ["owner","admin","faculty","student","parent"],
-  "study-material": ["owner","admin","faculty","student","parent"],
+  homework: ["owner","admin","student","parent"],
+  "study-material": ["owner","admin","student","parent"],
   timetable: ["owner","admin","faculty","receptionist","student","parent"],
   faculty: ["owner","admin"],
   reports: ["owner","admin","accountant"],
-  notifications: ["owner","admin","faculty","receptionist","counsellor","accountant"],
+  notifications: ["owner","admin","receptionist","counsellor","accountant"],
   settings: ["owner","admin"],
 };
 

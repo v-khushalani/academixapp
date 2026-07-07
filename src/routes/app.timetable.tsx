@@ -26,7 +26,7 @@ type SlotRow = TimetableSlot & {
   faculty?: { id: string; full_name: string } | null;
 };
 
-type DragPayload = { batchId?: string; facultyId?: string; subject?: string; room?: string };
+type DragPayload = { batchId?: string; facultyId?: string; subject?: string; room?: string; durationMin?: number };
 
 function toMin(t: string) {
   const [h, m] = t.slice(0, 5).split(":").map(Number);
@@ -66,7 +66,7 @@ function TimetablePage() {
   // Time band settings (editable)
   const [startHour, setStartHour] = useState(8);
   const [endHour, setEndHour] = useState(20);
-  const [slotMinutes, setSlotMinutes] = useState(60);
+  const [slotMinutes, setSlotMinutes] = useState(30);
   const bands = useMemo(() => buildBands(startHour, endHour, slotMinutes), [startHour, endHour, slotMinutes]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -95,6 +95,18 @@ function TimetablePage() {
     return g;
   }, [slots]);
 
+  // Bands within a slot's duration (after its start band) that are "covered" and should hide the drop UI.
+  const covered = useMemo(() => {
+    const c = new Set<string>();
+    slots.forEach((s) => {
+      const sM = toMin(s.start_time), eM = toMin(s.end_time);
+      for (let m = sM + slotMinutes; m < eM; m += slotMinutes) {
+        c.add(`${s.day_of_week}|${fmt(m)}`);
+      }
+    });
+    return c;
+  }, [slots, slotMinutes]);
+
   // Precompute conflict set: any slot that overlaps another on same day for same room/teacher/batch
   const conflictIds = useMemo(() => {
     const bad = new Set<string>();
@@ -118,10 +130,13 @@ function TimetablePage() {
     const raw = ev.dataTransfer.getData("application/json");
     if (!raw) return;
     const p: DragPayload = JSON.parse(raw);
+    const duration = Math.max(15, p.durationMin ?? (toMin(band.end) - toMin(band.start)));
+    const startM = toMin(band.start + ":00");
+    const endStr = fmt(startM + duration);
     const candidate = {
       day_of_week: dayIdx,
       start_time: band.start + ":00",
-      end_time: band.end + ":00",
+      end_time: endStr + ":00",
       batch_id: p.batchId ?? null,
       faculty_id: p.facultyId ?? null,
       subject: p.subject ?? null,
@@ -179,8 +194,8 @@ function TimetablePage() {
         <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-3">
           <div className="space-y-1"><Label className="text-xs">Day start</Label><Input type="number" min={0} max={23} value={startHour} onChange={(e) => setStartHour(Number(e.target.value) || 0)} className="h-8 w-20" /></div>
           <div className="space-y-1"><Label className="text-xs">Day end</Label><Input type="number" min={1} max={24} value={endHour} onChange={(e) => setEndHour(Number(e.target.value) || 24)} className="h-8 w-20" /></div>
-          <div className="space-y-1"><Label className="text-xs">Slot (min)</Label><Input type="number" min={15} max={180} step={15} value={slotMinutes} onChange={(e) => setSlotMinutes(Number(e.target.value) || 60)} className="h-8 w-24" /></div>
-          <p className="ml-auto text-xs text-muted-foreground">{slots.length} scheduled · drag & drop enabled</p>
+          <div className="space-y-1"><Label className="text-xs">Grid step (min)</Label><Input type="number" min={15} max={60} step={15} value={slotMinutes} onChange={(e) => setSlotMinutes(Number(e.target.value) || 30)} className="h-8 w-24" /></div>
+          <p className="ml-auto text-xs text-muted-foreground">{slots.length} scheduled · classes can be 30/45/60/90 min</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-[260px_1fr]">
@@ -202,6 +217,7 @@ function TimetablePage() {
                       <td className="border-b border-border px-2 py-2 text-xs font-medium text-muted-foreground">{band.start}<br /><span className="text-[10px]">– {band.end}</span></td>
                       {DAY_INDEX.map((dow) => {
                         const cells = grid.get(`${dow}|${band.start}`) ?? [];
+                        const isCovered = covered.has(`${dow}|${band.start}`);
                         return (
                           <td key={dow}
                               onDragOver={(e) => { if (canWrite) e.preventDefault(); }}
@@ -214,6 +230,7 @@ function TimetablePage() {
                                     <p className="text-xs font-semibold leading-tight">{s.subject ?? s.batch?.name ?? "—"}</p>
                                     {conflictIds.has(s.id) && <AlertTriangle className="h-3 w-3 shrink-0 text-destructive" />}
                                   </div>
+                                  <p className="text-[10px] font-mono text-muted-foreground">{s.start_time.slice(0,5)}–{s.end_time.slice(0,5)}</p>
                                   <p className="truncate text-[10px] text-muted-foreground">{s.batch?.name ?? "—"}</p>
                                   <p className="truncate text-[10px]">{s.faculty?.full_name ?? "—"} · Room {s.room ?? "—"}</p>
                                   {canWrite && (
@@ -224,11 +241,14 @@ function TimetablePage() {
                                   )}
                                 </div>
                               ))}
-                              {canWrite && cells.length === 0 && (
+                              {canWrite && cells.length === 0 && !isCovered && (
                                 <button type="button" onClick={() => { setEditing(null); setDefaultDay(dow); setDialogOpen(true); }}
                                   className="flex flex-1 items-center justify-center rounded-md border border-dashed border-border text-[11px] text-muted-foreground hover:border-primary hover:text-primary">
                                   + drop or add
                                 </button>
+                              )}
+                              {cells.length === 0 && isCovered && (
+                                <div className="flex flex-1 items-center justify-center rounded-md border border-dashed border-border/40 text-[10px] text-muted-foreground/60">↑ continued</div>
                               )}
                             </div>
                           </td>
@@ -252,6 +272,7 @@ function ClassBuilder({ batches, faculty }: { batches: Batch[]; faculty: Faculty
   const [facultyId, setFacultyId] = useState<string>("");
   const [subject, setSubject] = useState("");
   const [room, setRoom] = useState("");
+  const [duration, setDuration] = useState<number>(60);
 
   const selectedBatch = batches.find((b) => b.id === batchId);
   const selectedFaculty = faculty.find((f) => f.id === facultyId);
@@ -262,6 +283,7 @@ function ClassBuilder({ batches, faculty }: { batches: Batch[]; faculty: Faculty
     facultyId: facultyId || undefined,
     subject: subject.trim() || selectedFaculty?.subject || undefined,
     room: room.trim() || undefined,
+    durationMin: duration,
   };
 
   function onDragStart(e: DragEvent) {
@@ -298,6 +320,15 @@ function ClassBuilder({ batches, faculty }: { batches: Batch[]; faculty: Faculty
         <Label className="text-xs">Room</Label>
         <Input value={room} onChange={(e) => setRoom(e.target.value)} className="h-8 text-xs" placeholder="101" />
       </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs">Duration</Label>
+        <Select value={String(duration)} onValueChange={(v) => setDuration(Number(v))}>
+          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {[30,45,60,75,90,120].map((m) => <SelectItem key={m} value={String(m)}>{m} min</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
 
       <div
         draggable={ready}
@@ -314,6 +345,7 @@ function ClassBuilder({ batches, faculty }: { batches: Batch[]; faculty: Faculty
             <div>👨‍🏫 {selectedFaculty?.full_name}</div>
             <div>📖 {subject}</div>
             <div>🚪 Room {room || "—"}</div>
+            <div>⏱ {duration} min</div>
           </div>
         )}
       </div>
