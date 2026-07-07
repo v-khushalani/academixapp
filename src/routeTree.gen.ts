@@ -16,6 +16,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppTimetableRouteImport } from './routes/app.timetable'
+import { Route as AppTestsRouteImport } from './routes/app.tests'
 import { Route as AppStudyMaterialRouteImport } from './routes/app.study-material'
 import { Route as AppStudentsRouteImport } from './routes/app.students'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
@@ -60,6 +61,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppTimetableRoute = AppTimetableRouteImport.update({
   id: '/timetable',
   path: '/timetable',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTestsRoute = AppTestsRouteImport.update({
+  id: '/tests',
+  path: '/tests',
   getParentRoute: () => AppRoute,
 } as any)
 const AppStudyMaterialRoute = AppStudyMaterialRouteImport.update({
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/study-material': typeof AppStudyMaterialRoute
+  '/app/tests': typeof AppTestsRoute
   '/app/timetable': typeof AppTimetableRoute
   '/app/': typeof AppIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/study-material': typeof AppStudyMaterialRoute
+  '/app/tests': typeof AppTestsRoute
   '/app/timetable': typeof AppTimetableRoute
   '/app': typeof AppIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/study-material': typeof AppStudyMaterialRoute
+  '/app/tests': typeof AppTestsRoute
   '/app/timetable': typeof AppTimetableRoute
   '/app/': typeof AppIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/students'
     | '/app/study-material'
+    | '/app/tests'
     | '/app/timetable'
     | '/app/'
     | '/app/batches/$id'
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/students'
     | '/app/study-material'
+    | '/app/tests'
     | '/app/timetable'
     | '/app'
     | '/app/batches/$id'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/students'
     | '/app/study-material'
+    | '/app/tests'
     | '/app/timetable'
     | '/app/'
     | '/app/batches/$id'
@@ -286,6 +298,13 @@ declare module '@tanstack/react-router' {
       path: '/timetable'
       fullPath: '/app/timetable'
       preLoaderRoute: typeof AppTimetableRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/tests': {
+      id: '/app/tests'
+      path: '/tests'
+      fullPath: '/app/tests'
+      preLoaderRoute: typeof AppTestsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/study-material': {
@@ -394,6 +413,7 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppStudentsRoute: typeof AppStudentsRouteWithChildren
   AppStudyMaterialRoute: typeof AppStudyMaterialRoute
+  AppTestsRoute: typeof AppTestsRoute
   AppTimetableRoute: typeof AppTimetableRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -407,6 +427,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
   AppStudentsRoute: AppStudentsRouteWithChildren,
   AppStudyMaterialRoute: AppStudyMaterialRoute,
+  AppTestsRoute: AppTestsRoute,
   AppTimetableRoute: AppTimetableRoute,
   AppIndexRoute: AppIndexRoute,
 }
