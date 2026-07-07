@@ -26,7 +26,7 @@ type SlotRow = TimetableSlot & {
   faculty?: { id: string; full_name: string } | null;
 };
 
-type DragPayload = { batchId?: string; facultyId?: string; subject?: string; room?: string };
+type DragPayload = { batchId?: string; facultyId?: string; subject?: string; room?: string; durationMin?: number };
 
 function toMin(t: string) {
   const [h, m] = t.slice(0, 5).split(":").map(Number);
@@ -66,7 +66,7 @@ function TimetablePage() {
   // Time band settings (editable)
   const [startHour, setStartHour] = useState(8);
   const [endHour, setEndHour] = useState(20);
-  const [slotMinutes, setSlotMinutes] = useState(60);
+  const [slotMinutes, setSlotMinutes] = useState(30);
   const bands = useMemo(() => buildBands(startHour, endHour, slotMinutes), [startHour, endHour, slotMinutes]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -118,10 +118,13 @@ function TimetablePage() {
     const raw = ev.dataTransfer.getData("application/json");
     if (!raw) return;
     const p: DragPayload = JSON.parse(raw);
+    const duration = Math.max(15, p.durationMin ?? (toMin(band.end) - toMin(band.start)));
+    const startM = toMin(band.start + ":00");
+    const endStr = fmt(startM + duration);
     const candidate = {
       day_of_week: dayIdx,
       start_time: band.start + ":00",
-      end_time: band.end + ":00",
+      end_time: endStr + ":00",
       batch_id: p.batchId ?? null,
       faculty_id: p.facultyId ?? null,
       subject: p.subject ?? null,
@@ -179,8 +182,8 @@ function TimetablePage() {
         <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-3">
           <div className="space-y-1"><Label className="text-xs">Day start</Label><Input type="number" min={0} max={23} value={startHour} onChange={(e) => setStartHour(Number(e.target.value) || 0)} className="h-8 w-20" /></div>
           <div className="space-y-1"><Label className="text-xs">Day end</Label><Input type="number" min={1} max={24} value={endHour} onChange={(e) => setEndHour(Number(e.target.value) || 24)} className="h-8 w-20" /></div>
-          <div className="space-y-1"><Label className="text-xs">Slot (min)</Label><Input type="number" min={15} max={180} step={15} value={slotMinutes} onChange={(e) => setSlotMinutes(Number(e.target.value) || 60)} className="h-8 w-24" /></div>
-          <p className="ml-auto text-xs text-muted-foreground">{slots.length} scheduled · drag & drop enabled</p>
+          <div className="space-y-1"><Label className="text-xs">Grid step (min)</Label><Input type="number" min={15} max={60} step={15} value={slotMinutes} onChange={(e) => setSlotMinutes(Number(e.target.value) || 30)} className="h-8 w-24" /></div>
+          <p className="ml-auto text-xs text-muted-foreground">{slots.length} scheduled · classes can be 30/45/60/90 min</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-[260px_1fr]">
