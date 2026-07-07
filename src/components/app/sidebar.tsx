@@ -30,7 +30,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const nav = [
+type NavItem = { title: string; url: string; icon: typeof LayoutDashboard; exact?: boolean };
+const nav: NavItem[] = [
   { title: "Dashboard", url: "/app", icon: LayoutDashboard, exact: true },
   { title: "Students", url: "/app/students", icon: Users },
   { title: "Admissions", url: "/app/admissions", icon: UserPlus },
@@ -45,7 +46,7 @@ const nav = [
   { title: "Reports", url: "/app/reports", icon: BarChart3 },
   { title: "Notifications", url: "/app/notifications", icon: Bell },
   { title: "Settings", url: "/app/settings", icon: Settings },
-] as const;
+];
 
 export function AppSidebar() {
   const { state } = useSidebar();
