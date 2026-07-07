@@ -20,6 +20,11 @@ export type FacultyInsert = Tables["faculty"]["Insert"];
 export type TimetableSlot = Tables["timetable_slots"]["Row"];
 export type TimetableSlotInsert = Tables["timetable_slots"]["Insert"];
 export type Subject = Tables["subjects"]["Row"];
+export type Course = Tables["courses"]["Row"];
+export type CourseInsert = Tables["courses"]["Insert"];
+export type SubjectInsert = Tables["subjects"]["Insert"];
+export type UserRole = Tables["user_roles"]["Row"];
+export type AppRole = Database["public"]["Enums"]["app_role"];
 
 function orThrow<T>({ data, error }: { data: T | null; error: unknown }): T {
   if (error) throw error;
@@ -263,5 +268,51 @@ export const attendanceListApi = {
       .select("*, student:students(id,full_name,admission_no,parent_name,parent_phone,phone), batch:batches(id,name)")
       .eq("date", date);
     if (error) throw error; return data ?? [];
+  },
+};
+
+// ---------- Courses & Subjects ----------
+export const coursesApi = {
+  async list() {
+    const { data, error } = await supabase.from("courses").select("*").order("name");
+    if (error) throw error; return data ?? [];
+  },
+  async create(input: CourseInsert) { return orThrow(await supabase.from("courses").insert(input).select().single()); },
+  async update(id: string, input: Partial<CourseInsert>) { return orThrow(await supabase.from("courses").update(input).eq("id", id).select().single()); },
+  async remove(id: string) { const { error } = await supabase.from("courses").delete().eq("id", id); if (error) throw error; },
+};
+
+export const subjectsApi = {
+  async list() {
+    const { data, error } = await supabase.from("subjects").select("*, course:courses(id,name)").order("name");
+    if (error) throw error; return data ?? [];
+  },
+  async create(input: SubjectInsert) { return orThrow(await supabase.from("subjects").insert(input).select().single()); },
+  async update(id: string, input: Partial<SubjectInsert>) { return orThrow(await supabase.from("subjects").update(input).eq("id", id).select().single()); },
+  async remove(id: string) { const { error } = await supabase.from("subjects").delete().eq("id", id); if (error) throw error; },
+};
+
+// ---------- Users & roles ----------
+export const userRolesApi = {
+  async listAll() {
+    const [{ data: profiles, error: e1 }, { data: roles, error: e2 }] = await Promise.all([
+      supabase.from("profiles").select("*"),
+      supabase.from("user_roles").select("*"),
+    ]);
+    if (e1) throw e1; if (e2) throw e2;
+    const byUser = new Map<string, AppRole[]>();
+    (roles ?? []).forEach((r) => {
+      const arr = byUser.get(r.user_id) ?? [];
+      arr.push(r.role); byUser.set(r.user_id, arr);
+    });
+    return (profiles ?? []).map((p) => ({ ...p, roles: byUser.get(p.id) ?? [] }));
+  },
+  async addRole(user_id: string, role: AppRole) {
+    const { error } = await supabase.from("user_roles").insert({ user_id, role });
+    if (error) throw error;
+  },
+  async removeRole(user_id: string, role: AppRole) {
+    const { error } = await supabase.from("user_roles").delete().eq("user_id", user_id).eq("role", role);
+    if (error) throw error;
   },
 };
