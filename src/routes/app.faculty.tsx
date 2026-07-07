@@ -1,18 +1,77 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { GraduationCap, Plus } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/app/empty-state";
+import { Badge } from "@/components/ui/badge";
+import { DataTable, type DTColumn } from "@/components/app/data-table";
+import { FacultyFormDialog } from "@/components/app/faculty-form-dialog";
+import { ConfirmDialog } from "@/components/app/confirm-dialog";
+import { facultyApi, type Faculty } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
+import { can } from "@/lib/rbac";
 
 export const Route = createFileRoute("/app/faculty")({
-  component: () => (
-    <>
-      <PageHeader title="Faculty" description="Faculty profiles, today's classes, uploads and announcements."
-        actions={<Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" />Add faculty</Button>} />
-      <PageBody>
-        <EmptyState icon={GraduationCap} title="No faculty added yet"
-          description="Add your teachers to assign them to batches, tests and homework." />
-      </PageBody>
-    </>
-  ),
+  component: FacultyPage,
 });
+
+function FacultyPage() {
+  const qc = useQueryClient();
+  const { roles } = useAuth();
+  const canWrite = can("role:manage", roles);
+  const { data = [], isLoading } = useQuery({ queryKey: ["faculty"], queryFn: () => facultyApi.list() });
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Faculty | null>(null);
+  const [deleting, setDeleting] = useState<Faculty | null>(null);
+
+  const removeMut = useMutation({
+    mutationFn: (id: string) => facultyApi.remove(id),
+    onSuccess: () => { toast.success("Removed"); qc.invalidateQueries({ queryKey: ["faculty"] }); setDeleting(null); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const columns: DTColumn<Faculty>[] = [
+    { key: "full_name", header: "Name", sortable: true, value: (r) => r.full_name, cell: (r) => <span className="font-medium">{r.full_name}</span> },
+    { key: "subject", header: "Subject", value: (r) => r.subject ?? "", cell: (r) => r.subject ?? "—" },
+    { key: "qualification", header: "Qualification", value: (r) => r.qualification ?? "", cell: (r) => r.qualification ?? "—" },
+    { key: "phone", header: "Phone", value: (r) => r.phone ?? "", cell: (r) => r.phone ?? "—" },
+    { key: "email", header: "Email", value: (r) => r.email ?? "", cell: (r) => r.email ?? "—" },
+    { key: "status", header: "Status", sortable: true, value: (r) => r.status,
+      cell: (r) => <Badge variant="secondary" className={r.status === "active" ? "bg-success/10 text-success" : ""}>{r.status}</Badge> },
+    { key: "actions", header: "", className: "text-right",
+      cell: (r) => canWrite ? (
+        <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+          <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
+          <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleting(r)}><Trash2 className="h-4 w-4" /></Button>
+        </div>
+      ) : null },
+  ];
+
+  return (
+    <>
+      <PageHeader
+        title="Faculty"
+        description={`${data.length} teachers`}
+        actions={canWrite ? <Button size="sm" className="gap-1.5" onClick={() => { setEditing(null); setOpen(true); }}><Plus className="h-4 w-4" />Add faculty</Button> : null}
+      />
+      <PageBody>
+        <DataTable
+          rows={data}
+          columns={columns}
+          searchKeys={["full_name", "subject", "email", "phone"]}
+          searchPlaceholder="Search faculty…"
+          exportName="faculty"
+          exportTitle="Faculty"
+          loading={isLoading}
+        />
+      </PageBody>
+      <FacultyFormDialog open={open} onOpenChange={setOpen} faculty={editing} />
+      <ConfirmDialog open={Boolean(deleting)} onOpenChange={(v) => !v && setDeleting(null)}
+        title="Remove faculty?" description={deleting?.full_name}
+        confirmLabel="Remove" destructive
+        onConfirm={() => deleting && removeMut.mutate(deleting.id)} />
+    </>
+  );
+}
