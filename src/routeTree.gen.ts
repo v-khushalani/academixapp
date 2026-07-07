@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppTimetableRouteImport } from './routes/app.timetable'
@@ -18,6 +19,11 @@ import { Route as AppNotificationsRouteImport } from './routes/app.notifications
 import { Route as AppHomeworkRouteImport } from './routes/app.homework'
 import { Route as AppFacultyRouteImport } from './routes/app.faculty'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -62,6 +68,7 @@ const AppFacultyRoute = AppFacultyRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/app/faculty': typeof AppFacultyRoute
   '/app/homework': typeof AppHomeworkRoute
   '/app/notifications': typeof AppNotificationsRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/app/faculty': typeof AppFacultyRoute
   '/app/homework': typeof AppHomeworkRoute
   '/app/notifications': typeof AppNotificationsRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/app/faculty': typeof AppFacultyRoute
   '/app/homework': typeof AppHomeworkRoute
   '/app/notifications': typeof AppNotificationsRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/forgot-password'
+    | '/login'
     | '/app/faculty'
     | '/app/homework'
     | '/app/notifications'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/forgot-password'
+    | '/login'
     | '/app/faculty'
     | '/app/homework'
     | '/app/notifications'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/forgot-password'
+    | '/login'
     | '/app/faculty'
     | '/app/homework'
     | '/app/notifications'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
   AppFacultyRoute: typeof AppFacultyRoute
   AppHomeworkRoute: typeof AppHomeworkRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
@@ -136,6 +149,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
   AppFacultyRoute: AppFacultyRoute,
   AppHomeworkRoute: AppHomeworkRoute,
   AppNotificationsRoute: AppNotificationsRoute,
