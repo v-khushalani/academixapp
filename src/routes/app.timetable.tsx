@@ -255,6 +255,7 @@ function ClassBuilder({ batches, faculty }: { batches: Batch[]; faculty: Faculty
   const [facultyId, setFacultyId] = useState<string>("");
   const [subject, setSubject] = useState("");
   const [room, setRoom] = useState("");
+  const [duration, setDuration] = useState<number>(60);
 
   const selectedBatch = batches.find((b) => b.id === batchId);
   const selectedFaculty = faculty.find((f) => f.id === facultyId);
@@ -265,6 +266,7 @@ function ClassBuilder({ batches, faculty }: { batches: Batch[]; faculty: Faculty
     facultyId: facultyId || undefined,
     subject: subject.trim() || selectedFaculty?.subject || undefined,
     room: room.trim() || undefined,
+    durationMin: duration,
   };
 
   function onDragStart(e: DragEvent) {
@@ -301,6 +303,15 @@ function ClassBuilder({ batches, faculty }: { batches: Batch[]; faculty: Faculty
         <Label className="text-xs">Room</Label>
         <Input value={room} onChange={(e) => setRoom(e.target.value)} className="h-8 text-xs" placeholder="101" />
       </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs">Duration</Label>
+        <Select value={String(duration)} onValueChange={(v) => setDuration(Number(v))}>
+          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {[30,45,60,75,90,120].map((m) => <SelectItem key={m} value={String(m)}>{m} min</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
 
       <div
         draggable={ready}
@@ -317,6 +328,7 @@ function ClassBuilder({ batches, faculty }: { batches: Batch[]; faculty: Faculty
             <div>👨‍🏫 {selectedFaculty?.full_name}</div>
             <div>📖 {subject}</div>
             <div>🚪 Room {room || "—"}</div>
+            <div>⏱ {duration} min</div>
           </div>
         )}
       </div>
