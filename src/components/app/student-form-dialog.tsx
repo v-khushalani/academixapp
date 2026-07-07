@@ -24,6 +24,7 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
   const [form, setForm] = useState<StudentInsert>({
     admission_no: "", full_name: "", phone: "", email: "", parent_name: "",
     class: "", school: "", address: "", status: "active",
+    parent_phone: "", scholarship_percent: 0, discount: 0,
   });
 
   useEffect(() => {
@@ -34,17 +35,21 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
         phone: student.phone ?? "",
         email: student.email ?? "",
         parent_name: student.parent_name ?? "",
+        parent_phone: student.parent_phone ?? "",
         class: student.class ?? "",
         school: student.school ?? "",
         address: student.address ?? "",
         status: student.status,
         batch_id: student.batch_id ?? undefined,
+        scholarship_percent: student.scholarship_percent ?? 0,
+        discount: student.discount ?? 0,
       });
     } else if (open) {
       setForm({
         admission_no: `ADM-${Date.now().toString().slice(-6)}`,
         full_name: "", phone: "", email: "", parent_name: "",
-        class: "", school: "", address: "", status: "active",
+        parent_phone: "", class: "", school: "", address: "", status: "active",
+        scholarship_percent: 0, discount: 0,
       });
     }
   }, [student, open]);
@@ -82,6 +87,7 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
           <Field label="Class"><Input value={form.class ?? ""} onChange={(e) => setForm({ ...form, class: e.target.value })} /></Field>
           <Field label="School"><Input value={form.school ?? ""} onChange={(e) => setForm({ ...form, school: e.target.value })} /></Field>
           <Field label="Parent name"><Input value={form.parent_name ?? ""} onChange={(e) => setForm({ ...form, parent_name: e.target.value })} /></Field>
+          <Field label="Parent phone (WhatsApp)"><Input value={form.parent_phone ?? ""} onChange={(e) => setForm({ ...form, parent_phone: e.target.value })} placeholder="10-digit" /></Field>
           <Field label="Phone"><Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
           <Field label="Email"><Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
           <Field label="Batch">
@@ -93,6 +99,8 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
               </SelectContent>
             </Select>
           </Field>
+          <Field label="Scholarship (%)"><Input type="number" min={0} max={100} step="0.01" value={form.scholarship_percent ?? 0} onChange={(e) => setForm({ ...form, scholarship_percent: Number(e.target.value) })} /></Field>
+          <Field label="Discount (₹)"><Input type="number" min={0} step="0.01" value={form.discount ?? 0} onChange={(e) => setForm({ ...form, discount: Number(e.target.value) })} /></Field>
           <Field label="Status" className="sm:col-span-2">
             <Select value={form.status ?? "active"} onValueChange={(v) => setForm({ ...form, status: v as StudentInsert["status"] })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
