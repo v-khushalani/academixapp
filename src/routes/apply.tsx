@@ -1,0 +1,61 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
+import { CheckCircle2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { AdmissionForm, type AdmissionFormValues } from "@/components/app/admission-form";
+
+export const Route = createFileRoute("/apply")({
+  component: ApplyPage,
+});
+
+function ApplyPage() {
+  const [done, setDone] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [name, setName] = useState("");
+
+  async function onSubmit(v: AdmissionFormValues, photoPath: string | null) {
+    setSaving(true);
+    const { error } = await supabase.rpc("submit_admission_application", {
+      _full_name: v.full_name, _phone: v.phone, _email: v.email,
+      _class: v.class, _dob: v.dob, _school: v.school,
+      _father_name: v.father_name, _father_phone: v.father_phone,
+      _mother_name: v.mother_name, _mother_phone: v.mother_phone,
+      _address: v.address,
+      _program: v.program, _stream: v.stream,
+      _photo_path: photoPath ?? "",
+    });
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    setName(v.full_name);
+    setDone(true);
+  }
+
+  return (
+    <div className="min-h-screen bg-background px-4 py-10">
+      <div className="mx-auto max-w-2xl rounded-lg border border-border bg-card p-6 shadow-sm">
+        <div className="mb-6 flex items-center gap-2">
+          <div className="grid h-10 w-10 place-items-center rounded-md bg-primary text-primary-foreground">
+            <span className="text-sm font-bold">VK</span>
+          </div>
+          <div>
+            <p className="text-sm font-semibold tracking-tight">VK Academy</p>
+            <p className="text-xs text-muted-foreground">Admission Application Form</p>
+          </div>
+        </div>
+        {done ? (
+          <div className="py-6 text-center">
+            <div className="grid place-items-center py-4"><CheckCircle2 className="h-12 w-12 text-success" /></div>
+            <h1 className="text-lg font-semibold">Thank you, {name}!</h1>
+            <p className="mt-2 text-sm text-muted-foreground">Your admission application has been submitted. Our admissions office will review it and reach out to you shortly.</p>
+          </div>
+        ) : (
+          <>
+            <p className="mb-4 text-sm text-muted-foreground">Fill in the details below. Fields marked * are required. Your application will be reviewed by our admissions office.</p>
+            <AdmissionForm onSubmit={onSubmit} saving={saving} />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -28,11 +28,11 @@ function orThrow<T>({ data, error }: { data: T | null; error: unknown }): T {
 
 // ---------- Students ----------
 export const studentsApi = {
-  async list(): Promise<(Student & { batch?: Batch | null })[]> {
-    const { data, error } = await supabase
-      .from("students")
-      .select("*, batch:batches(*)")
-      .order("created_at", { ascending: false });
+  async list(opts?: { approval?: "approved" | "pending" | "rejected" | "all" }): Promise<(Student & { batch?: Batch | null })[]> {
+    const approval = opts?.approval ?? "approved";
+    let q = supabase.from("students").select("*, batch:batches(*)");
+    if (approval !== "all") q = q.eq("approval_status", approval);
+    const { data, error } = await q.order("created_at", { ascending: false });
     if (error) throw error;
     return (data ?? []) as (Student & { batch?: Batch | null })[];
   },
@@ -49,6 +49,16 @@ export const studentsApi = {
   async remove(id: string) {
     const { error } = await supabase.from("students").delete().eq("id", id);
     if (error) throw error;
+  },
+  async setApproval(id: string, decision: "approved" | "rejected" | "pending") {
+    const { error } = await supabase.rpc("set_student_approval", { _student_id: id, _decision: decision });
+    if (error) throw error;
+  },
+  async signedPhotoUrl(path: string | null | undefined, expiresIn = 3600) {
+    if (!path) return null;
+    const { data, error } = await supabase.storage.from("student-photos").createSignedUrl(path, expiresIn);
+    if (error) return null;
+    return data.signedUrl;
   },
 };
 
