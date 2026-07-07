@@ -14,6 +14,9 @@ type S = {
   class: string | null; school: string | null; parent_name: string | null;
   parent_phone: string | null; address: string | null; admission_no: string | null;
   onboarding_completed_at: string | null;
+  father_name?: string | null; father_phone?: string | null;
+  mother_name?: string | null; mother_phone?: string | null;
+  preferred_contact?: string | null;
 };
 
 function OnboardPage() {
@@ -39,8 +42,11 @@ function OnboardPage() {
         email: row.email ?? "",
         class: row.class ?? "",
         school: row.school ?? "",
-        father_name: row.parent_name ?? "",
-        father_phone: row.parent_phone ?? "",
+        father_name: row.father_name ?? row.parent_name ?? "",
+        father_phone: row.father_phone ?? row.parent_phone ?? "",
+        mother_name: row.mother_name ?? "",
+        mother_phone: row.mother_phone ?? "",
+        preferred_contact: (row.preferred_contact === "mother" ? "mother" : "father"),
         address: row.address ?? "",
       });
       setAdmissionNo(row.admission_no);
@@ -54,14 +60,15 @@ function OnboardPage() {
       _token: token,
       _full_name: v.full_name, _phone: v.phone, _email: v.email,
       _class: v.class, _school: v.school,
-      _parent_name: v.father_name || v.mother_name || "",
-      _parent_phone: v.father_phone || v.mother_phone || "",
+      _parent_name: v.preferred_contact === "mother" ? v.mother_name : v.father_name,
+      _parent_phone: v.preferred_contact === "mother" ? v.mother_phone : v.father_phone,
       _address: v.address,
       _dob: v.dob || undefined,
       _father_name: v.father_name, _father_phone: v.father_phone,
       _mother_name: v.mother_name, _mother_phone: v.mother_phone,
       _program: v.program || undefined, _stream: v.stream || undefined,
       _photo_path: photoPath ?? undefined,
+      _preferred_contact: v.preferred_contact,
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
