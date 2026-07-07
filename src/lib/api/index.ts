@@ -30,11 +30,9 @@ function orThrow<T>({ data, error }: { data: T | null; error: unknown }): T {
 export const studentsApi = {
   async list(opts?: { approval?: "approved" | "pending" | "rejected" | "all" }): Promise<(Student & { batch?: Batch | null })[]> {
     const approval = opts?.approval ?? "approved";
-    const { data, error } = await supabase
-      .from("students")
-      .select("*, batch:batches(*)")
-      .modify((q) => (approval === "all" ? q : q.eq("approval_status", approval)))
-      .order("created_at", { ascending: false });
+    let q = supabase.from("students").select("*, batch:batches(*)");
+    if (approval !== "all") q = q.eq("approval_status", approval);
+    const { data, error } = await q.order("created_at", { ascending: false });
     if (error) throw error;
     return (data ?? []) as (Student & { batch?: Batch | null })[];
   },
