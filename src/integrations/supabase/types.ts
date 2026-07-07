@@ -699,14 +699,22 @@ export type Database = {
           address: string
           admission_no: string
           class: string
+          dob: string
           email: string
+          father_name: string
+          father_phone: string
           full_name: string
           id: string
+          mother_name: string
+          mother_phone: string
           onboarding_completed_at: string
           parent_name: string
           parent_phone: string
           phone: string
+          preferred_contact: string
+          program: string
           school: string
+          stream: string
         }[]
       }
       has_any_role: {
