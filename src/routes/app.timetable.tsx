@@ -95,6 +95,18 @@ function TimetablePage() {
     return g;
   }, [slots]);
 
+  // Bands within a slot's duration (after its start band) that are "covered" and should hide the drop UI.
+  const covered = useMemo(() => {
+    const c = new Set<string>();
+    slots.forEach((s) => {
+      const sM = toMin(s.start_time), eM = toMin(s.end_time);
+      for (let m = sM + slotMinutes; m < eM; m += slotMinutes) {
+        c.add(`${s.day_of_week}|${fmt(m)}`);
+      }
+    });
+    return c;
+  }, [slots, slotMinutes]);
+
   // Precompute conflict set: any slot that overlaps another on same day for same room/teacher/batch
   const conflictIds = useMemo(() => {
     const bad = new Set<string>();
@@ -205,6 +217,7 @@ function TimetablePage() {
                       <td className="border-b border-border px-2 py-2 text-xs font-medium text-muted-foreground">{band.start}<br /><span className="text-[10px]">– {band.end}</span></td>
                       {DAY_INDEX.map((dow) => {
                         const cells = grid.get(`${dow}|${band.start}`) ?? [];
+                        const isCovered = covered.has(`${dow}|${band.start}`);
                         return (
                           <td key={dow}
                               onDragOver={(e) => { if (canWrite) e.preventDefault(); }}
@@ -217,6 +230,7 @@ function TimetablePage() {
                                     <p className="text-xs font-semibold leading-tight">{s.subject ?? s.batch?.name ?? "—"}</p>
                                     {conflictIds.has(s.id) && <AlertTriangle className="h-3 w-3 shrink-0 text-destructive" />}
                                   </div>
+                                  <p className="text-[10px] font-mono text-muted-foreground">{s.start_time.slice(0,5)}–{s.end_time.slice(0,5)}</p>
                                   <p className="truncate text-[10px] text-muted-foreground">{s.batch?.name ?? "—"}</p>
                                   <p className="truncate text-[10px]">{s.faculty?.full_name ?? "—"} · Room {s.room ?? "—"}</p>
                                   {canWrite && (
@@ -227,11 +241,14 @@ function TimetablePage() {
                                   )}
                                 </div>
                               ))}
-                              {canWrite && cells.length === 0 && (
+                              {canWrite && cells.length === 0 && !isCovered && (
                                 <button type="button" onClick={() => { setEditing(null); setDefaultDay(dow); setDialogOpen(true); }}
                                   className="flex flex-1 items-center justify-center rounded-md border border-dashed border-border text-[11px] text-muted-foreground hover:border-primary hover:text-primary">
                                   + drop or add
                                 </button>
+                              )}
+                              {cells.length === 0 && isCovered && (
+                                <div className="flex flex-1 items-center justify-center rounded-md border border-dashed border-border/40 text-[10px] text-muted-foreground/60">↑ continued</div>
                               )}
                             </div>
                           </td>
