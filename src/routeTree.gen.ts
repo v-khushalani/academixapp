@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppTimetableRouteImport } from './routes/app.timetable'
 import { Route as AppStudyMaterialRouteImport } from './routes/app.study-material'
@@ -35,44 +36,50 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppTimetableRoute = AppTimetableRouteImport.update({
-  id: '/app/timetable',
-  path: '/app/timetable',
-  getParentRoute: () => rootRouteImport,
+  id: '/timetable',
+  path: '/timetable',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppStudyMaterialRoute = AppStudyMaterialRouteImport.update({
-  id: '/app/study-material',
-  path: '/app/study-material',
-  getParentRoute: () => rootRouteImport,
+  id: '/study-material',
+  path: '/study-material',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/app/settings',
-  path: '/app/settings',
-  getParentRoute: () => rootRouteImport,
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
-  id: '/app/notifications',
-  path: '/app/notifications',
-  getParentRoute: () => rootRouteImport,
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppHomeworkRoute = AppHomeworkRouteImport.update({
-  id: '/app/homework',
-  path: '/app/homework',
-  getParentRoute: () => rootRouteImport,
+  id: '/homework',
+  path: '/homework',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppFacultyRoute = AppFacultyRouteImport.update({
-  id: '/app/faculty',
-  path: '/app/faculty',
-  getParentRoute: () => rootRouteImport,
+  id: '/faculty',
+  path: '/faculty',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
@@ -98,6 +106,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/app'
     | '/forgot-password'
     | '/login'
     | '/signup'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/app'
     | '/forgot-password'
     | '/login'
     | '/signup'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/app'
     | '/forgot-password'
     | '/login'
     | '/signup'
@@ -149,15 +161,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
-  AppFacultyRoute: typeof AppFacultyRoute
-  AppHomeworkRoute: typeof AppHomeworkRoute
-  AppNotificationsRoute: typeof AppNotificationsRoute
-  AppSettingsRoute: typeof AppSettingsRoute
-  AppStudyMaterialRoute: typeof AppStudyMaterialRoute
-  AppTimetableRoute: typeof AppTimetableRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -183,6 +190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -192,60 +206,75 @@ declare module '@tanstack/react-router' {
     }
     '/app/timetable': {
       id: '/app/timetable'
-      path: '/app/timetable'
+      path: '/timetable'
       fullPath: '/app/timetable'
       preLoaderRoute: typeof AppTimetableRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/study-material': {
       id: '/app/study-material'
-      path: '/app/study-material'
+      path: '/study-material'
       fullPath: '/app/study-material'
       preLoaderRoute: typeof AppStudyMaterialRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/settings': {
       id: '/app/settings'
-      path: '/app/settings'
+      path: '/settings'
       fullPath: '/app/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/notifications': {
       id: '/app/notifications'
-      path: '/app/notifications'
+      path: '/notifications'
       fullPath: '/app/notifications'
       preLoaderRoute: typeof AppNotificationsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/homework': {
       id: '/app/homework'
-      path: '/app/homework'
+      path: '/homework'
       fullPath: '/app/homework'
       preLoaderRoute: typeof AppHomeworkRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/faculty': {
       id: '/app/faculty'
-      path: '/app/faculty'
+      path: '/faculty'
       fullPath: '/app/faculty'
       preLoaderRoute: typeof AppFacultyRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  ForgotPasswordRoute: ForgotPasswordRoute,
-  LoginRoute: LoginRoute,
-  SignupRoute: SignupRoute,
+interface AppRouteChildren {
+  AppFacultyRoute: typeof AppFacultyRoute
+  AppHomeworkRoute: typeof AppHomeworkRoute
+  AppNotificationsRoute: typeof AppNotificationsRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppStudyMaterialRoute: typeof AppStudyMaterialRoute
+  AppTimetableRoute: typeof AppTimetableRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
   AppFacultyRoute: AppFacultyRoute,
   AppHomeworkRoute: AppHomeworkRoute,
   AppNotificationsRoute: AppNotificationsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStudyMaterialRoute: AppStudyMaterialRoute,
   AppTimetableRoute: AppTimetableRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
