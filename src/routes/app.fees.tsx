@@ -15,7 +15,6 @@ import { feesApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import { WA_TEMPLATES, openWhatsApp, renderTemplate } from "@/lib/whatsapp";
-import { toast as sonner } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/app/fees")({
@@ -101,7 +100,7 @@ function FeesPage() {
       receipt_no: r.receipt_no ?? "—",
       academy_name: "VK Academy",
     });
-    if (!openWhatsApp(phone, msg)) sonner.error("No phone number on file for this parent/student.");
+    if (!openWhatsApp(phone, msg)) toast.error("No phone number on file for this parent/student.");
   }
 
   return (
