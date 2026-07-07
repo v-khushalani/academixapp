@@ -15,6 +15,7 @@ import { feesApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import { WA_TEMPLATES, openWhatsApp, renderTemplate } from "@/lib/whatsapp";
+import { getTemplates, getInstitute } from "@/lib/academy-settings";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/app/fees")({
@@ -87,7 +88,7 @@ function FeesPage() {
     const s = student as { parent_phone?: string | null; phone?: string | null; parent_name?: string | null; full_name?: string; batch?: { name?: string } | null } | null;
     const phone = s?.parent_phone ?? s?.phone ?? null;
     const isPaid = r.status === "paid" || Number(r.amount_paid) >= Number(r.amount);
-    const tpl = isPaid ? WA_TEMPLATES.fee_received : WA_TEMPLATES.fee_pending;
+    const tpl = getTemplates()[isPaid ? "fee_received" : "fee_pending"];
     const msg = renderTemplate(tpl, {
       student_name: s?.full_name,
       parent_name: s?.parent_name ?? "Parent",
@@ -98,7 +99,7 @@ function FeesPage() {
       due_date: r.due_date ?? "—",
       paid_date: r.paid_date ?? new Date().toISOString().slice(0, 10),
       receipt_no: r.receipt_no ?? "—",
-      academy_name: "VK Academy",
+      academy_name: getInstitute().name,
     });
     if (!openWhatsApp(phone, msg)) toast.error("No phone number on file for this parent/student.");
   }

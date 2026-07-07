@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import type { Database } from "@/integrations/supabase/types";
 import { WA_TEMPLATES, openWhatsApp, renderTemplate } from "@/lib/whatsapp";
+import { getTemplates, getInstitute } from "@/lib/academy-settings";
 
 type Status = Database["public"]["Enums"]["attendance_status"];
 
@@ -92,12 +93,12 @@ function AttendancePage() {
 
   function sendAbsentReminder(s: (typeof roster)[number]) {
     const phone = s.parent_phone ?? s.phone ?? null;
-    const msg = renderTemplate(WA_TEMPLATES.attendance_absent, {
+    const msg = renderTemplate(getTemplates().attendance_absent, {
       student_name: s.full_name,
       parent_name: s.parent_name ?? "Parent",
       batch_name: batchName,
       date,
-      academy_name: "VK Academy",
+      academy_name: getInstitute().name,
     });
     if (!openWhatsApp(phone, msg)) toast.error("No parent/student phone on file.");
   }
