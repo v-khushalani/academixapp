@@ -49,7 +49,7 @@ function StudentDetail() {
           <aside className="rounded-lg border border-border bg-card p-5">
             <div className="flex flex-col items-center text-center">
               <div className="grid h-20 w-20 place-items-center rounded-full bg-accent text-2xl font-semibold text-primary">
-                {s.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                {s.name.split(" ").map((n: string) => n[0]).slice(0, 2).join("")}
               </div>
               <p className="mt-3 text-base font-semibold">{s.name}</p>
               <Badge className="mt-1 bg-success/10 text-success" variant="secondary">{s.status}</Badge>
