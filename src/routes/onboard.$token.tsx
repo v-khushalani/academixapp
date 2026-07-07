@@ -39,8 +39,8 @@ function OnboardPage() {
         email: row.email ?? "",
         class: row.class ?? "",
         school: row.school ?? "",
-        parent_name: row.parent_name ?? "",
-        parent_phone: row.parent_phone ?? "",
+        father_name: row.parent_name ?? "",
+        father_phone: row.parent_phone ?? "",
         address: row.address ?? "",
       });
       setAdmissionNo(row.admission_no);
@@ -57,11 +57,11 @@ function OnboardPage() {
       _parent_name: v.father_name || v.mother_name || "",
       _parent_phone: v.father_phone || v.mother_phone || "",
       _address: v.address,
-      _dob: v.dob || null,
+      _dob: v.dob || undefined,
       _father_name: v.father_name, _father_phone: v.father_phone,
       _mother_name: v.mother_name, _mother_phone: v.mother_phone,
-      _program: v.program || null, _stream: v.stream || null,
-      _photo_path: photoPath ?? null,
+      _program: v.program || undefined, _stream: v.stream || undefined,
+      _photo_path: photoPath ?? undefined,
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }

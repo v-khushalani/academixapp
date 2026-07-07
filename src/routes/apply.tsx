@@ -18,12 +18,12 @@ function ApplyPage() {
     setSaving(true);
     const { error } = await supabase.rpc("submit_admission_application", {
       _full_name: v.full_name, _phone: v.phone, _email: v.email,
-      _class: v.class, _dob: v.dob || null, _school: v.school,
+      _class: v.class, _dob: v.dob, _school: v.school,
       _father_name: v.father_name, _father_phone: v.father_phone,
       _mother_name: v.mother_name, _mother_phone: v.mother_phone,
       _address: v.address,
-      _program: v.program || null, _stream: v.stream || null,
-      _photo_path: photoPath ?? null,
+      _program: v.program, _stream: v.stream,
+      _photo_path: photoPath ?? "",
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
