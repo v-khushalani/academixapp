@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Bell, Plus, Trash2, Wallet } from "lucide-react";
+import { Bell, MessageCircle, Plus, Trash2, Wallet } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,8 @@ import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { feesApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
+import { WA_TEMPLATES, openWhatsApp, renderTemplate } from "@/lib/whatsapp";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/app/fees")({
   component: FeesPage,
@@ -61,11 +63,45 @@ function FeesPage() {
     },
     {
       key: "actions", header: "", className: "text-right",
-      cell: (r) => canWrite ? (
-        <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleting(r)}><Trash2 className="h-4 w-4" /></Button>
-      ) : null,
+      cell: (r) => (
+        <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+          <Button size="icon" variant="ghost" title="Send WhatsApp reminder"
+            onClick={() => sendReminder(r)}>
+            <MessageCircle className="h-4 w-4 text-success" />
+          </Button>
+          {canWrite && (
+            <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleting(r)}><Trash2 className="h-4 w-4" /></Button>
+          )}
+        </div>
+      ),
     },
   ];
+
+  async function sendReminder(r: Row) {
+    // Look up parent_phone if not on relation
+    const { data: student } = await supabase
+      .from("students")
+      .select("parent_phone, phone, parent_name, full_name, batch:batches(name)")
+      .eq("id", r.student_id)
+      .maybeSingle();
+    const s = student as { parent_phone?: string | null; phone?: string | null; parent_name?: string | null; full_name?: string; batch?: { name?: string } | null } | null;
+    const phone = s?.parent_phone ?? s?.phone ?? null;
+    const isPaid = r.status === "paid" || Number(r.amount_paid) >= Number(r.amount);
+    const tpl = isPaid ? WA_TEMPLATES.fee_received : WA_TEMPLATES.fee_pending;
+    const msg = renderTemplate(tpl, {
+      student_name: s?.full_name,
+      parent_name: s?.parent_name ?? "Parent",
+      batch_name: s?.batch?.name ?? "—",
+      amount: inr(Number(r.amount)),
+      amount_paid: inr(Number(r.amount_paid)),
+      amount_due: inr(Number(r.amount) - Number(r.amount_paid)),
+      due_date: r.due_date ?? "—",
+      paid_date: r.paid_date ?? new Date().toISOString().slice(0, 10),
+      receipt_no: r.receipt_no ?? "—",
+      academy_name: "VK Academy",
+    });
+    if (!openWhatsApp(phone, msg)) toast.error("No phone number on file for this parent/student.");
+  }
 
   return (
     <>

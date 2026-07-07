@@ -70,6 +70,7 @@ export type Database = {
           capacity: number
           course_id: string | null
           created_at: string
+          default_fee: number
           end_date: string | null
           faculty_id: string | null
           id: string
@@ -85,6 +86,7 @@ export type Database = {
           capacity?: number
           course_id?: string | null
           created_at?: string
+          default_fee?: number
           end_date?: string | null
           faculty_id?: string | null
           id?: string
@@ -100,6 +102,7 @@ export type Database = {
           capacity?: number
           course_id?: string | null
           created_at?: string
+          default_fee?: number
           end_date?: string | null
           faculty_id?: string | null
           id?: string
@@ -145,6 +148,51 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      faculty: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          joining_date: string | null
+          notes: string | null
+          phone: string | null
+          qualification: string | null
+          status: string
+          subject: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          joining_date?: string | null
+          notes?: string | null
+          phone?: string | null
+          qualification?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          joining_date?: string | null
+          notes?: string | null
+          phone?: string | null
+          qualification?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -291,12 +339,15 @@ export type Database = {
           batch_id: string | null
           class: string | null
           created_at: string
+          discount: number
           email: string | null
           full_name: string
           id: string
           notes: string | null
           parent_name: string | null
+          parent_phone: string | null
           phone: string | null
+          scholarship_percent: number
           school: string | null
           status: Database["public"]["Enums"]["student_status"]
           updated_at: string
@@ -309,12 +360,15 @@ export type Database = {
           batch_id?: string | null
           class?: string | null
           created_at?: string
+          discount?: number
           email?: string | null
           full_name: string
           id?: string
           notes?: string | null
           parent_name?: string | null
+          parent_phone?: string | null
           phone?: string | null
+          scholarship_percent?: number
           school?: string | null
           status?: Database["public"]["Enums"]["student_status"]
           updated_at?: string
@@ -327,12 +381,15 @@ export type Database = {
           batch_id?: string | null
           class?: string | null
           created_at?: string
+          discount?: number
           email?: string | null
           full_name?: string
           id?: string
           notes?: string | null
           parent_name?: string | null
+          parent_phone?: string | null
           phone?: string | null
+          scholarship_percent?: number
           school?: string | null
           status?: Database["public"]["Enums"]["student_status"]
           updated_at?: string
@@ -474,6 +531,60 @@ export type Database = {
             columns: ["batch_id"]
             isOneToOne: false
             referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timetable_slots: {
+        Row: {
+          batch_id: string | null
+          created_at: string
+          day_of_week: number
+          end_time: string
+          faculty_id: string | null
+          id: string
+          room: string | null
+          start_time: string
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          faculty_id?: string | null
+          id?: string
+          room?: string | null
+          start_time: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          faculty_id?: string | null
+          id?: string
+          room?: string | null
+          start_time?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_slots_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_slots_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
             referencedColumns: ["id"]
           },
         ]
