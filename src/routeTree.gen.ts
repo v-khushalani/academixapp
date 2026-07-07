@@ -24,6 +24,7 @@ import { Route as AppHomeworkRouteImport } from './routes/app.homework'
 import { Route as AppFacultyRouteImport } from './routes/app.faculty'
 import { Route as AppBatchesRouteImport } from './routes/app.batches'
 import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
+import { Route as AppBatchesIdRouteImport } from './routes/app.batches.$id'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -100,6 +101,11 @@ const AppStudentsIdRoute = AppStudentsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AppStudentsRoute,
 } as any)
+const AppBatchesIdRoute = AppBatchesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppBatchesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -107,7 +113,7 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/app/batches': typeof AppBatchesRoute
+  '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
   '/app/homework': typeof AppHomeworkRoute
   '/app/notifications': typeof AppNotificationsRoute
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/app/study-material': typeof AppStudyMaterialRoute
   '/app/timetable': typeof AppTimetableRoute
   '/app/': typeof AppIndexRoute
+  '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
 }
 export interface FileRoutesByTo {
@@ -123,7 +130,7 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/app/batches': typeof AppBatchesRoute
+  '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
   '/app/homework': typeof AppHomeworkRoute
   '/app/notifications': typeof AppNotificationsRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/app/study-material': typeof AppStudyMaterialRoute
   '/app/timetable': typeof AppTimetableRoute
   '/app': typeof AppIndexRoute
+  '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
 }
 export interface FileRoutesById {
@@ -141,7 +149,7 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/app/batches': typeof AppBatchesRoute
+  '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
   '/app/homework': typeof AppHomeworkRoute
   '/app/notifications': typeof AppNotificationsRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/app/study-material': typeof AppStudyMaterialRoute
   '/app/timetable': typeof AppTimetableRoute
   '/app/': typeof AppIndexRoute
+  '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
 }
 export interface FileRouteTypes {
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/app/study-material'
     | '/app/timetable'
     | '/app/'
+    | '/app/batches/$id'
     | '/app/students/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/app/study-material'
     | '/app/timetable'
     | '/app'
+    | '/app/batches/$id'
     | '/app/students/$id'
   id:
     | '__root__'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/app/study-material'
     | '/app/timetable'
     | '/app/'
+    | '/app/batches/$id'
     | '/app/students/$id'
   fileRoutesById: FileRoutesById
 }
@@ -320,8 +332,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStudentsIdRouteImport
       parentRoute: typeof AppStudentsRoute
     }
+    '/app/batches/$id': {
+      id: '/app/batches/$id'
+      path: '/$id'
+      fullPath: '/app/batches/$id'
+      preLoaderRoute: typeof AppBatchesIdRouteImport
+      parentRoute: typeof AppBatchesRoute
+    }
   }
 }
+
+interface AppBatchesRouteChildren {
+  AppBatchesIdRoute: typeof AppBatchesIdRoute
+}
+
+const AppBatchesRouteChildren: AppBatchesRouteChildren = {
+  AppBatchesIdRoute: AppBatchesIdRoute,
+}
+
+const AppBatchesRouteWithChildren = AppBatchesRoute._addFileChildren(
+  AppBatchesRouteChildren,
+)
 
 interface AppStudentsRouteChildren {
   AppStudentsIdRoute: typeof AppStudentsIdRoute
@@ -336,7 +367,7 @@ const AppStudentsRouteWithChildren = AppStudentsRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
-  AppBatchesRoute: typeof AppBatchesRoute
+  AppBatchesRoute: typeof AppBatchesRouteWithChildren
   AppFacultyRoute: typeof AppFacultyRoute
   AppHomeworkRoute: typeof AppHomeworkRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
@@ -348,7 +379,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppBatchesRoute: AppBatchesRoute,
+  AppBatchesRoute: AppBatchesRouteWithChildren,
   AppFacultyRoute: AppFacultyRoute,
   AppHomeworkRoute: AppHomeworkRoute,
   AppNotificationsRoute: AppNotificationsRoute,
