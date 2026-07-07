@@ -21,6 +21,7 @@ import { Route as AppStudentsRouteImport } from './routes/app.students'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppHomeworkRouteImport } from './routes/app.homework'
+import { Route as AppFeesRouteImport } from './routes/app.fees'
 import { Route as AppFacultyRouteImport } from './routes/app.faculty'
 import { Route as AppBatchesRouteImport } from './routes/app.batches'
 import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
@@ -86,6 +87,11 @@ const AppHomeworkRoute = AppHomeworkRouteImport.update({
   path: '/homework',
   getParentRoute: () => AppRoute,
 } as any)
+const AppFeesRoute = AppFeesRouteImport.update({
+  id: '/fees',
+  path: '/fees',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppFacultyRoute = AppFacultyRouteImport.update({
   id: '/faculty',
   path: '/faculty',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
+  '/app/fees': typeof AppFeesRoute
   '/app/homework': typeof AppHomeworkRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/settings': typeof AppSettingsRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
+  '/app/fees': typeof AppFeesRoute
   '/app/homework': typeof AppHomeworkRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/settings': typeof AppSettingsRoute
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
+  '/app/fees': typeof AppFeesRoute
   '/app/homework': typeof AppHomeworkRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/settings': typeof AppSettingsRoute
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/app/batches'
     | '/app/faculty'
+    | '/app/fees'
     | '/app/homework'
     | '/app/notifications'
     | '/app/settings'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/app/batches'
     | '/app/faculty'
+    | '/app/fees'
     | '/app/homework'
     | '/app/notifications'
     | '/app/settings'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/app/batches'
     | '/app/faculty'
+    | '/app/fees'
     | '/app/homework'
     | '/app/notifications'
     | '/app/settings'
@@ -311,6 +323,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHomeworkRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/fees': {
+      id: '/app/fees'
+      path: '/fees'
+      fullPath: '/app/fees'
+      preLoaderRoute: typeof AppFeesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/faculty': {
       id: '/app/faculty'
       path: '/faculty'
@@ -369,6 +388,7 @@ const AppStudentsRouteWithChildren = AppStudentsRoute._addFileChildren(
 interface AppRouteChildren {
   AppBatchesRoute: typeof AppBatchesRouteWithChildren
   AppFacultyRoute: typeof AppFacultyRoute
+  AppFeesRoute: typeof AppFeesRoute
   AppHomeworkRoute: typeof AppHomeworkRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -381,6 +401,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppBatchesRoute: AppBatchesRouteWithChildren,
   AppFacultyRoute: AppFacultyRoute,
+  AppFeesRoute: AppFeesRoute,
   AppHomeworkRoute: AppHomeworkRoute,
   AppNotificationsRoute: AppNotificationsRoute,
   AppSettingsRoute: AppSettingsRoute,
