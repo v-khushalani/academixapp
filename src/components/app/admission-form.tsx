@@ -21,6 +21,7 @@ export type AdmissionFormValues = {
   address: string;
   program: "" | "schooling" | "foundation" | "both";
   stream: "" | "pcm" | "pcb";
+  preferred_contact: "father" | "mother";
 };
 
 type Props = {
@@ -32,7 +33,7 @@ type Props = {
 const empty: AdmissionFormValues = {
   full_name: "", phone: "", email: "", dob: "", class: "", school: "",
   father_name: "", father_phone: "", mother_name: "", mother_phone: "",
-  address: "", program: "", stream: "",
+  address: "", program: "", stream: "", preferred_contact: "father",
 };
 
 const CLASSES = ["Nursery","LKG","UKG","1","2","3","4","5","6","7","8","9","10","11","12"];
@@ -44,13 +45,17 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
   const set = <K extends keyof AdmissionFormValues>(k: K, val: AdmissionFormValues[K]) => setV((p) => ({ ...p, [k]: val }));
 
   const showStream = v.class === "11" || v.class === "12";
+  const showProgram = !showStream && v.class !== "";
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!v.full_name.trim()) return toast.error("Full name is required");
     if (!v.phone.trim()) return toast.error("Phone is required");
-    if (!v.father_phone.trim() && !v.mother_phone.trim()) return toast.error("At least one parent phone is required");
-    if (!v.program) return toast.error("Please choose a program");
+    if (!v.father_name.trim()) return toast.error("Father's name is required");
+    if (!v.father_phone.trim()) return toast.error("Father's phone is required");
+    if (!v.mother_name.trim()) return toast.error("Mother's name is required");
+    if (!v.mother_phone.trim()) return toast.error("Mother's phone is required");
+    if (showProgram && !v.program) return toast.error("Please choose a program");
     if (showStream && !v.stream) return toast.error("Please choose PCM or PCB");
 
     let photoPath: string | null = null;
@@ -81,16 +86,18 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
       </F>
       <F label="Current school"><Input value={v.school} onChange={(e) => set("school", e.target.value)} /></F>
 
-      <F label="Enrolling for *" cls="sm:col-span-2">
-        <Select value={v.program} onValueChange={(x) => set("program", x as AdmissionFormValues["program"])}>
-          <SelectTrigger><SelectValue placeholder="Choose program" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="schooling">Schooling (upto 10th)</SelectItem>
-            <SelectItem value="foundation">Foundation (upto 10th)</SelectItem>
-            <SelectItem value="both">Both — Schooling + Foundation</SelectItem>
-          </SelectContent>
-        </Select>
-      </F>
+      {showProgram && (
+        <F label="Enrolling for *" cls="sm:col-span-2">
+          <Select value={v.program} onValueChange={(x) => set("program", x as AdmissionFormValues["program"])}>
+            <SelectTrigger><SelectValue placeholder="Choose program" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="schooling">Schooling</SelectItem>
+              <SelectItem value="foundation">Foundation</SelectItem>
+              <SelectItem value="both">Both — Schooling + Foundation</SelectItem>
+            </SelectContent>
+          </Select>
+        </F>
+      )}
       {showStream && (
         <F label="Stream *" cls="sm:col-span-2">
           <Select value={v.stream} onValueChange={(x) => set("stream", x as AdmissionFormValues["stream"])}>
@@ -104,10 +111,19 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
       )}
 
       <Section title="Parent details" />
-      <F label="Father's name"><Input value={v.father_name} onChange={(e) => set("father_name", e.target.value)} /></F>
-      <F label="Father's phone"><Input value={v.father_phone} onChange={(e) => set("father_phone", e.target.value)} /></F>
-      <F label="Mother's name"><Input value={v.mother_name} onChange={(e) => set("mother_name", e.target.value)} /></F>
-      <F label="Mother's phone"><Input value={v.mother_phone} onChange={(e) => set("mother_phone", e.target.value)} /></F>
+      <F label="Father's name *"><Input value={v.father_name} onChange={(e) => set("father_name", e.target.value)} required /></F>
+      <F label="Father's phone *"><Input value={v.father_phone} onChange={(e) => set("father_phone", e.target.value)} required placeholder="10-digit" /></F>
+      <F label="Mother's name *"><Input value={v.mother_name} onChange={(e) => set("mother_name", e.target.value)} required /></F>
+      <F label="Mother's phone *"><Input value={v.mother_phone} onChange={(e) => set("mother_phone", e.target.value)} required placeholder="10-digit" /></F>
+      <F label="Who monitors studies? (default WhatsApp contact) *" cls="sm:col-span-2">
+        <Select value={v.preferred_contact} onValueChange={(x) => set("preferred_contact", x as "father" | "mother")}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="father">Father</SelectItem>
+            <SelectItem value="mother">Mother</SelectItem>
+          </SelectContent>
+        </Select>
+      </F>
       <F label="Address" cls="sm:col-span-2"><Input value={v.address} onChange={(e) => set("address", e.target.value)} /></F>
 
       <Section title="Student photo" />
