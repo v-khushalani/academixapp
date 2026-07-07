@@ -15,6 +15,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as OnboardTokenRouteImport } from './routes/onboard.$token'
 import { Route as AppTimetableRouteImport } from './routes/app.timetable'
 import { Route as AppTestsRouteImport } from './routes/app.tests'
 import { Route as AppStudyMaterialRouteImport } from './routes/app.study-material'
@@ -61,6 +62,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const OnboardTokenRoute = OnboardTokenRouteImport.update({
+  id: '/onboard/$token',
+  path: '/onboard/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppTimetableRoute = AppTimetableRouteImport.update({
   id: '/timetable',
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/app/study-material': typeof AppStudyMaterialRoute
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
+  '/onboard/$token': typeof OnboardTokenRoute
   '/app/': typeof AppIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/app/study-material': typeof AppStudyMaterialRoute
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
+  '/onboard/$token': typeof OnboardTokenRoute
   '/app': typeof AppIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
@@ -210,6 +218,7 @@ export interface FileRoutesById {
   '/app/study-material': typeof AppStudyMaterialRoute
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
+  '/onboard/$token': typeof OnboardTokenRoute
   '/app/': typeof AppIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
@@ -236,6 +245,7 @@ export interface FileRouteTypes {
     | '/app/study-material'
     | '/app/tests'
     | '/app/timetable'
+    | '/onboard/$token'
     | '/app/'
     | '/app/batches/$id'
     | '/app/students/$id'
@@ -259,6 +269,7 @@ export interface FileRouteTypes {
     | '/app/study-material'
     | '/app/tests'
     | '/app/timetable'
+    | '/onboard/$token'
     | '/app'
     | '/app/batches/$id'
     | '/app/students/$id'
@@ -283,6 +294,7 @@ export interface FileRouteTypes {
     | '/app/study-material'
     | '/app/tests'
     | '/app/timetable'
+    | '/onboard/$token'
     | '/app/'
     | '/app/batches/$id'
     | '/app/students/$id'
@@ -295,6 +307,7 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  OnboardTokenRoute: typeof OnboardTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -340,6 +353,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/onboard/$token': {
+      id: '/onboard/$token'
+      path: '/onboard/$token'
+      fullPath: '/onboard/$token'
+      preLoaderRoute: typeof OnboardTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/timetable': {
       id: '/app/timetable'
@@ -534,6 +554,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  OnboardTokenRoute: OnboardTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -2,17 +2,19 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Link2, MessageCircle, Pencil, Plus, Trash2, UserPlus } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable, type DTColumn } from "@/components/app/data-table";
 import { StudentFormDialog } from "@/components/app/student-form-dialog";
+import { QuickAdmitDialog } from "@/components/app/quick-admit-dialog";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { studentsApi, type Student } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
+import { openWhatsApp } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/app/students")({
   component: StudentsPage,
@@ -30,6 +32,7 @@ function StudentsPage() {
   const [status, setStatus] = useState<string>("all");
   const [cls, setCls] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
   const [deleting, setDeleting] = useState<Row | null>(null);
 
@@ -76,6 +79,25 @@ function StudentsPage() {
       key: "actions", header: "", className: "text-right",
       cell: (r) => canWrite ? (
         <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+          {r.onboarding_token && !r.onboarding_completed_at && (
+            <>
+              <Button size="icon" variant="ghost" title="Copy onboarding link"
+                onClick={() => {
+                  const url = `${window.location.origin}/onboard/${r.onboarding_token}`;
+                  navigator.clipboard.writeText(url).then(() => toast.success("Onboarding link copied"));
+                }}>
+                <Link2 className="h-4 w-4" />
+              </Button>
+              <Button size="icon" variant="ghost" title="Send onboarding link on WhatsApp"
+                onClick={() => {
+                  const url = `${window.location.origin}/onboard/${r.onboarding_token}`;
+                  const msg = `Hello ${r.full_name},\n\nWelcome to VK Academy. Please fill your admission details using the link below:\n${url}\n\nThank you.`;
+                  if (!openWhatsApp(r.phone, msg)) toast.error("No phone number on file");
+                }}>
+                <MessageCircle className="h-4 w-4 text-success" />
+              </Button>
+            </>
+          )}
           <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
           <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleting(r)}><Trash2 className="h-4 w-4" /></Button>
         </div>
@@ -89,9 +111,14 @@ function StudentsPage() {
         title="Students"
         description={`${filtered.length} of ${data.length} students`}
         actions={canWrite ? (
-          <Button size="sm" className="gap-1.5" onClick={() => { setEditing(null); setDialogOpen(true); }}>
-            <Plus className="h-4 w-4" />Add student
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setQuickOpen(true)}>
+              <UserPlus className="h-4 w-4" />Quick admit
+            </Button>
+            <Button size="sm" className="gap-1.5" onClick={() => { setEditing(null); setDialogOpen(true); }}>
+              <Plus className="h-4 w-4" />Add student
+            </Button>
+          </div>
         ) : null}
       />
       <PageBody>
@@ -129,6 +156,7 @@ function StudentsPage() {
       </PageBody>
 
       <StudentFormDialog open={dialogOpen} onOpenChange={setDialogOpen} student={editing} />
+      <QuickAdmitDialog open={quickOpen} onOpenChange={setQuickOpen} />
       <ConfirmDialog
         open={Boolean(deleting)}
         onOpenChange={(v) => !v && setDeleting(null)}

@@ -344,6 +344,8 @@ export type Database = {
           full_name: string
           id: string
           notes: string | null
+          onboarding_completed_at: string | null
+          onboarding_token: string | null
           parent_name: string | null
           parent_phone: string | null
           phone: string | null
@@ -365,6 +367,8 @@ export type Database = {
           full_name: string
           id?: string
           notes?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_token?: string | null
           parent_name?: string | null
           parent_phone?: string | null
           phone?: string | null
@@ -386,6 +390,8 @@ export type Database = {
           full_name?: string
           id?: string
           notes?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_token?: string | null
           parent_name?: string | null
           parent_phone?: string | null
           phone?: string | null
@@ -615,9 +621,39 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_student_onboarding: {
+        Args: {
+          _address: string
+          _class: string
+          _email: string
+          _full_name: string
+          _parent_name: string
+          _parent_phone: string
+          _phone: string
+          _school: string
+          _token: string
+        }
+        Returns: string
+      }
       get_my_roles: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      get_student_by_token: {
+        Args: { _token: string }
+        Returns: {
+          address: string
+          admission_no: string
+          class: string
+          email: string
+          full_name: string
+          id: string
+          onboarding_completed_at: string
+          parent_name: string
+          parent_phone: string
+          phone: string
+          school: string
+        }[]
       }
       has_any_role: {
         Args: {

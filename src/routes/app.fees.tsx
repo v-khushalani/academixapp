@@ -111,7 +111,8 @@ function FeesPage() {
         actions={canWrite ? <Button size="sm" className="gap-1.5" onClick={() => setOpen(true)}><Plus className="h-4 w-4" />Record payment</Button> : null}
       />
       <PageBody>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-4">
+          <KpiCard label="Total billed" value={inr(data.reduce((a, b) => a + Number(b.amount), 0))} icon={Wallet} />
           <KpiCard label="Outstanding" value={inr(outstanding)} icon={Wallet} tone="warning" />
           <KpiCard label="Collected" value={inr(collected)} icon={Wallet} tone="success" />
           <KpiCard label="Overdue" value={overdue} icon={Bell} tone="danger" />
