@@ -25,6 +25,7 @@ import { Route as AppHomeworkRouteImport } from './routes/app.homework'
 import { Route as AppFeesRouteImport } from './routes/app.fees'
 import { Route as AppFacultyRouteImport } from './routes/app.faculty'
 import { Route as AppBatchesRouteImport } from './routes/app.batches'
+import { Route as AppTestsIdRouteImport } from './routes/app.tests.$id'
 import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
 import { Route as AppBatchesIdRouteImport } from './routes/app.batches.$id'
 
@@ -108,6 +109,11 @@ const AppBatchesRoute = AppBatchesRouteImport.update({
   path: '/batches',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTestsIdRoute = AppTestsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppTestsRoute,
+} as any)
 const AppStudentsIdRoute = AppStudentsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -133,11 +139,12 @@ export interface FileRoutesByFullPath {
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/study-material': typeof AppStudyMaterialRoute
-  '/app/tests': typeof AppTestsRoute
+  '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
   '/app/': typeof AppIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
+  '/app/tests/$id': typeof AppTestsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -152,11 +159,12 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/study-material': typeof AppStudyMaterialRoute
-  '/app/tests': typeof AppTestsRoute
+  '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
   '/app': typeof AppIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
+  '/app/tests/$id': typeof AppTestsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -173,11 +181,12 @@ export interface FileRoutesById {
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/study-material': typeof AppStudyMaterialRoute
-  '/app/tests': typeof AppTestsRoute
+  '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
   '/app/': typeof AppIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
+  '/app/tests/$id': typeof AppTestsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/app/batches/$id'
     | '/app/students/$id'
+    | '/app/tests/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/batches/$id'
     | '/app/students/$id'
+    | '/app/tests/$id'
   id:
     | '__root__'
     | '/'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/app/batches/$id'
     | '/app/students/$id'
+    | '/app/tests/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -363,6 +375,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBatchesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/tests/$id': {
+      id: '/app/tests/$id'
+      path: '/$id'
+      fullPath: '/app/tests/$id'
+      preLoaderRoute: typeof AppTestsIdRouteImport
+      parentRoute: typeof AppTestsRoute
+    }
     '/app/students/$id': {
       id: '/app/students/$id'
       path: '/$id'
@@ -404,6 +423,18 @@ const AppStudentsRouteWithChildren = AppStudentsRoute._addFileChildren(
   AppStudentsRouteChildren,
 )
 
+interface AppTestsRouteChildren {
+  AppTestsIdRoute: typeof AppTestsIdRoute
+}
+
+const AppTestsRouteChildren: AppTestsRouteChildren = {
+  AppTestsIdRoute: AppTestsIdRoute,
+}
+
+const AppTestsRouteWithChildren = AppTestsRoute._addFileChildren(
+  AppTestsRouteChildren,
+)
+
 interface AppRouteChildren {
   AppBatchesRoute: typeof AppBatchesRouteWithChildren
   AppFacultyRoute: typeof AppFacultyRoute
@@ -413,7 +444,7 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppStudentsRoute: typeof AppStudentsRouteWithChildren
   AppStudyMaterialRoute: typeof AppStudyMaterialRoute
-  AppTestsRoute: typeof AppTestsRoute
+  AppTestsRoute: typeof AppTestsRouteWithChildren
   AppTimetableRoute: typeof AppTimetableRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -427,7 +458,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
   AppStudentsRoute: AppStudentsRouteWithChildren,
   AppStudyMaterialRoute: AppStudyMaterialRoute,
-  AppTestsRoute: AppTestsRoute,
+  AppTestsRoute: AppTestsRouteWithChildren,
   AppTimetableRoute: AppTimetableRoute,
   AppIndexRoute: AppIndexRoute,
 }
