@@ -16,7 +16,7 @@ const KEY_INSTITUTE = "vk_institute";
 const KEY_TEMPLATES = "vk_wa_templates";
 
 const DEFAULT_INSTITUTE: InstituteSettings = {
-  name: "VK Academy",
+  name: "Your Institute",
   tagline: "",
   address: "",
   phone: "",

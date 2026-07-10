@@ -20,12 +20,13 @@ function DashboardPage() {
   });
 
   const name = user?.user_metadata?.full_name || user?.email || "there";
+  const institute = typeof window !== "undefined" ? (require("@/lib/academy-settings").getInstitute().name || "your institute") : "your institute";
 
   return (
     <>
       <PageHeader
         title={`Good day, ${name.split(" ")[0]}`}
-        description="Here is what is happening at VK Academy today."
+        description={`Here is what is happening at ${institute} today.`}
       />
       <PageBody>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
