@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdmissionForm, type AdmissionFormValues } from "@/components/app/admission-form";
+import { getInstitute } from "@/lib/academy-settings";
 
 export const Route = createFileRoute("/apply")({
   component: ApplyPage,
@@ -13,6 +14,8 @@ function ApplyPage() {
   const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
+  const instituteName = getInstitute().name || "Academix";
+  const initials = (instituteName.match(/\b\w/g) || ["A"]).slice(0, 2).join("").toUpperCase();
 
   async function onSubmit(v: AdmissionFormValues, photoPath: string | null) {
     setSaving(true);
@@ -47,10 +50,10 @@ function ApplyPage() {
       <div className="mx-auto max-w-2xl rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="mb-6 flex items-center gap-2">
           <div className="grid h-10 w-10 place-items-center rounded-md bg-primary text-primary-foreground">
-            <span className="text-sm font-bold">VK</span>
+            <span className="text-sm font-bold">{initials}</span>
           </div>
           <div>
-            <p className="text-sm font-semibold tracking-tight">VK Academy</p>
+            <p className="text-sm font-semibold tracking-tight">{instituteName}</p>
             <p className="text-xs text-muted-foreground">Admission Application Form</p>
           </div>
         </div>

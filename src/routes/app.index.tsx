@@ -5,6 +5,7 @@ import { PageHeader, PageBody } from "@/components/app/page-header";
 import { KpiCard } from "@/components/app/kpi-card";
 import { dashboardApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { getInstitute } from "@/lib/academy-settings";
 
 export const Route = createFileRoute("/app/")({
   component: DashboardPage,
@@ -20,12 +21,13 @@ function DashboardPage() {
   });
 
   const name = user?.user_metadata?.full_name || user?.email || "there";
+  const institute = getInstitute().name || "your institute";
 
   return (
     <>
       <PageHeader
         title={`Good day, ${name.split(" ")[0]}`}
-        description="Here is what is happening at VK Academy today."
+        description={`Here is what is happening at ${institute} today.`}
       />
       <PageBody>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -31,6 +31,8 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { canAccess, type ModuleKey } from "@/lib/rbac";
+import { useEffect, useState } from "react";
+import { getInstitute } from "@/lib/academy-settings";
 
 type NavItem = {
   title: string;
@@ -61,6 +63,14 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { roles, signOut } = useAuth();
+  const [instituteName, setInstituteName] = useState("Academix");
+  useEffect(() => {
+    const sync = () => setInstituteName(getInstitute().name || "Academix");
+    sync();
+    window.addEventListener("vk-institute-changed", sync);
+    return () => window.removeEventListener("vk-institute-changed", sync);
+  }, []);
+  const initials = (instituteName.match(/\b\w/g) || ["A"]).slice(0, 2).join("").toUpperCase();
 
   const isActive = (url: string, exact?: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(url + "/");
@@ -72,12 +82,12 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-1.5">
           <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
-            <span className="text-sm font-bold tracking-tight">VK</span>
+            <span className="text-sm font-bold tracking-tight">{initials}</span>
           </div>
           {!collapsed && (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold leading-tight text-foreground">
-                VK Academy
+                {instituteName}
               </p>
               <p className="truncate text-[11px] leading-tight text-muted-foreground">
                 Powered by Academix

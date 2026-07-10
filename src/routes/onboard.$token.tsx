@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AdmissionForm, type AdmissionFormValues } from "@/components/app/admission-form";
 import { CheckCircle2 } from "lucide-react";
+import { getInstitute } from "@/lib/academy-settings";
 
 export const Route = createFileRoute("/onboard/$token")({
   component: OnboardPage,
@@ -116,7 +117,7 @@ function OnboardPage() {
       <Shell>
         <h1 className="text-lg font-semibold">Link expired or invalid</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Please contact VK Academy for a fresh onboarding link.
+          Please contact {getInstitute().name || "your institute"} for a fresh onboarding link.
         </p>
       </Shell>
     );
@@ -135,7 +136,7 @@ function OnboardPage() {
 
   return (
     <Shell>
-      <h1 className="text-lg font-semibold">Welcome to VK Academy</h1>
+      <h1 className="text-lg font-semibold">Welcome to {getInstitute().name || "our institute"}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Fill your admission details. Admission no: <span className="font-mono">{admissionNo}</span>
       </p>
@@ -147,14 +148,16 @@ function OnboardPage() {
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
+  const name = getInstitute().name || "Academix";
+  const initials = (name.match(/\b\w/g) || ["A"]).slice(0, 2).join("").toUpperCase();
   return (
     <div className="min-h-screen bg-background px-4 py-10">
       <div className="mx-auto max-w-2xl rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="mb-4 flex items-center gap-2">
           <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground">
-            <span className="text-sm font-bold">VK</span>
+            <span className="text-sm font-bold">{initials}</span>
           </div>
-          <span className="text-sm font-semibold tracking-tight">VK Academy</span>
+          <span className="text-sm font-semibold tracking-tight">{name}</span>
         </div>
         {children}
       </div>

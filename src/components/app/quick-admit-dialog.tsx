@@ -118,7 +118,8 @@ export function QuickAdmitDialog({ open, onOpenChange }: Props) {
 
   function sendWhatsApp() {
     if (!link) return;
-    const msg = `Hello ${studentName},\n\nWelcome to VK Academy. Please fill your admission details using the link below:\n${link}\n\nThank you.`;
+    const inst = (typeof window !== "undefined" && JSON.parse(window.localStorage.getItem("vk_institute") ?? "{}").name) || "our institute";
+    const msg = `Hello ${studentName},\n\nWelcome to ${inst}. Please fill your admission details using the link below:\n${link}\n\nThank you.`;
     if (!openWhatsApp(studentPhone, msg))
       toast.error("No phone number on file. Copy the link instead.");
   }
