@@ -78,23 +78,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "VK Academy — Institute Operating System" },
+      { title: "Academix — The Operating System for Modern Institutes" },
       {
         name: "description",
         content:
-          "The modern operating system for VK Academy. Manage students, admissions, batches, attendance, fees and tests from a single fast dashboard.",
+          "Academix is a modern ERP built for coaching institutes and academies. Manage students, admissions, batches, attendance, fees and tests from a single fast dashboard.",
       },
-      { name: "author", content: "VK Academy" },
-      { property: "og:title", content: "VK Academy — Institute Operating System" },
+      { name: "author", content: "Academix" },
+      { property: "og:title", content: "Academix — The Operating System for Modern Institutes" },
       {
         property: "og:description",
         content:
-          "The modern operating system for VK Academy. Manage students, admissions, batches, attendance, fees and tests from a single fast dashboard.",
+          "Academix is a modern ERP built for coaching institutes and academies. Manage students, admissions, batches, attendance, fees and tests from a single fast dashboard.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "VK Academy — Institute Operating System" },
-      { name: "twitter:description", content: "The modern operating system for VK Academy. Manage students, admissions, batches, attendance, fees and tests from a single fast dashboard." },
+      { name: "twitter:title", content: "Academix — The Operating System for Modern Institutes" },
+      { name: "twitter:description", content: "Academix is a modern ERP built for coaching institutes and academies. Manage students, admissions, batches, attendance, fees and tests from a single fast dashboard." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b0bd8a54-8248-4685-a7b0-f4b9a2993425/id-preview-c44f677a--16835a18-300a-469b-8bf2-6c7cc98982e8.lovable.app-1783651327037.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b0bd8a54-8248-4685-a7b0-f4b9a2993425/id-preview-c44f677a--16835a18-300a-469b-8bf2-6c7cc98982e8.lovable.app-1783651327037.png" },
     ],
