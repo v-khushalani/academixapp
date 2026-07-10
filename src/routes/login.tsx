@@ -41,12 +41,12 @@ function LoginPage() {
         <div className="w-full max-w-sm">
           <Link to="/" className="mb-8 inline-flex items-center gap-2">
             <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground">
-              <span className="text-sm font-bold">VK</span>
+              <span className="text-sm font-bold">Ax</span>
             </div>
-            <span className="text-sm font-semibold">VK Academy</span>
+            <span className="text-sm font-semibold">Academix</span>
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Sign in to your institute dashboard.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Sign in to your Academix workspace.</p>
           <form className="mt-8 space-y-4" onSubmit={onSubmit}>
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
@@ -54,7 +54,7 @@ function LoginPage() {
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@vkacademy.in"
+                placeholder="you@yourinstitute.in"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -91,14 +91,14 @@ function LoginPage() {
       <div className="hidden bg-primary lg:flex lg:items-center lg:justify-center lg:p-12">
         <div className="max-w-md text-primary-foreground">
           <p className="text-sm font-medium uppercase tracking-widest opacity-70">
-            VK Academy · Institute OS
+            Academix · Institute OS
           </p>
           <h2 className="mt-4 text-3xl font-semibold leading-tight">
             One dashboard for the entire institute.
           </h2>
           <p className="mt-3 text-sm opacity-80">
-            Students, admissions, batches, attendance, fees and tests — designed to feel calm, fast
-            and elegant.
+            Students, admissions, batches, attendance, fees and tests — one calm, fast workspace for
+            every institute.
           </p>
         </div>
       </div>

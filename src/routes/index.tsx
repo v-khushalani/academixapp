@@ -7,18 +7,29 @@ import {
   Clock,
   BarChart3,
   CheckCircle2,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Academix — The Operating System for Modern Institutes" },
+      {
+        name: "description",
+        content:
+          "One dashboard for students, admissions, batches, attendance, fees and tests. Built for coaching institutes. Trusted first by VK Academy.",
+      },
+    ],
+  }),
   component: Index,
 });
 
 function Index() {
   const stats = [
-    { label: "Faster", value: "10x" },
-    { label: "Easier", value: "1 Dashboard" },
-    { label: "Smarter", value: "Real-time" },
+    { label: "One place", value: "All ops" },
+    { label: "Setup", value: "Minutes" },
+    { label: "Mobile", value: "First-class" },
   ];
 
   const benefits = [
@@ -69,14 +80,26 @@ function Index() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
             <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground shadow-md">
-              <span className="text-sm font-bold">VK</span>
+              <span className="text-sm font-bold">Ax</span>
             </div>
             <div>
-              <span className="block text-sm font-bold tracking-tight">VK Academy</span>
+              <span className="block text-sm font-bold tracking-tight">Academix</span>
               <span className="block text-xs text-primary">Institute OS</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Link
+              to="/for-institutes"
+              className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline"
+            >
+              For institutes
+            </Link>
+            <Link
+              to="/pricing"
+              className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline"
+            >
+              Pricing
+            </Link>
             <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
               <Link to="/login">Sign in</Link>
             </Button>
@@ -85,7 +108,7 @@ function Index() {
               size="sm"
               className="bg-primary hover:bg-primary/90"
             >
-              <Link to="/app">Launch App →</Link>
+              <Link to="/signup">Start free trial →</Link>
             </Button>
           </div>
         </div>
@@ -105,27 +128,35 @@ function Index() {
           {/* Main Heading */}
           <div>
             <h1 className="mx-auto max-w-4xl text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-              Stop drowning in{" "}
+              Run your institute on{" "}
               <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                spreadsheets.
+                Academix.
               </span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-              One dashboard for everything. Students, admissions, fees, attendance, tests. Fast.
-              Beautiful. Actually useful.
+              One calm, fast dashboard for students, admissions, fees, attendance, tests and
+              timetable. Built for coaching institutes and academies.
             </p>
           </div>
 
           {/* CTA Buttons */}
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="gap-2 bg-primary px-6">
-              <Link to="/app">
-                See it in action <ArrowRight className="h-4 w-4" />
+              <Link to="/signup">
+                Start free trial <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="px-6">
-              <Link to="/apply">Apply for admission</Link>
+              <Link to="/for-institutes">See features</Link>
             </Button>
+          </div>
+
+          {/* First-client callout */}
+          <div className="mx-auto flex max-w-md items-center justify-center gap-2 rounded-lg border border-border/50 bg-card/50 px-4 py-3 text-sm text-muted-foreground">
+            <Building2 className="h-4 w-4 text-primary" />
+            <span>
+              Live with our first institute: <strong className="text-foreground">VK Academy</strong>
+            </span>
           </div>
 
           {/* Stats */}
@@ -191,13 +222,14 @@ function Index() {
       <section className="border-t border-border/50 bg-primary/5">
         <div className="mx-auto max-w-4xl px-6 py-20 text-center">
           <CheckCircle2 className="mx-auto h-12 w-12 text-primary" />
-          <h2 className="mt-6 text-3xl font-bold">Built for real institutes.</h2>
+          <h2 className="mt-6 text-3xl font-bold">Built with a real institute.</h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Trusted by coaching centers. Scaled for growth. Ready for tomorrow.
+            Academix is dogfooded daily at VK Academy — every feature is shaped by real classroom,
+            fee-desk and admissions workflows.
           </p>
           <Button asChild size="lg" className="mt-8 gap-2">
-            <Link to="/app">
-              Get started free <ArrowRight className="h-4 w-4" />
+            <Link to="/signup">
+              Start your workspace <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -207,12 +239,12 @@ function Index() {
       <section className="bg-primary/10 py-16">
         <div className="mx-auto max-w-4xl px-6 text-center">
           <p className="text-sm font-medium text-muted-foreground">
-            Ready to stop wasting time on admin?
+            Ready to give your institute its own operating system?
           </p>
-          <p className="mt-2 text-2xl font-bold">Join us today.</p>
+          <p className="mt-2 text-2xl font-bold">Try Academix free.</p>
           <Button asChild size="lg" className="mt-6 gap-2 bg-primary">
-            <Link to="/app">
-              Open VK Academy <ArrowRight className="h-4 w-4" />
+            <Link to="/signup">
+              Create workspace <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -221,8 +253,8 @@ function Index() {
       {/* Footer */}
       <footer className="border-t border-border/50 bg-background">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-8 text-sm text-muted-foreground">
-          <span>© {new Date().getFullYear()} VK Academy</span>
-          <span className="text-xs">Built for institutes, by people who care.</span>
+          <span>© {new Date().getFullYear()} Academix</span>
+          <span className="text-xs">Built by educators. First running at VK Academy.</span>
         </div>
       </footer>
     </div>

@@ -80,7 +80,7 @@ export function AppSidebar() {
                 VK Academy
               </p>
               <p className="truncate text-[11px] leading-tight text-muted-foreground">
-                Institute OS
+                Powered by Academix
               </p>
             </div>
           )}
