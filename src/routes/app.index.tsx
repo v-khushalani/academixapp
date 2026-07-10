@@ -5,6 +5,7 @@ import { PageHeader, PageBody } from "@/components/app/page-header";
 import { KpiCard } from "@/components/app/kpi-card";
 import { dashboardApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { getInstitute } from "@/lib/academy-settings";
 
 export const Route = createFileRoute("/app/")({
   component: DashboardPage,
@@ -20,7 +21,7 @@ function DashboardPage() {
   });
 
   const name = user?.user_metadata?.full_name || user?.email || "there";
-  const institute = typeof window !== "undefined" ? (require("@/lib/academy-settings").getInstitute().name || "your institute") : "your institute";
+  const institute = getInstitute().name || "your institute";
 
   return (
     <>

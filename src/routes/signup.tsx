@@ -47,9 +47,9 @@ function SignupPage() {
       <div className="w-full max-w-sm">
         <Link to="/" className="mb-8 inline-flex items-center gap-2">
           <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground">
-            <span className="text-sm font-bold">VK</span>
+            <span className="text-sm font-bold">A</span>
           </div>
-          <span className="text-sm font-semibold">VK Academy</span>
+          <span className="text-sm font-semibold">Academix</span>
         </Link>
         <h1 className="text-2xl font-semibold tracking-tight">Create your account</h1>
         <p className="mt-1 text-sm text-muted-foreground">

@@ -64,8 +64,8 @@ function ForInstitutesPage() {
           Built for coaching institutes. By people who run one.
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-          Academix is developed alongside <strong className="text-foreground">VK Academy</strong> —
-          our own institute — so every module is shaped by real day-to-day operations.
+          Academix is built alongside real institutes, so every module is shaped by day-to-day
+          admissions, classroom and fee-desk workflows — not guesswork.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Button asChild size="lg">

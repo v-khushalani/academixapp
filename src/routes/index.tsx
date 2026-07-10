@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "One dashboard for students, admissions, batches, attendance, fees and tests. Built for coaching institutes. Trusted first by VK Academy.",
+          "One dashboard for students, admissions, batches, attendance, fees and tests. Built for coaching institutes.",
       },
     ],
   }),
@@ -151,14 +151,6 @@ function Index() {
             </Button>
           </div>
 
-          {/* First-client callout */}
-          <div className="mx-auto flex max-w-md items-center justify-center gap-2 rounded-lg border border-border/50 bg-card/50 px-4 py-3 text-sm text-muted-foreground">
-            <Building2 className="h-4 w-4 text-primary" />
-            <span>
-              Live with our first institute: <strong className="text-foreground">VK Academy</strong>
-            </span>
-          </div>
-
           {/* Stats */}
           <div className="grid grid-cols-3 gap-6 pt-8 sm:gap-8">
             {stats.map((stat) => (
@@ -177,7 +169,7 @@ function Index() {
       <section className="border-y border-border/50 bg-card/50 py-20">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="mb-12 text-center text-3xl font-bold sm:text-4xl">
-            Why institutes choose VK Academy
+            Why institutes choose Academix
           </h2>
           <div className="grid gap-8 sm:grid-cols-3">
             {benefits.map((benefit) => (
@@ -222,10 +214,10 @@ function Index() {
       <section className="border-t border-border/50 bg-primary/5">
         <div className="mx-auto max-w-4xl px-6 py-20 text-center">
           <CheckCircle2 className="mx-auto h-12 w-12 text-primary" />
-          <h2 className="mt-6 text-3xl font-bold">Built with a real institute.</h2>
+          <h2 className="mt-6 text-3xl font-bold">Built for real institutes.</h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Academix is dogfooded daily at VK Academy — every feature is shaped by real classroom,
-            fee-desk and admissions workflows.
+            Every feature in Academix is shaped by real classroom, fee-desk and admissions
+            workflows — not guesswork.
           </p>
           <Button asChild size="lg" className="mt-8 gap-2">
             <Link to="/signup">
@@ -254,7 +246,7 @@ function Index() {
       <footer className="border-t border-border/50 bg-background">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-8 text-sm text-muted-foreground">
           <span>© {new Date().getFullYear()} Academix</span>
-          <span className="text-xs">Built by educators. First running at VK Academy.</span>
+          <span className="text-xs">Built by educators, for educators.</span>
         </div>
       </footer>
     </div>

@@ -145,7 +145,8 @@ function StudentsPage() {
                   title="Send onboarding link on WhatsApp"
                   onClick={() => {
                     const url = `${window.location.origin}/onboard/${r.onboarding_token}`;
-                    const msg = `Hello ${r.full_name},\n\nWelcome to VK Academy. Please fill your admission details using the link below:\n${url}\n\nThank you.`;
+                    const inst = (typeof window !== "undefined" && JSON.parse(window.localStorage.getItem("vk_institute") ?? "{}").name) || "our institute";
+                    const msg = `Hello ${r.full_name},\n\nWelcome to ${inst}. Please fill your admission details using the link below:\n${url}\n\nThank you.`;
                     if (!openWhatsApp(r.phone, msg)) toast.error("No phone number on file");
                   }}
                 >
