@@ -7,7 +7,6 @@ import {
   Clock,
   BarChart3,
   CheckCircle2,
-  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
