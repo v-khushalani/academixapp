@@ -89,10 +89,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:description",
         content:
-          "Manage your entire coaching institute from one premium, lightning-fast dashboard.",
+          "The modern operating system for VK Academy. Manage students, admissions, batches, attendance, fees and tests from a single fast dashboard.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "VK Academy — Institute Operating System" },
+      { name: "twitter:description", content: "The modern operating system for VK Academy. Manage students, admissions, batches, attendance, fees and tests from a single fast dashboard." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b0bd8a54-8248-4685-a7b0-f4b9a2993425/id-preview-c44f677a--16835a18-300a-469b-8bf2-6c7cc98982e8.lovable.app-1783651327037.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b0bd8a54-8248-4685-a7b0-f4b9a2993425/id-preview-c44f677a--16835a18-300a-469b-8bf2-6c7cc98982e8.lovable.app-1783651327037.png" },
     ],
     links: [
       {
