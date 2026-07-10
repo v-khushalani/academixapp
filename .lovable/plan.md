@@ -1,98 +1,121 @@
-# VK Academy ERP — V1 Build Plan
+# Academix — Multi-Institute ERP Platform Plan
 
-## Approach
+Two distinct products, one codebase:
 
-Build a polished, production-grade **UI shell** first using in-memory mock data (TypeScript fixtures + TanStack Query). All 14 modules will be navigable; **7 modules get fully interactive UI** (Dashboard, Students, Admissions, Batches, Attendance, Fees, Tests). The remaining 7 (Homework, Study Material, Timetable, Faculty, Reports, Notifications, Settings) get clean placeholder screens with correct layouts so backend wiring later is a drop-in.
+- **Academix** — the SaaS platform (marketing site, signup, billing, super-admin).
+- **VK Academy** — the first tenant/institute using Academix (our own institute, our own dogfooding client).
 
-Backend (your own Supabase project, connected manually later) is **not** wired in this pass. Data layer will be abstracted behind a `src/lib/api/*` module so swapping mock → Supabase is a single-file change per resource.
+---
 
-## Brand & Design System
-
-- **Font**: Inter (via `@fontsource-variable/inter`)
-- **Colors** (tokenized in `src/styles.css` as CSS vars, mapped through `@theme inline`):
-  - primary `#013062`, primary-hover `#02418A`
-  - background `#F8FAFC`, card `#FFFFFF`, border `#E5E7EB`
-  - text `#111827`, muted `#6B7280`
-  - success `#16A34A`, warning `#F59E0B`, danger `#DC2626`
-- Subtle radii (8–10px), thin borders, generous whitespace, no gradients, no colorful chart palettes (monochrome primary + neutral grays for charts).
-- Motion: framer-motion micro-transitions only (fade/slide 150–200ms). No page-level animation theatrics.
-- Reference feel: Linear sidebar density, Stripe dashboard restraint, Notion typographic calm.
-
-## Public Surface (unauthenticated)
-
-- `/` — VK Academy landing: hero, product pillars (Speed / Simplicity / Clarity), module overview, CTA to login. Minimal, single-column, editorial.
-- `/login` — email + password form (UI only; "Sign in" navigates to `/app`).
-- `/signup`, `/forgot-password` — placeholders.
-
-## App Shell (`/app/*`)
-
-- Collapsible sidebar (shadcn `Sidebar`, `collapsible="icon"`), sticky top bar with global search, notifications bell, today's date, quick-add menu, profile avatar.
-- Sidebar sections: Dashboard, Students, Admissions, Batches, Attendance, Fees, Tests, Homework, Study Material, Timetable, Faculty, Reports, Notifications, Settings. Bottom: Profile, Logout.
-- Active-route highlight via TanStack Router `useRouterState`.
-- Mobile: sidebar becomes off-canvas drawer; top bar collapses search into icon.
-
-## Functional Modules (interactive with mock data)
-
-1. **Dashboard** — 8 KPI cards (Total Students, Today's Attendance, Today's Revenue, Pending Fees, Today's Lectures, Active Batches, Upcoming Tests, Recent Admissions), 3 charts (Monthly Revenue line, Attendance Trend area, Admissions Trend bar) via Recharts in monochrome, Latest Activities feed, Upcoming Tasks list.
-2. **Students** — table (search / filter by class-batch-status / sort / pagination / export CSV / bulk actions), student detail drawer with tabs: Overview, Attendance, Fees, Performance, Documents. Action buttons: Call, WhatsApp, Fee Reminder, Shift Batch, Promote, Deactivate.
-3. **Admissions CRM** — kanban board with 6 columns (New Lead → Counselling → Demo → Follow-Up → Admission → Lost), drag-to-move, lead detail sheet with follow-up timeline and reminder scheduler.
-4. **Batches** — grid of batch cards + list view toggle; batch detail: roster, timetable slot, attendance %, actions (Shift Students, Merge, Archive).
-5. **Attendance** — batch → date picker → fast-marking grid (P / A / L keys, arrow-key nav, bulk Present), monthly calendar heatmap, late-arrivals list, stats.
-6. **Fees** — outstanding dashboard, receipts table, collection report chart, payment dialog (Cash / UPI / Card / Bank), fee reminder action, fee-structure editor.
-7. **Tests** — create test wizard (Chapter / Unit / Mock / Full-Syllabus), results table with ranks & percentile, per-test analytics (score distribution, weak-topic bar), student comparison view.
-
-## Shell Modules (navigable placeholders)
-
-Homework, Study Material, Timetable, Faculty, Reports, Notifications, Settings — each rendered as a proper page with header, empty-state illustration/text, and the eventual layout skeleton so future work slots in without redesign.
-
-## Reusable Component Library (`src/components/app/`)
-
-- `PageHeader`, `DataTable` (generic, with search/filter/sort/pagination/export/bulk-actions), `KpiCard`, `StatChart`, `EmptyState`, `SectionCard`, `FormDialog`, `ConfirmDialog`, `DetailDrawer`, `Kanban`, `FilterBar`, `SkeletonRow`.
-- Built on shadcn primitives; no ad-hoc styling in feature pages.
-
-## Route Architecture
+## 1. Mental Model
 
 ```text
-src/routes/
-  __root.tsx                (brand meta, providers)
-  index.tsx                 (landing)
-  login.tsx, signup.tsx, forgot-password.tsx
-  app.tsx                   (app shell layout with sidebar + topbar, <Outlet/>)
-  app.index.tsx             (dashboard)
-  app.students.tsx / .$id.tsx
-  app.admissions.tsx
-  app.batches.tsx / .$id.tsx
-  app.attendance.tsx
-  app.fees.tsx
-  app.tests.tsx / .$id.tsx
-  app.homework.tsx, app.study-material.tsx, app.timetable.tsx,
-  app.faculty.tsx, app.reports.tsx, app.notifications.tsx, app.settings.tsx
+                 ┌──────────────────────────────┐
+                 │  academix.app (marketing)    │
+                 │  - Landing, pricing, login   │
+                 │  - Institute signup          │
+                 │  - Super-admin console       │
+                 └──────────────┬───────────────┘
+                                │
+                ┌───────────────┼───────────────┐
+                │               │               │
+       ┌────────▼──────┐ ┌──────▼───────┐ ┌────▼─────────┐
+       │ VK Academy    │ │ Institute B  │ │ Institute C  │
+       │ (tenant #1)   │ │ (subscriber) │ │ (subscriber) │
+       └───────────────┘ └──────────────┘ └──────────────┘
 ```
 
-No auth gate yet — `/app/*` is publicly reachable in V1. When Supabase is added later, `app.tsx` moves under `_authenticated/` and gains the managed gate.
+Every institute lives in the same database, isolated by an `institute_id` column + RLS. VK Academy is just the first row in the `institutes` table.
 
-## Data Layer
+---
 
-- `src/lib/mock/*` — deterministic fixtures (students, batches, leads, fees, tests, attendance).
-- `src/lib/api/*` — one file per resource, exporting `list/get/create/update/remove` returning Promises. Backed by mock now, Supabase later.
-- TanStack Query for caching; every list uses `queryOptions` + `useSuspenseQuery`.
+## 2. Rebrand (Phase 1 — visible immediately)
 
-## Technical Notes
+- Rename product everywhere from "VK Academy" to **Academix** on the marketing/landing surface, auth pages, sidebar header, meta tags, favicon, `<title>`, README, etc.
+- Inside a signed-in tenant, header/sidebar show **that tenant's** name (e.g. "VK Academy") — Academix branding stays on the public/platform chrome.
+- New public routes:
+  - `/` — Academix landing (product marketing, aimed at other institutes)
+  - `/pricing` — subscription tiers
+  - `/for-institutes` — features / pitch
+  - `/signup` — institute signup (creates an institute + owner user)
+  - `/login` — unchanged
+- Tenant app stays under `/app/*`.
 
-- Fonts: `bun add @fontsource-variable/inter`; import in `src/styles.css` at the top `@import` block.
-- Charts: `recharts` (already usable), styled monochrome via CSS vars.
-- Kanban drag: `@dnd-kit/core` + `@dnd-kit/sortable`.
-- CSV export: small in-house util (no dep).
-- Icons: `lucide-react` (already present), single stroke weight throughout.
-- Update `__root.tsx` head with real title/description ("VK Academy — Institute Operating System").
-- All colors go through semantic tokens — zero hardcoded hex in components.
-- Every table page: search + filter + sort + pagination + export + quick actions, per your UX rules.
-- Skeleton loaders on every data-backed surface.
+## 3. Multi-Tenant Data Model (Phase 2)
 
-## Out of Scope (V1)
+New table `institutes` with fields like: name, slug, contact email/phone, address, plan, subscription status, trial ends at, primary color, logo path.
 
-Supabase wiring, real auth, RLS, WhatsApp/SMS/Email sending, AI features, multi-tenant switching UI (architecture supports it; UI stays VK-only), online learning, JEEnie integration.
+Add `institute_id uuid not null references institutes(id)` to every tenant table:
+`students, batches, faculty, fees, tests, test_results, attendance, timetable_slots, courses, subjects, leads, user_roles`.
 
-## Deliverable
+Add `institute_members(institute_id, user_id, role)` — replaces global `user_roles` for tenant roles. A user can belong to multiple institutes with different roles. `owner/admin/faculty/receptionist/accountant` become **per-institute** roles.
 
-A navigable, visually premium ERP that feels like Linear/Stripe, with 7 modules fully interactive on mock data and 7 as clean placeholders — ready for you to connect your Supabase project in a follow-up pass.
+Add a new **platform-level** role `platform_admin` (us) that can see all institutes for support.
+
+Backfill: create a "VK Academy" institute row and stamp every existing record with that `institute_id`.
+
+## 4. Tenant Isolation (RLS rewrite — Phase 2)
+
+- Helper `current_institute_id()` reads it from JWT app_metadata or a `set_config` per request.
+- Every tenant table's policies become: `institute_id = current_institute_id() AND has_role_in_institute(auth.uid(), institute_id, ...)`.
+- Storage (`student-photos`) namespaced by `institute_id/<student>/…`; policies check membership.
+- Signup RPC `create_institute(name, slug)` — creates the institute, adds caller as `owner`, starts trial.
+
+## 5. Tenant Context in the App (Phase 3)
+
+- On login, load institutes the user belongs to. If more than one → institute switcher; if one → auto-select.
+- Store active `institute_id` in a React context + localStorage; attach to every query via a Supabase client wrapper.
+- `useAuth()` becomes `useAuth()` + `useInstitute()` (id, name, plan, branding).
+- Sidebar/topbar shows the active institute's name and logo; Settings → Institute Details edits it (already 80% built via `academy-settings.ts` — moves from localStorage into the `institutes` row).
+- Branding (`--primary`, logo) sourced per-tenant from DB, not localStorage.
+
+## 6. Subscriptions & Billing (Phase 4)
+
+- Plans: **Starter / Growth / Pro** (define caps on students, faculty, storage).
+- Payments via built-in Stripe payments (recommend enabling later, when we're ready to charge).
+- Subscription status on `institutes` row → gate `/app` access when `past_due` or `expired` with a friendly upgrade screen.
+- Trial: 14 days on signup.
+
+## 7. Super-Admin Console (Phase 5)
+
+Route `/platform/*`, gated by `platform_admin` role:
+- List institutes, plan, MRR, active users, last activity.
+- Impersonate / view-as (read-only) for support.
+- Toggle plan, extend trial, suspend.
+
+## 8. Sales & Go-To-Market Surface (Phase 6)
+
+- `/for-institutes` with real screenshots of VK Academy running on Academix (proof).
+- "Book a demo" form → leads table on our platform-admin side.
+- Referral field on signup so VK Academy staff can bring other coaching institutes.
+
+---
+
+## 9. Suggested Rollout Order
+
+1. **Rebrand** (Phase 1) — safe, cosmetic, ships today. VK Academy keeps working.
+2. **Multi-tenant schema + backfill** (Phase 2) — biggest change; do this as one migration with VK Academy as the seed institute.
+3. **Tenant context wiring** (Phase 3) — app becomes truly multi-tenant; still only one tenant live.
+4. **Public signup + landing** (part of 1/2) — other institutes can self-serve create a workspace (free trial).
+5. **Billing** (Phase 4) — turn on when we're ready to charge.
+6. **Super-admin console** (Phase 5).
+7. **Marketing polish + outreach** (Phase 6).
+
+---
+
+## 10. Technical Details (for reference)
+
+- Stack unchanged: TanStack Start + Supabase + Tailwind.
+- Tenant id resolution: prefer JWT claim (`app_metadata.institute_id` per-session, set on switch via an edge/server fn) → passed to Postgres via RLS helper. Fallback: header set by a TanStack server middleware.
+- Migration strategy: additive columns first (nullable) → backfill VK Academy id → set NOT NULL → replace RLS policies in one transaction.
+- Keep `user_roles` table for `platform_admin` only; move tenant roles to `institute_members`.
+- Storage key format changes → write a one-shot migration script to move existing `student-photos/*` under `vk-academy/*`.
+- Domain plan: `academix.app` for platform; optional per-tenant subdomain like `vk.academix.app` later (Phase 6+).
+
+---
+
+## What I need from you before starting Phase 1
+
+1. Confirm the name **Academix** is final (no trademark check done yet — worth a quick search).
+2. Any tagline preference for the Academix landing? (e.g. "The operating system for modern coaching institutes.")
+3. OK to start with Phase 1 (rebrand only, zero DB changes) so you see it live today, then tackle Phase 2 (multi-tenant DB) in the next round?
