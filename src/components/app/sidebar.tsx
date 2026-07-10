@@ -1,17 +1,44 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Users, UserPlus, Layers, CalendarCheck, Wallet,
-  FileText, BookOpen, FolderOpen, Calendar, GraduationCap, BarChart3,
-  Bell, Settings, LogOut, User,
+  LayoutDashboard,
+  Users,
+  UserPlus,
+  Layers,
+  CalendarCheck,
+  Wallet,
+  FileText,
+  BookOpen,
+  FolderOpen,
+  Calendar,
+  GraduationCap,
+  BarChart3,
+  Bell,
+  Settings,
+  LogOut,
+  User,
 } from "lucide-react";
 import {
-  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
-  SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { canAccess, type ModuleKey } from "@/lib/rbac";
 
-type NavItem = { title: string; url: string; icon: typeof LayoutDashboard; key: ModuleKey; exact?: boolean };
+type NavItem = {
+  title: string;
+  url: string;
+  icon: typeof LayoutDashboard;
+  key: ModuleKey;
+  exact?: boolean;
+};
 const nav: NavItem[] = [
   { title: "Dashboard", url: "/app", icon: LayoutDashboard, key: "dashboard", exact: true },
   { title: "Students", url: "/app/students", icon: Users, key: "students" },
@@ -49,8 +76,12 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold leading-tight text-foreground">VK Academy</p>
-              <p className="truncate text-[11px] leading-tight text-muted-foreground">Institute OS</p>
+              <p className="truncate text-sm font-semibold leading-tight text-foreground">
+                VK Academy
+              </p>
+              <p className="truncate text-[11px] leading-tight text-muted-foreground">
+                Institute OS
+              </p>
             </div>
           )}
         </div>

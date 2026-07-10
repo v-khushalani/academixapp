@@ -17,17 +17,27 @@ function ApplyPage() {
   async function onSubmit(v: AdmissionFormValues, photoPath: string | null) {
     setSaving(true);
     const { error } = await supabase.rpc("submit_admission_application", {
-      _full_name: v.full_name, _phone: v.phone, _email: v.email,
-      _class: v.class, _dob: v.dob, _school: v.school,
-      _father_name: v.father_name, _father_phone: v.father_phone,
-      _mother_name: v.mother_name, _mother_phone: v.mother_phone,
+      _full_name: v.full_name,
+      _phone: v.phone,
+      _email: v.email,
+      _class: v.class,
+      _dob: v.dob,
+      _school: v.school,
+      _father_name: v.father_name,
+      _father_phone: v.father_phone,
+      _mother_name: v.mother_name,
+      _mother_phone: v.mother_phone,
       _address: v.address,
-      _program: v.program, _stream: v.stream,
+      _program: v.program,
+      _stream: v.stream,
       _photo_path: photoPath ?? "",
       _preferred_contact: v.preferred_contact,
     });
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setName(v.full_name);
     setDone(true);
   }
@@ -46,13 +56,21 @@ function ApplyPage() {
         </div>
         {done ? (
           <div className="py-6 text-center">
-            <div className="grid place-items-center py-4"><CheckCircle2 className="h-12 w-12 text-success" /></div>
+            <div className="grid place-items-center py-4">
+              <CheckCircle2 className="h-12 w-12 text-success" />
+            </div>
             <h1 className="text-lg font-semibold">Thank you, {name}!</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Your admission application has been submitted. Our admissions office will review it and reach out to you shortly.</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Your admission application has been submitted. Our admissions office will review it
+              and reach out to you shortly.
+            </p>
           </div>
         ) : (
           <>
-            <p className="mb-4 text-sm text-muted-foreground">Fill in the details below. Fields marked * are required. Your application will be reviewed by our admissions office.</p>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Fill in the details below. Fields marked * are required. Your application will be
+              reviewed by our admissions office.
+            </p>
             <AdmissionForm onSubmit={onSubmit} saving={saving} />
           </>
         )}

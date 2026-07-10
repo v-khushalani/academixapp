@@ -22,11 +22,17 @@ function TestDetail() {
   const { roles } = useAuth();
   const canWrite = can("test:write", roles);
 
-  const { data: test, isLoading } = useQuery({ queryKey: ["test", id], queryFn: () => testsApi.get(id) });
-  const { data: results = [] } = useQuery({ queryKey: ["test-results", id], queryFn: () => testsApi.results(id) });
+  const { data: test, isLoading } = useQuery({
+    queryKey: ["test", id],
+    queryFn: () => testsApi.get(id),
+  });
+  const { data: results = [] } = useQuery({
+    queryKey: ["test-results", id],
+    queryFn: () => testsApi.results(id),
+  });
   const { data: roster = [] } = useQuery({
     queryKey: ["test-roster", test?.batch_id],
-    queryFn: () => test?.batch_id ? batchesApi.roster(test.batch_id) : Promise.resolve([]),
+    queryFn: () => (test?.batch_id ? batchesApi.roster(test.batch_id) : Promise.resolve([])),
     enabled: Boolean(test),
   });
 
@@ -34,7 +40,9 @@ function TestDetail() {
 
   const initialised = useMemo(() => {
     const m: Record<string, string> = {};
-    results.forEach((r) => { m[r.student_id] = r.marks?.toString() ?? ""; });
+    results.forEach((r) => {
+      m[r.student_id] = r.marks?.toString() ?? "";
+    });
     return m;
   }, [results]);
 
@@ -46,7 +54,9 @@ function TestDetail() {
         .filter(([, v]) => v !== "" && v != null)
         .map(([student_id, v]) => ({ test_id: id, student_id, marks: Number(v) }));
       if (rows.length === 0) return;
-      const { error } = await supabase.from("test_results").upsert(rows, { onConflict: "test_id,student_id" });
+      const { error } = await supabase
+        .from("test_results")
+        .upsert(rows, { onConflict: "test_id,student_id" });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -57,17 +67,26 @@ function TestDetail() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (isLoading) return <PageBody><p className="text-sm text-muted-foreground">Loading…</p></PageBody>;
-  if (!test) return (
-    <PageBody>
-      <p className="text-sm text-muted-foreground">Test not found.</p>
-      <Button variant="link" onClick={() => navigate({ to: "/app/tests" })}>Back</Button>
-    </PageBody>
-  );
+  if (isLoading)
+    return (
+      <PageBody>
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      </PageBody>
+    );
+  if (!test)
+    return (
+      <PageBody>
+        <p className="text-sm text-muted-foreground">Test not found.</p>
+        <Button variant="link" onClick={() => navigate({ to: "/app/tests" })}>
+          Back
+        </Button>
+      </PageBody>
+    );
 
-  const avg = results.length > 0
-    ? (results.reduce((s, r) => s + Number(r.marks ?? 0), 0) / results.length).toFixed(1)
-    : "—";
+  const avg =
+    results.length > 0
+      ? (results.reduce((s, r) => s + Number(r.marks ?? 0), 0) / results.length).toFixed(1)
+      : "—";
 
   return (
     <>
@@ -76,8 +95,23 @@ function TestDetail() {
         description={`${test.subject ?? "—"} · ${test.batch?.name ?? "All batches"} · ${test.date} · Max ${test.max_marks}`}
         actions={
           <>
-            <Button asChild variant="ghost" size="sm" className="gap-1.5"><Link to="/app/tests"><ArrowLeft className="h-4 w-4" />Back</Link></Button>
-            {canWrite && <Button size="sm" className="gap-1.5" onClick={() => saveMut.mutate()} disabled={saveMut.isPending}><Save className="h-4 w-4" />Save marks</Button>}
+            <Button asChild variant="ghost" size="sm" className="gap-1.5">
+              <Link to="/app/tests">
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Link>
+            </Button>
+            {canWrite && (
+              <Button
+                size="sm"
+                className="gap-1.5"
+                onClick={() => saveMut.mutate()}
+                disabled={saveMut.isPending}
+              >
+                <Save className="h-4 w-4" />
+                Save marks
+              </Button>
+            )}
           </>
         }
       />
@@ -89,15 +123,23 @@ function TestDetail() {
         </div>
 
         <div className="overflow-hidden rounded-lg border border-border bg-card">
-          <div className="border-b border-border p-4"><h3 className="text-sm font-semibold">Marks</h3></div>
+          <div className="border-b border-border p-4">
+            <h3 className="text-sm font-semibold">Marks</h3>
+          </div>
           {roster.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
-              {test.batch_id ? "No students in this batch." : "Assign this test to a batch to enter marks."}
+              {test.batch_id
+                ? "No students in this batch."
+                : "Assign this test to a batch to enter marks."}
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-                <tr><th className="px-4 py-3">Student</th><th className="px-4 py-3">Admission #</th><th className="px-4 py-3 w-40">Marks / {test.max_marks}</th></tr>
+                <tr>
+                  <th className="px-4 py-3">Student</th>
+                  <th className="px-4 py-3">Admission #</th>
+                  <th className="px-4 py-3 w-40">Marks / {test.max_marks}</th>
+                </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {roster.map((s) => (
@@ -106,7 +148,10 @@ function TestDetail() {
                     <td className="px-4 py-3 text-muted-foreground">{s.admission_no}</td>
                     <td className="px-4 py-3">
                       <Input
-                        type="number" min={0} max={test.max_marks} className="h-8"
+                        type="number"
+                        min={0}
+                        max={test.max_marks}
+                        className="h-8"
                         value={merged[s.id] ?? ""}
                         disabled={!canWrite}
                         onChange={(e) => setMarks((m) => ({ ...m, [s.id]: e.target.value }))}

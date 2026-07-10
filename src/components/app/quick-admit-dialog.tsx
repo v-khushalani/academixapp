@@ -2,11 +2,23 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Copy, MessageCircle } from "lucide-react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { openWhatsApp } from "@/lib/whatsapp";
 
@@ -31,9 +43,16 @@ export function QuickAdmitDialog({ open, onOpenChange }: Props) {
 
   useEffect(() => {
     if (open) {
-      setFullName(""); setPhone(""); setFatherName(""); setFatherPhone("");
-      setMotherName(""); setMotherPhone(""); setPreferred("father");
-      setLink(null); setStudentName(""); setStudentPhone("");
+      setFullName("");
+      setPhone("");
+      setFatherName("");
+      setFatherPhone("");
+      setMotherName("");
+      setMotherPhone("");
+      setPreferred("father");
+      setLink(null);
+      setStudentName("");
+      setStudentPhone("");
     }
   }, [open]);
 
@@ -77,9 +96,18 @@ export function QuickAdmitDialog({ open, onOpenChange }: Props) {
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!fullName.trim()) { toast.error("Name is required"); return; }
-    if (!fatherName.trim() || !fatherPhone.trim()) { toast.error("Father's name & phone are required"); return; }
-    if (!motherName.trim() || !motherPhone.trim()) { toast.error("Mother's name & phone are required"); return; }
+    if (!fullName.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+    if (!fatherName.trim() || !fatherPhone.trim()) {
+      toast.error("Father's name & phone are required");
+      return;
+    }
+    if (!motherName.trim() || !motherPhone.trim()) {
+      toast.error("Mother's name & phone are required");
+      return;
+    }
     mut.mutate();
   }
 
@@ -91,7 +119,8 @@ export function QuickAdmitDialog({ open, onOpenChange }: Props) {
   function sendWhatsApp() {
     if (!link) return;
     const msg = `Hello ${studentName},\n\nWelcome to VK Academy. Please fill your admission details using the link below:\n${link}\n\nThank you.`;
-    if (!openWhatsApp(studentPhone, msg)) toast.error("No phone number on file. Copy the link instead.");
+    if (!openWhatsApp(studentPhone, msg))
+      toast.error("No phone number on file. Copy the link instead.");
   }
 
   return (
@@ -105,34 +134,66 @@ export function QuickAdmitDialog({ open, onOpenChange }: Props) {
           <form onSubmit={onSubmit} className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
             <div className="space-y-1.5">
               <Label>Student name</Label>
-              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} required autoFocus />
+              <Input
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                autoFocus
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Student phone (WhatsApp)</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="10-digit number" />
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="10-digit number"
+              />
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>Father's name *</Label>
-                <Input value={fatherName} onChange={(e) => setFatherName(e.target.value)} required />
+                <Input
+                  value={fatherName}
+                  onChange={(e) => setFatherName(e.target.value)}
+                  required
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Father's phone *</Label>
-                <Input value={fatherPhone} onChange={(e) => setFatherPhone(e.target.value)} required placeholder="10-digit" />
+                <Input
+                  value={fatherPhone}
+                  onChange={(e) => setFatherPhone(e.target.value)}
+                  required
+                  placeholder="10-digit"
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Mother's name *</Label>
-                <Input value={motherName} onChange={(e) => setMotherName(e.target.value)} required />
+                <Input
+                  value={motherName}
+                  onChange={(e) => setMotherName(e.target.value)}
+                  required
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Mother's phone *</Label>
-                <Input value={motherPhone} onChange={(e) => setMotherPhone(e.target.value)} required placeholder="10-digit" />
+                <Input
+                  value={motherPhone}
+                  onChange={(e) => setMotherPhone(e.target.value)}
+                  required
+                  placeholder="10-digit"
+                />
               </div>
             </div>
             <div className="space-y-1.5">
               <Label>Who monitors studies? (default WhatsApp contact)</Label>
-              <Select value={preferred} onValueChange={(v) => setPreferred(v as "father" | "mother")}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={preferred}
+                onValueChange={(v) => setPreferred(v as "father" | "mother")}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="father">Father</SelectItem>
                   <SelectItem value="mother">Mother</SelectItem>
@@ -140,11 +201,16 @@ export function QuickAdmitDialog({ open, onOpenChange }: Props) {
               </Select>
             </div>
             <p className="text-xs text-muted-foreground">
-              We'll create the student and give you a link. The student fills the remaining details themselves (DOB, class, address, photo, etc.).
+              We'll create the student and give you a link. The student fills the remaining details
+              themselves (DOB, class, address, photo, etc.).
             </p>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-              <Button type="submit" disabled={mut.isPending}>{mut.isPending ? "Creating…" : "Create & get link"}</Button>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={mut.isPending}>
+                {mut.isPending ? "Creating…" : "Create & get link"}
+              </Button>
             </DialogFooter>
           </form>
         ) : (
@@ -154,14 +220,22 @@ export function QuickAdmitDialog({ open, onOpenChange }: Props) {
             </div>
             <div className="flex gap-2">
               <Button type="button" variant="outline" className="flex-1 gap-1.5" onClick={copyLink}>
-                <Copy className="h-4 w-4" />Copy link
+                <Copy className="h-4 w-4" />
+                Copy link
               </Button>
-              <Button type="button" className="flex-1 gap-1.5 bg-success text-success-foreground hover:bg-success/90" onClick={sendWhatsApp}>
-                <MessageCircle className="h-4 w-4" />Send on WhatsApp
+              <Button
+                type="button"
+                className="flex-1 gap-1.5 bg-success text-success-foreground hover:bg-success/90"
+                onClick={sendWhatsApp}
+              >
+                <MessageCircle className="h-4 w-4" />
+                Send on WhatsApp
               </Button>
             </div>
             <DialogFooter>
-              <Button type="button" onClick={() => onOpenChange(false)}>Done</Button>
+              <Button type="button" onClick={() => onOpenChange(false)}>
+                Done
+              </Button>
             </DialogFooter>
           </div>
         )}

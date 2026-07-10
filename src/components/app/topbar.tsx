@@ -25,7 +25,11 @@ export function TopBar() {
   const { user, roles, signOut } = useAuth();
   const navigate = useNavigate();
   const initials = (user?.user_metadata?.full_name || user?.email || "U")
-    .split(" ").map((s: string) => s[0]).slice(0, 2).join("").toUpperCase();
+    .split(" ")
+    .map((s: string) => s[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   async function handleSignOut() {
     await signOut();
@@ -86,12 +90,22 @@ export function TopBar() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel className="flex flex-col gap-0.5">
-            <span className="truncate text-sm">{user?.user_metadata?.full_name || user?.email}</span>
-            <span className="truncate text-xs font-normal text-muted-foreground">{roles.join(", ") || "no role"}</span>
+            <span className="truncate text-sm">
+              {user?.user_metadata?.full_name || user?.email}
+            </span>
+            <span className="truncate text-xs font-normal text-muted-foreground">
+              {roles.join(", ") || "no role"}
+            </span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem><User className="mr-2 h-4 w-4" />Profile</DropdownMenuItem>
-          <DropdownMenuItem onClick={handleSignOut}><LogOut className="mr-2 h-4 w-4" />Sign out</DropdownMenuItem>
+          <DropdownMenuItem>
+            <User className="mr-2 h-4 w-4" />
+            Profile
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleSignOut}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign out
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

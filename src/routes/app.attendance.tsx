@@ -7,7 +7,13 @@ import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { batchesApi, attendanceApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
@@ -32,11 +38,16 @@ function AttendancePage() {
   const qc = useQueryClient();
   const { user, roles } = useAuth();
   const canWrite = can("attendance:write", roles);
-  const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
+  const { data: batches = [] } = useQuery({
+    queryKey: ["batches"],
+    queryFn: () => batchesApi.list(),
+  });
   const [batchId, setBatchId] = useState<string>("");
   const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
 
-  useEffect(() => { if (!batchId && batches[0]) setBatchId(batches[0].id); }, [batches, batchId]);
+  useEffect(() => {
+    if (!batchId && batches[0]) setBatchId(batches[0].id);
+  }, [batches, batchId]);
 
   const { data: roster = [] } = useQuery({
     queryKey: ["batch-roster", batchId],
@@ -54,11 +65,15 @@ function AttendancePage() {
 
   const initial = useMemo(() => {
     const m: Record<string, Status> = {};
-    existing.forEach((a) => { m[a.student_id] = a.status; });
+    existing.forEach((a) => {
+      m[a.student_id] = a.status;
+    });
     return m;
   }, [existing]);
 
-  useEffect(() => { setMarks({}); }, [batchId, date]);
+  useEffect(() => {
+    setMarks({});
+  }, [batchId, date]);
   const merged = { ...initial, ...marks };
 
   const saveMut = useMutation({
@@ -66,7 +81,10 @@ function AttendancePage() {
       const rows = roster
         .filter((s) => merged[s.id])
         .map((s) => ({
-          student_id: s.id, batch_id: batchId, date, status: merged[s.id],
+          student_id: s.id,
+          batch_id: batchId,
+          date,
+          status: merged[s.id],
           marked_by: user?.id,
         }));
       if (rows.length === 0) return;
@@ -82,7 +100,9 @@ function AttendancePage() {
 
   function markAll(s: Status) {
     const m: Record<string, Status> = {};
-    roster.forEach((r) => { m[r.id] = s; });
+    roster.forEach((r) => {
+      m[r.id] = s;
+    });
     setMarks(m);
   }
 
@@ -114,31 +134,54 @@ function AttendancePage() {
       <PageHeader
         title="Attendance"
         description="Mark today’s attendance in seconds."
-        actions={canWrite && roster.length > 0 ? (
-          <Button size="sm" className="gap-1.5" onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
-            <Save className="h-4 w-4" />Save
-          </Button>
-        ) : null}
+        actions={
+          canWrite && roster.length > 0 ? (
+            <Button
+              size="sm"
+              className="gap-1.5"
+              onClick={() => saveMut.mutate()}
+              disabled={saveMut.isPending}
+            >
+              <Save className="h-4 w-4" />
+              Save
+            </Button>
+          ) : null
+        }
       />
       <PageBody>
         <div className="mb-4 flex flex-wrap items-end gap-3">
           <div className="space-y-1.5">
             <Label>Batch</Label>
             <Select value={batchId} onValueChange={setBatchId}>
-              <SelectTrigger className="h-9 w-[220px]"><SelectValue placeholder="Select batch" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[220px]">
+                <SelectValue placeholder="Select batch" />
+              </SelectTrigger>
               <SelectContent>
-                {batches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                {batches.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
             <Label>Date</Label>
-            <Input type="date" className="h-9 w-[180px]" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input
+              type="date"
+              className="h-9 w-[180px]"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
           </div>
           {canWrite && roster.length > 0 && (
             <div className="ml-auto flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => markAll("present")}>All present</Button>
-              <Button size="sm" variant="outline" onClick={() => markAll("absent")}>All absent</Button>
+              <Button size="sm" variant="outline" onClick={() => markAll("present")}>
+                All present
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => markAll("absent")}>
+                All absent
+              </Button>
             </div>
           )}
         </div>
@@ -151,7 +194,9 @@ function AttendancePage() {
 
         <div className="overflow-hidden rounded-lg border border-border bg-card">
           {roster.length === 0 ? (
-            <div className="p-8 text-center text-sm text-muted-foreground">No students in this batch.</div>
+            <div className="p-8 text-center text-sm text-muted-foreground">
+              No students in this batch.
+            </div>
           ) : (
             <table className="w-full text-sm">
               <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
@@ -168,7 +213,7 @@ function AttendancePage() {
                     <td className="px-4 py-3 text-muted-foreground">{s.admission_no}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        {(["present","absent","late","excused"] as Status[]).map((st) => {
+                        {(["present", "absent", "late", "excused"] as Status[]).map((st) => {
                           const active = merged[s.id] === st;
                           return (
                             <button
@@ -183,9 +228,12 @@ function AttendancePage() {
                           );
                         })}
                         {merged[s.id] === "absent" && (
-                          <button type="button" onClick={() => sendAbsentReminder(s)}
+                          <button
+                            type="button"
+                            onClick={() => sendAbsentReminder(s)}
                             title="Send WhatsApp to parent"
-                            className="ml-2 inline-flex h-7 items-center gap-1 rounded-md border border-success/30 bg-success/10 px-2 text-xs text-success hover:bg-success/20">
+                            className="ml-2 inline-flex h-7 items-center gap-1 rounded-md border border-success/30 bg-success/10 px-2 text-xs text-success hover:bg-success/20"
+                          >
                             <MessageCircle className="h-3.5 w-3.5" />
                             Send msg
                           </button>

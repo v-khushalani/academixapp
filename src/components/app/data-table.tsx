@@ -3,7 +3,10 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Download, FileText, Search } from "luc
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { exportCSV, exportPDF, type Column as ExportColumn } from "@/lib/exporters";
 
@@ -31,9 +34,17 @@ type Props<T extends { id: string | number }> = {
 };
 
 export function DataTable<T extends { id: string | number }>({
-  rows, columns, searchKeys, searchPlaceholder = "Search…",
-  pageSize = 10, toolbar, exportName = "export", exportTitle = "Export",
-  emptyMessage = "No records match your filters.", loading, onRowClick,
+  rows,
+  columns,
+  searchKeys,
+  searchPlaceholder = "Search…",
+  pageSize = 10,
+  toolbar,
+  exportName = "export",
+  exportTitle = "Export",
+  emptyMessage = "No records match your filters.",
+  loading,
+  onRowClick,
 }: Props<T>) {
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<{ key: string; dir: "asc" | "desc" } | null>(null);
@@ -43,10 +54,12 @@ export function DataTable<T extends { id: string | number }>({
     if (!q) return rows;
     const term = q.toLowerCase();
     const keys = searchKeys ?? columns.map((c) => c.key);
-    return rows.filter((r) => keys.some((k) => {
-      const v = (r as Record<string, unknown>)[k as string];
-      return v != null && String(v).toLowerCase().includes(term);
-    }));
+    return rows.filter((r) =>
+      keys.some((k) => {
+        const v = (r as Record<string, unknown>)[k as string];
+        return v != null && String(v).toLowerCase().includes(term);
+      }),
+    );
   }, [rows, q, searchKeys, columns]);
 
   const sorted = useMemo(() => {
@@ -59,7 +72,8 @@ export function DataTable<T extends { id: string | number }>({
       if (av == null && bv == null) return 0;
       if (av == null) return 1;
       if (bv == null) return -1;
-      if (typeof av === "number" && typeof bv === "number") return sort.dir === "asc" ? av - bv : bv - av;
+      if (typeof av === "number" && typeof bv === "number")
+        return sort.dir === "asc" ? av - bv : bv - av;
       return sort.dir === "asc"
         ? String(av).localeCompare(String(bv))
         : String(bv).localeCompare(String(av));
@@ -93,21 +107,31 @@ export function DataTable<T extends { id: string | number }>({
           <Input
             value={q}
             placeholder={searchPlaceholder}
-            onChange={(e) => { setQ(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setPage(1);
+            }}
             className="h-9 pl-9"
           />
         </div>
         {toolbar}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5"><Download className="h-4 w-4" />Export</Button>
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => exportCSV(exportName, sorted, exportCols)}>
-              <FileText className="mr-2 h-4 w-4" />CSV
+              <FileText className="mr-2 h-4 w-4" />
+              CSV
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => exportPDF(exportName, exportTitle, sorted, exportCols)}>
-              <FileText className="mr-2 h-4 w-4" />PDF
+            <DropdownMenuItem
+              onClick={() => exportPDF(exportName, exportTitle, sorted, exportCols)}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              PDF
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -127,8 +151,12 @@ export function DataTable<T extends { id: string | number }>({
                       >
                         {c.header}
                         {sort?.key !== c.key && <ArrowUpDown className="h-3 w-3 opacity-50" />}
-                        {sort?.key === c.key && sort.dir === "asc" && <ArrowUp className="h-3 w-3" />}
-                        {sort?.key === c.key && sort.dir === "desc" && <ArrowDown className="h-3 w-3" />}
+                        {sort?.key === c.key && sort.dir === "asc" && (
+                          <ArrowUp className="h-3 w-3" />
+                        )}
+                        {sort?.key === c.key && sort.dir === "desc" && (
+                          <ArrowDown className="h-3 w-3" />
+                        )}
                       </button>
                     ) : (
                       c.header
@@ -139,19 +167,35 @@ export function DataTable<T extends { id: string | number }>({
             </thead>
             <tbody className="divide-y divide-border">
               {loading ? (
-                <tr><td colSpan={columns.length} className="px-4 py-16 text-center text-sm text-muted-foreground">Loading…</td></tr>
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="px-4 py-16 text-center text-sm text-muted-foreground"
+                  >
+                    Loading…
+                  </td>
+                </tr>
               ) : pageRows.length === 0 ? (
-                <tr><td colSpan={columns.length} className="px-4 py-16 text-center text-sm text-muted-foreground">{emptyMessage}</td></tr>
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="px-4 py-16 text-center text-sm text-muted-foreground"
+                  >
+                    {emptyMessage}
+                  </td>
+                </tr>
               ) : (
                 pageRows.map((r) => (
                   <tr
                     key={r.id}
-                    className={onRowClick ? "cursor-pointer hover:bg-muted/30" : "hover:bg-muted/30"}
+                    className={
+                      onRowClick ? "cursor-pointer hover:bg-muted/30" : "hover:bg-muted/30"
+                    }
                     onClick={onRowClick ? () => onRowClick(r) : undefined}
                   >
                     {columns.map((c) => (
                       <td key={c.key} className={`px-4 py-3 ${c.className ?? ""}`}>
-                        {c.cell ? c.cell(r) : (r as Record<string, unknown>)[c.key] as ReactNode}
+                        {c.cell ? c.cell(r) : ((r as Record<string, unknown>)[c.key] as ReactNode)}
                       </td>
                     ))}
                   </tr>
@@ -162,12 +206,31 @@ export function DataTable<T extends { id: string | number }>({
         </div>
         <div className="flex items-center justify-between border-t border-border px-4 py-3 text-xs text-muted-foreground">
           <span>
-            {sorted.length === 0 ? "0" : `${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, sorted.length)}`} of {sorted.length}
+            {sorted.length === 0
+              ? "0"
+              : `${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, sorted.length)}`}{" "}
+            of {sorted.length}
           </span>
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" disabled={currentPage === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Previous</Button>
-            <span>Page {currentPage} of {pageCount}</span>
-            <Button size="sm" variant="outline" disabled={currentPage === pageCount} onClick={() => setPage((p) => Math.min(pageCount, p + 1))}>Next</Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={currentPage === 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Previous
+            </Button>
+            <span>
+              Page {currentPage} of {pageCount}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={currentPage === pageCount}
+              onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+            >
+              Next
+            </Button>
           </div>
         </div>
       </div>

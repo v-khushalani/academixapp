@@ -21,32 +21,88 @@ function FacultyPage() {
   const qc = useQueryClient();
   const { roles } = useAuth();
   const canWrite = can("role:manage", roles);
-  const { data = [], isLoading } = useQuery({ queryKey: ["faculty"], queryFn: () => facultyApi.list() });
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["faculty"],
+    queryFn: () => facultyApi.list(),
+  });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Faculty | null>(null);
   const [deleting, setDeleting] = useState<Faculty | null>(null);
 
   const removeMut = useMutation({
     mutationFn: (id: string) => facultyApi.remove(id),
-    onSuccess: () => { toast.success("Removed"); qc.invalidateQueries({ queryKey: ["faculty"] }); setDeleting(null); },
+    onSuccess: () => {
+      toast.success("Removed");
+      qc.invalidateQueries({ queryKey: ["faculty"] });
+      setDeleting(null);
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const columns: DTColumn<Faculty>[] = [
-    { key: "full_name", header: "Name", sortable: true, value: (r) => r.full_name, cell: (r) => <span className="font-medium">{r.full_name}</span> },
-    { key: "subject", header: "Subject", value: (r) => r.subject ?? "", cell: (r) => r.subject ?? "—" },
-    { key: "qualification", header: "Qualification", value: (r) => r.qualification ?? "", cell: (r) => r.qualification ?? "—" },
+    {
+      key: "full_name",
+      header: "Name",
+      sortable: true,
+      value: (r) => r.full_name,
+      cell: (r) => <span className="font-medium">{r.full_name}</span>,
+    },
+    {
+      key: "subject",
+      header: "Subject",
+      value: (r) => r.subject ?? "",
+      cell: (r) => r.subject ?? "—",
+    },
+    {
+      key: "qualification",
+      header: "Qualification",
+      value: (r) => r.qualification ?? "",
+      cell: (r) => r.qualification ?? "—",
+    },
     { key: "phone", header: "Phone", value: (r) => r.phone ?? "", cell: (r) => r.phone ?? "—" },
     { key: "email", header: "Email", value: (r) => r.email ?? "", cell: (r) => r.email ?? "—" },
-    { key: "status", header: "Status", sortable: true, value: (r) => r.status,
-      cell: (r) => <Badge variant="secondary" className={r.status === "active" ? "bg-success/10 text-success" : ""}>{r.status}</Badge> },
-    { key: "actions", header: "", className: "text-right",
-      cell: (r) => canWrite ? (
-        <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-          <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-          <Button size="icon" variant="ghost" className="text-destructive" onClick={() => setDeleting(r)}><Trash2 className="h-4 w-4" /></Button>
-        </div>
-      ) : null },
+    {
+      key: "status",
+      header: "Status",
+      sortable: true,
+      value: (r) => r.status,
+      cell: (r) => (
+        <Badge
+          variant="secondary"
+          className={r.status === "active" ? "bg-success/10 text-success" : ""}
+        >
+          {r.status}
+        </Badge>
+      ),
+    },
+    {
+      key: "actions",
+      header: "",
+      className: "text-right",
+      cell: (r) =>
+        canWrite ? (
+          <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => {
+                setEditing(r);
+                setOpen(true);
+              }}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-destructive"
+              onClick={() => setDeleting(r)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : null,
+    },
   ];
 
   return (
@@ -54,15 +110,38 @@ function FacultyPage() {
       <PageHeader
         title="Faculty"
         description={`${data.length} teachers`}
-        actions={canWrite ? <Button size="sm" className="gap-1.5" onClick={() => { setEditing(null); setOpen(true); }}><Plus className="h-4 w-4" />Add faculty</Button> : null}
+        actions={
+          canWrite ? (
+            <Button
+              size="sm"
+              className="gap-1.5"
+              onClick={() => {
+                setEditing(null);
+                setOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              Add faculty
+            </Button>
+          ) : null
+        }
       />
       <PageBody>
         <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/80 sm:text-sm">
           <p className="font-semibold">Giving teachers portal access</p>
           <ol className="mt-1 list-decimal space-y-0.5 pl-4">
-            <li>Ask the teacher to open the app and use <span className="font-mono">Sign up</span> with their email.</li>
-            <li>Open <span className="font-mono">Settings → Users &amp; roles</span> and grant them the <span className="font-mono">faculty</span> role.</li>
-            <li>They will only see Dashboard, Attendance, Tests and Timetable — they can fill attendance and enter test marks, nothing else.</li>
+            <li>
+              Ask the teacher to open the app and use <span className="font-mono">Sign up</span>{" "}
+              with their email.
+            </li>
+            <li>
+              Open <span className="font-mono">Settings → Users &amp; roles</span> and grant them
+              the <span className="font-mono">faculty</span> role.
+            </li>
+            <li>
+              They will only see Dashboard, Attendance, Tests and Timetable — they can fill
+              attendance and enter test marks, nothing else.
+            </li>
           </ol>
         </div>
         <DataTable
@@ -76,10 +155,15 @@ function FacultyPage() {
         />
       </PageBody>
       <FacultyFormDialog open={open} onOpenChange={setOpen} faculty={editing} />
-      <ConfirmDialog open={Boolean(deleting)} onOpenChange={(v) => !v && setDeleting(null)}
-        title="Remove faculty?" description={deleting?.full_name}
-        confirmLabel="Remove" destructive
-        onConfirm={() => deleting && removeMut.mutate(deleting.id)} />
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        onOpenChange={(v) => !v && setDeleting(null)}
+        title="Remove faculty?"
+        description={deleting?.full_name}
+        confirmLabel="Remove"
+        destructive
+        onConfirm={() => deleting && removeMut.mutate(deleting.id)}
+      />
     </>
   );
 }

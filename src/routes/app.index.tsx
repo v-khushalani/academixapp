@@ -29,10 +29,28 @@ function DashboardPage() {
       />
       <PageBody>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <KpiCard label="Active students" value={isLoading ? "—" : String(data?.students ?? 0)} icon={Users} />
-          <KpiCard label="Active batches" value={isLoading ? "—" : String(data?.batches ?? 0)} icon={Layers} />
-          <KpiCard label="Outstanding fees" value={isLoading ? "—" : inr(data?.outstanding ?? 0)} icon={Wallet} tone="warning" />
-          <KpiCard label="New this month" value={isLoading ? "—" : String(data?.newThisMonth ?? 0)} icon={UserPlus} tone="success" />
+          <KpiCard
+            label="Active students"
+            value={isLoading ? "—" : String(data?.students ?? 0)}
+            icon={Users}
+          />
+          <KpiCard
+            label="Active batches"
+            value={isLoading ? "—" : String(data?.batches ?? 0)}
+            icon={Layers}
+          />
+          <KpiCard
+            label="Outstanding fees"
+            value={isLoading ? "—" : inr(data?.outstanding ?? 0)}
+            icon={Wallet}
+            tone="warning"
+          />
+          <KpiCard
+            label="New this month"
+            value={isLoading ? "—" : String(data?.newThisMonth ?? 0)}
+            icon={UserPlus}
+            tone="success"
+          />
         </div>
 
         <div className="mt-6 rounded-lg border border-border bg-card p-6">

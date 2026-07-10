@@ -20,21 +20,37 @@ function StudentDetail() {
   const navigate = useNavigate();
   const { roles } = useAuth();
   const canWrite = can("student:write", roles);
-  const { data: s, isLoading, error } = useQuery({
+  const {
+    data: s,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["student", id],
     queryFn: () => studentsApi.get(id),
   });
   const [editOpen, setEditOpen] = useState(false);
 
-  if (isLoading) return <PageBody><p className="text-sm text-muted-foreground">Loading…</p></PageBody>;
-  if (error || !s) return (
-    <PageBody>
-      <p className="text-sm text-muted-foreground">Student not found.</p>
-      <Button variant="link" onClick={() => navigate({ to: "/app/students" })}>Back to students</Button>
-    </PageBody>
-  );
+  if (isLoading)
+    return (
+      <PageBody>
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      </PageBody>
+    );
+  if (error || !s)
+    return (
+      <PageBody>
+        <p className="text-sm text-muted-foreground">Student not found.</p>
+        <Button variant="link" onClick={() => navigate({ to: "/app/students" })}>
+          Back to students
+        </Button>
+      </PageBody>
+    );
 
-  const initials = s.full_name.split(" ").map((n) => n[0]).slice(0, 2).join("");
+  const initials = s.full_name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("");
 
   return (
     <>
@@ -44,11 +60,37 @@ function StudentDetail() {
         actions={
           <>
             <Button asChild variant="ghost" size="sm" className="gap-1.5">
-              <Link to="/app/students"><ArrowLeft className="h-4 w-4" />Back</Link>
+              <Link to="/app/students">
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Link>
             </Button>
-            {s.phone && <Button size="sm" variant="outline" className="gap-1.5" asChild><a href={`tel:${s.phone}`}><Phone className="h-4 w-4" />Call</a></Button>}
-            {s.phone && <Button size="sm" variant="outline" className="gap-1.5" asChild><a target="_blank" rel="noreferrer" href={`https://wa.me/${s.phone.replace(/\D/g, "")}`}><MessageCircle className="h-4 w-4" />WhatsApp</a></Button>}
-            {canWrite && <Button size="sm" className="gap-1.5" onClick={() => setEditOpen(true)}><Pencil className="h-4 w-4" />Edit</Button>}
+            {s.phone && (
+              <Button size="sm" variant="outline" className="gap-1.5" asChild>
+                <a href={`tel:${s.phone}`}>
+                  <Phone className="h-4 w-4" />
+                  Call
+                </a>
+              </Button>
+            )}
+            {s.phone && (
+              <Button size="sm" variant="outline" className="gap-1.5" asChild>
+                <a
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`https://wa.me/${s.phone.replace(/\D/g, "")}`}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp
+                </a>
+              </Button>
+            )}
+            {canWrite && (
+              <Button size="sm" className="gap-1.5" onClick={() => setEditOpen(true)}>
+                <Pencil className="h-4 w-4" />
+                Edit
+              </Button>
+            )}
           </>
         }
       />
@@ -60,7 +102,9 @@ function StudentDetail() {
                 {initials}
               </div>
               <p className="mt-3 text-base font-semibold">{s.full_name}</p>
-              <Badge className="mt-1 bg-success/10 text-success" variant="secondary">{s.status}</Badge>
+              <Badge className="mt-1 bg-success/10 text-success" variant="secondary">
+                {s.status}
+              </Badge>
             </div>
             <dl className="mt-6 space-y-3 text-sm">
               <Row k="Class" v={s.class ?? "—"} />
@@ -81,16 +125,28 @@ function StudentDetail() {
                 <TabsTrigger value="fees">Fees</TabsTrigger>
                 <TabsTrigger value="performance">Performance</TabsTrigger>
               </TabsList>
-              <TabsContent value="overview" className="mt-4 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
+              <TabsContent
+                value="overview"
+                className="mt-4 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground"
+              >
                 Overview of this student’s recent activity will appear here as data is added.
               </TabsContent>
-              <TabsContent value="attendance" className="mt-4 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
+              <TabsContent
+                value="attendance"
+                className="mt-4 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground"
+              >
                 Attendance history — mark attendance from the Attendance page.
               </TabsContent>
-              <TabsContent value="fees" className="mt-4 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
+              <TabsContent
+                value="fees"
+                className="mt-4 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground"
+              >
                 Fee history — record payments from the Fees page.
               </TabsContent>
-              <TabsContent value="performance" className="mt-4 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
+              <TabsContent
+                value="performance"
+                className="mt-4 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground"
+              >
                 Test results — added automatically from the Tests page.
               </TabsContent>
             </Tabs>

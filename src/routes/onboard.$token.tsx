@@ -10,12 +10,21 @@ export const Route = createFileRoute("/onboard/$token")({
 });
 
 type S = {
-  id: string; full_name: string | null; phone: string | null; email: string | null;
-  class: string | null; school: string | null; parent_name: string | null;
-  parent_phone: string | null; address: string | null; admission_no: string | null;
+  id: string;
+  full_name: string | null;
+  phone: string | null;
+  email: string | null;
+  class: string | null;
+  school: string | null;
+  parent_name: string | null;
+  parent_phone: string | null;
+  address: string | null;
+  admission_no: string | null;
   onboarding_completed_at: string | null;
-  father_name?: string | null; father_phone?: string | null;
-  mother_name?: string | null; mother_phone?: string | null;
+  father_name?: string | null;
+  father_phone?: string | null;
+  mother_name?: string | null;
+  mother_phone?: string | null;
   preferred_contact?: string | null;
 };
 
@@ -32,10 +41,21 @@ function OnboardPage() {
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase.rpc("get_student_by_token", { _token: token });
-      if (error) { setNotFound(true); setLoading(false); return; }
+      if (error) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
       const row = ((data ?? [])[0] ?? null) as S | null;
-      if (!row) { setNotFound(true); setLoading(false); return; }
-      if (row.onboarding_completed_at) { setDone(true); setStudentName(row.full_name ?? ""); }
+      if (!row) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+      if (row.onboarding_completed_at) {
+        setDone(true);
+        setStudentName(row.full_name ?? "");
+      }
       setPrefill({
         full_name: row.full_name ?? "",
         phone: row.phone ?? "",
@@ -46,7 +66,7 @@ function OnboardPage() {
         father_phone: row.father_phone ?? row.parent_phone ?? "",
         mother_name: row.mother_name ?? "",
         mother_phone: row.mother_phone ?? "",
-        preferred_contact: (row.preferred_contact === "mother" ? "mother" : "father"),
+        preferred_contact: row.preferred_contact === "mother" ? "mother" : "father",
         address: row.address ?? "",
       });
       setAdmissionNo(row.admission_no);
@@ -58,39 +78,67 @@ function OnboardPage() {
     setSaving(true);
     const { error } = await supabase.rpc("complete_student_onboarding", {
       _token: token,
-      _full_name: v.full_name, _phone: v.phone, _email: v.email,
-      _class: v.class, _school: v.school,
+      _full_name: v.full_name,
+      _phone: v.phone,
+      _email: v.email,
+      _class: v.class,
+      _school: v.school,
       _parent_name: v.preferred_contact === "mother" ? v.mother_name : v.father_name,
       _parent_phone: v.preferred_contact === "mother" ? v.mother_phone : v.father_phone,
       _address: v.address,
       _dob: v.dob || undefined,
-      _father_name: v.father_name, _father_phone: v.father_phone,
-      _mother_name: v.mother_name, _mother_phone: v.mother_phone,
-      _program: v.program || undefined, _stream: v.stream || undefined,
+      _father_name: v.father_name,
+      _father_phone: v.father_phone,
+      _mother_name: v.mother_name,
+      _mother_phone: v.mother_phone,
+      _program: v.program || undefined,
+      _stream: v.stream || undefined,
       _photo_path: photoPath ?? undefined,
       _preferred_contact: v.preferred_contact,
     });
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setStudentName(v.full_name);
     setDone(true);
   }
 
-  if (loading) return <Shell><p className="text-sm text-muted-foreground">Loading…</p></Shell>;
-  if (notFound) return <Shell>
-    <h1 className="text-lg font-semibold">Link expired or invalid</h1>
-    <p className="mt-2 text-sm text-muted-foreground">Please contact VK Academy for a fresh onboarding link.</p>
-  </Shell>;
-  if (done) return <Shell>
-    <div className="grid place-items-center py-4"><CheckCircle2 className="h-12 w-12 text-success" /></div>
-    <h1 className="text-center text-lg font-semibold">Thanks, {studentName || "student"}!</h1>
-    <p className="mt-2 text-center text-sm text-muted-foreground">Your application is now with the admissions office for approval. We'll reach out shortly.</p>
-  </Shell>;
+  if (loading)
+    return (
+      <Shell>
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      </Shell>
+    );
+  if (notFound)
+    return (
+      <Shell>
+        <h1 className="text-lg font-semibold">Link expired or invalid</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Please contact VK Academy for a fresh onboarding link.
+        </p>
+      </Shell>
+    );
+  if (done)
+    return (
+      <Shell>
+        <div className="grid place-items-center py-4">
+          <CheckCircle2 className="h-12 w-12 text-success" />
+        </div>
+        <h1 className="text-center text-lg font-semibold">Thanks, {studentName || "student"}!</h1>
+        <p className="mt-2 text-center text-sm text-muted-foreground">
+          Your application is now with the admissions office for approval. We'll reach out shortly.
+        </p>
+      </Shell>
+    );
 
   return (
     <Shell>
       <h1 className="text-lg font-semibold">Welcome to VK Academy</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Fill your admission details. Admission no: <span className="font-mono">{admissionNo}</span></p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Fill your admission details. Admission no: <span className="font-mono">{admissionNo}</span>
+      </p>
       <div className="mt-6">
         <AdmissionForm initial={prefill} onSubmit={onSubmit} saving={saving} />
       </div>

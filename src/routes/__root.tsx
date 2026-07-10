@@ -79,10 +79,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "VK Academy — Institute Operating System" },
-      { name: "description", content: "The modern operating system for VK Academy. Manage students, admissions, batches, attendance, fees and tests from a single fast dashboard." },
+      {
+        name: "description",
+        content:
+          "The modern operating system for VK Academy. Manage students, admissions, batches, attendance, fees and tests from a single fast dashboard.",
+      },
       { name: "author", content: "VK Academy" },
       { property: "og:title", content: "VK Academy — Institute Operating System" },
-      { property: "og:description", content: "Manage your entire coaching institute from one premium, lightning-fast dashboard." },
+      {
+        property: "og:description",
+        content:
+          "Manage your entire coaching institute from one premium, lightning-fast dashboard.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -93,7 +101,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700;800&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700;800&display=swap",
+      },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),

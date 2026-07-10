@@ -21,17 +21,24 @@ function SignupPage() {
     e.preventDefault();
     setBusy(true);
     const { error } = await supabase.auth.signUp({
-      email, password,
+      email,
+      password,
       options: {
         emailRedirectTo: `${window.location.origin}/app`,
         data: { full_name: name },
       },
     });
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Account created");
     const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-    if (signInErr) { navigate({ to: "/login" }); return; }
+    if (signInErr) {
+      navigate({ to: "/login" });
+      return;
+    }
     navigate({ to: "/app" });
   }
 
@@ -45,7 +52,9 @@ function SignupPage() {
           <span className="text-sm font-semibold">VK Academy</span>
         </Link>
         <h1 className="text-2xl font-semibold tracking-tight">Create your account</h1>
-        <p className="mt-1 text-sm text-muted-foreground">The first account becomes the institute owner.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          The first account becomes the institute owner.
+        </p>
         <form className="mt-8 space-y-4" onSubmit={onSubmit}>
           <div className="space-y-1.5">
             <Label htmlFor="name">Full name</Label>
@@ -53,16 +62,34 @@ function SignupPage() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <Input
+              id="password"
+              type="password"
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
-          <Button type="submit" className="w-full" disabled={busy}>{busy ? "Creating…" : "Create account"}</Button>
+          <Button type="submit" className="w-full" disabled={busy}>
+            {busy ? "Creating…" : "Create account"}
+          </Button>
         </form>
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Already have an account? <Link to="/login" className="text-primary hover:underline">Sign in</Link>
+          Already have an account?{" "}
+          <Link to="/login" className="text-primary hover:underline">
+            Sign in
+          </Link>
         </p>
       </div>
     </div>

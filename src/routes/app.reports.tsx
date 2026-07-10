@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { feesApi, studentsApi, attendanceApi, batchesApi } from "@/lib/api";
 import { exportCSV, exportPDF, type Column } from "@/lib/exporters";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,26 +24,35 @@ export const Route = createFileRoute("/app/reports")({
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 
 function ReportsPage() {
-  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0,10);
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    .toISOString()
+    .slice(0, 10);
   const today = new Date().toISOString().slice(0, 10);
   const [from, setFrom] = useState(monthStart);
   const [to, setTo] = useState(today);
 
   return (
     <>
-      <PageHeader
-        title="Reports"
-        description="Revenue, attendance and admissions with export."
-      />
+      <PageHeader title="Reports" description="Revenue, attendance and admissions with export." />
       <PageBody>
         <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-3">
           <div className="space-y-1.5">
             <Label>From</Label>
-            <Input type="date" className="h-9 w-[160px]" value={from} onChange={(e) => setFrom(e.target.value)} />
+            <Input
+              type="date"
+              className="h-9 w-[160px]"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>To</Label>
-            <Input type="date" className="h-9 w-[160px]" value={to} onChange={(e) => setTo(e.target.value)} />
+            <Input
+              type="date"
+              className="h-9 w-[160px]"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+            />
           </div>
           <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
             <BarChart3 className="h-4 w-4" /> Filters apply to all reports below
@@ -71,21 +85,48 @@ function ReportsPage() {
   );
 }
 
-function ExportButtons<T>({ rows, cols, name, title }: { rows: T[]; cols: Column<T>[]; name: string; title: string }) {
+function ExportButtons<T>({
+  rows,
+  cols,
+  name,
+  title,
+}: {
+  rows: T[];
+  cols: Column<T>[];
+  name: string;
+  title: string;
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="sm" variant="outline" className="gap-1.5"><Download className="h-4 w-4" />Export</Button>
+        <Button size="sm" variant="outline" className="gap-1.5">
+          <Download className="h-4 w-4" />
+          Export
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => exportCSV(name, rows, cols)}><FileText className="mr-2 h-4 w-4" />CSV</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => exportPDF(name, title, rows, cols)}><FileText className="mr-2 h-4 w-4" />PDF</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => exportCSV(name, rows, cols)}>
+          <FileText className="mr-2 h-4 w-4" />
+          CSV
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => exportPDF(name, title, rows, cols)}>
+          <FileText className="mr-2 h-4 w-4" />
+          PDF
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-function Section({ title, children, actions }: { title: string; children: React.ReactNode; actions?: React.ReactNode }) {
+function Section({
+  title,
+  children,
+  actions,
+}: {
+  title: string;
+  children: React.ReactNode;
+  actions?: React.ReactNode;
+}) {
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card">
       <div className="flex items-center justify-between border-b border-border p-4">
@@ -101,8 +142,12 @@ function RevenueReport({ from, to }: { from: string; to: string }) {
   const { data = [] } = useQuery({
     queryKey: ["report-revenue", from, to],
     queryFn: async () => {
-      const { data, error } = await supabase.from("fees").select("paid_date, amount_paid, method")
-        .gte("paid_date", from).lte("paid_date", to).gt("amount_paid", 0);
+      const { data, error } = await supabase
+        .from("fees")
+        .select("paid_date, amount_paid, method")
+        .gte("paid_date", from)
+        .lte("paid_date", to)
+        .gt("amount_paid", 0);
       if (error) throw error;
       return data ?? [];
     },
@@ -111,11 +156,14 @@ function RevenueReport({ from, to }: { from: string; to: string }) {
   const total = data.reduce((s, r) => s + Number(r.amount_paid), 0);
   const byMethod = useMemo(() => {
     const m: Record<string, number> = {};
-    data.forEach((r) => { const k = r.method || "other"; m[k] = (m[k] ?? 0) + Number(r.amount_paid); });
+    data.forEach((r) => {
+      const k = r.method || "other";
+      m[k] = (m[k] ?? 0) + Number(r.amount_paid);
+    });
     return Object.entries(m).map(([method, amount]) => ({ id: method, method, amount }));
   }, [data]);
 
-  const cols: Column<typeof byMethod[number]>[] = [
+  const cols: Column<(typeof byMethod)[number]>[] = [
     { key: "method", label: "Method" },
     { key: "amount", label: "Amount (INR)" },
   ];
@@ -123,16 +171,30 @@ function RevenueReport({ from, to }: { from: string; to: string }) {
   return (
     <Section
       title={`Revenue ${from} → ${to} · Total ${inr(total)}`}
-      actions={<ExportButtons rows={byMethod} cols={cols} name={`revenue-${from}-${to}`} title="Revenue" />}
+      actions={
+        <ExportButtons rows={byMethod} cols={cols} name={`revenue-${from}-${to}`} title="Revenue" />
+      }
     >
       <table className="w-full text-sm">
         <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-          <tr><th className="px-4 py-3">Method</th><th className="px-4 py-3">Amount</th></tr>
+          <tr>
+            <th className="px-4 py-3">Method</th>
+            <th className="px-4 py-3">Amount</th>
+          </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {byMethod.length === 0 && <tr><td colSpan={2} className="px-4 py-8 text-center text-muted-foreground">No revenue in this period.</td></tr>}
+          {byMethod.length === 0 && (
+            <tr>
+              <td colSpan={2} className="px-4 py-8 text-center text-muted-foreground">
+                No revenue in this period.
+              </td>
+            </tr>
+          )}
           {byMethod.map((r) => (
-            <tr key={r.method}><td className="px-4 py-3 capitalize">{r.method}</td><td className="px-4 py-3">{inr(r.amount)}</td></tr>
+            <tr key={r.method}>
+              <td className="px-4 py-3 capitalize">{r.method}</td>
+              <td className="px-4 py-3">{inr(r.amount)}</td>
+            </tr>
           ))}
         </tbody>
       </table>
@@ -157,19 +219,31 @@ function FeeReport({ from, to }: { from: string; to: string }) {
     status: f.status,
     due_date: f.due_date ?? "",
   }));
-  const cols: Column<typeof rows[number]>[] = [
-    { key: "student", label: "Student" }, { key: "admission_no", label: "Admission #" },
-    { key: "description", label: "For" }, { key: "amount", label: "Amount" },
-    { key: "paid", label: "Paid" }, { key: "due", label: "Due" },
-    { key: "status", label: "Status" }, { key: "due_date", label: "Due date" },
+  const cols: Column<(typeof rows)[number]>[] = [
+    { key: "student", label: "Student" },
+    { key: "admission_no", label: "Admission #" },
+    { key: "description", label: "For" },
+    { key: "amount", label: "Amount" },
+    { key: "paid", label: "Paid" },
+    { key: "due", label: "Due" },
+    { key: "status", label: "Status" },
+    { key: "due_date", label: "Due date" },
   ];
   return (
-    <Section title={`Fee report · ${rows.length} entries`}
-      actions={<ExportButtons rows={rows} cols={cols} name={`fees-${from}-${to}`} title="Fees" />}>
+    <Section
+      title={`Fee report · ${rows.length} entries`}
+      actions={<ExportButtons rows={rows} cols={cols} name={`fees-${from}-${to}`} title="Fees" />}
+    >
       <div className="max-h-[500px] overflow-auto">
         <table className="w-full text-sm">
           <thead className="sticky top-0 bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-            <tr>{cols.map((c) => <th key={c.key as string} className="px-4 py-3">{c.label}</th>)}</tr>
+            <tr>
+              {cols.map((c) => (
+                <th key={c.key as string} className="px-4 py-3">
+                  {c.label}
+                </th>
+              ))}
+            </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {rows.map((r) => (
@@ -192,14 +266,24 @@ function FeeReport({ from, to }: { from: string; to: string }) {
 }
 
 function AttendanceReport({ from, to }: { from: string; to: string }) {
-  const { data: students = [] } = useQuery({ queryKey: ["students"], queryFn: () => studentsApi.list() });
-  const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
+  const { data: students = [] } = useQuery({
+    queryKey: ["students"],
+    queryFn: () => studentsApi.list(),
+  });
+  const { data: batches = [] } = useQuery({
+    queryKey: ["batches"],
+    queryFn: () => batchesApi.list(),
+  });
   const { data: attendance = [] } = useQuery({
     queryKey: ["report-attendance", from, to],
     queryFn: async () => {
-      const { data, error } = await supabase.from("attendance").select("student_id, status")
-        .gte("date", from).lte("date", to);
-      if (error) throw error; return data ?? [];
+      const { data, error } = await supabase
+        .from("attendance")
+        .select("student_id, status")
+        .gte("date", from)
+        .lte("date", to);
+      if (error) throw error;
+      return data ?? [];
     },
   });
 
@@ -221,25 +305,48 @@ function AttendanceReport({ from, to }: { from: string; to: string }) {
         student: s.full_name,
         admission_no: s.admission_no,
         batch: batches.find((b) => b.id === s.batch_id)?.name ?? "",
-        present: st.present, absent: st.absent, late: st.late, total: st.total, pct,
+        present: st.present,
+        absent: st.absent,
+        late: st.late,
+        total: st.total,
+        pct,
       };
     });
   }, [students, batches, attendance]);
 
-  const cols: Column<typeof perStudent[number]>[] = [
-    { key: "student", label: "Student" }, { key: "admission_no", label: "Admission #" },
-    { key: "batch", label: "Batch" }, { key: "present", label: "Present" },
-    { key: "absent", label: "Absent" }, { key: "late", label: "Late" },
-    { key: "total", label: "Total" }, { key: "pct", label: "%" },
+  const cols: Column<(typeof perStudent)[number]>[] = [
+    { key: "student", label: "Student" },
+    { key: "admission_no", label: "Admission #" },
+    { key: "batch", label: "Batch" },
+    { key: "present", label: "Present" },
+    { key: "absent", label: "Absent" },
+    { key: "late", label: "Late" },
+    { key: "total", label: "Total" },
+    { key: "pct", label: "%" },
   ];
 
   return (
-    <Section title={`Attendance ${from} → ${to}`}
-      actions={<ExportButtons rows={perStudent} cols={cols} name={`attendance-${from}-${to}`} title="Attendance" />}>
+    <Section
+      title={`Attendance ${from} → ${to}`}
+      actions={
+        <ExportButtons
+          rows={perStudent}
+          cols={cols}
+          name={`attendance-${from}-${to}`}
+          title="Attendance"
+        />
+      }
+    >
       <div className="max-h-[500px] overflow-auto">
         <table className="w-full text-sm">
           <thead className="sticky top-0 bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-            <tr>{cols.map((c) => <th key={c.key as string} className="px-4 py-3">{c.label}</th>)}</tr>
+            <tr>
+              {cols.map((c) => (
+                <th key={c.key as string} className="px-4 py-3">
+                  {c.label}
+                </th>
+              ))}
+            </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {perStudent.map((r) => (
@@ -251,7 +358,11 @@ function AttendanceReport({ from, to }: { from: string; to: string }) {
                 <td className="px-4 py-3">{r.absent}</td>
                 <td className="px-4 py-3">{r.late}</td>
                 <td className="px-4 py-3">{r.total}</td>
-                <td className={`px-4 py-3 ${r.pct >= 85 ? "text-success" : r.pct >= 70 ? "" : "text-warning"}`}>{r.pct}%</td>
+                <td
+                  className={`px-4 py-3 ${r.pct >= 85 ? "text-success" : r.pct >= 70 ? "" : "text-warning"}`}
+                >
+                  {r.pct}%
+                </td>
               </tr>
             ))}
           </tbody>
@@ -265,23 +376,45 @@ function AdmissionsReport({ from, to }: { from: string; to: string }) {
   const { data = [] } = useQuery({
     queryKey: ["report-admissions", from, to],
     queryFn: async () => {
-      const { data, error } = await supabase.from("students").select("id, full_name, admission_no, admission_date, class, status")
-        .gte("admission_date", from).lte("admission_date", to).order("admission_date", { ascending: false });
-      if (error) throw error; return data ?? [];
+      const { data, error } = await supabase
+        .from("students")
+        .select("id, full_name, admission_no, admission_date, class, status")
+        .gte("admission_date", from)
+        .lte("admission_date", to)
+        .order("admission_date", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
     },
   });
-  const cols: Column<typeof data[number]>[] = [
-    { key: "full_name", label: "Student" }, { key: "admission_no", label: "Admission #" },
-    { key: "class", label: "Class" }, { key: "admission_date", label: "Admission date" },
+  const cols: Column<(typeof data)[number]>[] = [
+    { key: "full_name", label: "Student" },
+    { key: "admission_no", label: "Admission #" },
+    { key: "class", label: "Class" },
+    { key: "admission_date", label: "Admission date" },
     { key: "status", label: "Status" },
   ];
   return (
-    <Section title={`Admissions ${from} → ${to} · ${data.length} students`}
-      actions={<ExportButtons rows={data} cols={cols} name={`admissions-${from}-${to}`} title="Admissions" />}>
+    <Section
+      title={`Admissions ${from} → ${to} · ${data.length} students`}
+      actions={
+        <ExportButtons
+          rows={data}
+          cols={cols}
+          name={`admissions-${from}-${to}`}
+          title="Admissions"
+        />
+      }
+    >
       <div className="max-h-[500px] overflow-auto">
         <table className="w-full text-sm">
           <thead className="sticky top-0 bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-            <tr>{cols.map((c) => <th key={c.key as string} className="px-4 py-3">{c.label}</th>)}</tr>
+            <tr>
+              {cols.map((c) => (
+                <th key={c.key as string} className="px-4 py-3">
+                  {c.label}
+                </th>
+              ))}
+            </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {data.map((r) => (

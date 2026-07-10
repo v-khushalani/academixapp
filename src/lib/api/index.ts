@@ -33,7 +33,9 @@ function orThrow<T>({ data, error }: { data: T | null; error: unknown }): T {
 
 // ---------- Students ----------
 export const studentsApi = {
-  async list(opts?: { approval?: "approved" | "pending" | "rejected" | "all" }): Promise<(Student & { batch?: Batch | null })[]> {
+  async list(opts?: {
+    approval?: "approved" | "pending" | "rejected" | "all";
+  }): Promise<(Student & { batch?: Batch | null })[]> {
     const approval = opts?.approval ?? "approved";
     let q = supabase.from("students").select("*, batch:batches(*)");
     if (approval !== "all") q = q.eq("approval_status", approval);
@@ -42,8 +44,13 @@ export const studentsApi = {
     return (data ?? []) as (Student & { batch?: Batch | null })[];
   },
   async get(id: string) {
-    const { data, error } = await supabase.from("students").select("*, batch:batches(*)").eq("id", id).maybeSingle();
-    if (error) throw error; return data;
+    const { data, error } = await supabase
+      .from("students")
+      .select("*, batch:batches(*)")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
   },
   async create(input: StudentInsert) {
     return orThrow(await supabase.from("students").insert(input).select().single());
@@ -56,12 +63,17 @@ export const studentsApi = {
     if (error) throw error;
   },
   async setApproval(id: string, decision: "approved" | "rejected" | "pending") {
-    const { error } = await supabase.rpc("set_student_approval", { _student_id: id, _decision: decision });
+    const { error } = await supabase.rpc("set_student_approval", {
+      _student_id: id,
+      _decision: decision,
+    });
     if (error) throw error;
   },
   async signedPhotoUrl(path: string | null | undefined, expiresIn = 3600) {
     if (!path) return null;
-    const { data, error } = await supabase.storage.from("student-photos").createSignedUrl(path, expiresIn);
+    const { data, error } = await supabase.storage
+      .from("student-photos")
+      .createSignedUrl(path, expiresIn);
     if (error) return null;
     return data.signedUrl;
   },
@@ -70,12 +82,17 @@ export const studentsApi = {
 // ---------- Batches ----------
 export const batchesApi = {
   async list() {
-    const { data, error } = await supabase.from("batches").select("*").order("created_at", { ascending: false });
-    if (error) throw error; return data ?? [];
+    const { data, error } = await supabase
+      .from("batches")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
   },
   async get(id: string) {
     const { data, error } = await supabase.from("batches").select("*").eq("id", id).maybeSingle();
-    if (error) throw error; return data;
+    if (error) throw error;
+    return data;
   },
   async create(input: BatchInsert) {
     return orThrow(await supabase.from("batches").insert(input).select().single());
@@ -88,8 +105,13 @@ export const batchesApi = {
     if (error) throw error;
   },
   async roster(batchId: string) {
-    const { data, error } = await supabase.from("students").select("*").eq("batch_id", batchId).order("full_name");
-    if (error) throw error; return data ?? [];
+    const { data, error } = await supabase
+      .from("students")
+      .select("*")
+      .eq("batch_id", batchId)
+      .order("full_name");
+    if (error) throw error;
+    return data ?? [];
   },
 };
 
@@ -100,7 +122,8 @@ export const feesApi = {
       .from("fees")
       .select("*, student:students(id,full_name,admission_no)")
       .order("created_at", { ascending: false });
-    if (error) throw error; return data ?? [];
+    if (error) throw error;
+    return data ?? [];
   },
   async create(input: FeeInsert) {
     return orThrow(await supabase.from("fees").insert(input).select().single());
@@ -117,12 +140,21 @@ export const feesApi = {
 // ---------- Tests ----------
 export const testsApi = {
   async list() {
-    const { data, error } = await supabase.from("tests").select("*, batch:batches(id,name)").order("date", { ascending: false });
-    if (error) throw error; return data ?? [];
+    const { data, error } = await supabase
+      .from("tests")
+      .select("*, batch:batches(id,name)")
+      .order("date", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
   },
   async get(id: string) {
-    const { data, error } = await supabase.from("tests").select("*, batch:batches(id,name)").eq("id", id).maybeSingle();
-    if (error) throw error; return data;
+    const { data, error } = await supabase
+      .from("tests")
+      .select("*, batch:batches(id,name)")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
   },
   async create(input: TestInsert) {
     return orThrow(await supabase.from("tests").insert(input).select().single());
@@ -137,15 +169,20 @@ export const testsApi = {
       .select("*, student:students(id,full_name,admission_no)")
       .eq("test_id", testId)
       .order("marks", { ascending: false });
-    if (error) throw error; return data ?? [];
+    if (error) throw error;
+    return data ?? [];
   },
 };
 
 // ---------- Leads ----------
 export const leadsApi = {
   async list() {
-    const { data, error } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
-    if (error) throw error; return data ?? [];
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
   },
   async create(input: LeadInsert) {
     return orThrow(await supabase.from("leads").insert(input).select().single());
@@ -170,10 +207,13 @@ export const attendanceApi = {
       .select("*")
       .eq("batch_id", batchId)
       .eq("date", date);
-    if (error) throw error; return data ?? [];
+    if (error) throw error;
+    return data ?? [];
   },
   async upsertMany(rows: Tables["attendance"]["Insert"][]) {
-    const { error } = await supabase.from("attendance").upsert(rows, { onConflict: "student_id,date" });
+    const { error } = await supabase
+      .from("attendance")
+      .upsert(rows, { onConflict: "student_id,date" });
     if (error) throw error;
   },
 };
@@ -184,11 +224,22 @@ export const dashboardApi = {
     const [studentsCount, activeBatches, pendingFees, monthAdmissions] = await Promise.all([
       supabase.from("students").select("id", { count: "exact", head: true }).eq("status", "active"),
       supabase.from("batches").select("id", { count: "exact", head: true }).eq("status", "active"),
-      supabase.from("fees").select("amount, amount_paid").in("status", ["pending","partial","overdue"]),
-      supabase.from("students").select("id", { count: "exact", head: true })
-        .gte("admission_date", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0,10)),
+      supabase
+        .from("fees")
+        .select("amount, amount_paid")
+        .in("status", ["pending", "partial", "overdue"]),
+      supabase
+        .from("students")
+        .select("id", { count: "exact", head: true })
+        .gte(
+          "admission_date",
+          new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10),
+        ),
     ]);
-    const outstanding = (pendingFees.data ?? []).reduce((sum, f) => sum + Number(f.amount) - Number(f.amount_paid ?? 0), 0);
+    const outstanding = (pendingFees.data ?? []).reduce(
+      (sum, f) => sum + Number(f.amount) - Number(f.amount_paid ?? 0),
+      0,
+    );
     return {
       students: studentsCount.count ?? 0,
       batches: activeBatches.count ?? 0,
@@ -202,11 +253,13 @@ export const dashboardApi = {
 export const profilesApi = {
   async list() {
     const { data, error } = await supabase.from("profiles").select("*");
-    if (error) throw error; return data ?? [];
+    if (error) throw error;
+    return data ?? [];
   },
   async get(id: string) {
     const { data, error } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-    if (error) throw error; return data;
+    if (error) throw error;
+    return data;
   },
   async update(id: string, input: Partial<Tables["profiles"]["Update"]>) {
     return orThrow(await supabase.from("profiles").update(input).eq("id", id).select().single());
@@ -216,7 +269,8 @@ export const profilesApi = {
 export const rolesApi = {
   async listForUser(userId: string) {
     const { data, error } = await supabase.from("user_roles").select("*").eq("user_id", userId);
-    if (error) throw error; return data ?? [];
+    if (error) throw error;
+    return data ?? [];
   },
 };
 
@@ -224,7 +278,8 @@ export const rolesApi = {
 export const facultyApi = {
   async list() {
     const { data, error } = await supabase.from("faculty").select("*").order("full_name");
-    if (error) throw error; return data ?? [];
+    if (error) throw error;
+    return data ?? [];
   },
   async create(input: FacultyInsert) {
     return orThrow(await supabase.from("faculty").insert(input).select().single());
@@ -246,13 +301,16 @@ export const timetableApi = {
       .select("*, batch:batches(id,name), faculty:faculty(id,full_name)")
       .order("day_of_week")
       .order("start_time");
-    if (error) throw error; return data ?? [];
+    if (error) throw error;
+    return data ?? [];
   },
   async create(input: TimetableSlotInsert) {
     return orThrow(await supabase.from("timetable_slots").insert(input).select().single());
   },
   async update(id: string, input: Partial<TimetableSlotInsert>) {
-    return orThrow(await supabase.from("timetable_slots").update(input).eq("id", id).select().single());
+    return orThrow(
+      await supabase.from("timetable_slots").update(input).eq("id", id).select().single(),
+    );
   },
   async remove(id: string) {
     const { error } = await supabase.from("timetable_slots").delete().eq("id", id);
@@ -265,9 +323,12 @@ export const attendanceListApi = {
   async listForDate(date: string) {
     const { data, error } = await supabase
       .from("attendance")
-      .select("*, student:students(id,full_name,admission_no,parent_name,parent_phone,phone), batch:batches(id,name)")
+      .select(
+        "*, student:students(id,full_name,admission_no,parent_name,parent_phone,phone), batch:batches(id,name)",
+      )
       .eq("date", date);
-    if (error) throw error; return data ?? [];
+    if (error) throw error;
+    return data ?? [];
   },
 };
 
@@ -275,21 +336,40 @@ export const attendanceListApi = {
 export const coursesApi = {
   async list() {
     const { data, error } = await supabase.from("courses").select("*").order("name");
-    if (error) throw error; return data ?? [];
+    if (error) throw error;
+    return data ?? [];
   },
-  async create(input: CourseInsert) { return orThrow(await supabase.from("courses").insert(input).select().single()); },
-  async update(id: string, input: Partial<CourseInsert>) { return orThrow(await supabase.from("courses").update(input).eq("id", id).select().single()); },
-  async remove(id: string) { const { error } = await supabase.from("courses").delete().eq("id", id); if (error) throw error; },
+  async create(input: CourseInsert) {
+    return orThrow(await supabase.from("courses").insert(input).select().single());
+  },
+  async update(id: string, input: Partial<CourseInsert>) {
+    return orThrow(await supabase.from("courses").update(input).eq("id", id).select().single());
+  },
+  async remove(id: string) {
+    const { error } = await supabase.from("courses").delete().eq("id", id);
+    if (error) throw error;
+  },
 };
 
 export const subjectsApi = {
   async list() {
-    const { data, error } = await supabase.from("subjects").select("*, course:courses(id,name)").order("name");
-    if (error) throw error; return data ?? [];
+    const { data, error } = await supabase
+      .from("subjects")
+      .select("*, course:courses(id,name)")
+      .order("name");
+    if (error) throw error;
+    return data ?? [];
   },
-  async create(input: SubjectInsert) { return orThrow(await supabase.from("subjects").insert(input).select().single()); },
-  async update(id: string, input: Partial<SubjectInsert>) { return orThrow(await supabase.from("subjects").update(input).eq("id", id).select().single()); },
-  async remove(id: string) { const { error } = await supabase.from("subjects").delete().eq("id", id); if (error) throw error; },
+  async create(input: SubjectInsert) {
+    return orThrow(await supabase.from("subjects").insert(input).select().single());
+  },
+  async update(id: string, input: Partial<SubjectInsert>) {
+    return orThrow(await supabase.from("subjects").update(input).eq("id", id).select().single());
+  },
+  async remove(id: string) {
+    const { error } = await supabase.from("subjects").delete().eq("id", id);
+    if (error) throw error;
+  },
 };
 
 // ---------- Users & roles ----------
@@ -299,11 +379,13 @@ export const userRolesApi = {
       supabase.from("profiles").select("*"),
       supabase.from("user_roles").select("*"),
     ]);
-    if (e1) throw e1; if (e2) throw e2;
+    if (e1) throw e1;
+    if (e2) throw e2;
     const byUser = new Map<string, AppRole[]>();
     (roles ?? []).forEach((r) => {
       const arr = byUser.get(r.user_id) ?? [];
-      arr.push(r.role); byUser.set(r.user_id, arr);
+      arr.push(r.role);
+      byUser.set(r.user_id, arr);
     });
     return (profiles ?? []).map((p) => ({ ...p, roles: byUser.get(p.id) ?? [] }));
   },
@@ -312,7 +394,11 @@ export const userRolesApi = {
     if (error) throw error;
   },
   async removeRole(user_id: string, role: AppRole) {
-    const { error } = await supabase.from("user_roles").delete().eq("user_id", user_id).eq("role", role);
+    const { error } = await supabase
+      .from("user_roles")
+      .delete()
+      .eq("user_id", user_id)
+      .eq("role", role);
     if (error) throw error;
   },
 };

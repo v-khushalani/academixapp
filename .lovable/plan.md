@@ -1,4 +1,3 @@
-
 # VK Academy ERP — V1 Build Plan
 
 ## Approach

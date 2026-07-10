@@ -27,8 +27,11 @@ const DEFAULT_INSTITUTE: InstituteSettings = {
 
 function safeRead<T>(key: string): Partial<T> {
   if (typeof window === "undefined") return {};
-  try { return JSON.parse(window.localStorage.getItem(key) ?? "{}") as Partial<T>; }
-  catch { return {}; }
+  try {
+    return JSON.parse(window.localStorage.getItem(key) ?? "{}") as Partial<T>;
+  } catch {
+    return {};
+  }
 }
 
 export function getInstitute(): InstituteSettings {
@@ -54,7 +57,10 @@ export function saveTemplates(t: Record<WhatsAppTemplateKey, string>) {
 export function applyBranding(hex: string) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
-  if (!hex) { root.style.removeProperty("--primary"); return; }
+  if (!hex) {
+    root.style.removeProperty("--primary");
+    return;
+  }
   root.style.setProperty("--primary", hex);
 }
 
