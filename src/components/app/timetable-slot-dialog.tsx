@@ -19,13 +19,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-import { Field as F } from "@/components/app/field";
   batchesApi,
   facultyApi,
   timetableApi,
   type TimetableSlot,
   type TimetableSlotInsert,
 } from "@/lib/api";
+import { Field as F } from "@/components/app/field";
 
 type Props = {
   open: boolean;
