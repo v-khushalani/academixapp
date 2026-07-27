@@ -65,6 +65,48 @@ export type Database = {
           },
         ]
       }
+      automation_rules: {
+        Row: {
+          action: Json
+          channel: Database["public"]["Enums"]["notification_channel"]
+          condition: Json
+          created_at: string
+          created_by: string | null
+          delay_minutes: number
+          id: string
+          is_active: boolean
+          name: string
+          trigger_key: Database["public"]["Enums"]["automation_trigger"]
+          updated_at: string
+        }
+        Insert: {
+          action?: Json
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          condition?: Json
+          created_at?: string
+          created_by?: string | null
+          delay_minutes?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          trigger_key: Database["public"]["Enums"]["automation_trigger"]
+          updated_at?: string
+        }
+        Update: {
+          action?: Json
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          condition?: Json
+          created_at?: string
+          created_by?: string | null
+          delay_minutes?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          trigger_key?: Database["public"]["Enums"]["automation_trigger"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       batches: {
         Row: {
           capacity: number
@@ -304,6 +346,107 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_logs: {
+        Row: {
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at: string
+          created_by: string | null
+          fee_id: string | null
+          id: string
+          kind: string
+          lead_id: string | null
+          message: string
+          metadata: Json
+          recipient_email: string | null
+          recipient_name: string | null
+          recipient_phone: string | null
+          related_id: string | null
+          related_table: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["notification_status"]
+          student_id: string | null
+          test_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          created_by?: string | null
+          fee_id?: string | null
+          id?: string
+          kind?: string
+          lead_id?: string | null
+          message: string
+          metadata?: Json
+          recipient_email?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          related_id?: string | null
+          related_table?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["notification_status"]
+          student_id?: string | null
+          test_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          created_by?: string | null
+          fee_id?: string | null
+          id?: string
+          kind?: string
+          lead_id?: string | null
+          message?: string
+          metadata?: Json
+          recipient_email?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          related_id?: string | null
+          related_table?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["notification_status"]
+          student_id?: string | null
+          test_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_fee_id_fkey"
+            columns: ["fee_id"]
+            isOneToOne: false
+            referencedRelation: "fees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_logs_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -330,6 +473,137 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      student_activities: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          fee_id: string | null
+          id: string
+          lead_id: string | null
+          metadata: Json
+          source: Database["public"]["Enums"]["activity_source"]
+          student_id: string | null
+          test_id: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          fee_id?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json
+          source?: Database["public"]["Enums"]["activity_source"]
+          student_id?: string | null
+          test_id?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          fee_id?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json
+          source?: Database["public"]["Enums"]["activity_source"]
+          student_id?: string | null
+          test_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_activities_fee_id_fkey"
+            columns: ["fee_id"]
+            isOneToOne: false
+            referencedRelation: "fees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_activities_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_activities_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_documents: {
+        Row: {
+          category: string
+          created_at: string
+          file_path: string
+          file_size: number | null
+          id: string
+          lead_id: string | null
+          mime_type: string | null
+          notes: string | null
+          student_id: string
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          lead_id?: string | null
+          mime_type?: string | null
+          notes?: string | null
+          student_id: string
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          lead_id?: string | null
+          mime_type?: string | null
+          notes?: string | null
+          student_id?: string
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_documents_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_documents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       students: {
         Row: {
@@ -757,6 +1031,14 @@ export type Database = {
       }
     }
     Enums: {
+      activity_source:
+        | "admissions"
+        | "attendance"
+        | "fees"
+        | "tests"
+        | "documents"
+        | "automation"
+        | "manual"
       app_role:
         | "owner"
         | "admin"
@@ -767,6 +1049,14 @@ export type Database = {
         | "student"
         | "parent"
       attendance_status: "present" | "absent" | "late" | "excused"
+      automation_trigger:
+        | "attendance_absent"
+        | "fee_paid"
+        | "fee_due"
+        | "marks_uploaded"
+        | "lead_followup"
+        | "birthday"
+        | "manual"
       batch_status: "active" | "upcoming" | "completed" | "cancelled"
       fee_status: "pending" | "partial" | "paid" | "overdue" | "waived"
       lead_stage:
@@ -777,6 +1067,8 @@ export type Database = {
         | "negotiation"
         | "enrolled"
         | "lost"
+      notification_channel: "whatsapp" | "sms" | "email" | "push" | "in_app"
+      notification_status: "draft" | "queued" | "sent" | "delivered" | "failed"
       student_status: "active" | "inactive" | "alumni" | "dropped"
       test_status: "scheduled" | "ongoing" | "completed" | "cancelled"
       test_type: "quiz" | "unit" | "midterm" | "final" | "mock" | "practice"
@@ -907,6 +1199,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      activity_source: [
+        "admissions",
+        "attendance",
+        "fees",
+        "tests",
+        "documents",
+        "automation",
+        "manual",
+      ],
       app_role: [
         "owner",
         "admin",
@@ -918,6 +1219,15 @@ export const Constants = {
         "parent",
       ],
       attendance_status: ["present", "absent", "late", "excused"],
+      automation_trigger: [
+        "attendance_absent",
+        "fee_paid",
+        "fee_due",
+        "marks_uploaded",
+        "lead_followup",
+        "birthday",
+        "manual",
+      ],
       batch_status: ["active", "upcoming", "completed", "cancelled"],
       fee_status: ["pending", "partial", "paid", "overdue", "waived"],
       lead_stage: [
@@ -929,6 +1239,8 @@ export const Constants = {
         "enrolled",
         "lost",
       ],
+      notification_channel: ["whatsapp", "sms", "email", "push", "in_app"],
+      notification_status: ["draft", "queued", "sent", "delivered", "failed"],
       student_status: ["active", "inactive", "alumni", "dropped"],
       test_status: ["scheduled", "ongoing", "completed", "cancelled"],
       test_type: ["quiz", "unit", "midterm", "final", "mock", "practice"],
