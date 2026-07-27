@@ -28,6 +28,13 @@ import { leadsApi, studentsApi, type Lead, type LeadInsert, type Student } from 
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  provisionPortalAccounts,
+  type ProvisionedAccount,
+} from "@/lib/provisioning.functions";
+import { openWhatsApp } from "@/lib/whatsapp";
+import { getInstitute } from "@/lib/academy-settings";
 import type { Database } from "@/integrations/supabase/types";
 
 type Stage = Database["public"]["Enums"]["lead_stage"];
