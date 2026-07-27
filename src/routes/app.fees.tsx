@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Bell, MessageCircle, Plus, Trash2, Wallet } from "lucide-react";
+import { Bell, MessageCircle, Plus, QrCode, Trash2, Wallet } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { KpiCard } from "@/components/app/kpi-card";
 import { DataTable, type DTColumn } from "@/components/app/data-table";
 import { FeeFormDialog } from "@/components/app/fee-form-dialog";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
+import { PaymentDialog, type PaymentTarget } from "@/components/app/payment-dialog";
 import { feesApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
@@ -40,6 +41,7 @@ function FeesPage() {
   const [status, setStatus] = useState("all");
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState<Row | null>(null);
+  const [collecting, setCollecting] = useState<PaymentTarget | null>(null);
 
   const filtered = useMemo(
     () => (status === "all" ? data : data.filter((f) => f.status === status)),
@@ -133,6 +135,14 @@ function FeesPage() {
           <Button
             size="icon"
             variant="ghost"
+            title="Collect via UPI / receipt"
+            onClick={() => openCollect(r)}
+          >
+            <QrCode className="h-4 w-4 text-primary" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
             title="Send WhatsApp reminder"
             onClick={() => sendReminder(r)}
           >
@@ -152,6 +162,39 @@ function FeesPage() {
       ),
     },
   ];
+
+  async function openCollect(r: Row) {
+    const { data } = await supabase
+      .from("students")
+      .select("full_name, admission_no, parent_phone, phone, preferred_contact, father_phone, mother_phone, batch:batches(name)")
+      .eq("id", r.student_id)
+      .maybeSingle();
+    const s = data as {
+      full_name?: string;
+      admission_no?: string | null;
+      parent_phone?: string | null;
+      phone?: string | null;
+      preferred_contact?: string | null;
+      father_phone?: string | null;
+      mother_phone?: string | null;
+      batch?: { name?: string } | null;
+    } | null;
+    const preferred =
+      s?.preferred_contact === "mother" ? s?.mother_phone : (s?.father_phone ?? null);
+    setCollecting({
+      id: r.id,
+      student_name: s?.full_name ?? r.student?.full_name ?? "Student",
+      admission_no: s?.admission_no ?? r.student?.admission_no ?? null,
+      batch_name: s?.batch?.name ?? null,
+      description: r.description,
+      amount: Number(r.amount),
+      amount_paid: Number(r.amount_paid),
+      due_date: r.due_date,
+      paid_date: r.paid_date,
+      receipt_no: r.receipt_no,
+      phone: preferred ?? s?.parent_phone ?? s?.phone ?? null,
+    });
+  }
 
   async function sendReminder(r: Row) {
     // Look up parent_phone if not on relation
@@ -237,6 +280,7 @@ function FeesPage() {
           />
         </div>
       </PageBody>
+      <PaymentDialog target={collecting} onOpenChange={(v) => !v && setCollecting(null)} />
       <FeeFormDialog open={open} onOpenChange={setOpen} />
       <ConfirmDialog
         open={Boolean(deleting)}
