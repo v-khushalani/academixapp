@@ -538,7 +538,7 @@ function HowItWorks() {
           Think of it as three lanes that feed each other:
         </p>
 
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <Lane n="1" title="Leads pipeline (Kanban)">
             Enquiries from parents you meet or receive calls from. Track them from <i>New</i> →{" "}
             <i>Contacted</i> → <i>Visit</i> → <i>Demo</i> → <i>Enrolled</i>. Update the stage in one
@@ -552,6 +552,12 @@ function HowItWorks() {
           <Lane n="3" title="Public QR">
             One QR code printed at reception. Anyone scans → fills form → application lands in the
             queue. Zero data entry for staff, zero cost.
+          </Lane>
+          <Lane n="4" title="Enquiry records">
+            Rejected or not-yet-joined applications never get deleted — they move to{" "}
+            <b>Enquiry records</b> with all details and a follow-up notes box. Call them back later,
+            send a WhatsApp follow-up, or click <i>Reconsider</i> to push them back into the pending
+            queue.
           </Lane>
         </div>
 
