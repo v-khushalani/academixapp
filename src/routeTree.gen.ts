@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ForInstitutesRouteImport } from './routes/for-institutes'
 import { Route as ApplyRouteImport } from './routes/apply'
@@ -44,11 +43,6 @@ const SignupRoute = SignupRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -173,7 +167,6 @@ export interface FileRoutesByFullPath {
   '/apply': typeof ApplyRoute
   '/for-institutes': typeof ForInstitutesRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/app/admissions': typeof AppAdmissionsRoute
@@ -200,7 +193,6 @@ export interface FileRoutesByTo {
   '/apply': typeof ApplyRoute
   '/for-institutes': typeof ForInstitutesRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/app/admissions': typeof AppAdmissionsRoute
@@ -229,7 +221,6 @@ export interface FileRoutesById {
   '/apply': typeof ApplyRoute
   '/for-institutes': typeof ForInstitutesRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/app/admissions': typeof AppAdmissionsRoute
@@ -259,7 +250,6 @@ export interface FileRouteTypes {
     | '/apply'
     | '/for-institutes'
     | '/forgot-password'
-    | '/login'
     | '/pricing'
     | '/signup'
     | '/app/admissions'
@@ -286,7 +276,6 @@ export interface FileRouteTypes {
     | '/apply'
     | '/for-institutes'
     | '/forgot-password'
-    | '/login'
     | '/pricing'
     | '/signup'
     | '/app/admissions'
@@ -314,7 +303,6 @@ export interface FileRouteTypes {
     | '/apply'
     | '/for-institutes'
     | '/forgot-password'
-    | '/login'
     | '/pricing'
     | '/signup'
     | '/app/admissions'
@@ -343,7 +331,6 @@ export interface RootRouteChildren {
   ApplyRoute: typeof ApplyRoute
   ForInstitutesRoute: typeof ForInstitutesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
-  LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
   OnboardTokenRoute: typeof OnboardTokenRoute
@@ -363,13 +350,6 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -614,7 +594,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApplyRoute: ApplyRoute,
   ForInstitutesRoute: ForInstitutesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
-  LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
   OnboardTokenRoute: OnboardTokenRoute,
