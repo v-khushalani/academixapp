@@ -35,6 +35,8 @@ import {
 } from "@/lib/provisioning.functions";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { getInstitute } from "@/lib/academy-settings";
+import { ApplicantPreview } from "@/components/app/applicant-preview";
+import { EnquiryRecords } from "@/components/app/enquiry-records";
 import type { Database } from "@/integrations/supabase/types";
 
 type Stage = Database["public"]["Enums"]["lead_stage"];
@@ -68,6 +70,7 @@ function AdmissionsPage() {
           <TabsList>
             <TabsTrigger value="leads">Leads pipeline</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="records">Enquiry records</TabsTrigger>
             <TabsTrigger value="qr">Public QR</TabsTrigger>
             <TabsTrigger value="how">How it works</TabsTrigger>
           </TabsList>
@@ -76,6 +79,9 @@ function AdmissionsPage() {
           </TabsContent>
           <TabsContent value="applications" className="mt-4">
             <ApplicationsList canWrite={canWrite} />
+          </TabsContent>
+          <TabsContent value="records" className="mt-4">
+            <EnquiryRecords canWrite={canWrite} />
           </TabsContent>
           <TabsContent value="qr" className="mt-4">
             <QrPanel />
@@ -471,63 +477,6 @@ function CredentialsDialog({
   );
 }
 
-function ApplicantPreview({ student, onClose }: { student: Student | null; onClose: () => void }) {
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  useMemo(() => {
-    setPhotoUrl(null);
-    if (student?.photo_path) studentsApi.signedPhotoUrl(student.photo_path).then(setPhotoUrl);
-  }, [student]);
-  if (!student) return null;
-  return (
-    <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Application · {student.full_name}</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
-          <div>
-            {photoUrl ? (
-              <img
-                src={photoUrl}
-                alt={student.full_name}
-                className="h-36 w-full rounded-md border border-border object-cover"
-              />
-            ) : (
-              <div className="grid h-36 w-full place-items-center rounded-md border border-dashed border-border text-xs text-muted-foreground">
-                {student.photo_path ? "Loading…" : "No photo"}
-              </div>
-            )}
-            <p className="mt-2 text-center text-xs text-muted-foreground">{student.admission_no}</p>
-          </div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <D k="Phone" v={student.phone} />
-            <D k="Email" v={student.email} />
-            <D k="Date of birth" v={student.dob} />
-            <D k="Class" v={student.class} />
-            <D k="Program" v={student.program} />
-            <D k="Stream" v={student.stream?.toUpperCase() ?? null} />
-            <D k="School" v={student.school} />
-            <D k="Father" v={student.father_name} />
-            <D k="Father phone" v={student.father_phone} />
-            <D k="Mother" v={student.mother_name} />
-            <D k="Mother phone" v={student.mother_phone} />
-            <D k="Address" v={student.address} full />
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function D({ k, v, full }: { k: string; v: string | null | undefined; full?: boolean }) {
-  return (
-    <div className={full ? "col-span-2" : ""}>
-      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{k}</p>
-      <p className="text-sm">{v || "—"}</p>
-    </div>
-  );
-}
-
 /* -------------------- QR panel -------------------- */
 function QrPanel() {
   const url = typeof window !== "undefined" ? `${window.location.origin}/apply` : "/apply";
@@ -589,7 +538,7 @@ function HowItWorks() {
           Think of it as three lanes that feed each other:
         </p>
 
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <Lane n="1" title="Leads pipeline (Kanban)">
             Enquiries from parents you meet or receive calls from. Track them from <i>New</i> →{" "}
             <i>Contacted</i> → <i>Visit</i> → <i>Demo</i> → <i>Enrolled</i>. Update the stage in one
@@ -603,6 +552,12 @@ function HowItWorks() {
           <Lane n="3" title="Public QR">
             One QR code printed at reception. Anyone scans → fills form → application lands in the
             queue. Zero data entry for staff, zero cost.
+          </Lane>
+          <Lane n="4" title="Enquiry records">
+            Rejected or not-yet-joined applications never get deleted — they move to{" "}
+            <b>Enquiry records</b> with all details and a follow-up notes box. Call them back later,
+            send a WhatsApp follow-up, or click <i>Reconsider</i> to push them back into the pending
+            queue.
           </Lane>
         </div>
 

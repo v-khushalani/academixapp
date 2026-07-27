@@ -69,6 +69,10 @@ export const studentsApi = {
     });
     if (error) throw error;
   },
+  async setNotes(id: string, notes: string) {
+    const { error } = await supabase.from("students").update({ notes }).eq("id", id);
+    if (error) throw error;
+  },
   async signedPhotoUrl(path: string | null | undefined, expiresIn = 3600) {
     if (!path) return null;
     const { data, error } = await supabase.storage
