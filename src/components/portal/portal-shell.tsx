@@ -30,14 +30,14 @@ export function usePortalStudent() {
   return ctx;
 }
 
-const NAV = [
+const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/portal", label: "Home", icon: Home, exact: true },
   { to: "/portal/attendance", label: "Attendance", icon: CalendarCheck },
   { to: "/portal/progress", label: "Progress", icon: TrendingUp },
   { to: "/portal/fees", label: "Fees", icon: Wallet },
   { to: "/portal/timetable", label: "Timetable", icon: Calendar },
   { to: "/portal/homework", label: "Homework", icon: BookOpen },
-] as const;
+];
 
 const KEY = "vk_portal_student";
 
