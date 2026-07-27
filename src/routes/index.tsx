@@ -1,97 +1,95 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
-  Zap,
+  BadgeIndianRupee,
+  CalendarCheck,
+  ClipboardList,
+  MessageCircle,
+  QrCode,
   Users,
-  TrendingUp,
-  Clock,
-  BarChart3,
-  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PortalPicker } from "@/components/marketing/portal-picker";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Academix — The Operating System for Modern Institutes" },
+      { title: "Academix — Institute ERP for Coaching Centres" },
       {
         name: "description",
         content:
-          "One dashboard for students, admissions, batches, attendance, fees and tests. Built for coaching institutes.",
+          "Admissions by QR, attendance, fees with UPI, tests and timetable — plus separate portals for admin, teachers and parents. Built for coaching institutes.",
       },
+      { property: "og:title", content: "Academix — Institute ERP for Coaching Centres" },
+      {
+        property: "og:description",
+        content:
+          "Run admissions, attendance, fees, tests and timetable in one place. Separate logins for admin, teachers and families.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
 });
 
+const MODULES = [
+  {
+    icon: QrCode,
+    title: "Paperless admissions",
+    desc: "One QR at the front desk. Parents fill the full form on their phone; you approve and the student record, login and fee plan are created.",
+  },
+  {
+    icon: BadgeIndianRupee,
+    title: "Fees that add up",
+    desc: "Batch fee auto-applies to every student, discounts and scholarships adjust it, UPI QR collects it, and receipts print as PDF.",
+  },
+  {
+    icon: CalendarCheck,
+    title: "Attendance in one tap",
+    desc: "Teachers mark a whole batch from their phone. Absentee parents get a WhatsApp message with a single tap.",
+  },
+  {
+    icon: ClipboardList,
+    title: "Tests and progress",
+    desc: "Enter marks batch-wise; families see scores, trends and rank movement in their own portal.",
+  },
+  {
+    icon: Users,
+    title: "Batches and timetable",
+    desc: "A visual weekly grid with room, teacher and subject on one card — with clash warnings before you save.",
+  },
+  {
+    icon: MessageCircle,
+    title: "WhatsApp, zero cost",
+    desc: "No paid API. Every reminder opens WhatsApp with the message ready — you press send.",
+  },
+];
+
+const FLOW = [
+  { step: "01", title: "Enquiry", desc: "Parent scans your QR and fills the form." },
+  { step: "02", title: "Approval", desc: "Office reviews and approves — or keeps it for follow-up." },
+  { step: "03", title: "Enrolled", desc: "Student, batch fee and portal logins are created together." },
+  { step: "04", title: "Everyday", desc: "Attendance, marks, fees and reminders run on their own rails." },
+];
+
 function Index() {
-  const stats = [
-    { label: "One place", value: "All ops" },
-    { label: "Setup", value: "Minutes" },
-    { label: "Mobile", value: "First-class" },
-  ];
-
-  const benefits = [
-    {
-      icon: Clock,
-      title: "Zero Friction",
-      desc: "Setup in minutes. Start managing in seconds.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Data That Matters",
-      desc: "See student progress. Track fees. Manage batches. All at a glance.",
-    },
-    {
-      icon: Users,
-      title: "Your Team Loves It",
-      desc: "Intuitive design. No training needed. Your staff will prefer it.",
-    },
-  ];
-
-  const features = [
-    {
-      icon: Users,
-      title: "Student Management",
-      desc: "Track, approve, onboard—all in one place",
-    },
-    {
-      icon: BarChart3,
-      title: "Real-time Analytics",
-      desc: "Understand your institute at a glance",
-    },
-    {
-      icon: TrendingUp,
-      title: "Fee Tracking",
-      desc: "Never miss a payment or due date",
-    },
-    {
-      icon: Clock,
-      title: "Attendance",
-      desc: "One-click batch attendance marking",
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-card">
-      {/* Navigation */}
-      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground shadow-md">
-              <span className="text-sm font-bold">Ax</span>
-            </div>
-            <div>
-              <span className="block text-sm font-bold tracking-tight">Academix</span>
-              <span className="block text-xs text-primary">Institute OS</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-6">
+          <Link to="/" className="flex items-center gap-2">
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+              Ax
+            </span>
+            <span className="text-base font-semibold tracking-tight">Academix</span>
+          </Link>
+          <nav className="flex items-center gap-2 sm:gap-4">
             <Link
               to="/for-institutes"
               className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline"
             >
-              For institutes
+              Features
             </Link>
             <Link
               to="/pricing"
@@ -99,153 +97,131 @@ function Index() {
             >
               Pricing
             </Link>
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Button asChild variant="outline" size="sm">
               <Link to="/login">Sign in</Link>
             </Button>
-            <Button
-              asChild
-              size="sm"
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Link to="/signup">Start free trial →</Link>
+            <Button asChild size="sm">
+              <Link to="/signup">Start free</Link>
             </Button>
-          </div>
+          </nav>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="mx-auto max-w-7xl px-6 py-20 sm:py-32">
-        <div className="space-y-8 text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5">
-            <Zap className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">
-              The OS your institute deserves
-            </span>
-          </div>
-
-          {/* Main Heading */}
-          <div>
-            <h1 className="mx-auto max-w-4xl text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-              Run your institute on{" "}
-              <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                Academix.
-              </span>
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
-              One calm, fast dashboard for students, admissions, fees, attendance, tests and
-              timetable. Built for coaching institutes and academies.
-            </p>
-          </div>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button asChild size="lg" className="gap-2 bg-primary px-6">
+      {/* Hero */}
+      <section className="border-b border-border bg-card">
+        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-24">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            Built for coaching institutes. By people who run one.
+          </p>
+          <h1 className="mt-5 max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
+            Your whole institute, from the enquiry desk to the parent&rsquo;s phone.
+          </h1>
+          <p className="mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
+            Academix replaces the register, the fee diary and the WhatsApp chaos with one system —
+            and gives your office, your teachers and your parents each their own view of it.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button asChild size="lg" className="gap-2">
               <Link to="/signup">
-                Start free trial <ArrowRight className="h-4 w-4" />
+                Create your institute <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="px-6">
-              <Link to="/for-institutes">See features</Link>
+            <Button asChild size="lg" variant="outline">
+              <Link to="/for-institutes">See how it works</Link>
             </Button>
           </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-6 pt-8 sm:gap-8">
-            {stats.map((stat) => (
-              <div key={stat.label} className="space-y-1">
-                <div className="text-3xl font-bold text-primary sm:text-4xl">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="border-y border-border/50 bg-card/50 py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <h2 className="mb-12 text-center text-3xl font-bold sm:text-4xl">
-            Why institutes choose Academix
-          </h2>
-          <div className="grid gap-8 sm:grid-cols-3">
-            {benefits.map((benefit) => (
-              <div
-                key={benefit.title}
-                className="rounded-xl border border-border bg-background p-8 transition hover:border-primary/50 hover:shadow-lg"
-              >
-                <benefit.icon className="h-8 w-8 text-primary" />
-                <h3 className="mt-4 text-lg font-semibold">{benefit.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{benefit.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Grid */}
-      <section className="mx-auto max-w-7xl px-6 py-20">
-        <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold sm:text-4xl">Everything you need</h2>
-          <p className="mt-3 text-muted-foreground">
-            No bloat. No complexity. Just the tools that matter.
-          </p>
-        </div>
-        <div className="grid gap-6 sm:grid-cols-2">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="flex gap-4 rounded-lg border border-border/50 bg-card p-6 transition hover:border-primary/50 hover:bg-card/80"
-            >
-              <feature.icon className="h-6 w-6 flex-shrink-0 text-primary" />
-              <div>
-                <h3 className="font-semibold">{feature.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{feature.desc}</p>
-              </div>
+      {/* Portal picker — the thing users get lost in */}
+      <section className="border-b border-border">
+        <div className="mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-16">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                Already using Academix? Start here.
+              </h2>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                Three portals, one platform. Pick the one that describes you.
+              </p>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Trust Section */}
-      <section className="border-t border-border/50 bg-primary/5">
-        <div className="mx-auto max-w-4xl px-6 py-20 text-center">
-          <CheckCircle2 className="mx-auto h-12 w-12 text-primary" />
-          <h2 className="mt-6 text-3xl font-bold">Built for real institutes.</h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Every feature in Academix is shaped by real classroom, fee-desk and admissions
-            workflows — not guesswork.
-          </p>
-          <Button asChild size="lg" className="mt-8 gap-2">
-            <Link to="/signup">
-              Start your workspace <ArrowRight className="h-4 w-4" />
+            <Link to="/login" className="text-sm font-medium text-primary hover:underline">
+              Not sure which one?
             </Link>
-          </Button>
+          </div>
+          <div className="mt-7">
+            <PortalPicker />
+          </div>
         </div>
       </section>
 
-      {/* CTA Footer */}
-      <section className="bg-primary/10 py-16">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <p className="text-sm font-medium text-muted-foreground">
-            Ready to give your institute its own operating system?
+      {/* Modules */}
+      <section className="border-b border-border bg-card">
+        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6">
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            Everything an institute actually does in a day
+          </h2>
+          <div className="mt-8 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
+            {MODULES.map((m) => (
+              <div key={m.title} className="bg-background p-6">
+                <m.icon className="h-5 w-5 text-primary" />
+                <h3 className="mt-3.5 text-base font-semibold">{m.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{m.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Flow */}
+      <section className="border-b border-border">
+        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6">
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            From walk-in to enrolled, without a single paper form
+          </h2>
+          <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {FLOW.map((f) => (
+              <li key={f.step} className="border-t-2 border-primary pt-4">
+                <span className="text-xs font-semibold tracking-widest text-primary">{f.step}</span>
+                <p className="mt-1.5 text-base font-semibold">{f.title}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* Closing CTA */}
+      <section className="bg-primary text-primary-foreground">
+        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6">
+          <h2 className="max-w-2xl text-2xl font-semibold tracking-tight sm:text-3xl">
+            Set up your institute today. Take your first admission tomorrow.
+          </h2>
+          <p className="mt-3 max-w-xl text-sm opacity-80">
+            No card, no installation. Create a workspace, add a batch, print your admission QR.
           </p>
-          <p className="mt-2 text-2xl font-bold">Try Academix free.</p>
-          <Button asChild size="lg" className="mt-6 gap-2 bg-primary">
-            <Link to="/signup">
-              Create workspace <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <Button asChild size="lg" variant="secondary" className="gap-2">
+              <Link to="/signup">
+                Create your institute <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="border-primary-foreground/40 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+            >
+              <Link to="/pricing">See pricing</Link>
+            </Button>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border/50 bg-background">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-8 text-sm text-muted-foreground">
+      <footer className="border-t border-border bg-background">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <span>© {new Date().getFullYear()} Academix</span>
-          <span className="text-xs">Built by educators, for educators.</span>
+          <span className="text-xs">Built for coaching institutes. By people who run one.</span>
         </div>
       </footer>
     </div>
