@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { batchesApi, studentsApi, type Student, type StudentInsert } from "@/lib/api";
+import { Field } from "@/components/app/field";
 
 type Props = {
   open: boolean;
@@ -303,19 +304,3 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
   );
 }
 
-function Field({
-  label,
-  children,
-  className,
-}: {
-  label: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={`space-y-1.5 ${className ?? ""}`}>
-      <Label>{label}</Label>
-      {children}
-    </div>
-  );
-}

@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { batchesApi, type Batch, type BatchInsert } from "@/lib/api";
+import { Field as F } from "@/components/app/field";
 
 type Props = { open: boolean; onOpenChange: (v: boolean) => void; batch?: Batch | null };
 
@@ -146,14 +147,3 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
   );
 }
 
-function F({ label, children, cls }: { label: string; children: React.ReactNode; cls?: string }) {
-  const id = useId();
-  return (
-    <div className={`space-y-1.5 ${cls ?? ""}`}>
-      <Label htmlFor={id}>{label}</Label>
-      {isValidElement(children)
-        ? cloneElement(children as React.ReactElement<{ id?: string }>, { id })
-        : children}
-    </div>
-  );
-}

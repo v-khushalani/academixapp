@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+import { Field as F } from "@/components/app/field";
   batchesApi,
   facultyApi,
   timetableApi,
@@ -197,11 +198,3 @@ export function TimetableSlotDialog({ open, onOpenChange, slot, defaultDay = 1 }
   );
 }
 
-function F({ label, children, cls }: { label: string; children: React.ReactNode; cls?: string }) {
-  return (
-    <div className={`space-y-1.5 ${cls ?? ""}`}>
-      <Label>{label}</Label>
-      {children}
-    </div>
-  );
-}

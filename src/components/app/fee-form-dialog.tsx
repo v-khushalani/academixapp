@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { feesApi, studentsApi, type FeeInsert } from "@/lib/api";
+import { Field as F } from "@/components/app/field";
 
 type Props = { open: boolean; onOpenChange: (v: boolean) => void };
 
@@ -152,11 +153,3 @@ export function FeeFormDialog({ open, onOpenChange }: Props) {
   );
 }
 
-function F({ label, children, cls }: { label: string; children: React.ReactNode; cls?: string }) {
-  return (
-    <div className={`space-y-1.5 ${cls ?? ""}`}>
-      <Label>{label}</Label>
-      {children}
-    </div>
-  );
-}
