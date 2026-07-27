@@ -20,6 +20,7 @@ export type Database = {
           created_at: string
           date: string
           id: string
+          institute_id: string
           marked_by: string | null
           remarks: string | null
           status: Database["public"]["Enums"]["attendance_status"]
@@ -31,6 +32,7 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
+          institute_id?: string
           marked_by?: string | null
           remarks?: string | null
           status: Database["public"]["Enums"]["attendance_status"]
@@ -42,6 +44,7 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
+          institute_id?: string
           marked_by?: string | null
           remarks?: string | null
           status?: Database["public"]["Enums"]["attendance_status"]
@@ -54,6 +57,13 @@ export type Database = {
             columns: ["batch_id"]
             isOneToOne: false
             referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
             referencedColumns: ["id"]
           },
           {
@@ -74,6 +84,7 @@ export type Database = {
           created_by: string | null
           delay_minutes: number
           id: string
+          institute_id: string
           is_active: boolean
           name: string
           trigger_key: Database["public"]["Enums"]["automation_trigger"]
@@ -87,6 +98,7 @@ export type Database = {
           created_by?: string | null
           delay_minutes?: number
           id?: string
+          institute_id?: string
           is_active?: boolean
           name: string
           trigger_key: Database["public"]["Enums"]["automation_trigger"]
@@ -100,12 +112,21 @@ export type Database = {
           created_by?: string | null
           delay_minutes?: number
           id?: string
+          institute_id?: string
           is_active?: boolean
           name?: string
           trigger_key?: Database["public"]["Enums"]["automation_trigger"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "automation_rules_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       batches: {
         Row: {
@@ -116,6 +137,7 @@ export type Database = {
           end_date: string | null
           faculty_id: string | null
           id: string
+          institute_id: string
           name: string
           notes: string | null
           room: string | null
@@ -132,6 +154,7 @@ export type Database = {
           end_date?: string | null
           faculty_id?: string | null
           id?: string
+          institute_id?: string
           name: string
           notes?: string | null
           room?: string | null
@@ -148,6 +171,7 @@ export type Database = {
           end_date?: string | null
           faculty_id?: string | null
           id?: string
+          institute_id?: string
           name?: string
           notes?: string | null
           room?: string | null
@@ -164,6 +188,13 @@ export type Database = {
             referencedRelation: "courses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "batches_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       courses: {
@@ -172,6 +203,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          institute_id: string
           name: string
           updated_at: string
         }
@@ -180,6 +212,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          institute_id?: string
           name: string
           updated_at?: string
         }
@@ -188,10 +221,19 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          institute_id?: string
           name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "courses_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       faculty: {
         Row: {
@@ -199,6 +241,7 @@ export type Database = {
           email: string | null
           full_name: string
           id: string
+          institute_id: string
           joining_date: string | null
           notes: string | null
           phone: string | null
@@ -213,6 +256,7 @@ export type Database = {
           email?: string | null
           full_name: string
           id?: string
+          institute_id?: string
           joining_date?: string | null
           notes?: string | null
           phone?: string | null
@@ -227,6 +271,7 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
+          institute_id?: string
           joining_date?: string | null
           notes?: string | null
           phone?: string | null
@@ -236,7 +281,15 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "faculty_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fees: {
         Row: {
@@ -247,6 +300,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          institute_id: string
           method: string | null
           paid_date: string | null
           receipt_no: string | null
@@ -262,6 +316,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          institute_id?: string
           method?: string | null
           paid_date?: string | null
           receipt_no?: string | null
@@ -277,6 +332,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          institute_id?: string
           method?: string | null
           paid_date?: string | null
           receipt_no?: string | null
@@ -290,6 +346,13 @@ export type Database = {
             columns: ["batch_id"]
             isOneToOne: false
             referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fees_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
             referencedColumns: ["id"]
           },
           {
@@ -310,6 +373,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          institute_id: string
           subject: string | null
           title: string
           updated_at: string
@@ -322,6 +386,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          institute_id?: string
           subject?: string | null
           title: string
           updated_at?: string
@@ -334,6 +399,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          institute_id?: string
           subject?: string | null
           title?: string
           updated_at?: string
@@ -346,7 +412,68 @@ export type Database = {
             referencedRelation: "batches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "homework_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      institutes: {
+        Row: {
+          academic_year: string | null
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          plan: string
+          primary_color: string | null
+          slug: string
+          status: string
+          tagline: string | null
+          updated_at: string
+          upi_id: string | null
+          upi_name: string | null
+        }
+        Insert: {
+          academic_year?: string | null
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          plan?: string
+          primary_color?: string | null
+          slug: string
+          status?: string
+          tagline?: string | null
+          updated_at?: string
+          upi_id?: string | null
+          upi_name?: string | null
+        }
+        Update: {
+          academic_year?: string | null
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          plan?: string
+          primary_color?: string | null
+          slug?: string
+          status?: string
+          tagline?: string | null
+          updated_at?: string
+          upi_id?: string | null
+          upi_name?: string | null
+        }
+        Relationships: []
       }
       leads: {
         Row: {
@@ -356,6 +483,7 @@ export type Database = {
           email: string | null
           full_name: string
           id: string
+          institute_id: string
           next_followup: string | null
           notes: string | null
           phone: string | null
@@ -370,6 +498,7 @@ export type Database = {
           email?: string | null
           full_name: string
           id?: string
+          institute_id?: string
           next_followup?: string | null
           notes?: string | null
           phone?: string | null
@@ -384,6 +513,7 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
+          institute_id?: string
           next_followup?: string | null
           notes?: string | null
           phone?: string | null
@@ -391,7 +521,15 @@ export type Database = {
           stage?: Database["public"]["Enums"]["lead_stage"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "leads_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notification_logs: {
         Row: {
@@ -400,6 +538,7 @@ export type Database = {
           created_by: string | null
           fee_id: string | null
           id: string
+          institute_id: string
           kind: string
           lead_id: string | null
           message: string
@@ -423,6 +562,7 @@ export type Database = {
           created_by?: string | null
           fee_id?: string | null
           id?: string
+          institute_id?: string
           kind?: string
           lead_id?: string | null
           message: string
@@ -446,6 +586,7 @@ export type Database = {
           created_by?: string | null
           fee_id?: string | null
           id?: string
+          institute_id?: string
           kind?: string
           lead_id?: string | null
           message?: string
@@ -469,6 +610,13 @@ export type Database = {
             columns: ["fee_id"]
             isOneToOne: false
             referencedRelation: "fees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_logs_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
             referencedColumns: ["id"]
           },
           {
@@ -498,6 +646,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          institute_id: string
           is_primary: boolean
           parent_user_id: string
           relation: string
@@ -507,6 +656,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          institute_id?: string
           is_primary?: boolean
           parent_user_id: string
           relation?: string
@@ -516,6 +666,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          institute_id?: string
           is_primary?: boolean
           parent_user_id?: string
           relation?: string
@@ -523,6 +674,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "parent_students_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "parent_students_student_id_fkey"
             columns: ["student_id"]
@@ -566,6 +724,7 @@ export type Database = {
           description: string | null
           fee_id: string | null
           id: string
+          institute_id: string
           lead_id: string | null
           metadata: Json
           source: Database["public"]["Enums"]["activity_source"]
@@ -579,6 +738,7 @@ export type Database = {
           description?: string | null
           fee_id?: string | null
           id?: string
+          institute_id?: string
           lead_id?: string | null
           metadata?: Json
           source?: Database["public"]["Enums"]["activity_source"]
@@ -592,6 +752,7 @@ export type Database = {
           description?: string | null
           fee_id?: string | null
           id?: string
+          institute_id?: string
           lead_id?: string | null
           metadata?: Json
           source?: Database["public"]["Enums"]["activity_source"]
@@ -605,6 +766,13 @@ export type Database = {
             columns: ["fee_id"]
             isOneToOne: false
             referencedRelation: "fees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_activities_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
             referencedColumns: ["id"]
           },
           {
@@ -637,6 +805,7 @@ export type Database = {
           file_path: string
           file_size: number | null
           id: string
+          institute_id: string
           lead_id: string | null
           mime_type: string | null
           notes: string | null
@@ -651,6 +820,7 @@ export type Database = {
           file_path: string
           file_size?: number | null
           id?: string
+          institute_id?: string
           lead_id?: string | null
           mime_type?: string | null
           notes?: string | null
@@ -665,6 +835,7 @@ export type Database = {
           file_path?: string
           file_size?: number | null
           id?: string
+          institute_id?: string
           lead_id?: string | null
           mime_type?: string | null
           notes?: string | null
@@ -674,6 +845,13 @@ export type Database = {
           uploaded_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "student_documents_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "student_documents_lead_id_fkey"
             columns: ["lead_id"]
@@ -706,6 +884,7 @@ export type Database = {
           father_phone: string | null
           full_name: string
           id: string
+          institute_id: string
           mother_name: string | null
           mother_phone: string | null
           notes: string | null
@@ -739,6 +918,7 @@ export type Database = {
           father_phone?: string | null
           full_name: string
           id?: string
+          institute_id?: string
           mother_name?: string | null
           mother_phone?: string | null
           notes?: string | null
@@ -772,6 +952,7 @@ export type Database = {
           father_phone?: string | null
           full_name?: string
           id?: string
+          institute_id?: string
           mother_name?: string | null
           mother_phone?: string | null
           notes?: string | null
@@ -798,6 +979,13 @@ export type Database = {
             referencedRelation: "batches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "students_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       subjects: {
@@ -806,6 +994,7 @@ export type Database = {
           course_id: string | null
           created_at: string
           id: string
+          institute_id: string
           name: string
           updated_at: string
         }
@@ -814,6 +1003,7 @@ export type Database = {
           course_id?: string | null
           created_at?: string
           id?: string
+          institute_id?: string
           name: string
           updated_at?: string
         }
@@ -822,6 +1012,7 @@ export type Database = {
           course_id?: string | null
           created_at?: string
           id?: string
+          institute_id?: string
           name?: string
           updated_at?: string
         }
@@ -833,12 +1024,20 @@ export type Database = {
             referencedRelation: "courses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "subjects_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       test_results: {
         Row: {
           created_at: string
           id: string
+          institute_id: string
           marks: number | null
           remarks: string | null
           student_id: string
@@ -848,6 +1047,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          institute_id?: string
           marks?: number | null
           remarks?: string | null
           student_id: string
@@ -857,6 +1057,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          institute_id?: string
           marks?: number | null
           remarks?: string | null
           student_id?: string
@@ -864,6 +1065,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "test_results_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "test_results_student_id_fkey"
             columns: ["student_id"]
@@ -887,6 +1095,7 @@ export type Database = {
           created_by: string | null
           date: string
           id: string
+          institute_id: string
           max_marks: number
           status: Database["public"]["Enums"]["test_status"]
           subject: string | null
@@ -900,6 +1109,7 @@ export type Database = {
           created_by?: string | null
           date?: string
           id?: string
+          institute_id?: string
           max_marks?: number
           status?: Database["public"]["Enums"]["test_status"]
           subject?: string | null
@@ -913,6 +1123,7 @@ export type Database = {
           created_by?: string | null
           date?: string
           id?: string
+          institute_id?: string
           max_marks?: number
           status?: Database["public"]["Enums"]["test_status"]
           subject?: string | null
@@ -928,6 +1139,13 @@ export type Database = {
             referencedRelation: "batches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "tests_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       timetable_slots: {
@@ -938,6 +1156,7 @@ export type Database = {
           end_time: string
           faculty_id: string | null
           id: string
+          institute_id: string
           room: string | null
           start_time: string
           subject: string | null
@@ -950,6 +1169,7 @@ export type Database = {
           end_time: string
           faculty_id?: string | null
           id?: string
+          institute_id?: string
           room?: string | null
           start_time: string
           subject?: string | null
@@ -962,6 +1182,7 @@ export type Database = {
           end_time?: string
           faculty_id?: string | null
           id?: string
+          institute_id?: string
           room?: string | null
           start_time?: string
           subject?: string | null
@@ -982,28 +1203,46 @@ export type Database = {
             referencedRelation: "faculty"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "timetable_slots_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
         Row: {
           created_at: string
           id: string
+          institute_id: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          institute_id?: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          institute_id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -1048,6 +1287,8 @@ export type Database = {
             }
             Returns: undefined
           }
+      current_institute_id: { Args: never; Returns: string }
+      default_institute_id: { Args: never; Returns: string }
       get_my_roles: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]
