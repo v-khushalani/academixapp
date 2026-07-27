@@ -2,7 +2,6 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
   Select,
