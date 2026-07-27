@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -147,10 +147,13 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
 }
 
 function F({ label, children, cls }: { label: string; children: React.ReactNode; cls?: string }) {
+  const id = useId();
   return (
     <div className={`space-y-1.5 ${cls ?? ""}`}>
-      <Label>{label}</Label>
-      {children}
+      <Label htmlFor={id}>{label}</Label>
+      {React.isValidElement(children)
+        ? React.cloneElement(children as React.ReactElement<{ id?: string }>, { id })
+        : children}
     </div>
   );
 }
