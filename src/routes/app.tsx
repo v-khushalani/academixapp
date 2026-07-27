@@ -11,14 +11,19 @@ export const Route = createFileRoute("/app")({
 });
 
 function AppLayout() {
-  const { session, loading } = useAuth();
+  const { session, roles, loading } = useAuth();
   const navigate = useNavigate();
+  const staffRoles = ["owner", "admin", "faculty", "receptionist", "counsellor", "accountant"];
+  const isStaff = roles.some((r) => staffRoles.includes(r));
+  const isFamilyOnly = !isStaff && (roles.includes("student") || roles.includes("parent"));
 
   useEffect(() => {
-    if (!loading && !session) navigate({ to: "/login" });
-  }, [loading, session, navigate]);
+    if (loading) return;
+    if (!session) navigate({ to: "/login" });
+    else if (isFamilyOnly) navigate({ to: "/portal" });
+  }, [loading, session, isFamilyOnly, navigate]);
 
-  if (loading || !session) {
+  if (loading || !session || isFamilyOnly) {
     return (
       <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">
         Loading…

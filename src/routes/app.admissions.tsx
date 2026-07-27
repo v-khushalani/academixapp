@@ -28,6 +28,13 @@ import { leadsApi, studentsApi, type Lead, type LeadInsert, type Student } from 
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  provisionPortalAccounts,
+  type ProvisionedAccount,
+} from "@/lib/provisioning.functions";
+import { openWhatsApp } from "@/lib/whatsapp";
+import { getInstitute } from "@/lib/academy-settings";
 import type { Database } from "@/integrations/supabase/types";
 
 type Stage = Database["public"]["Enums"]["lead_stage"];
@@ -287,14 +294,21 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
     queryFn: () => studentsApi.list({ approval: "pending" }),
   });
   const [preview, setPreview] = useState<Student | null>(null);
+  const [credentials, setCredentials] = useState<ProvisionedAccount[] | null>(null);
+  const provision = useServerFn(provisionPortalAccounts);
 
   const approveMut = useMutation({
-    mutationFn: ({ id, decision }: { id: string; decision: "approved" | "rejected" }) =>
-      studentsApi.setApproval(id, decision),
-    onSuccess: (_r, v) => {
+    mutationFn: async ({ id, decision }: { id: string; decision: "approved" | "rejected" }) => {
+      await studentsApi.setApproval(id, decision);
+      if (decision !== "approved") return null;
+      const res = await provision({ data: { student_id: id } });
+      return res.accounts;
+    },
+    onSuccess: (accounts, v) => {
       toast.success(v.decision === "approved" ? "Application approved" : "Application rejected");
       qc.invalidateQueries({ queryKey: ["students"] });
       qc.invalidateQueries({ queryKey: ["students", "pending"] });
+      if (accounts && accounts.length > 0) setCredentials(accounts);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -381,7 +395,79 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
         </tbody>
       </table>
       <ApplicantPreview student={preview} onClose={() => setPreview(null)} />
+      <CredentialsDialog accounts={credentials} onClose={() => setCredentials(null)} />
     </div>
+  );
+}
+
+function CredentialsDialog({
+  accounts,
+  onClose,
+}: {
+  accounts: ProvisionedAccount[] | null;
+  onClose: () => void;
+}) {
+  if (!accounts) return null;
+  const institute = getInstitute().name || "our institute";
+
+  const message = (a: ProvisionedAccount) =>
+    `Namaste ${a.name},\n\nYour ${institute} portal login is ready.\n\nLogin page: ${typeof window !== "undefined" ? window.location.origin : ""}/login/student\nLogin ID: ${a.loginId}\n${a.password ? `Temporary password: ${a.password}\n\nPlease sign in and change your password.` : "Use your existing password."}`;
+
+  return (
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Portal logins created</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          Share these credentials over WhatsApp. Passwords are shown only once.
+        </p>
+        <div className="space-y-3">
+          {accounts.map((a) => (
+            <div key={a.kind + a.loginId} className="rounded-lg border border-border p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium capitalize">
+                    {a.kind} · {a.name}
+                  </p>
+                  <p className="break-all text-xs text-muted-foreground">ID: {a.loginId}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Password: {a.password ?? "(existing account — unchanged)"}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1"
+                    onClick={() => {
+                      navigator.clipboard.writeText(message(a));
+                      toast.success("Copied");
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="gap-1"
+                    disabled={!a.phone}
+                    onClick={() => {
+                      if (!openWhatsApp(a.phone, message(a))) toast.error("No valid phone number");
+                    }}
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    WhatsApp
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <DialogFooter>
+          <Button onClick={onClose}>Done</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

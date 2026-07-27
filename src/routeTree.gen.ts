@@ -11,14 +11,24 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as LoginRouteImport } from './routes/login'
+import { Route as PortalRouteImport } from './routes/portal'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ForInstitutesRouteImport } from './routes/for-institutes'
 import { Route as ApplyRouteImport } from './routes/apply'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PortalIndexRouteImport } from './routes/portal.index'
+import { Route as LoginIndexRouteImport } from './routes/login.index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as PortalTimetableRouteImport } from './routes/portal.timetable'
+import { Route as PortalProgressRouteImport } from './routes/portal.progress'
+import { Route as PortalHomeworkRouteImport } from './routes/portal.homework'
+import { Route as PortalFeesRouteImport } from './routes/portal.fees'
+import { Route as PortalAttendanceRouteImport } from './routes/portal.attendance'
 import { Route as OnboardTokenRouteImport } from './routes/onboard.$token'
+import { Route as LoginTeacherRouteImport } from './routes/login.teacher'
+import { Route as LoginStudentRouteImport } from './routes/login.student'
+import { Route as LoginAdminRouteImport } from './routes/login.admin'
 import { Route as AppTimetableRouteImport } from './routes/app.timetable'
 import { Route as AppTestsRouteImport } from './routes/app.tests'
 import { Route as AppStudyMaterialRouteImport } from './routes/app.study-material'
@@ -46,9 +56,9 @@ const PricingRoute = PricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -76,14 +86,64 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PortalIndexRoute = PortalIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PortalRoute,
+} as any)
+const LoginIndexRoute = LoginIndexRouteImport.update({
+  id: '/login/',
+  path: '/login/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const PortalTimetableRoute = PortalTimetableRouteImport.update({
+  id: '/timetable',
+  path: '/timetable',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalProgressRoute = PortalProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalHomeworkRoute = PortalHomeworkRouteImport.update({
+  id: '/homework',
+  path: '/homework',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalFeesRoute = PortalFeesRouteImport.update({
+  id: '/fees',
+  path: '/fees',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalAttendanceRoute = PortalAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => PortalRoute,
+} as any)
 const OnboardTokenRoute = OnboardTokenRouteImport.update({
   id: '/onboard/$token',
   path: '/onboard/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginTeacherRoute = LoginTeacherRouteImport.update({
+  id: '/login/teacher',
+  path: '/login/teacher',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginStudentRoute = LoginStudentRouteImport.update({
+  id: '/login/student',
+  path: '/login/student',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginAdminRoute = LoginAdminRouteImport.update({
+  id: '/login/admin',
+  path: '/login/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppTimetableRoute = AppTimetableRouteImport.update({
@@ -173,7 +233,7 @@ export interface FileRoutesByFullPath {
   '/apply': typeof ApplyRoute
   '/for-institutes': typeof ForInstitutesRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
+  '/portal': typeof PortalRouteWithChildren
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/app/admissions': typeof AppAdmissionsRoute
@@ -189,8 +249,18 @@ export interface FileRoutesByFullPath {
   '/app/study-material': typeof AppStudyMaterialRoute
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
+  '/login/admin': typeof LoginAdminRoute
+  '/login/student': typeof LoginStudentRoute
+  '/login/teacher': typeof LoginTeacherRoute
   '/onboard/$token': typeof OnboardTokenRoute
+  '/portal/attendance': typeof PortalAttendanceRoute
+  '/portal/fees': typeof PortalFeesRoute
+  '/portal/homework': typeof PortalHomeworkRoute
+  '/portal/progress': typeof PortalProgressRoute
+  '/portal/timetable': typeof PortalTimetableRoute
   '/app/': typeof AppIndexRoute
+  '/login/': typeof LoginIndexRoute
+  '/portal/': typeof PortalIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
@@ -200,7 +270,6 @@ export interface FileRoutesByTo {
   '/apply': typeof ApplyRoute
   '/for-institutes': typeof ForInstitutesRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/app/admissions': typeof AppAdmissionsRoute
@@ -216,8 +285,18 @@ export interface FileRoutesByTo {
   '/app/study-material': typeof AppStudyMaterialRoute
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
+  '/login/admin': typeof LoginAdminRoute
+  '/login/student': typeof LoginStudentRoute
+  '/login/teacher': typeof LoginTeacherRoute
   '/onboard/$token': typeof OnboardTokenRoute
+  '/portal/attendance': typeof PortalAttendanceRoute
+  '/portal/fees': typeof PortalFeesRoute
+  '/portal/homework': typeof PortalHomeworkRoute
+  '/portal/progress': typeof PortalProgressRoute
+  '/portal/timetable': typeof PortalTimetableRoute
   '/app': typeof AppIndexRoute
+  '/login': typeof LoginIndexRoute
+  '/portal': typeof PortalIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
@@ -229,7 +308,7 @@ export interface FileRoutesById {
   '/apply': typeof ApplyRoute
   '/for-institutes': typeof ForInstitutesRoute
   '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
+  '/portal': typeof PortalRouteWithChildren
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/app/admissions': typeof AppAdmissionsRoute
@@ -245,8 +324,18 @@ export interface FileRoutesById {
   '/app/study-material': typeof AppStudyMaterialRoute
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
+  '/login/admin': typeof LoginAdminRoute
+  '/login/student': typeof LoginStudentRoute
+  '/login/teacher': typeof LoginTeacherRoute
   '/onboard/$token': typeof OnboardTokenRoute
+  '/portal/attendance': typeof PortalAttendanceRoute
+  '/portal/fees': typeof PortalFeesRoute
+  '/portal/homework': typeof PortalHomeworkRoute
+  '/portal/progress': typeof PortalProgressRoute
+  '/portal/timetable': typeof PortalTimetableRoute
   '/app/': typeof AppIndexRoute
+  '/login/': typeof LoginIndexRoute
+  '/portal/': typeof PortalIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
@@ -259,7 +348,7 @@ export interface FileRouteTypes {
     | '/apply'
     | '/for-institutes'
     | '/forgot-password'
-    | '/login'
+    | '/portal'
     | '/pricing'
     | '/signup'
     | '/app/admissions'
@@ -275,8 +364,18 @@ export interface FileRouteTypes {
     | '/app/study-material'
     | '/app/tests'
     | '/app/timetable'
+    | '/login/admin'
+    | '/login/student'
+    | '/login/teacher'
     | '/onboard/$token'
+    | '/portal/attendance'
+    | '/portal/fees'
+    | '/portal/homework'
+    | '/portal/progress'
+    | '/portal/timetable'
     | '/app/'
+    | '/login/'
+    | '/portal/'
     | '/app/batches/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
@@ -286,7 +385,6 @@ export interface FileRouteTypes {
     | '/apply'
     | '/for-institutes'
     | '/forgot-password'
-    | '/login'
     | '/pricing'
     | '/signup'
     | '/app/admissions'
@@ -302,8 +400,18 @@ export interface FileRouteTypes {
     | '/app/study-material'
     | '/app/tests'
     | '/app/timetable'
+    | '/login/admin'
+    | '/login/student'
+    | '/login/teacher'
     | '/onboard/$token'
+    | '/portal/attendance'
+    | '/portal/fees'
+    | '/portal/homework'
+    | '/portal/progress'
+    | '/portal/timetable'
     | '/app'
+    | '/login'
+    | '/portal'
     | '/app/batches/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
@@ -314,7 +422,7 @@ export interface FileRouteTypes {
     | '/apply'
     | '/for-institutes'
     | '/forgot-password'
-    | '/login'
+    | '/portal'
     | '/pricing'
     | '/signup'
     | '/app/admissions'
@@ -330,8 +438,18 @@ export interface FileRouteTypes {
     | '/app/study-material'
     | '/app/tests'
     | '/app/timetable'
+    | '/login/admin'
+    | '/login/student'
+    | '/login/teacher'
     | '/onboard/$token'
+    | '/portal/attendance'
+    | '/portal/fees'
+    | '/portal/homework'
+    | '/portal/progress'
+    | '/portal/timetable'
     | '/app/'
+    | '/login/'
+    | '/portal/'
     | '/app/batches/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
@@ -343,10 +461,14 @@ export interface RootRouteChildren {
   ApplyRoute: typeof ApplyRoute
   ForInstitutesRoute: typeof ForInstitutesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
-  LoginRoute: typeof LoginRoute
+  PortalRoute: typeof PortalRouteWithChildren
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
+  LoginAdminRoute: typeof LoginAdminRoute
+  LoginStudentRoute: typeof LoginStudentRoute
+  LoginTeacherRoute: typeof LoginTeacherRoute
   OnboardTokenRoute: typeof OnboardTokenRoute
+  LoginIndexRoute: typeof LoginIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -365,11 +487,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -407,6 +529,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/portal/': {
+      id: '/portal/'
+      path: '/'
+      fullPath: '/portal/'
+      preLoaderRoute: typeof PortalIndexRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/login/': {
+      id: '/login/'
+      path: '/login'
+      fullPath: '/login/'
+      preLoaderRoute: typeof LoginIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/': {
       id: '/app/'
       path: '/'
@@ -414,11 +550,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/portal/timetable': {
+      id: '/portal/timetable'
+      path: '/timetable'
+      fullPath: '/portal/timetable'
+      preLoaderRoute: typeof PortalTimetableRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/progress': {
+      id: '/portal/progress'
+      path: '/progress'
+      fullPath: '/portal/progress'
+      preLoaderRoute: typeof PortalProgressRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/homework': {
+      id: '/portal/homework'
+      path: '/homework'
+      fullPath: '/portal/homework'
+      preLoaderRoute: typeof PortalHomeworkRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/fees': {
+      id: '/portal/fees'
+      path: '/fees'
+      fullPath: '/portal/fees'
+      preLoaderRoute: typeof PortalFeesRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/attendance': {
+      id: '/portal/attendance'
+      path: '/attendance'
+      fullPath: '/portal/attendance'
+      preLoaderRoute: typeof PortalAttendanceRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/onboard/$token': {
       id: '/onboard/$token'
       path: '/onboard/$token'
       fullPath: '/onboard/$token'
       preLoaderRoute: typeof OnboardTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login/teacher': {
+      id: '/login/teacher'
+      path: '/login/teacher'
+      fullPath: '/login/teacher'
+      preLoaderRoute: typeof LoginTeacherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login/student': {
+      id: '/login/student'
+      path: '/login/student'
+      fullPath: '/login/student'
+      preLoaderRoute: typeof LoginStudentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login/admin': {
+      id: '/login/admin'
+      path: '/login/admin'
+      fullPath: '/login/admin'
+      preLoaderRoute: typeof LoginAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/timetable': {
@@ -608,16 +800,41 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface PortalRouteChildren {
+  PortalAttendanceRoute: typeof PortalAttendanceRoute
+  PortalFeesRoute: typeof PortalFeesRoute
+  PortalHomeworkRoute: typeof PortalHomeworkRoute
+  PortalProgressRoute: typeof PortalProgressRoute
+  PortalTimetableRoute: typeof PortalTimetableRoute
+  PortalIndexRoute: typeof PortalIndexRoute
+}
+
+const PortalRouteChildren: PortalRouteChildren = {
+  PortalAttendanceRoute: PortalAttendanceRoute,
+  PortalFeesRoute: PortalFeesRoute,
+  PortalHomeworkRoute: PortalHomeworkRoute,
+  PortalProgressRoute: PortalProgressRoute,
+  PortalTimetableRoute: PortalTimetableRoute,
+  PortalIndexRoute: PortalIndexRoute,
+}
+
+const PortalRouteWithChildren =
+  PortalRoute._addFileChildren(PortalRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   ApplyRoute: ApplyRoute,
   ForInstitutesRoute: ForInstitutesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
-  LoginRoute: LoginRoute,
+  PortalRoute: PortalRouteWithChildren,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
+  LoginAdminRoute: LoginAdminRoute,
+  LoginStudentRoute: LoginStudentRoute,
+  LoginTeacherRoute: LoginTeacherRoute,
   OnboardTokenRoute: OnboardTokenRoute,
+  LoginIndexRoute: LoginIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
