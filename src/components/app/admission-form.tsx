@@ -2,7 +2,6 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { Field as F } from "@/components/app/field";
 
 export type AdmissionFormValues = {
   full_name: string;
@@ -263,14 +263,6 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
   );
 }
 
-function F({ label, children, cls }: { label: string; children: React.ReactNode; cls?: string }) {
-  return (
-    <div className={`space-y-1.5 ${cls ?? ""}`}>
-      <Label>{label}</Label>
-      {children}
-    </div>
-  );
-}
 function Section({ title }: { title: string }) {
   return (
     <h3 className="sm:col-span-2 mt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">

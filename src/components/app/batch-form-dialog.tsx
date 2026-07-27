@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { cloneElement, isValidElement, useEffect, useId, useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -19,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { batchesApi, type Batch, type BatchInsert } from "@/lib/api";
+import { Field as F } from "@/components/app/field";
 
 type Props = { open: boolean; onOpenChange: (v: boolean) => void; batch?: Batch | null };
 
@@ -143,14 +143,5 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
         </form>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function F({ label, children, cls }: { label: string; children: React.ReactNode; cls?: string }) {
-  return (
-    <div className={`space-y-1.5 ${cls ?? ""}`}>
-      <Label>{label}</Label>
-      {children}
-    </div>
   );
 }

@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -19,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { facultyApi, type Faculty, type FacultyInsert } from "@/lib/api";
+import { Field as F } from "@/components/app/field";
 
 type Props = { open: boolean; onOpenChange: (v: boolean) => void; faculty?: Faculty | null };
 
@@ -137,14 +137,5 @@ export function FacultyFormDialog({ open, onOpenChange, faculty }: Props) {
         </form>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function F({ label, children, cls }: { label: string; children: React.ReactNode; cls?: string }) {
-  return (
-    <div className={`space-y-1.5 ${cls ?? ""}`}>
-      <Label>{label}</Label>
-      {children}
-    </div>
   );
 }

@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -25,6 +24,7 @@ import {
   type TimetableSlot,
   type TimetableSlotInsert,
 } from "@/lib/api";
+import { Field as F } from "@/components/app/field";
 
 type Props = {
   open: boolean;
@@ -194,14 +194,5 @@ export function TimetableSlotDialog({ open, onOpenChange, slot, defaultDay = 1 }
         </form>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function F({ label, children, cls }: { label: string; children: React.ReactNode; cls?: string }) {
-  return (
-    <div className={`space-y-1.5 ${cls ?? ""}`}>
-      <Label>{label}</Label>
-      {children}
-    </div>
   );
 }

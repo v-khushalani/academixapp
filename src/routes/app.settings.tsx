@@ -96,10 +96,14 @@ function InstitutePanel() {
   useEffect(() => {
     setS(getInstitute());
   }, []);
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
-    saveInstitute(s);
-    toast.success("Institute details saved");
+    try {
+      await saveInstitute(s);
+      toast.success("Institute details saved");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save institute details");
+    }
   }
   return (
     <Card
@@ -474,20 +478,28 @@ function BrandingPanel() {
           />
         </F>
         <Button
-          onClick={() => {
-            saveInstitute(s);
-            toast.success("Branding applied");
+          onClick={async () => {
+            try {
+              await saveInstitute(s);
+              toast.success("Branding applied");
+            } catch {
+              toast.error("Could not save branding");
+            }
           }}
         >
           Apply
         </Button>
         <Button
           variant="outline"
-          onClick={() => {
+          onClick={async () => {
             const ns = { ...s, primary_color: "" };
             setS(ns);
-            saveInstitute(ns);
-            toast.success("Reset to default");
+            try {
+              await saveInstitute(ns);
+              toast.success("Reset to default");
+            } catch {
+              toast.error("Could not reset branding");
+            }
           }}
         >
           Reset

@@ -2,15 +2,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { studentsApi, type Student } from "@/lib/api";
 
-export function Field({
-  k,
-  v,
-  full,
-}: {
-  k: string;
-  v: string | null | undefined;
-  full?: boolean;
-}) {
+export function Field({ k, v, full }: { k: string; v: string | null | undefined; full?: boolean }) {
   return (
     <div className={full ? "col-span-2" : ""}>
       <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{k}</p>

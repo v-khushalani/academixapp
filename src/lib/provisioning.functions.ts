@@ -48,7 +48,7 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
     const { data: student, error: studentError } = await context.supabase
       .from("students")
       .select(
-        "id, full_name, admission_no, email, phone, user_id, preferred_contact, father_name, father_phone, mother_name, mother_phone",
+        "id, institute_id, full_name, admission_no, email, phone, user_id, preferred_contact, father_name, father_phone, mother_name, mother_phone",
       )
       .eq("id", data.student_id)
       .maybeSingle();
@@ -97,7 +97,10 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
 
       await supabaseAdmin
         .from("user_roles")
-        .upsert({ user_id: userId, role: opts.role }, { onConflict: "user_id,role" });
+        .upsert(
+          { user_id: userId, role: opts.role, institute_id: student!.institute_id },
+          { onConflict: "user_id,role" },
+        );
 
       accounts.push({
         kind: opts.kind,
@@ -144,6 +147,7 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
         {
           parent_user_id: parentUserId,
           student_id: student.id,
+          institute_id: student.institute_id,
           relation: useMother ? "mother" : "father",
           is_primary: true,
         },
