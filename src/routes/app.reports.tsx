@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { BarChart3, Download, FileText } from "lucide-react";
+import { BarChart3, Download, FileText, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
+import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
+import { getInstitute, getTemplates } from "@/lib/academy-settings";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +68,7 @@ function ReportsPage() {
             <TabsTrigger value="fees">Fee report</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="admissions">Admissions</TabsTrigger>
+            <TabsTrigger value="defaulters">Defaulters</TabsTrigger>
           </TabsList>
 
           <TabsContent value="revenue" className="mt-4">
@@ -78,6 +82,9 @@ function ReportsPage() {
           </TabsContent>
           <TabsContent value="admissions" className="mt-4">
             <AdmissionsReport from={from} to={to} />
+          </TabsContent>
+          <TabsContent value="defaulters" className="mt-4">
+            <DefaultersReport />
           </TabsContent>
         </Tabs>
       </PageBody>
@@ -424,6 +431,177 @@ function AdmissionsReport({ from, to }: { from: string; to: string }) {
                 <td className="px-4 py-3">{r.class ?? "—"}</td>
                 <td className="px-4 py-3">{r.admission_date}</td>
                 <td className="px-4 py-3 capitalize">{r.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
+  );
+}
+
+
+type DefaulterRow = {
+  id: string;
+  student: string;
+  admission_no: string;
+  batch: string;
+  due: number;
+  due_date: string;
+  days: number;
+  bucket: string;
+  phone: string;
+};
+
+function bucketFor(days: number) {
+  if (days <= 0) return "Not due yet";
+  if (days <= 30) return "0-30 days";
+  if (days <= 60) return "31-60 days";
+  if (days <= 90) return "61-90 days";
+  return "90+ days";
+}
+
+function DefaultersReport() {
+  const [bucket, setBucket] = useState("all");
+  const { data = [] } = useQuery({
+    queryKey: ["report-defaulters"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fees")
+        .select(
+          "id, amount, amount_paid, due_date, status, student:students(full_name, admission_no, parent_phone, phone, batch:batches(name))",
+        )
+        .neq("status", "waived");
+      if (error) throw error;
+      const today = new Date();
+      return (data ?? [])
+        .map((f) => {
+          const st = f.student as {
+            full_name?: string;
+            admission_no?: string;
+            parent_phone?: string | null;
+            phone?: string | null;
+            batch?: { name?: string } | null;
+          } | null;
+          const due = Number(f.amount) - Number(f.amount_paid ?? 0);
+          const days = f.due_date
+            ? Math.floor((today.getTime() - new Date(f.due_date).getTime()) / 86400000)
+            : 0;
+          return {
+            id: f.id,
+            student: st?.full_name ?? "—",
+            admission_no: st?.admission_no ?? "—",
+            batch: st?.batch?.name ?? "—",
+            due,
+            due_date: f.due_date ?? "—",
+            days,
+            bucket: bucketFor(days),
+            phone: st?.parent_phone ?? st?.phone ?? "",
+          } as DefaulterRow;
+        })
+        .filter((r) => r.due > 0)
+        .sort((a, b) => b.days - a.days);
+    },
+  });
+
+  const rows = bucket === "all" ? data : data.filter((r) => r.bucket === bucket);
+  const total = rows.reduce((s, r) => s + r.due, 0);
+  const buckets = ["Not due yet", "0-30 days", "31-60 days", "61-90 days", "90+ days"];
+
+  const cols: Column<DefaulterRow>[] = [
+    { key: "student", label: "Student" },
+    { key: "admission_no", label: "Admission #" },
+    { key: "batch", label: "Batch" },
+    { key: "due_date", label: "Due date" },
+    { key: "days", label: "Days overdue" },
+    { key: "bucket", label: "Bucket" },
+    { key: "due", label: "Outstanding (INR)" },
+    { key: "phone", label: "Contact" },
+  ];
+
+  return (
+    <Section
+      title={`Defaulter aging · ${rows.length} dues · ${inr(total)} outstanding`}
+      actions={
+        <div className="flex items-center gap-2">
+          <select
+            className="h-9 rounded-md border border-border bg-background px-2 text-sm"
+            value={bucket}
+            onChange={(e) => setBucket(e.target.value)}
+          >
+            <option value="all">All buckets</option>
+            {buckets.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+          <ExportButtons rows={rows} cols={cols} name="defaulters" title="Defaulter aging" />
+        </div>
+      }
+    >
+      <div className="overflow-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
+            <tr>
+              <th className="px-4 py-3">Student</th>
+              <th className="px-4 py-3">Batch</th>
+              <th className="px-4 py-3">Due date</th>
+              <th className="px-4 py-3">Overdue</th>
+              <th className="px-4 py-3">Outstanding</th>
+              <th className="px-4 py-3">Follow up</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                  Nothing outstanding. Nice.
+                </td>
+              </tr>
+            )}
+            {rows.map((r) => (
+              <tr key={r.id}>
+                <td className="px-4 py-3">
+                  <p className="font-medium">{r.student}</p>
+                  <p className="text-xs text-muted-foreground">{r.admission_no}</p>
+                </td>
+                <td className="px-4 py-3">{r.batch}</td>
+                <td className="px-4 py-3">{r.due_date}</td>
+                <td className="px-4 py-3">
+                  <span
+                    className={
+                      r.days > 60
+                        ? "text-destructive"
+                        : r.days > 0
+                          ? "text-warning"
+                          : "text-muted-foreground"
+                    }
+                  >
+                    {r.bucket}
+                  </span>
+                </td>
+                <td className="px-4 py-3">{inr(r.due)}</td>
+                <td className="px-4 py-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => {
+                      const msg = renderTemplate(getTemplates().fee_pending, {
+                        student_name: r.student,
+                        parent_name: "Parent",
+                        batch_name: r.batch,
+                        amount_due: inr(r.due),
+                        due_date: r.due_date,
+                        academy_name: getInstitute().name,
+                      });
+                      if (!openWhatsApp(r.phone, msg)) toast.error("No phone number on file.");
+                    }}
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                  </Button>
+                </td>
               </tr>
             ))}
           </tbody>
