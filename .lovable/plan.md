@@ -1,121 +1,70 @@
-# Academix — Multi-Institute ERP Platform Plan
+## Aapka model — sahi hai, thoda extend karna padega
 
-Two distinct products, one codebase:
-
-- **Academix** — the SaaS platform (marketing site, signup, billing, super-admin).
-- **VK Academy** — the first tenant/institute using Academix (our own institute, our own dogfooding client).
-
----
-
-## 1. Mental Model
+Aapne 3 logins bole. Classplus-style platform me actually **4 audiences** hote hain, kyunki student aur parent alag log hain (parent ke paas apna phone, aur ek se zyada bachche ho sakte hain):
 
 ```text
-                 ┌──────────────────────────────┐
-                 │  academix.app (marketing)    │
-                 │  - Landing, pricing, login   │
-                 │  - Institute signup          │
-                 │  - Super-admin console       │
-                 └──────────────┬───────────────┘
-                                │
-                ┌───────────────┼───────────────┐
-                │               │               │
-       ┌────────▼──────┐ ┌──────▼───────┐ ┌────▼─────────┐
-       │ VK Academy    │ │ Institute B  │ │ Institute C  │
-       │ (tenant #1)   │ │ (subscriber) │ │ (subscriber) │
-       └───────────────┘ └──────────────┘ └──────────────┘
+Academix (platform)
+  └── Institute (tenant, e.g. aapki academy)
+        ├── Admin / Staff login   → sab kuch manage
+        ├── Teacher login         → sirf attendance + marks
+        ├── Student login         → apni progress
+        └── Parent login          → apne bachchon ki progress
 ```
 
-Every institute lives in the same database, isolated by an `institute_id` column + RLS. VK Academy is just the first row in the `institutes` table.
+Aapke paas roles pehle se hain (owner, admin, faculty, receptionist, counsellor, accountant, student, parent) aur module-level RBAC bhi hai. Jo missing hai: **student/parent ke liye koi portal UI nahi hai**, sab log ek hi `/login` par jaate hain, aur database me parent ka user account student se link karne ka koi table nahi hai.
 
 ---
 
-## 2. Rebrand (Phase 1 — visible immediately)
+## Kya banega
 
-- Rename product everywhere from "VK Academy" to **Academix** on the marketing/landing surface, auth pages, sidebar header, meta tags, favicon, `<title>`, README, etc.
-- Inside a signed-in tenant, header/sidebar show **that tenant's** name (e.g. "VK Academy") — Academix branding stays on the public/platform chrome.
-- New public routes:
-  - `/` — Academix landing (product marketing, aimed at other institutes)
-  - `/pricing` — subscription tiers
-  - `/for-institutes` — features / pitch
-  - `/signup` — institute signup (creates an institute + owner user)
-  - `/login` — unchanged
-- Tenant app stays under `/app/*`.
+### 1. Teen alag login pages
+- `/login/student` — student ya parent dono yahin se (tab switch: "Main student hoon" / "Main parent hoon"), phone/email + password
+- `/login/teacher` — teachers ke liye, sign-in ke baad seedha Attendance par land
+- `/login/admin` — staff/admin ke liye (aaj wala `/login` yahan redirect ho jaayega)
 
-## 3. Multi-Tenant Data Model (Phase 2)
+Teeno ka backend same Supabase auth hai — sirf branding, copy aur post-login destination alag. Galat portal se login karne par saaf message: "Ye teacher login hai, aap student portal use karein" + sahi link.
 
-New table `institutes` with fields like: name, slug, contact email/phone, address, plan, subscription status, trial ends at, primary color, logo path.
+### 2. Student/Parent portal (naya `/portal`)
+Alag, halka layout — app ka bhaari sidebar nahi, mobile-first bottom nav:
+- **Home** — attendance %, pichhle test ka score, pending fees, aaj ki classes — ek nazar me
+- **Attendance** — month calendar, present/absent/late days, absent dates ki list
+- **Progress** — har test ka score, max marks, batch average se comparison, trend chart
+- **Fees** — paid/pending, due date, receipt list
+- **Timetable** — apne batch ka weekly schedule
+- **Homework & Material** — assignments aur downloads
 
-Add `institute_id uuid not null references institutes(id)` to every tenant table:
-`students, batches, faculty, fees, tests, test_results, attendance, timetable_slots, courses, subjects, leads, user_roles`.
+Parent login me upar **child switcher** — ek se zyada bachche ho to switch karke dono ka data dekh sake. Sab data read-only.
 
-Add `institute_members(institute_id, user_id, role)` — replaces global `user_roles` for tenant roles. A user can belong to multiple institutes with different roles. `owner/admin/faculty/receptionist/accountant` become **per-institute** roles.
+### 3. Auto account on approval
+Jab admin admission **approve** karta hai:
+- Student ka auth account ban jaata hai (phone/email se), `student` role assign
+- Monitoring parent (jo aapne "who monitors studies" me select kiya) ka account ban jaata hai, `parent` role
+- Dono ko WhatsApp deep-link jaata hai: "Aapka Academix login ready hai — yahan password set karein"
+- Same parent ke doosre bachche ho to naya account nahi banta, wahi account se dono bachche link ho jaate hain
 
-Add a new **platform-level** role `platform_admin` (us) that can see all institutes for support.
+Approve karne wale ke liye Students page par "Resend login link" bhi rahega.
 
-Backfill: create a "VK Academy" institute row and stamp every existing record with that `institute_id`.
-
-## 4. Tenant Isolation (RLS rewrite — Phase 2)
-
-- Helper `current_institute_id()` reads it from JWT app_metadata or a `set_config` per request.
-- Every tenant table's policies become: `institute_id = current_institute_id() AND has_role_in_institute(auth.uid(), institute_id, ...)`.
-- Storage (`student-photos`) namespaced by `institute_id/<student>/…`; policies check membership.
-- Signup RPC `create_institute(name, slug)` — creates the institute, adds caller as `owner`, starts trial.
-
-## 5. Tenant Context in the App (Phase 3)
-
-- On login, load institutes the user belongs to. If more than one → institute switcher; if one → auto-select.
-- Store active `institute_id` in a React context + localStorage; attach to every query via a Supabase client wrapper.
-- `useAuth()` becomes `useAuth()` + `useInstitute()` (id, name, plan, branding).
-- Sidebar/topbar shows the active institute's name and logo; Settings → Institute Details edits it (already 80% built via `academy-settings.ts` — moves from localStorage into the `institutes` row).
-- Branding (`--primary`, logo) sourced per-tenant from DB, not localStorage.
-
-## 6. Subscriptions & Billing (Phase 4)
-
-- Plans: **Starter / Growth / Pro** (define caps on students, faculty, storage).
-- Payments via built-in Stripe payments (recommend enabling later, when we're ready to charge).
-- Subscription status on `institutes` row → gate `/app` access when `past_due` or `expired` with a friendly upgrade screen.
-- Trial: 14 days on signup.
-
-## 7. Super-Admin Console (Phase 5)
-
-Route `/platform/*`, gated by `platform_admin` role:
-- List institutes, plan, MRR, active users, last activity.
-- Impersonate / view-as (read-only) for support.
-- Toggle plan, extend trial, suspend.
-
-## 8. Sales & Go-To-Market Surface (Phase 6)
-
-- `/for-institutes` with real screenshots of VK Academy running on Academix (proof).
-- "Book a demo" form → leads table on our platform-admin side.
-- Referral field on signup so VK Academy staff can bring other coaching institutes.
+### 4. Teacher portal tighten
+Faculty pehle se sirf Dashboard/Attendance/Tests/Timetable dekhta hai. Isko finish karenge: faculty sirf **apne assigned batches** ke students dekhe (abhi sabhi dikhte hain), aur teacher login ke baad landing page Attendance ho.
 
 ---
 
-## 9. Suggested Rollout Order
+## Technical section
 
-1. **Rebrand** (Phase 1) — safe, cosmetic, ships today. VK Academy keeps working.
-2. **Multi-tenant schema + backfill** (Phase 2) — biggest change; do this as one migration with VK Academy as the seed institute.
-3. **Tenant context wiring** (Phase 3) — app becomes truly multi-tenant; still only one tenant live.
-4. **Public signup + landing** (part of 1/2) — other institutes can self-serve create a workspace (free trial).
-5. **Billing** (Phase 4) — turn on when we're ready to charge.
-6. **Super-admin console** (Phase 5).
-7. **Marketing polish + outreach** (Phase 6).
+**Database migration**
+- `parent_students` table: `parent_user_id` → `auth.users`, `student_id` → `students`, `relation`, `is_primary`; unique (parent_user_id, student_id). GRANTs + RLS.
+- `students.user_id` already exists — student auth account isi me link hoga.
+- Security-definer helpers: `public.is_my_student(_student_id uuid)` — true agar `students.user_id = auth.uid()` ya `parent_students` me row hai.
+- Read-only RLS policies for `student`/`parent` roles on: `students` (own row), `attendance`, `test_results`, `fees`, `fee_payments`, `homework`, `study_material`, `timetable_slots` (own batch), all gated by `is_my_student()`.
+- `set_student_approval` RPC extend: approve par account provisioning trigger karega.
 
----
+**Account provisioning** — server function (`createServerFn`) with `supabaseAdmin` loaded inside handler: `auth.admin.createUser` (email confirm off, random password), role insert into `user_roles`, `parent_students` row, aur password-setup link generate karna. Admin-only, caller ka role `context.supabase` se verify hoga admin client use karne se pehle.
 
-## 10. Technical Details (for reference)
+**Routes**
+- `src/routes/login.student.tsx`, `login.teacher.tsx`, `login.admin.tsx`; existing `/login` → `/login/admin` redirect
+- `src/routes/portal.tsx` (layout + guard, `ssr: false`) with `portal.index.tsx`, `portal.attendance.tsx`, `portal.progress.tsx`, `portal.fees.tsx`, `portal.timetable.tsx`, `portal.homework.tsx`
+- `src/routes/app.tsx` guard: `student`/`parent` role wale user ko `/portal` par bhej dega; portal guard staff ko `/app` par
 
-- Stack unchanged: TanStack Start + Supabase + Tailwind.
-- Tenant id resolution: prefer JWT claim (`app_metadata.institute_id` per-session, set on switch via an edge/server fn) → passed to Postgres via RLS helper. Fallback: header set by a TanStack server middleware.
-- Migration strategy: additive columns first (nullable) → backfill VK Academy id → set NOT NULL → replace RLS policies in one transaction.
-- Keep `user_roles` table for `platform_admin` only; move tenant roles to `institute_members`.
-- Storage key format changes → write a one-shot migration script to move existing `student-photos/*` under `vk-academy/*`.
-- Domain plan: `academix.app` for platform; optional per-tenant subdomain like `vk.academix.app` later (Phase 6+).
+**Reusable pieces** — `PortalShell` (header + bottom nav), `ChildSwitcher` (context for selected student), `StatTile`, `ScoreTrendChart` (recharts), aur `portalApi` in `src/lib/api/` — sab reads existing tables se, koi mock data nahi.
 
----
-
-## What I need from you before starting Phase 1
-
-1. Confirm the name **Academix** is final (no trademark check done yet — worth a quick search).
-2. Any tagline preference for the Academix landing? (e.g. "The operating system for modern coaching institutes.")
-3. OK to start with Phase 1 (rebrand only, zero DB changes) so you see it live today, then tackle Phase 2 (multi-tenant DB) in the next round?
+**Sequence** — (1) migration, (2) provisioning server fn + approval hook, (3) three login pages + redirects, (4) portal layout + 6 pages, (5) faculty scoping + teacher landing, (6) mobile pass + Playwright verify with a real approved student.
