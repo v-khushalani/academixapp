@@ -35,8 +35,9 @@ const CONFIG = {
 } as const;
 
 function portalHomeFor(roles: AppRole[]) {
-  if (roles.some((r) => STAFF_ROLES.includes(r))) return { to: "/login/admin", name: "staff" };
-  if (roles.includes("faculty")) return { to: "/login/teacher", name: "teacher" };
+  if (roles.some((r) => STAFF_ROLES.includes(r)))
+    return { to: "/login/admin", name: "staff" } as const;
+  if (roles.includes("faculty")) return { to: "/login/teacher", name: "teacher" } as const;
   if (roles.includes("student") || roles.includes("parent"))
     return { to: "/login/student", name: "student & parent" } as const;
   return null;
