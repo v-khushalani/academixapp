@@ -10,10 +10,7 @@ import type { AppRole } from "@/hooks/use-auth";
 export type PortalKind = "admin" | "teacher" | "family";
 
 const STAFF_ROLES: AppRole[] = ["owner", "admin", "receptionist", "counsellor", "accountant"];
-const CONFIG: Record<
-  PortalKind,
-  { roles: AppRole[]; destination: string; label: string; elsewhere: string; elsewhereTo: string }
-> = {
+const CONFIG = {
   admin: {
     roles: STAFF_ROLES,
     destination: "/app",
@@ -35,13 +32,13 @@ const CONFIG: Record<
     elsewhere: "Staff member? Sign in here",
     elsewhereTo: "/login/admin",
   },
-};
+} as const;
 
-function portalHomeFor(roles: AppRole[]): { to: string; name: string } | null {
+function portalHomeFor(roles: AppRole[]) {
   if (roles.some((r) => STAFF_ROLES.includes(r))) return { to: "/login/admin", name: "staff" };
   if (roles.includes("faculty")) return { to: "/login/teacher", name: "teacher" };
   if (roles.includes("student") || roles.includes("parent"))
-    return { to: "/login/student", name: "student & parent" };
+    return { to: "/login/student", name: "student & parent" } as const;
   return null;
 }
 
@@ -65,7 +62,7 @@ export function LoginCard({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [wrongPortal, setWrongPortal] = useState<{ to: string; name: string } | null>(null);
+  const [wrongPortal, setWrongPortal] = useState<ReturnType<typeof portalHomeFor>>(null);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -83,7 +80,7 @@ export function LoginCard({
 
     const { data: roleRows } = await supabase.rpc("get_my_roles");
     const roles = (roleRows ?? []) as AppRole[];
-    const allowed = roles.some((r) => cfg.roles.includes(r));
+    const allowed = roles.some((r) => (cfg.roles as readonly AppRole[]).includes(r));
 
     if (!allowed) {
       const target = portalHomeFor(roles);
