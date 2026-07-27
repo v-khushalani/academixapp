@@ -109,7 +109,7 @@ function TeachMarks() {
           <SelectContent>
             {tests.map((t) => (
               <SelectItem key={t.id} value={t.id}>
-                {t.name} · {t.date}
+                {t.title} · {t.date}
               </SelectItem>
             ))}
           </SelectContent>
