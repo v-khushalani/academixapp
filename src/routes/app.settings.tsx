@@ -134,6 +134,20 @@ function InstitutePanel() {
             placeholder="2026-27"
           />
         </F>
+        <F label="UPI ID (for fee QR)">
+          <Input
+            value={s.upi_id}
+            onChange={(e) => setS({ ...s, upi_id: e.target.value })}
+            placeholder="institute@okhdfcbank"
+          />
+        </F>
+        <F label="UPI payee name">
+          <Input
+            value={s.upi_name}
+            onChange={(e) => setS({ ...s, upi_name: e.target.value })}
+            placeholder="Shown inside the payer's UPI app"
+          />
+        </F>
         <F label="Address" cls="sm:col-span-2">
           <Textarea
             rows={2}

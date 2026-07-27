@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Link2, MessageCircle, Pencil, Plus, Trash2, UserPlus } from "lucide-react";
+import { Link2, MessageCircle, Pencil, Plus, Trash2, Upload, UserPlus } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,8 @@ import { DataTable, type DTColumn } from "@/components/app/data-table";
 import { StudentFormDialog } from "@/components/app/student-form-dialog";
 import { QuickAdmitDialog } from "@/components/app/quick-admit-dialog";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
+import { BulkImportDialog } from "@/components/app/bulk-import-dialog";
+import { supabase } from "@/integrations/supabase/client";
 import { studentsApi, type Student } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
@@ -42,6 +44,7 @@ function StudentsPage() {
   const [cls, setCls] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
   const [deleting, setDeleting] = useState<Row | null>(null);
 
@@ -189,6 +192,15 @@ function StudentsPage() {
                 size="sm"
                 variant="outline"
                 className="gap-1.5"
+                onClick={() => setImportOpen(true)}
+              >
+                <Upload className="h-4 w-4" />
+                Import CSV
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
                 onClick={() => setQuickOpen(true)}
               >
                 <UserPlus className="h-4 w-4" />
@@ -252,6 +264,35 @@ function StudentsPage() {
       </PageBody>
 
       <StudentFormDialog open={dialogOpen} onOpenChange={setDialogOpen} student={editing} />
+      <BulkImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        title="Import students"
+        description="Upload a CSV to add many students at once. Download the template first so the column names match."
+        templateName="students"
+        fields={[
+          { key: "full_name", label: "Full name", required: true },
+          { key: "phone", label: "Phone" },
+          { key: "class", label: "Class" },
+          { key: "father_name", label: "Father name" },
+          { key: "father_phone", label: "Father phone" },
+          { key: "mother_name", label: "Mother name" },
+          { key: "mother_phone", label: "Mother phone" },
+          { key: "email", label: "Email" },
+          { key: "address", label: "Address" },
+        ]}
+        onImport={async (rows) => {
+          const payload = rows.map((r) => ({
+            ...r,
+            approval_status: "approved",
+            parent_name: (r.father_name as string) ?? (r.mother_name as string) ?? null,
+            parent_phone: (r.father_phone as string) ?? (r.mother_phone as string) ?? null,
+          }));
+          const { error } = await supabase.from("students").insert(payload as never);
+          if (error) throw error;
+          qc.invalidateQueries({ queryKey: ["students"] });
+        }}
+      />
       <QuickAdmitDialog open={quickOpen} onOpenChange={setQuickOpen} />
       <ConfirmDialog
         open={Boolean(deleting)}

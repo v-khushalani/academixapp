@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TeachRouteImport } from './routes/teach'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PortalRouteImport } from './routes/portal'
@@ -17,9 +18,12 @@ import { Route as ForInstitutesRouteImport } from './routes/for-institutes'
 import { Route as ApplyRouteImport } from './routes/apply'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TeachIndexRouteImport } from './routes/teach.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as LoginIndexRouteImport } from './routes/login.index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as TeachMarksRouteImport } from './routes/teach.marks'
+import { Route as TeachAttendanceRouteImport } from './routes/teach.attendance'
 import { Route as PortalTimetableRouteImport } from './routes/portal.timetable'
 import { Route as PortalProgressRouteImport } from './routes/portal.progress'
 import { Route as PortalHomeworkRouteImport } from './routes/portal.homework'
@@ -46,6 +50,11 @@ import { Route as AppTestsIdRouteImport } from './routes/app.tests.$id'
 import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
 import { Route as AppBatchesIdRouteImport } from './routes/app.batches.$id'
 
+const TeachRoute = TeachRouteImport.update({
+  id: '/teach',
+  path: '/teach',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -86,6 +95,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeachIndexRoute = TeachIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TeachRoute,
+} as any)
 const PortalIndexRoute = PortalIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -100,6 +114,16 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const TeachMarksRoute = TeachMarksRouteImport.update({
+  id: '/marks',
+  path: '/marks',
+  getParentRoute: () => TeachRoute,
+} as any)
+const TeachAttendanceRoute = TeachAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => TeachRoute,
 } as any)
 const PortalTimetableRoute = PortalTimetableRouteImport.update({
   id: '/timetable',
@@ -236,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/portal': typeof PortalRouteWithChildren
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/teach': typeof TeachRouteWithChildren
   '/app/admissions': typeof AppAdmissionsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
@@ -258,9 +283,12 @@ export interface FileRoutesByFullPath {
   '/portal/homework': typeof PortalHomeworkRoute
   '/portal/progress': typeof PortalProgressRoute
   '/portal/timetable': typeof PortalTimetableRoute
+  '/teach/attendance': typeof TeachAttendanceRoute
+  '/teach/marks': typeof TeachMarksRoute
   '/app/': typeof AppIndexRoute
   '/login/': typeof LoginIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/teach/': typeof TeachIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
@@ -294,9 +322,12 @@ export interface FileRoutesByTo {
   '/portal/homework': typeof PortalHomeworkRoute
   '/portal/progress': typeof PortalProgressRoute
   '/portal/timetable': typeof PortalTimetableRoute
+  '/teach/attendance': typeof TeachAttendanceRoute
+  '/teach/marks': typeof TeachMarksRoute
   '/app': typeof AppIndexRoute
   '/login': typeof LoginIndexRoute
   '/portal': typeof PortalIndexRoute
+  '/teach': typeof TeachIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
@@ -311,6 +342,7 @@ export interface FileRoutesById {
   '/portal': typeof PortalRouteWithChildren
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/teach': typeof TeachRouteWithChildren
   '/app/admissions': typeof AppAdmissionsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
@@ -333,9 +365,12 @@ export interface FileRoutesById {
   '/portal/homework': typeof PortalHomeworkRoute
   '/portal/progress': typeof PortalProgressRoute
   '/portal/timetable': typeof PortalTimetableRoute
+  '/teach/attendance': typeof TeachAttendanceRoute
+  '/teach/marks': typeof TeachMarksRoute
   '/app/': typeof AppIndexRoute
   '/login/': typeof LoginIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/teach/': typeof TeachIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
@@ -351,6 +386,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/pricing'
     | '/signup'
+    | '/teach'
     | '/app/admissions'
     | '/app/attendance'
     | '/app/batches'
@@ -373,9 +409,12 @@ export interface FileRouteTypes {
     | '/portal/homework'
     | '/portal/progress'
     | '/portal/timetable'
+    | '/teach/attendance'
+    | '/teach/marks'
     | '/app/'
     | '/login/'
     | '/portal/'
+    | '/teach/'
     | '/app/batches/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
@@ -409,9 +448,12 @@ export interface FileRouteTypes {
     | '/portal/homework'
     | '/portal/progress'
     | '/portal/timetable'
+    | '/teach/attendance'
+    | '/teach/marks'
     | '/app'
     | '/login'
     | '/portal'
+    | '/teach'
     | '/app/batches/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
@@ -425,6 +467,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/pricing'
     | '/signup'
+    | '/teach'
     | '/app/admissions'
     | '/app/attendance'
     | '/app/batches'
@@ -447,9 +490,12 @@ export interface FileRouteTypes {
     | '/portal/homework'
     | '/portal/progress'
     | '/portal/timetable'
+    | '/teach/attendance'
+    | '/teach/marks'
     | '/app/'
     | '/login/'
     | '/portal/'
+    | '/teach/'
     | '/app/batches/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
@@ -464,6 +510,7 @@ export interface RootRouteChildren {
   PortalRoute: typeof PortalRouteWithChildren
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
+  TeachRoute: typeof TeachRouteWithChildren
   LoginAdminRoute: typeof LoginAdminRoute
   LoginStudentRoute: typeof LoginStudentRoute
   LoginTeacherRoute: typeof LoginTeacherRoute
@@ -473,6 +520,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/teach': {
+      id: '/teach'
+      path: '/teach'
+      fullPath: '/teach'
+      preLoaderRoute: typeof TeachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -529,6 +583,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/teach/': {
+      id: '/teach/'
+      path: '/'
+      fullPath: '/teach/'
+      preLoaderRoute: typeof TeachIndexRouteImport
+      parentRoute: typeof TeachRoute
+    }
     '/portal/': {
       id: '/portal/'
       path: '/'
@@ -549,6 +610,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/teach/marks': {
+      id: '/teach/marks'
+      path: '/marks'
+      fullPath: '/teach/marks'
+      preLoaderRoute: typeof TeachMarksRouteImport
+      parentRoute: typeof TeachRoute
+    }
+    '/teach/attendance': {
+      id: '/teach/attendance'
+      path: '/attendance'
+      fullPath: '/teach/attendance'
+      preLoaderRoute: typeof TeachAttendanceRouteImport
+      parentRoute: typeof TeachRoute
     }
     '/portal/timetable': {
       id: '/portal/timetable'
@@ -821,6 +896,20 @@ const PortalRouteChildren: PortalRouteChildren = {
 const PortalRouteWithChildren =
   PortalRoute._addFileChildren(PortalRouteChildren)
 
+interface TeachRouteChildren {
+  TeachAttendanceRoute: typeof TeachAttendanceRoute
+  TeachMarksRoute: typeof TeachMarksRoute
+  TeachIndexRoute: typeof TeachIndexRoute
+}
+
+const TeachRouteChildren: TeachRouteChildren = {
+  TeachAttendanceRoute: TeachAttendanceRoute,
+  TeachMarksRoute: TeachMarksRoute,
+  TeachIndexRoute: TeachIndexRoute,
+}
+
+const TeachRouteWithChildren = TeachRoute._addFileChildren(TeachRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
@@ -830,6 +919,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRouteWithChildren,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
+  TeachRoute: TeachRouteWithChildren,
   LoginAdminRoute: LoginAdminRoute,
   LoginStudentRoute: LoginStudentRoute,
   LoginTeacherRoute: LoginTeacherRoute,

@@ -10,6 +10,8 @@ export type InstituteSettings = {
   email: string;
   academic_year: string;
   primary_color: string; // hex like #4f46e5
+  upi_id: string; // e.g. institute@okhdfcbank — used for fee QR codes
+  upi_name: string; // payee name shown in the UPI app
 };
 
 const KEY_INSTITUTE = "vk_institute";
@@ -23,6 +25,8 @@ const DEFAULT_INSTITUTE: InstituteSettings = {
   email: "",
   academic_year: `${new Date().getFullYear()}-${String((new Date().getFullYear() + 1) % 100).padStart(2, "0")}`,
   primary_color: "",
+  upi_id: "",
+  upi_name: "",
 };
 
 function safeRead<T>(key: string): Partial<T> {
