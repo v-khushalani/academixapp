@@ -13,6 +13,7 @@ export const Route = createFileRoute("/signup")({
 function SignupPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
+  const [institute, setInstitute] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -25,7 +26,7 @@ function SignupPage() {
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/app`,
-        data: { full_name: name },
+        data: { full_name: name, institute_name: institute.trim() },
       },
     });
     setBusy(false);
@@ -51,11 +52,21 @@ function SignupPage() {
           </div>
           <span className="text-sm font-semibold">Academix</span>
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">Create your account</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Create your institute</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          The first account becomes the institute owner.
+          You become the owner of this institute workspace. Your data stays yours alone.
         </p>
         <form className="mt-8 space-y-4" onSubmit={onSubmit}>
+          <div className="space-y-1.5">
+            <Label htmlFor="institute">Institute name</Label>
+            <Input
+              id="institute"
+              placeholder="e.g. Sharma Classes"
+              value={institute}
+              onChange={(e) => setInstitute(e.target.value)}
+              required
+            />
+          </div>
           <div className="space-y-1.5">
             <Label htmlFor="name">Full name</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
