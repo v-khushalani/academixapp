@@ -477,63 +477,6 @@ function CredentialsDialog({
   );
 }
 
-function ApplicantPreview({ student, onClose }: { student: Student | null; onClose: () => void }) {
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  useMemo(() => {
-    setPhotoUrl(null);
-    if (student?.photo_path) studentsApi.signedPhotoUrl(student.photo_path).then(setPhotoUrl);
-  }, [student]);
-  if (!student) return null;
-  return (
-    <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Application · {student.full_name}</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
-          <div>
-            {photoUrl ? (
-              <img
-                src={photoUrl}
-                alt={student.full_name}
-                className="h-36 w-full rounded-md border border-border object-cover"
-              />
-            ) : (
-              <div className="grid h-36 w-full place-items-center rounded-md border border-dashed border-border text-xs text-muted-foreground">
-                {student.photo_path ? "Loading…" : "No photo"}
-              </div>
-            )}
-            <p className="mt-2 text-center text-xs text-muted-foreground">{student.admission_no}</p>
-          </div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <D k="Phone" v={student.phone} />
-            <D k="Email" v={student.email} />
-            <D k="Date of birth" v={student.dob} />
-            <D k="Class" v={student.class} />
-            <D k="Program" v={student.program} />
-            <D k="Stream" v={student.stream?.toUpperCase() ?? null} />
-            <D k="School" v={student.school} />
-            <D k="Father" v={student.father_name} />
-            <D k="Father phone" v={student.father_phone} />
-            <D k="Mother" v={student.mother_name} />
-            <D k="Mother phone" v={student.mother_phone} />
-            <D k="Address" v={student.address} full />
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function D({ k, v, full }: { k: string; v: string | null | undefined; full?: boolean }) {
-  return (
-    <div className={full ? "col-span-2" : ""}>
-      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{k}</p>
-      <p className="text-sm">{v || "—"}</p>
-    </div>
-  );
-}
-
 /* -------------------- QR panel -------------------- */
 function QrPanel() {
   const url = typeof window !== "undefined" ? `${window.location.origin}/apply` : "/apply";
