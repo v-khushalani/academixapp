@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TeachRouteImport } from './routes/teach'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PortalRouteImport } from './routes/portal'
@@ -46,6 +47,11 @@ import { Route as AppTestsIdRouteImport } from './routes/app.tests.$id'
 import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
 import { Route as AppBatchesIdRouteImport } from './routes/app.batches.$id'
 
+const TeachRoute = TeachRouteImport.update({
+  id: '/teach',
+  path: '/teach',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -236,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/portal': typeof PortalRouteWithChildren
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/teach': typeof TeachRoute
   '/app/admissions': typeof AppAdmissionsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
@@ -272,6 +279,7 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/teach': typeof TeachRoute
   '/app/admissions': typeof AppAdmissionsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
@@ -311,6 +319,7 @@ export interface FileRoutesById {
   '/portal': typeof PortalRouteWithChildren
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/teach': typeof TeachRoute
   '/app/admissions': typeof AppAdmissionsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
@@ -351,6 +360,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/pricing'
     | '/signup'
+    | '/teach'
     | '/app/admissions'
     | '/app/attendance'
     | '/app/batches'
@@ -387,6 +397,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/pricing'
     | '/signup'
+    | '/teach'
     | '/app/admissions'
     | '/app/attendance'
     | '/app/batches'
@@ -425,6 +436,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/pricing'
     | '/signup'
+    | '/teach'
     | '/app/admissions'
     | '/app/attendance'
     | '/app/batches'
@@ -464,6 +476,7 @@ export interface RootRouteChildren {
   PortalRoute: typeof PortalRouteWithChildren
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
+  TeachRoute: typeof TeachRoute
   LoginAdminRoute: typeof LoginAdminRoute
   LoginStudentRoute: typeof LoginStudentRoute
   LoginTeacherRoute: typeof LoginTeacherRoute
@@ -473,6 +486,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/teach': {
+      id: '/teach'
+      path: '/teach'
+      fullPath: '/teach'
+      preLoaderRoute: typeof TeachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -830,6 +850,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRouteWithChildren,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
+  TeachRoute: TeachRoute,
   LoginAdminRoute: LoginAdminRoute,
   LoginStudentRoute: LoginStudentRoute,
   LoginTeacherRoute: LoginTeacherRoute,
