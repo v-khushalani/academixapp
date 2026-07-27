@@ -35,6 +35,8 @@ import {
 } from "@/lib/provisioning.functions";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { getInstitute } from "@/lib/academy-settings";
+import { ApplicantPreview } from "@/components/app/applicant-preview";
+import { EnquiryRecords } from "@/components/app/enquiry-records";
 import type { Database } from "@/integrations/supabase/types";
 
 type Stage = Database["public"]["Enums"]["lead_stage"];
@@ -68,6 +70,7 @@ function AdmissionsPage() {
           <TabsList>
             <TabsTrigger value="leads">Leads pipeline</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="records">Enquiry records</TabsTrigger>
             <TabsTrigger value="qr">Public QR</TabsTrigger>
             <TabsTrigger value="how">How it works</TabsTrigger>
           </TabsList>
@@ -76,6 +79,9 @@ function AdmissionsPage() {
           </TabsContent>
           <TabsContent value="applications" className="mt-4">
             <ApplicationsList canWrite={canWrite} />
+          </TabsContent>
+          <TabsContent value="records" className="mt-4">
+            <EnquiryRecords canWrite={canWrite} />
           </TabsContent>
           <TabsContent value="qr" className="mt-4">
             <QrPanel />
