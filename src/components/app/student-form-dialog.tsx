@@ -302,4 +302,3 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
     </Dialog>
   );
 }
-

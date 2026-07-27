@@ -151,4 +151,3 @@ export function FeeFormDialog({ open, onOpenChange }: Props) {
     </Dialog>
   );
 }
-

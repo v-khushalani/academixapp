@@ -145,4 +145,3 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
     </Dialog>
   );
 }
-

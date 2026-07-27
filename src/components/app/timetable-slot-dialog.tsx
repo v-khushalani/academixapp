@@ -196,4 +196,3 @@ export function TimetableSlotDialog({ open, onOpenChange, slot, defaultDay = 1 }
     </Dialog>
   );
 }
-

@@ -139,4 +139,3 @@ export function FacultyFormDialog({ open, onOpenChange, faculty }: Props) {
     </Dialog>
   );
 }
-
