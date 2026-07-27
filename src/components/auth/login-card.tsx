@@ -20,7 +20,7 @@ const CONFIG = {
   },
   teacher: {
     roles: ["faculty"],
-    destination: "/app/attendance",
+    destination: "/teach",
     label: "teacher",
     elsewhere: "Not a teacher? Pick your portal",
     elsewhereTo: "/login/student",
