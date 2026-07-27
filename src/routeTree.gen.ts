@@ -20,7 +20,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as LoginIndexRouteImport } from './routes/login.index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as PortalTimetableRouteImport } from './routes/portal.timetable'
 import { Route as PortalProgressRouteImport } from './routes/portal.progress'
+import { Route as PortalHomeworkRouteImport } from './routes/portal.homework'
 import { Route as PortalFeesRouteImport } from './routes/portal.fees'
 import { Route as PortalAttendanceRouteImport } from './routes/portal.attendance'
 import { Route as OnboardTokenRouteImport } from './routes/onboard.$token'
@@ -99,9 +101,19 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const PortalTimetableRoute = PortalTimetableRouteImport.update({
+  id: '/timetable',
+  path: '/timetable',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalProgressRoute = PortalProgressRouteImport.update({
   id: '/progress',
   path: '/progress',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalHomeworkRoute = PortalHomeworkRouteImport.update({
+  id: '/homework',
+  path: '/homework',
   getParentRoute: () => PortalRoute,
 } as any)
 const PortalFeesRoute = PortalFeesRouteImport.update({
@@ -243,7 +255,9 @@ export interface FileRoutesByFullPath {
   '/onboard/$token': typeof OnboardTokenRoute
   '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/fees': typeof PortalFeesRoute
+  '/portal/homework': typeof PortalHomeworkRoute
   '/portal/progress': typeof PortalProgressRoute
+  '/portal/timetable': typeof PortalTimetableRoute
   '/app/': typeof AppIndexRoute
   '/login/': typeof LoginIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -277,7 +291,9 @@ export interface FileRoutesByTo {
   '/onboard/$token': typeof OnboardTokenRoute
   '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/fees': typeof PortalFeesRoute
+  '/portal/homework': typeof PortalHomeworkRoute
   '/portal/progress': typeof PortalProgressRoute
+  '/portal/timetable': typeof PortalTimetableRoute
   '/app': typeof AppIndexRoute
   '/login': typeof LoginIndexRoute
   '/portal': typeof PortalIndexRoute
@@ -314,7 +330,9 @@ export interface FileRoutesById {
   '/onboard/$token': typeof OnboardTokenRoute
   '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/fees': typeof PortalFeesRoute
+  '/portal/homework': typeof PortalHomeworkRoute
   '/portal/progress': typeof PortalProgressRoute
+  '/portal/timetable': typeof PortalTimetableRoute
   '/app/': typeof AppIndexRoute
   '/login/': typeof LoginIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -352,7 +370,9 @@ export interface FileRouteTypes {
     | '/onboard/$token'
     | '/portal/attendance'
     | '/portal/fees'
+    | '/portal/homework'
     | '/portal/progress'
+    | '/portal/timetable'
     | '/app/'
     | '/login/'
     | '/portal/'
@@ -386,7 +406,9 @@ export interface FileRouteTypes {
     | '/onboard/$token'
     | '/portal/attendance'
     | '/portal/fees'
+    | '/portal/homework'
     | '/portal/progress'
+    | '/portal/timetable'
     | '/app'
     | '/login'
     | '/portal'
@@ -422,7 +444,9 @@ export interface FileRouteTypes {
     | '/onboard/$token'
     | '/portal/attendance'
     | '/portal/fees'
+    | '/portal/homework'
     | '/portal/progress'
+    | '/portal/timetable'
     | '/app/'
     | '/login/'
     | '/portal/'
@@ -526,11 +550,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/portal/timetable': {
+      id: '/portal/timetable'
+      path: '/timetable'
+      fullPath: '/portal/timetable'
+      preLoaderRoute: typeof PortalTimetableRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/progress': {
       id: '/portal/progress'
       path: '/progress'
       fullPath: '/portal/progress'
       preLoaderRoute: typeof PortalProgressRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/homework': {
+      id: '/portal/homework'
+      path: '/homework'
+      fullPath: '/portal/homework'
+      preLoaderRoute: typeof PortalHomeworkRouteImport
       parentRoute: typeof PortalRoute
     }
     '/portal/fees': {
@@ -765,14 +803,18 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 interface PortalRouteChildren {
   PortalAttendanceRoute: typeof PortalAttendanceRoute
   PortalFeesRoute: typeof PortalFeesRoute
+  PortalHomeworkRoute: typeof PortalHomeworkRoute
   PortalProgressRoute: typeof PortalProgressRoute
+  PortalTimetableRoute: typeof PortalTimetableRoute
   PortalIndexRoute: typeof PortalIndexRoute
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
   PortalAttendanceRoute: PortalAttendanceRoute,
   PortalFeesRoute: PortalFeesRoute,
+  PortalHomeworkRoute: PortalHomeworkRoute,
   PortalProgressRoute: PortalProgressRoute,
+  PortalTimetableRoute: PortalTimetableRoute,
   PortalIndexRoute: PortalIndexRoute,
 }
 
