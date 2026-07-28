@@ -13,6 +13,13 @@ export const Route = createFileRoute("/app/")({
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 
+const QUICK = [
+  { to: "/app/students", label: "Students", icon: Users },
+  { to: "/app/attendance", label: "Attendance", icon: CalendarCheck },
+  { to: "/app/fees", label: "Fees", icon: Wallet },
+  { to: "/app/tests", label: "Tests", icon: FileText },
+] as const;
+
 function DashboardPage() {
   const { user } = useAuth();
   const { data, isLoading } = useQuery({
