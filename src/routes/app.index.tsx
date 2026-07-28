@@ -30,7 +30,7 @@ function DashboardPage() {
         description={`Here is what is happening at ${institute} today.`}
       />
       <PageBody>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <KpiCard
             label="Active students"
             value={isLoading ? "—" : String(data?.students ?? 0)}
