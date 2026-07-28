@@ -35,12 +35,9 @@ import { Route as LoginStudentRouteImport } from './routes/login.student'
 import { Route as LoginAdminRouteImport } from './routes/login.admin'
 import { Route as AppTimetableRouteImport } from './routes/app.timetable'
 import { Route as AppTestsRouteImport } from './routes/app.tests'
-import { Route as AppStudyMaterialRouteImport } from './routes/app.study-material'
 import { Route as AppStudentsRouteImport } from './routes/app.students'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppReportsRouteImport } from './routes/app.reports'
-import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
-import { Route as AppHomeworkRouteImport } from './routes/app.homework'
 import { Route as AppFeesRouteImport } from './routes/app.fees'
 import { Route as AppFacultyRouteImport } from './routes/app.faculty'
 import { Route as AppBatchesRouteImport } from './routes/app.batches'
@@ -180,11 +177,6 @@ const AppTestsRoute = AppTestsRouteImport.update({
   path: '/tests',
   getParentRoute: () => AppRoute,
 } as any)
-const AppStudyMaterialRoute = AppStudyMaterialRouteImport.update({
-  id: '/study-material',
-  path: '/study-material',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppStudentsRoute = AppStudentsRouteImport.update({
   id: '/students',
   path: '/students',
@@ -198,16 +190,6 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
 const AppReportsRoute = AppReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppNotificationsRoute = AppNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppHomeworkRoute = AppHomeworkRouteImport.update({
-  id: '/homework',
-  path: '/homework',
   getParentRoute: () => AppRoute,
 } as any)
 const AppFeesRoute = AppFeesRouteImport.update({
@@ -266,12 +248,9 @@ export interface FileRoutesByFullPath {
   '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
-  '/app/homework': typeof AppHomeworkRoute
-  '/app/notifications': typeof AppNotificationsRoute
   '/app/reports': typeof AppReportsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
-  '/app/study-material': typeof AppStudyMaterialRoute
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
   '/login/admin': typeof LoginAdminRoute
@@ -305,12 +284,9 @@ export interface FileRoutesByTo {
   '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
-  '/app/homework': typeof AppHomeworkRoute
-  '/app/notifications': typeof AppNotificationsRoute
   '/app/reports': typeof AppReportsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
-  '/app/study-material': typeof AppStudyMaterialRoute
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
   '/login/admin': typeof LoginAdminRoute
@@ -348,12 +324,9 @@ export interface FileRoutesById {
   '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
-  '/app/homework': typeof AppHomeworkRoute
-  '/app/notifications': typeof AppNotificationsRoute
   '/app/reports': typeof AppReportsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
-  '/app/study-material': typeof AppStudyMaterialRoute
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
   '/login/admin': typeof LoginAdminRoute
@@ -392,12 +365,9 @@ export interface FileRouteTypes {
     | '/app/batches'
     | '/app/faculty'
     | '/app/fees'
-    | '/app/homework'
-    | '/app/notifications'
     | '/app/reports'
     | '/app/settings'
     | '/app/students'
-    | '/app/study-material'
     | '/app/tests'
     | '/app/timetable'
     | '/login/admin'
@@ -431,12 +401,9 @@ export interface FileRouteTypes {
     | '/app/batches'
     | '/app/faculty'
     | '/app/fees'
-    | '/app/homework'
-    | '/app/notifications'
     | '/app/reports'
     | '/app/settings'
     | '/app/students'
-    | '/app/study-material'
     | '/app/tests'
     | '/app/timetable'
     | '/login/admin'
@@ -473,12 +440,9 @@ export interface FileRouteTypes {
     | '/app/batches'
     | '/app/faculty'
     | '/app/fees'
-    | '/app/homework'
-    | '/app/notifications'
     | '/app/reports'
     | '/app/settings'
     | '/app/students'
-    | '/app/study-material'
     | '/app/tests'
     | '/app/timetable'
     | '/login/admin'
@@ -702,13 +666,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTestsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/study-material': {
-      id: '/app/study-material'
-      path: '/study-material'
-      fullPath: '/app/study-material'
-      preLoaderRoute: typeof AppStudyMaterialRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/students': {
       id: '/app/students'
       path: '/students'
@@ -728,20 +685,6 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/app/reports'
       preLoaderRoute: typeof AppReportsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/notifications': {
-      id: '/app/notifications'
-      path: '/notifications'
-      fullPath: '/app/notifications'
-      preLoaderRoute: typeof AppNotificationsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/homework': {
-      id: '/app/homework'
-      path: '/homework'
-      fullPath: '/app/homework'
-      preLoaderRoute: typeof AppHomeworkRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/fees': {
@@ -845,12 +788,9 @@ interface AppRouteChildren {
   AppBatchesRoute: typeof AppBatchesRouteWithChildren
   AppFacultyRoute: typeof AppFacultyRoute
   AppFeesRoute: typeof AppFeesRoute
-  AppHomeworkRoute: typeof AppHomeworkRoute
-  AppNotificationsRoute: typeof AppNotificationsRoute
   AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStudentsRoute: typeof AppStudentsRouteWithChildren
-  AppStudyMaterialRoute: typeof AppStudyMaterialRoute
   AppTestsRoute: typeof AppTestsRouteWithChildren
   AppTimetableRoute: typeof AppTimetableRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -862,12 +802,9 @@ const AppRouteChildren: AppRouteChildren = {
   AppBatchesRoute: AppBatchesRouteWithChildren,
   AppFacultyRoute: AppFacultyRoute,
   AppFeesRoute: AppFeesRoute,
-  AppHomeworkRoute: AppHomeworkRoute,
-  AppNotificationsRoute: AppNotificationsRoute,
   AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStudentsRoute: AppStudentsRouteWithChildren,
-  AppStudyMaterialRoute: AppStudyMaterialRoute,
   AppTestsRoute: AppTestsRouteWithChildren,
   AppTimetableRoute: AppTimetableRoute,
   AppIndexRoute: AppIndexRoute,

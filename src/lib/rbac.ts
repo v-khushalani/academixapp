@@ -8,12 +8,9 @@ export type ModuleKey =
   | "attendance"
   | "fees"
   | "tests"
-  | "homework"
-  | "study-material"
   | "timetable"
   | "faculty"
   | "reports"
-  | "notifications"
   | "settings";
 
 export const MODULE_ACCESS: Record<ModuleKey, AppRole[]> = {
@@ -33,12 +30,9 @@ export const MODULE_ACCESS: Record<ModuleKey, AppRole[]> = {
   attendance: ["owner", "admin", "faculty", "student", "parent"],
   fees: ["owner", "admin", "accountant", "receptionist", "student", "parent"],
   tests: ["owner", "admin", "faculty", "student", "parent"],
-  homework: ["owner", "admin", "student", "parent"],
-  "study-material": ["owner", "admin", "student", "parent"],
   timetable: ["owner", "admin", "faculty", "receptionist", "student", "parent"],
   faculty: ["owner", "admin"],
   reports: ["owner", "admin", "accountant"],
-  notifications: ["owner", "admin", "receptionist", "counsellor", "accountant"],
   settings: ["owner", "admin"],
 };
 

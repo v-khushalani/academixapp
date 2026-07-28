@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Users, Layers, Wallet, UserPlus } from "lucide-react";
+import { Users, Layers, Wallet, UserPlus, CalendarCheck, FileText } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { KpiCard } from "@/components/app/kpi-card";
 import { dashboardApi } from "@/lib/api";
@@ -12,6 +12,13 @@ export const Route = createFileRoute("/app/")({
 });
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
+
+const QUICK = [
+  { to: "/app/students", label: "Students", icon: Users },
+  { to: "/app/attendance", label: "Attendance", icon: CalendarCheck },
+  { to: "/app/fees", label: "Fees", icon: Wallet },
+  { to: "/app/tests", label: "Tests", icon: FileText },
+] as const;
 
 function DashboardPage() {
   const { user } = useAuth();
@@ -30,7 +37,7 @@ function DashboardPage() {
         description={`Here is what is happening at ${institute} today.`}
       />
       <PageBody>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <KpiCard
             label="Active students"
             value={isLoading ? "—" : String(data?.students ?? 0)}
@@ -55,14 +62,17 @@ function DashboardPage() {
           />
         </div>
 
-        <div className="mt-6 rounded-lg border border-border bg-card p-6">
-          <h2 className="text-sm font-semibold">Quick tips</h2>
-          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-            <li>Create a batch first, then add students to it.</li>
-            <li>Mark today’s attendance from the Attendance page — one batch per screen.</li>
-            <li>Record payments as they come in from the Fees page.</li>
-            <li>Export any table as CSV or PDF from the toolbar.</li>
-          </ul>
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 lg:grid-cols-4">
+          {QUICK.map((q) => (
+            <Link
+              key={q.to}
+              to={q.to}
+              className="flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30"
+            >
+              <q.icon className="h-4 w-4 shrink-0 text-primary" />
+              <span className="truncate text-sm font-medium">{q.label}</span>
+            </Link>
+          ))}
         </div>
       </PageBody>
     </>
