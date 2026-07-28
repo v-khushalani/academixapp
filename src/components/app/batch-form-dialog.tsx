@@ -19,11 +19,12 @@ import {
 } from "@/components/ui/select";
 import { batchesApi, type Batch, type BatchInsert } from "@/lib/api";
 import { Field as F } from "@/components/app/field";
+import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 
 type Props = { open: boolean; onOpenChange: (v: boolean) => void; batch?: Batch | null };
 
 export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
-  const qc = useQueryClient();
+  const refresh = useRefreshLinked();
   const isEdit = Boolean(batch);
   const [f, setF] = useState<BatchInsert>({
     name: "",
@@ -53,7 +54,7 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
       isEdit && batch ? batchesApi.update(batch.id, input) : batchesApi.create(input),
     onSuccess: () => {
       toast.success(isEdit ? "Batch updated" : "Batch created");
-      qc.invalidateQueries({ queryKey: ["batches"] });
+      refresh();
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -101,6 +102,10 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
               value={f.default_fee ?? 0}
               onChange={(e) => setF({ ...f, default_fee: Number(e.target.value) })}
             />
+            <p className="text-[11px] text-muted-foreground">
+              Auto-applied to every student in this batch. Scholarship/discount per student adjusts
+              it.
+            </p>
           </F>
           <F label="Status">
             <Select

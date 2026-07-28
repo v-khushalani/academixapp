@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { batchesApi, studentsApi, type Student, type StudentInsert } from "@/lib/api";
 import { Field } from "@/components/app/field";
+import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 
 type Props = {
   open: boolean;
@@ -27,7 +28,7 @@ type Props = {
 };
 
 export function StudentFormDialog({ open, onOpenChange, student }: Props) {
-  const qc = useQueryClient();
+  const refresh = useRefreshLinked();
   const isEdit = Boolean(student);
   const [form, setForm] = useState<StudentInsert>({
     admission_no: "",
