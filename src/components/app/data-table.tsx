@@ -102,7 +102,7 @@ export function DataTable<T extends { id: string | number }>({
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="relative min-w-[220px] flex-1">
+        <div className="relative w-full min-w-[180px] flex-1 sm:w-auto">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={q}
@@ -137,7 +137,72 @@ export function DataTable<T extends { id: string | number }>({
         </DropdownMenu>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-card">
+      {/* Mobile: stacked cards */}
+      <div className="space-y-2 md:hidden">
+        {loading ? (
+          <p className="rounded-lg border border-border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
+            Loading…
+          </p>
+        ) : pageRows.length === 0 ? (
+          <p className="rounded-lg border border-border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
+            {emptyMessage}
+          </p>
+        ) : (
+          pageRows.map((r) => (
+            <div
+              key={r.id}
+              onClick={onRowClick ? () => onRowClick(r) : undefined}
+              className={`rounded-lg border border-border bg-card p-3 ${onRowClick ? "active:bg-muted/40" : ""}`}
+            >
+              <p className="text-sm font-medium text-foreground">
+                {columns[0].cell
+                  ? columns[0].cell(r)
+                  : ((r as Record<string, unknown>)[columns[0].key] as ReactNode)}
+              </p>
+              <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
+                {columns.slice(1).map((c) => (
+                  <div key={c.key} className="min-w-0">
+                    <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                      {c.header}
+                    </dt>
+                    <dd className="truncate text-sm">
+                      {c.cell ? c.cell(r) : ((r as Record<string, unknown>)[c.key] as ReactNode)}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ))
+        )}
+        <div className="flex items-center justify-between px-1 pt-1 text-xs text-muted-foreground">
+          <span>
+            {sorted.length} record{sorted.length === 1 ? "" : "s"}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={currentPage === 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Prev
+            </Button>
+            <span>
+              {currentPage}/{pageCount}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={currentPage === pageCount}
+              onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="hidden overflow-hidden rounded-lg border border-border bg-card md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
