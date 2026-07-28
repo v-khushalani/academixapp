@@ -28,6 +28,8 @@ export type AdmissionFormValues = {
   program: "" | "schooling" | "foundation" | "both";
   stream: "" | "pcm" | "pcb";
   preferred_contact: "father" | "mother";
+  intent: "admission" | "enquiry";
+  token_amount: number;
 };
 
 type Props = {
@@ -51,6 +53,8 @@ const empty: AdmissionFormValues = {
   program: "",
   stream: "",
   preferred_contact: "father",
+  intent: "admission",
+  token_amount: 0,
 };
 
 const CLASSES = [
@@ -109,6 +113,50 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
+      <Section title="Why are you here?" />
+      <div className="sm:col-span-2 grid gap-2 sm:grid-cols-2">
+        {(
+          [
+            {
+              key: "admission",
+              title: "Taking admission now",
+              desc: "Joining a batch — pay a token/advance amount today.",
+            },
+            {
+              key: "enquiry",
+              title: "Just enquiring",
+              desc: "Only want details for now. We'll follow up with you.",
+            },
+          ] as const
+        ).map((o) => (
+          <button
+            type="button"
+            key={o.key}
+            onClick={() => set("intent", o.key)}
+            className={`rounded-lg border p-3 text-left transition-colors ${
+              v.intent === o.key
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/40"
+            }`}
+          >
+            <p className="text-sm font-semibold">{o.title}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{o.desc}</p>
+          </button>
+        ))}
+      </div>
+      {v.intent === "admission" && (
+        <F label="Token / advance amount paid today (₹)" cls="sm:col-span-2">
+          <Input
+            type="number"
+            min={0}
+            step="1"
+            value={v.token_amount || ""}
+            onChange={(e) => set("token_amount", Number(e.target.value) || 0)}
+            placeholder="0"
+          />
+        </F>
+      )}
+
       <Section title="Student details" />
       <F label="Full name *">
         <Input value={v.full_name} onChange={(e) => set("full_name", e.target.value)} required />
@@ -253,10 +301,18 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
 
       <div className="sm:col-span-2">
         <Button type="submit" disabled={saving || uploading} className="w-full">
-          {uploading ? "Uploading photo…" : saving ? "Submitting…" : "Submit application"}
+          {uploading
+            ? "Uploading photo…"
+            : saving
+              ? "Submitting…"
+              : v.intent === "enquiry"
+                ? "Submit enquiry"
+                : "Submit admission form"}
         </Button>
         <p className="mt-2 text-center text-xs text-muted-foreground">
-          Your application will be reviewed by the admissions office.
+          {v.intent === "enquiry"
+            ? "Our team will call you back with details."
+            : "The admissions office will confirm your batch and fees."}
         </p>
       </div>
     </form>

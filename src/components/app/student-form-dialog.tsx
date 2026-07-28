@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { batchesApi, studentsApi, type Student, type StudentInsert } from "@/lib/api";
 import { Field } from "@/components/app/field";
+import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 
 type Props = {
   open: boolean;
@@ -27,7 +28,7 @@ type Props = {
 };
 
 export function StudentFormDialog({ open, onOpenChange, student }: Props) {
-  const qc = useQueryClient();
+  const refresh = useRefreshLinked();
   const isEdit = Boolean(student);
   const [form, setForm] = useState<StudentInsert>({
     admission_no: "",
@@ -120,8 +121,7 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
     },
     onSuccess: () => {
       toast.success(isEdit ? "Student updated" : "Student added");
-      qc.invalidateQueries({ queryKey: ["students"] });
-      qc.invalidateQueries({ queryKey: ["dashboard-summary"] });
+      refresh();
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),

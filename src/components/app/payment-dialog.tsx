@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { Copy, Download, MessageCircle, QrCode } from "lucide-react";
+import { Check, Copy, Download, MessageCircle, QrCode } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,8 @@ import { inr, upiLink } from "@/lib/payments";
 import { downloadReceipt, type ReceiptInput } from "@/lib/receipt";
 import { getInstitute } from "@/lib/academy-settings";
 import { openWhatsApp } from "@/lib/whatsapp";
+import { feesApi } from "@/lib/api";
+import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 
 export type PaymentTarget = {
   id: string;
@@ -42,6 +45,17 @@ export function PaymentDialog({
   const [amount, setAmount] = useState<string>("");
   const value = amount === "" ? dueDefault : Number(amount);
   const inst = getInstitute();
+  const refresh = useRefreshLinked();
+
+  const collect = useMutation({
+    mutationFn: (v: { id: string; received: number }) => feesApi.collect(v.id, v.received, "upi"),
+    onSuccess: () => {
+      toast.success("Payment recorded");
+      refresh();
+      onOpenChange(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const link = useMemo(
     () =>
@@ -140,6 +154,15 @@ export function PaymentDialog({
             }}
           >
             <Download className="h-4 w-4" /> Download receipt (PDF)
+          </Button>
+
+          <Button
+            className="w-full gap-1.5"
+            disabled={collect.isPending || value <= 0}
+            onClick={() => collect.mutate({ id: target.id, received: value })}
+          >
+            <Check className="h-4 w-4" />
+            {collect.isPending ? "Saving…" : `Mark ${inr(value)} received`}
           </Button>
         </div>
       </DialogContent>

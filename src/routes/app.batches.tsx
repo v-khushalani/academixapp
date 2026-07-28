@@ -18,6 +18,7 @@ import { BatchFormDialog } from "@/components/app/batch-form-dialog";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { batchesApi, type Batch } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { can } from "@/lib/rbac";
 
 export const Route = createFileRoute("/app/batches")({
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/app/batches")({
 
 function BatchesPage() {
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const refresh = useRefreshLinked();
   const { roles } = useAuth();
   const canWrite = can("batch:write", roles);
   const { data = [], isLoading } = useQuery({
@@ -44,7 +45,7 @@ function BatchesPage() {
     mutationFn: (id: string) => batchesApi.remove(id),
     onSuccess: () => {
       toast.success("Batch removed");
-      qc.invalidateQueries({ queryKey: ["batches"] });
+      refresh();
       setDeleting(null);
     },
     onError: (e: Error) => toast.error(e.message),

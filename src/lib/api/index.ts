@@ -31,14 +31,29 @@ function orThrow<T>({ data, error }: { data: T | null; error: unknown }): T {
   return data as T;
 }
 
+/** Query keys that must refresh together whenever money / enrolment data changes. */
+export const LINKED_KEYS = [
+  "students",
+  "batches",
+  "batch-roster",
+  "fees",
+  "dashboard-summary",
+  "timetable",
+  "attendance",
+  "tests",
+  "portal-fees",
+] as const;
+
 // ---------- Students ----------
 export const studentsApi = {
   async list(opts?: {
-    approval?: "approved" | "pending" | "rejected" | "all";
+    approval?: "approved" | "pending" | "rejected" | "enquiry" | "all";
+    approvals?: string[];
   }): Promise<(Student & { batch?: Batch | null })[]> {
     const approval = opts?.approval ?? "approved";
     let q = supabase.from("students").select("*, batch:batches(*)");
-    if (approval !== "all") q = q.eq("approval_status", approval);
+    if (opts?.approvals?.length) q = q.in("approval_status", opts.approvals);
+    else if (approval !== "all") q = q.eq("approval_status", approval);
     const { data, error } = await q.order("created_at", { ascending: false });
     if (error) throw error;
     return (data ?? []) as (Student & { batch?: Batch | null })[];
@@ -66,6 +81,15 @@ export const studentsApi = {
     const { error } = await supabase.rpc("set_student_approval", {
       _student_id: id,
       _decision: decision,
+    });
+    if (error) throw error;
+  },
+  /** Approve an applicant into a batch — creates the batch fee and records any token paid. */
+  async approveWithBatch(id: string, batchId: string, tokenAmount?: number) {
+    const { error } = await supabase.rpc("approve_admission", {
+      _student_id: id,
+      _batch_id: batchId,
+      _token_amount: tokenAmount ?? undefined,
     });
     if (error) throw error;
   },
@@ -129,6 +153,41 @@ export const feesApi = {
     if (error) throw error;
     return data ?? [];
   },
+  /** Outstanding batch-fee rows for one student (auto-created from the batch fee). */
+  async forStudent(studentId: string) {
+    const { data, error } = await supabase
+      .from("fees")
+      .select("*, batch:batches(id,name)")
+      .eq("student_id", studentId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
+  },
+  /** Record money received against an existing fee row. */
+  async collect(feeId: string, received: number, method?: string | null, note?: string | null) {
+    const { data: row, error: e1 } = await supabase
+      .from("fees")
+      .select("amount, amount_paid, receipt_no, description")
+      .eq("id", feeId)
+      .single();
+    if (e1) throw e1;
+    const amount = Number(row.amount);
+    const paid = Number(row.amount_paid ?? 0) + Number(received);
+    const status: Database["public"]["Enums"]["fee_status"] =
+      paid <= 0 ? "pending" : paid >= amount ? "paid" : "partial";
+    const { error } = await supabase
+      .from("fees")
+      .update({
+        amount_paid: paid,
+        status,
+        method: method || null,
+        paid_date: new Date().toISOString().slice(0, 10),
+        receipt_no: row.receipt_no ?? makeReceiptNo(),
+        description: note ? `${row.description ?? ""}${row.description ? " · " : ""}${note}` : row.description,
+      })
+      .eq("id", feeId);
+    if (error) throw error;
+  },
   async create(input: FeeInsert) {
     return orThrow(await supabase.from("fees").insert(input).select().single());
   },
@@ -140,6 +199,12 @@ export const feesApi = {
     if (error) throw error;
   },
 };
+
+export function makeReceiptNo() {
+  const d = new Date();
+  const stamp = `${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+  return `RCP-${stamp}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+}
 
 // ---------- Tests ----------
 export const testsApi = {

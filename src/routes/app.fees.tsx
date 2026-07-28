@@ -20,6 +20,7 @@ import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { PaymentDialog, type PaymentTarget } from "@/components/app/payment-dialog";
 import { feesApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { can } from "@/lib/rbac";
 import { WA_TEMPLATES, openWhatsApp, renderTemplate } from "@/lib/whatsapp";
 import { getTemplates, getInstitute } from "@/lib/academy-settings";
@@ -34,7 +35,7 @@ const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 type Row = Awaited<ReturnType<typeof feesApi.list>>[number];
 
 function FeesPage() {
-  const qc = useQueryClient();
+  const refresh = useRefreshLinked();
   const { roles } = useAuth();
   const canWrite = can("fees:write", roles);
   const { data = [], isLoading } = useQuery({ queryKey: ["fees"], queryFn: () => feesApi.list() });
@@ -60,7 +61,7 @@ function FeesPage() {
     mutationFn: (id: string) => feesApi.remove(id),
     onSuccess: () => {
       toast.success("Removed");
-      qc.invalidateQueries({ queryKey: ["fees"] });
+      refresh();
       setDeleting(null);
     },
   });
@@ -237,7 +238,7 @@ function FeesPage() {
           canWrite ? (
             <Button size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
               <Plus className="h-4 w-4" />
-              Record payment
+              Collect payment
             </Button>
           ) : null
         }

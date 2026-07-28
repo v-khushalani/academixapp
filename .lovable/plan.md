@@ -1,70 +1,53 @@
-## Aapka model — sahi hai, thoda extend karna padega
+# Connect everything: fees, admissions, timetable
 
-Aapne 3 logins bole. Classplus-style platform me actually **4 audiences** hote hain, kyunki student aur parent alag log hain (parent ke paas apna phone, aur ek se zyada bachche ho sakte hain):
+## 1. Batch fee = single source of truth
+
+The database already has `batches.default_fee`, `students.scholarship_percent`, `students.discount` and triggers that auto-create/recalculate a student's batch fee. Two problems found: the same trigger is registered twice on `students` (`trg_students_auto_batch_fee` and `students_auto_fee`), and there is no recalculation when a student *leaves* a batch or their batch changes.
+
+- Drop the duplicate trigger so a batch change fires once.
+- Extend recalculation so: batch change moves/re-creates the fee row for the new batch, removing a batch marks the old fee row appropriately, and scholarship/discount edits always re-net the amount (`fee = batch_fee − batch_fee×scholarship% − discount`).
+- Recompute status (`pending / partial / paid`) after every recalculation so Fees KPIs, dashboard totals, student detail and the parent portal all agree.
+
+## 2. Record fee = collect money, not invent invoices
+
+Amount and due date are junk in this flow because the batch decides the amount.
+
+- Replace the "Record payment" dialog with: pick student → it shows the auto-computed batch fee, already paid, and outstanding (read-only) → enter **amount received**, method, optional note → Save.
+- Optional "Other charge" toggle for genuine one-offs (books, exam fee) where a manual amount is legitimate.
+- After save: receipt number, paid date and status are set automatically, and Fees / Dashboard / Student detail / Portal fees refresh together.
+
+## 3. Admission process (single form, two outcomes)
+
+One public QR form replaces the paper enrollment form; the walk-in decides the outcome.
 
 ```text
-Academix (platform)
-  └── Institute (tenant, e.g. aapki academy)
-        ├── Admin / Staff login   → sab kuch manage
-        ├── Teacher login         → sirf attendance + marks
-        ├── Student login         → apni progress
-        └── Parent login          → apne bachchon ki progress
+QR / link  →  full details form  →  submitted
+                                      │
+              ┌───────────────────────┴────────────────────┐
+        "Joining now" (token/part payment)          "Just enquiring"
+                    │                                      │
+        Admissions → approve → Student            Enquiries → follow-up
+                    │                                (WhatsApp, reconsider)
+             assign batch → fee auto-created,
+             portal account, roster updated
 ```
 
-Aapke paas roles pehle se hain (owner, admin, faculty, receptionist, counsellor, accountant, student, parent) aur module-level RBAC bhi hai. Jo missing hai: **student/parent ke liye koi portal UI nahi hai**, sab log ek hi `/login` par jaate hain, aur database me parent ka user account student se link karne ka koi table nahi hai.
+- Form gains an intent step: **Enrolling now** vs **Just enquiring**, plus token/advance amount when enrolling.
+- Approving an applicant asks for the batch. Assigning the batch auto-creates the fee at the batch rate, records the token amount already paid (so status becomes `partial`), and adds the student to the roster.
+- Enquiries stay in the Enquiries tab with follow-up + "Convert to admission" that runs the same approve+batch flow.
 
----
+## 4. Timetable: drag batches straight in
 
-## Kya banega
+- Left panel gets a **Batches** list (draggable chips) above the existing class builder.
+- Dropping a batch on a cell creates the slot with that batch pre-filled and immediately opens a compact inline editor to pick **subject + teacher + room** (room defaults to the batch's room).
+- Existing conflict blocking (same room / teacher / batch overlap) stays.
 
-### 1. Teen alag login pages
-- `/login/student` — student ya parent dono yahin se (tab switch: "Main student hoon" / "Main parent hoon"), phone/email + password
-- `/login/teacher` — teachers ke liye, sign-in ke baad seedha Attendance par land
-- `/login/admin` — staff/admin ke liye (aaj wala `/login` yahan redirect ho jaayega)
+## 5. "Internally connected" pass
 
-Teeno ka backend same Supabase auth hai — sirf branding, copy aur post-login destination alag. Galat portal se login karne par saaf message: "Ye teacher login hai, aap student portal use karein" + sahi link.
+Audit every mutation so the related screens update: student ↔ batch roster ↔ fees ↔ dashboard KPIs ↔ reports ↔ parent portal, attendance/tests ↔ portal progress, timetable ↔ teacher "Today" screen. Concretely: shared query-key invalidation for `students`, `batches`, `fees`, `dashboard-summary`, `batch-roster`, `timetable`, plus fixing any screen that reads a value the triggers now own.
 
-### 2. Student/Parent portal (naya `/portal`)
-Alag, halka layout — app ka bhaari sidebar nahi, mobile-first bottom nav:
-- **Home** — attendance %, pichhle test ka score, pending fees, aaj ki classes — ek nazar me
-- **Attendance** — month calendar, present/absent/late days, absent dates ki list
-- **Progress** — har test ka score, max marks, batch average se comparison, trend chart
-- **Fees** — paid/pending, due date, receipt list
-- **Timetable** — apne batch ka weekly schedule
-- **Homework & Material** — assignments aur downloads
+## Technical notes
 
-Parent login me upar **child switcher** — ek se zyada bachche ho to switch karke dono ka data dekh sake. Sab data read-only.
-
-### 3. Auto account on approval
-Jab admin admission **approve** karta hai:
-- Student ka auth account ban jaata hai (phone/email se), `student` role assign
-- Monitoring parent (jo aapne "who monitors studies" me select kiya) ka account ban jaata hai, `parent` role
-- Dono ko WhatsApp deep-link jaata hai: "Aapka Academix login ready hai — yahan password set karein"
-- Same parent ke doosre bachche ho to naya account nahi banta, wahi account se dono bachche link ho jaate hain
-
-Approve karne wale ke liye Students page par "Resend login link" bhi rahega.
-
-### 4. Teacher portal tighten
-Faculty pehle se sirf Dashboard/Attendance/Tests/Timetable dekhta hai. Isko finish karenge: faculty sirf **apne assigned batches** ke students dekhe (abhi sabhi dikhte hain), aur teacher login ke baad landing page Attendance ho.
-
----
-
-## Technical section
-
-**Database migration**
-- `parent_students` table: `parent_user_id` → `auth.users`, `student_id` → `students`, `relation`, `is_primary`; unique (parent_user_id, student_id). GRANTs + RLS.
-- `students.user_id` already exists — student auth account isi me link hoga.
-- Security-definer helpers: `public.is_my_student(_student_id uuid)` — true agar `students.user_id = auth.uid()` ya `parent_students` me row hai.
-- Read-only RLS policies for `student`/`parent` roles on: `students` (own row), `attendance`, `test_results`, `fees`, `fee_payments`, `homework`, `study_material`, `timetable_slots` (own batch), all gated by `is_my_student()`.
-- `set_student_approval` RPC extend: approve par account provisioning trigger karega.
-
-**Account provisioning** — server function (`createServerFn`) with `supabaseAdmin` loaded inside handler: `auth.admin.createUser` (email confirm off, random password), role insert into `user_roles`, `parent_students` row, aur password-setup link generate karna. Admin-only, caller ka role `context.supabase` se verify hoga admin client use karne se pehle.
-
-**Routes**
-- `src/routes/login.student.tsx`, `login.teacher.tsx`, `login.admin.tsx`; existing `/login` → `/login/admin` redirect
-- `src/routes/portal.tsx` (layout + guard, `ssr: false`) with `portal.index.tsx`, `portal.attendance.tsx`, `portal.progress.tsx`, `portal.fees.tsx`, `portal.timetable.tsx`, `portal.homework.tsx`
-- `src/routes/app.tsx` guard: `student`/`parent` role wale user ko `/portal` par bhej dega; portal guard staff ko `/app` par
-
-**Reusable pieces** — `PortalShell` (header + bottom nav), `ChildSwitcher` (context for selected student), `StatTile`, `ScoreTrendChart` (recharts), aur `portalApi` in `src/lib/api/` — sab reads existing tables se, koi mock data nahi.
-
-**Sequence** — (1) migration, (2) provisioning server fn + approval hook, (3) three login pages + redirects, (4) portal layout + 6 pages, (5) faculty scoping + teacher landing, (6) mobile pass + Playwright verify with a real approved student.
+- New SQL migration: drop the duplicate `students_auto_fee` trigger, rewrite `auto_assign_batch_fee` / `recalc_batch_fee_on_student_change` to cover batch moves and removals, and add applicant intent + token-amount columns on `students` (used by the approval flow).
+- Frontend: `fee-form-dialog.tsx` rewritten as a collection dialog; `admission-form.tsx` + `app.admissions.tsx` gain the intent/token step and batch-on-approve; `app.timetable.tsx` gains the batch palette; centralised invalidation helper in `src/lib/api`.
+- No new backend service — everything runs through the existing Supabase client and triggers.
