@@ -299,25 +299,59 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
     queryKey: ["students", "pending"],
     queryFn: () => studentsApi.list({ approval: "pending" }),
   });
+  const { data: batches = [] } = useQuery({
+    queryKey: ["batches"],
+    queryFn: () => batchesApi.list(),
+  });
   const [preview, setPreview] = useState<Student | null>(null);
   const [credentials, setCredentials] = useState<ProvisionedAccount[] | null>(null);
+  const [admitting, setAdmitting] = useState<Student | null>(null);
+  const [batchId, setBatchId] = useState("");
+  const [token, setToken] = useState(0);
   const provision = useServerFn(provisionPortalAccounts);
+  const refresh = useRefreshLinked();
 
   const approveMut = useMutation({
-    mutationFn: async ({ id, decision }: { id: string; decision: "approved" | "rejected" }) => {
-      await studentsApi.setApproval(id, decision);
-      if (decision !== "approved") return null;
+    mutationFn: async ({
+      id,
+      decision,
+      batch_id,
+      token_amount,
+    }: {
+      id: string;
+      decision: "approved" | "rejected";
+      batch_id?: string;
+      token_amount?: number;
+    }) => {
+      if (decision !== "approved") {
+        await studentsApi.setApproval(id, decision);
+        return null;
+      }
+      await studentsApi.approveWithBatch(id, batch_id!, token_amount);
       const res = await provision({ data: { student_id: id } });
       return res.accounts;
     },
     onSuccess: (accounts, v) => {
-      toast.success(v.decision === "approved" ? "Application approved" : "Application rejected");
-      qc.invalidateQueries({ queryKey: ["students"] });
+      toast.success(
+        v.decision === "approved"
+          ? "Admitted — batch assigned and fees created"
+          : "Moved to enquiry records",
+      );
+      refresh();
       qc.invalidateQueries({ queryKey: ["students", "pending"] });
+      setAdmitting(null);
       if (accounts && accounts.length > 0) setCredentials(accounts);
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  function openAdmit(s: Student) {
+    setAdmitting(s);
+    setBatchId(s.batch_id ?? "");
+    setToken(Number(s.token_amount ?? 0));
+  }
+
+  const admitBatch = batches.find((b) => b.id === batchId);
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (data.length === 0)
@@ -339,6 +373,7 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
             <th className="px-4 py-3">Class</th>
             <th className="px-4 py-3">Program</th>
             <th className="px-4 py-3">Parent</th>
+            <th className="px-4 py-3">Token paid</th>
             <th className="px-4 py-3">Submitted</th>
             <th className="px-4 py-3 text-right">Actions</th>
           </tr>
@@ -365,6 +400,11 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
                   {s.father_phone || s.mother_phone || "—"}
                 </p>
               </td>
+              <td className="px-4 py-3 text-sm">
+                {Number(s.token_amount ?? 0) > 0
+                  ? "₹" + Number(s.token_amount).toLocaleString("en-IN")
+                  : "—"}
+              </td>
               <td className="px-4 py-3 text-xs text-muted-foreground">
                 {s.onboarding_completed_at
                   ? new Date(s.onboarding_completed_at).toLocaleDateString()
@@ -388,10 +428,10 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
                     <Button
                       size="sm"
                       className="gap-1 bg-success text-success-foreground hover:bg-success/90"
-                      onClick={() => approveMut.mutate({ id: s.id, decision: "approved" })}
+                      onClick={() => openAdmit(s)}
                     >
                       <Check className="h-3.5 w-3.5" />
-                      Approve
+                      Admit
                     </Button>
                   </div>
                 )}
@@ -402,6 +442,67 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
       </table>
       <ApplicantPreview student={preview} onClose={() => setPreview(null)} />
       <CredentialsDialog accounts={credentials} onClose={() => setCredentials(null)} />
+
+      <Dialog open={Boolean(admitting)} onOpenChange={(v) => !v && setAdmitting(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Admit {admitting?.full_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Batch</Label>
+              <Select value={batchId} onValueChange={setBatchId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {batches.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name} · ₹{Number(b.default_fee ?? 0).toLocaleString("en-IN")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Token / advance received (₹)</Label>
+              <Input
+                type="number"
+                min={0}
+                value={token}
+                onChange={(e) => setToken(Number(e.target.value) || 0)}
+              />
+            </div>
+            <p className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
+              Batch fee{" "}
+              <span className="font-medium text-foreground">
+                ₹{Number(admitBatch?.default_fee ?? 0).toLocaleString("en-IN")}
+              </span>{" "}
+              is assigned automatically. Scholarship or discount can be set later on the student —
+              the fee updates itself.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAdmitting(null)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!batchId || approveMut.isPending}
+              onClick={() =>
+                admitting &&
+                approveMut.mutate({
+                  id: admitting.id,
+                  decision: "approved",
+                  batch_id: batchId,
+                  token_amount: token,
+                })
+              }
+            >
+              {approveMut.isPending ? "Admitting…" : "Confirm admission"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
