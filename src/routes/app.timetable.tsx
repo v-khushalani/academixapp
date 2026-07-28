@@ -218,7 +218,7 @@ function TimetablePage() {
     }
     if (p.quick) {
       const created = await createMut.mutateAsync(candidate);
-      setEditing(created as TimetableSlot);
+      if (created) setEditing(created);
       setDefaultDay(dayIdx);
       setDialogOpen(true);
       return;
@@ -467,6 +467,73 @@ function TimetablePage() {
 }
 
 function ClassBuilder({ batches, faculty }: { batches: Batch[]; faculty: Faculty[] }) {
+  return <ClassBuilderInner batches={batches} faculty={faculty} />;
+}
+
+function BatchPalette({ batches }: { batches: Batch[] }) {
+  const [duration, setDuration] = useState(60);
+
+  return (
+    <aside className="space-y-2 rounded-lg border border-border bg-card p-3">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Batches
+        </p>
+        <p className="mt-0.5 text-[11px] text-muted-foreground">
+          Drag a batch onto any cell — then pick subject &amp; teacher.
+        </p>
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs">Class length</Label>
+        <Select value={String(duration)} onValueChange={(v) => setDuration(Number(v))}>
+          <SelectTrigger className="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {[30, 45, 60, 75, 90, 120].map((m) => (
+              <SelectItem key={m} value={String(m)}>
+                {m} min
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="max-h-64 space-y-1.5 overflow-y-auto pr-0.5">
+        {batches.length === 0 && (
+          <p className="text-[11px] text-muted-foreground">No batches yet — create one first.</p>
+        )}
+        {batches.map((b) => (
+          <div
+            key={b.id}
+            draggable
+            onDragStart={(e) =>
+              e.dataTransfer.setData(
+                "application/json",
+                JSON.stringify({
+                  batchId: b.id,
+                  room: b.room ?? undefined,
+                  durationMin: duration,
+                  quick: true,
+                } satisfies DragPayload),
+              )
+            }
+            className="flex cursor-grab items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-xs active:cursor-grabbing"
+          >
+            <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
+            <span className="truncate font-medium">{b.name}</span>
+            {b.room && (
+              <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
+                Room {b.room}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+function ClassBuilderInner({ batches, faculty }: { batches: Batch[]; faculty: Faculty[] }) {
   const [batchId, setBatchId] = useState<string>("");
   const [facultyId, setFacultyId] = useState<string>("");
   const [subject, setSubject] = useState("");
