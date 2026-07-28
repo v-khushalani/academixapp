@@ -24,7 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { leadsApi, studentsApi, type Lead, type LeadInsert, type Student } from "@/lib/api";
+import { batchesApi, leadsApi, studentsApi, type Lead, type LeadInsert, type Student } from "@/lib/api";
+import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import { supabase } from "@/integrations/supabase/client";

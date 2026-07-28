@@ -21,8 +21,8 @@ export function EnquiryRecords({ canWrite }: { canWrite: boolean }) {
   const [preview, setPreview] = useState<Student | null>(null);
 
   const { data = [], isLoading } = useQuery({
-    queryKey: ["students", "rejected"],
-    queryFn: () => studentsApi.list({ approval: "rejected" }),
+    queryKey: ["students", "enquiries"],
+    queryFn: () => studentsApi.list({ approvals: ["rejected", "enquiry"] }),
   });
 
   const rows = useMemo(() => {
@@ -38,7 +38,7 @@ export function EnquiryRecords({ canWrite }: { canWrite: boolean }) {
   const reopen = useMutation({
     mutationFn: (id: string) => studentsApi.setApproval(id, "pending"),
     onSuccess: () => {
-      toast.success("Moved back to pending applications");
+      toast.success("Moved to pending applications — admit them with a batch");
       qc.invalidateQueries({ queryKey: ["students"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -67,7 +67,8 @@ export function EnquiryRecords({ canWrite }: { canWrite: boolean }) {
         <div className="rounded-lg border border-dashed border-border bg-card p-8 text-center">
           <p className="text-sm font-medium">No enquiry records yet</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Applications you reject land here so you can call them back later.
+            Walk-ins who chose "just enquiring", and applications you reject, land here for
+            follow-up.
           </p>
         </div>
       ) : (
@@ -108,7 +109,7 @@ function EnquiryCard({
     mutationFn: () => studentsApi.setNotes(student.id, notes),
     onSuccess: () => {
       toast.success("Follow-up note saved");
-      qc.invalidateQueries({ queryKey: ["students", "rejected"] });
+      qc.invalidateQueries({ queryKey: ["students", "enquiries"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -168,7 +169,7 @@ function EnquiryCard({
         {canWrite && (
           <Button size="sm" className="gap-1" onClick={onReopen}>
             <RotateCcw className="h-3.5 w-3.5" />
-            Reconsider
+            Convert to admission
           </Button>
         )}
       </div>
