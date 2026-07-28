@@ -120,8 +120,7 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
     },
     onSuccess: () => {
       toast.success(isEdit ? "Student updated" : "Student added");
-      qc.invalidateQueries({ queryKey: ["students"] });
-      qc.invalidateQueries({ queryKey: ["dashboard-summary"] });
+      refresh();
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),
