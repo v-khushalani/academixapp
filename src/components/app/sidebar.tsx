@@ -7,15 +7,11 @@ import {
   CalendarCheck,
   Wallet,
   FileText,
-  BookOpen,
-  FolderOpen,
   Calendar,
   GraduationCap,
   BarChart3,
-  Bell,
   Settings,
   LogOut,
-  User,
 } from "lucide-react";
 import {
   Sidebar,
@@ -49,17 +45,14 @@ const nav: NavItem[] = [
   { title: "Attendance", url: "/app/attendance", icon: CalendarCheck, key: "attendance" },
   { title: "Fees", url: "/app/fees", icon: Wallet, key: "fees" },
   { title: "Tests", url: "/app/tests", icon: FileText, key: "tests" },
-  { title: "Homework", url: "/app/homework", icon: BookOpen, key: "homework" },
-  { title: "Study Material", url: "/app/study-material", icon: FolderOpen, key: "study-material" },
   { title: "Timetable", url: "/app/timetable", icon: Calendar, key: "timetable" },
   { title: "Faculty", url: "/app/faculty", icon: GraduationCap, key: "faculty" },
   { title: "Reports", url: "/app/reports", icon: BarChart3, key: "reports" },
-  { title: "Notifications", url: "/app/notifications", icon: Bell, key: "notifications" },
   { title: "Settings", url: "/app/settings", icon: Settings, key: "settings" },
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { roles, signOut } = useAuth();
@@ -105,7 +98,11 @@ export function AppSidebar() {
                 return (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
-                      <Link to={item.url} className="flex items-center gap-2">
+                      <Link
+                        to={item.url}
+                        onClick={() => isMobile && setOpenMobile(false)}
+                        className="flex items-center gap-2"
+                      >
                         <item.icon className="h-4 w-4 shrink-0" />
                         {!collapsed && <span className="truncate">{item.title}</span>}
                       </Link>
@@ -119,12 +116,6 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Profile">
-              <User className="h-4 w-4 shrink-0" />
-              {!collapsed && <span>Profile</span>}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Sign out" onClick={() => signOut()}>
               <LogOut className="h-4 w-4 shrink-0" />
