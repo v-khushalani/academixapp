@@ -45,6 +45,8 @@ type DragPayload = {
   subject?: string;
   room?: string;
   durationMin?: number;
+  /** dropped straight from the batch list — open the editor to pick subject + teacher */
+  quick?: boolean;
 };
 
 function toMin(t: string) {
@@ -187,7 +189,7 @@ function TimetablePage() {
     return bad;
   }, [slots]);
 
-  function onDropCell(dayIdx: number, band: { start: string; end: string }, ev: DragEvent) {
+  async function onDropCell(dayIdx: number, band: { start: string; end: string }, ev: DragEvent) {
     ev.preventDefault();
     if (!canWrite) return;
     const raw = ev.dataTransfer.getData("application/json");
@@ -212,6 +214,13 @@ function TimetablePage() {
         .filter(Boolean)
         .join("; ");
       toast.error(`Conflict with existing slot (${reasons || "same day/time"}). Not added.`);
+      return;
+    }
+    if (p.quick) {
+      const created = await createMut.mutateAsync(candidate);
+      setEditing(created as TimetableSlot);
+      setDefaultDay(dayIdx);
+      setDialogOpen(true);
       return;
     }
     createMut.mutate(candidate);
@@ -330,7 +339,12 @@ function TimetablePage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-[260px_1fr]">
-          {canWrite && <ClassBuilder batches={batches} faculty={faculty} />}
+          {canWrite && (
+            <div className="space-y-4">
+              <BatchPalette batches={batches} />
+              <ClassBuilder batches={batches} faculty={faculty} />
+            </div>
+          )}
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : (
