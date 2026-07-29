@@ -212,12 +212,6 @@ export function outstandingOf(f: { amount: number | string; amount_paid?: number
   return Math.max(0, Number(f.amount) - Number(f.amount_paid ?? 0));
 }
 
-function _unusedReceiptNo() {
-  const d = new Date();
-  const stamp = `${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
-  return `RCP-${stamp}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-}
-
 // ---------- Tests ----------
 export const testsApi = {
   async list() {
