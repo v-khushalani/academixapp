@@ -22,7 +22,12 @@ function TeachLayout() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const [institute, setInstitute] = useState("Academix");
 
-  useEffect(() => setInstitute(getInstitute().name || "Academix"), []);
+  useEffect(() => {
+    const sync = () => setInstitute(getInstitute().name || "Academix");
+    sync();
+    window.addEventListener("vk-institute-changed", sync);
+    return () => window.removeEventListener("vk-institute-changed", sync);
+  }, []);
 
   const allowed = roles.some((r) => ["faculty", "owner", "admin"].includes(r));
   const isFamily = !allowed && (roles.includes("student") || roles.includes("parent"));
