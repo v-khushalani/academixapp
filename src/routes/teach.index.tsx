@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CalendarCheck, ClipboardList, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { myFaculty, mySlots } from "@/lib/api/teach";
+import { formatTime12 } from "@/lib/time";
 
 export const Route = createFileRoute("/teach/")({
   head: () => ({
