@@ -13,6 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
+import { DailySchedule } from "@/components/app/daily-schedule";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -92,6 +93,7 @@ const UNASSIGNED = "__none__";
 
 function TimetablePage() {
   const qc = useQueryClient();
+  const [mode, setMode] = useState<"daily" | "weekly">("daily");
   const { roles } = useAuth();
   const canWrite = can("batch:write", roles);
 
