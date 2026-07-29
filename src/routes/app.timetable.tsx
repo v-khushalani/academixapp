@@ -381,6 +381,33 @@ function TimetablePage() {
         }
       />
       <PageBody>
+        <div className="mb-4 inline-flex rounded-md border border-border bg-muted/40 p-0.5">
+          {(["daily", "weekly"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              className={`rounded px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                mode === m
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {m === "daily" ? "Today's schedule" : "Weekly plan"}
+            </button>
+          ))}
+        </div>
+
+        {mode === "daily" ? (
+          <DailySchedule
+            slots={slots}
+            rooms={rooms}
+            faculty={faculty}
+            batches={batches}
+            canWrite={canWrite}
+          />
+        ) : (
+          <>
         {/* controls */}
         <div className="mb-4 space-y-3 rounded-lg border border-border bg-card p-3">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -689,6 +716,8 @@ function TimetablePage() {
             </div>
           )}
         </div>
+          </>
+        )}
       </PageBody>
       <TimetableSlotDialog
         open={dialogOpen}
