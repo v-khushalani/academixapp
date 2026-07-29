@@ -76,7 +76,9 @@ export function AppSidebar() {
   const isActive = (url: string, exact?: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(url + "/");
 
-  const items = nav.filter((n) => roles.length === 0 || canAccess(n.key, roles));
+  const base = nav.filter((n) => roles.length === 0 || canAccess(n.key, roles));
+  // Platform console is only ever listed for Team Academix.
+  const items = isSuperAdmin(roles) ? [...base, platformNav] : base;
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
