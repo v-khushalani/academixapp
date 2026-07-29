@@ -1,0 +1,2 @@
+ALTER TABLE public.institutes
+  ADD COLUMN IF NOT EXISTS shifts jsonb NOT NULL DEFAULT '{"morning":{"start":"07:00","end":"11:00","period":60},"evening":{"start":"15:00","end":"19:00","period":60}}'::jsonb;

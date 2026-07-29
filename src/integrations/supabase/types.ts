@@ -432,6 +432,7 @@ export type Database = {
           phone: string | null
           plan: string
           primary_color: string | null
+          shifts: Json
           slug: string
           status: string
           tagline: string | null
@@ -449,6 +450,7 @@ export type Database = {
           phone?: string | null
           plan?: string
           primary_color?: string | null
+          shifts?: Json
           slug: string
           status?: string
           tagline?: string | null
@@ -466,6 +468,7 @@ export type Database = {
           phone?: string | null
           plan?: string
           primary_color?: string | null
+          shifts?: Json
           slug?: string
           status?: string
           tagline?: string | null
