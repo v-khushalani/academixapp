@@ -432,6 +432,7 @@ export type Database = {
           phone: string | null
           plan: string
           primary_color: string | null
+          room_limit: number
           shifts: Json
           slug: string
           status: string
@@ -450,6 +451,7 @@ export type Database = {
           phone?: string | null
           plan?: string
           primary_color?: string | null
+          room_limit?: number
           shifts?: Json
           slug: string
           status?: string
@@ -468,6 +470,7 @@ export type Database = {
           phone?: string | null
           plan?: string
           primary_color?: string | null
+          room_limit?: number
           shifts?: Json
           slug?: string
           status?: string
@@ -1190,6 +1193,80 @@ export type Database = {
           },
         ]
       }
+      timetable_day_plan: {
+        Row: {
+          batch_id: string | null
+          created_at: string
+          date: string
+          faculty_id: string | null
+          id: string
+          institute_id: string
+          notes: string | null
+          room_id: string | null
+          slot_id: string | null
+          status: string
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string
+          date: string
+          faculty_id?: string | null
+          id?: string
+          institute_id?: string
+          notes?: string | null
+          room_id?: string | null
+          slot_id?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string
+          date?: string
+          faculty_id?: string | null
+          id?: string
+          institute_id?: string
+          notes?: string | null
+          room_id?: string | null
+          slot_id?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_day_plan_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_day_plan_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_day_plan_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_day_plan_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "timetable_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       timetable_slots: {
         Row: {
           batch_id: string | null
@@ -1388,6 +1465,7 @@ export type Database = {
         Returns: boolean
       }
       is_my_student: { Args: { _student_id: string }; Returns: boolean }
+      is_superadmin: { Args: never; Returns: boolean }
       my_batch_ids: { Args: never; Returns: string[] }
       my_faculty_batch_ids: { Args: never; Returns: string[] }
       set_student_approval: {
@@ -1460,6 +1538,7 @@ export type Database = {
         | "accountant"
         | "student"
         | "parent"
+        | "superadmin"
       attendance_status: "present" | "absent" | "late" | "excused"
       automation_trigger:
         | "attendance_absent"
@@ -1629,6 +1708,7 @@ export const Constants = {
         "accountant",
         "student",
         "parent",
+        "superadmin",
       ],
       attendance_status: ["present", "absent", "late", "excused"],
       automation_trigger: [
