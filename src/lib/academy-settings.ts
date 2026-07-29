@@ -4,6 +4,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { WA_TEMPLATES, type WhatsAppTemplateKey } from "./whatsapp";
 
+export type Shift = { start: string; end: string; period: number };
+export type Shifts = { morning: Shift; evening: Shift };
+
 export type InstituteSettings = {
   name: string;
   tagline: string;
@@ -14,10 +17,16 @@ export type InstituteSettings = {
   primary_color: string; // hex like #4f46e5
   upi_id: string; // e.g. institute@okhdfcbank — used for fee QR codes
   upi_name: string; // payee name shown in the UPI app
+  shifts: Shifts; // timetable morning / evening windows
 };
 
 const KEY_INSTITUTE = "vk_institute";
 const KEY_TEMPLATES = "vk_wa_templates";
+
+export const DEFAULT_SHIFTS: Shifts = {
+  morning: { start: "07:00", end: "11:00", period: 60 },
+  evening: { start: "15:00", end: "19:00", period: 60 },
+};
 
 const DEFAULT_INSTITUTE: InstituteSettings = {
   name: "Your Institute",
@@ -29,6 +38,7 @@ const DEFAULT_INSTITUTE: InstituteSettings = {
   primary_color: "",
   upi_id: "",
   upi_name: "",
+  shifts: DEFAULT_SHIFTS,
 };
 
 function safeRead<T>(key: string): Partial<T> {
@@ -41,7 +51,15 @@ function safeRead<T>(key: string): Partial<T> {
 }
 
 export function getInstitute(): InstituteSettings {
-  return { ...DEFAULT_INSTITUTE, ...safeRead<InstituteSettings>(KEY_INSTITUTE) };
+  const stored = safeRead<InstituteSettings>(KEY_INSTITUTE);
+  return {
+    ...DEFAULT_INSTITUTE,
+    ...stored,
+    shifts: {
+      morning: { ...DEFAULT_SHIFTS.morning, ...(stored.shifts?.morning ?? {}) },
+      evening: { ...DEFAULT_SHIFTS.evening, ...(stored.shifts?.evening ?? {}) },
+    },
+  };
 }
 
 function writeCache(s: InstituteSettings) {
@@ -67,6 +85,7 @@ export async function saveInstitute(s: InstituteSettings) {
       primary_color: s.primary_color || null,
       upi_id: s.upi_id || null,
       upi_name: s.upi_name || null,
+      shifts: s.shifts ?? DEFAULT_SHIFTS,
     })
     .eq("id", row.id);
   if (error) throw error;
@@ -76,7 +95,9 @@ export async function saveInstitute(s: InstituteSettings) {
 export async function hydrateInstitute() {
   const { data } = await supabase
     .from("institutes")
-    .select("name, tagline, address, phone, email, academic_year, primary_color, upi_id, upi_name")
+    .select(
+      "name, tagline, address, phone, email, academic_year, primary_color, upi_id, upi_name, shifts",
+    )
     .maybeSingle();
   if (!data) return;
   writeCache({

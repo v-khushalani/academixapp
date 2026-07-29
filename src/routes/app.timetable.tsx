@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState, type DragEvent } from "react";
+import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2, GripVertical, Pencil, Share2, AlertTriangle } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
@@ -25,7 +25,13 @@ import {
 } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
-import { getInstitute } from "@/lib/academy-settings";
+import {
+  getInstitute,
+  saveInstitute,
+  DEFAULT_SHIFTS,
+  type Shifts,
+} from "@/lib/academy-settings";
+import { formatTime12, toMinutes, toHHMM } from "@/lib/time";
 
 export const Route = createFileRoute("/app/timetable")({
   component: TimetablePage,
@@ -49,10 +55,9 @@ type DragPayload = {
   quick?: boolean;
 };
 
-function toMin(t: string) {
-  const [h, m] = t.slice(0, 5).split(":").map(Number);
-  return h * 60 + m;
-}
+const toMin = toMinutes;
+type ShiftKey = "morning" | "evening";
+const SHIFT_LABEL: Record<ShiftKey, string> = { morning: "Morning", evening: "Evening" };
 function overlaps(aS: string, aE: string, bS: string, bE: string) {
   return toMin(aS) < toMin(bE) && toMin(bS) < toMin(aE);
 }
@@ -113,14 +118,30 @@ function TimetablePage() {
     queryFn: () => facultyApi.list(),
   });
 
-  // Time band settings (editable)
-  const [startHour, setStartHour] = useState(8);
-  const [endHour, setEndHour] = useState(20);
-  const [slotMinutes, setSlotMinutes] = useState(30);
-  const bands = useMemo(
-    () => buildBands(startHour, endHour, slotMinutes),
-    [startHour, endHour, slotMinutes],
+  // Shift settings (persisted on the institute row)
+  const [shifts, setShifts] = useState<Shifts>(() => getInstitute().shifts ?? DEFAULT_SHIFTS);
+  const [shiftKey, setShiftKey] = useState<ShiftKey>(() =>
+    new Date().getHours() < 12 ? "morning" : "evening",
   );
+  const shift = shifts[shiftKey];
+  const bands = useMemo(
+    () => buildBands(shift.start, shift.end, shift.period),
+    [shift.start, shift.end, shift.period],
+  );
+  const windowStart = toMin(shift.start);
+  const windowEnd = toMin(shift.end);
+
+  function patchShift(patch: Partial<Shifts[ShiftKey]>) {
+    setShifts((prev) => ({ ...prev, [shiftKey]: { ...prev[shiftKey], ...patch } }));
+  }
+  async function persistShifts() {
+    try {
+      await saveInstitute({ ...getInstitute(), shifts });
+      toast.success("Shift timings saved");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TimetableSlot | null>(null);
@@ -154,18 +175,29 @@ function TimetablePage() {
     return g;
   }, [slots]);
 
-  // Bands within a slot's duration (after its start band) that are "covered" and should hide the drop UI.
+  // Bands a longer class (e.g. 90 min in a 60 min grid) continues into.
   const covered = useMemo(() => {
     const c = new Set<string>();
     slots.forEach((s) => {
       const sM = toMin(s.start_time),
         eM = toMin(s.end_time);
-      for (let m = sM + slotMinutes; m < eM; m += slotMinutes) {
-        c.add(`${s.day_of_week}|${fmt(m)}`);
-      }
+      bands.forEach((b) => {
+        const bM = toMin(b.start);
+        if (bM > sM && bM < eM) c.add(`${s.day_of_week}|${b.start}`);
+      });
     });
     return c;
-  }, [slots, slotMinutes]);
+  }, [slots, bands]);
+
+  // Slots that fall outside the active shift window (so nothing is silently hidden).
+  const outsideCount = useMemo(
+    () =>
+      slots.filter((s) => {
+        const m = toMin(s.start_time);
+        return m < windowStart || m >= windowEnd;
+      }).length,
+    [slots, windowStart, windowEnd],
+  );
 
   // Precompute conflict set: any slot that overlaps another on same day for same room/teacher/batch
   const conflictIds = useMemo(() => {
@@ -241,7 +273,7 @@ function TimetablePage() {
       if (!rows.length) return;
       lines.push(`\n*${dayLabels[dow]}*`);
       rows.forEach((r) => {
-        const time = `${r.start_time.slice(0, 5)}–${r.end_time.slice(0, 5)}`;
+        const time = `${formatTime12(r.start_time)}–${formatTime12(r.end_time)}`;
         const parts = [
           time,
           r.batch?.name,
@@ -298,58 +330,91 @@ function TimetablePage() {
             </p>
           </div>
         )}
-        <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-3">
-          <div className="space-y-1">
-            <Label className="text-xs">Day start</Label>
-            <Input
-              type="number"
-              min={0}
-              max={23}
-              value={startHour}
-              onChange={(e) => setStartHour(Number(e.target.value) || 0)}
-              className="h-8 w-20"
-            />
+        <div className="mb-4 space-y-3 rounded-lg border border-border bg-card p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex rounded-md border border-border p-0.5">
+              {(["morning", "evening"] as ShiftKey[]).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setShiftKey(k)}
+                  className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
+                    shiftKey === k
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {SHIFT_LABEL[k]} shift
+                </button>
+              ))}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {formatTime12(shift.start)} – {formatTime12(shift.end)} · {shift.period} min periods
+            </span>
+            {outsideCount > 0 && (
+              <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                {outsideCount} slot(s) outside this shift
+              </span>
+            )}
+            <p className="ml-auto text-xs text-muted-foreground">{slots.length} scheduled</p>
           </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Day end</Label>
-            <Input
-              type="number"
-              min={1}
-              max={24}
-              value={endHour}
-              onChange={(e) => setEndHour(Number(e.target.value) || 24)}
-              className="h-8 w-20"
-            />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Grid step (min)</Label>
-            <Input
-              type="number"
-              min={15}
-              max={60}
-              step={15}
-              value={slotMinutes}
-              onChange={(e) => setSlotMinutes(Number(e.target.value) || 30)}
-              className="h-8 w-24"
-            />
-          </div>
-          <p className="ml-auto text-xs text-muted-foreground">
-            {slots.length} scheduled · classes can be 30/45/60/90 min
-          </p>
+          {canWrite && (
+            <div className="flex flex-wrap items-end gap-3 border-t border-border pt-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Shift start</Label>
+                <Input
+                  type="time"
+                  value={shift.start}
+                  onChange={(e) => patchShift({ start: e.target.value })}
+                  className="h-8 w-32"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Shift end</Label>
+                <Input
+                  type="time"
+                  value={shift.end}
+                  onChange={(e) => patchShift({ end: e.target.value })}
+                  className="h-8 w-32"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Period length</Label>
+                <Select
+                  value={String(shift.period)}
+                  onValueChange={(v) => patchShift({ period: Number(v) })}
+                >
+                  <SelectTrigger className="h-8 w-28 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[45, 60, 90].map((m) => (
+                      <SelectItem key={m} value={String(m)}>
+                        {m} min
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button size="sm" variant="outline" className="h-8" onClick={persistShifts}>
+                Save timings
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="grid gap-4 md:grid-cols-[260px_1fr]">
           {canWrite && (
             <div className="space-y-4">
-              <BatchPalette batches={batches} />
-              <ClassBuilder batches={batches} faculty={faculty} />
+              <BatchPalette batches={batches} defaultDuration={shift.period} />
+              <ClassBuilder batches={batches} faculty={faculty} defaultDuration={shift.period} />
             </div>
           )}
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : (
             <div className="overflow-x-auto rounded-lg border border-border bg-card">
-              <table className="w-full min-w-[820px] text-sm">
+              <table className="w-full min-w-[760px] text-sm">
                 <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
                   <tr>
                     <th className="w-24 border-b border-border px-2 py-2">Time</th>
@@ -363,10 +428,10 @@ function TimetablePage() {
                 <tbody>
                   {bands.map((band) => (
                     <tr key={band.start} className="align-top">
-                      <td className="border-b border-border px-2 py-2 text-xs font-medium text-muted-foreground">
-                        {band.start}
+                      <td className="whitespace-nowrap border-b border-border px-2 py-2 text-xs font-medium text-muted-foreground">
+                        {formatTime12(band.start)}
                         <br />
-                        <span className="text-[10px]">– {band.end}</span>
+                        <span className="text-[10px]">– {formatTime12(band.end)}</span>
                       </td>
                       {DAY_INDEX.map((dow) => {
                         const cells = grid.get(`${dow}|${band.start}`) ?? [];
@@ -394,8 +459,8 @@ function TimetablePage() {
                                       <AlertTriangle className="h-3 w-3 shrink-0 text-destructive" />
                                     )}
                                   </div>
-                                  <p className="text-[10px] font-mono text-muted-foreground">
-                                    {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
+                                  <p className="text-[10px] text-muted-foreground">
+                                    {formatTime12(s.start_time)} – {formatTime12(s.end_time)}
                                   </p>
                                   <p className="truncate text-[10px] text-muted-foreground">
                                     {s.batch?.name ?? "—"}
@@ -466,12 +531,28 @@ function TimetablePage() {
   );
 }
 
-function ClassBuilder({ batches, faculty }: { batches: Batch[]; faculty: Faculty[] }) {
-  return <ClassBuilderInner batches={batches} faculty={faculty} />;
+function ClassBuilder({
+  batches,
+  faculty,
+  defaultDuration,
+}: {
+  batches: Batch[];
+  faculty: Faculty[];
+  defaultDuration: number;
+}) {
+  return (
+    <ClassBuilderInner
+      key={defaultDuration}
+      batches={batches}
+      faculty={faculty}
+      defaultDuration={defaultDuration}
+    />
+  );
 }
 
-function BatchPalette({ batches }: { batches: Batch[] }) {
-  const [duration, setDuration] = useState(60);
+function BatchPalette({ batches, defaultDuration }: { batches: Batch[]; defaultDuration: number }) {
+  const [duration, setDuration] = useState(defaultDuration);
+  useEffect(() => setDuration(defaultDuration), [defaultDuration]);
 
   return (
     <aside className="space-y-2 rounded-lg border border-border bg-card p-3">
@@ -490,9 +571,9 @@ function BatchPalette({ batches }: { batches: Batch[] }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {[30, 45, 60, 75, 90, 120].map((m) => (
+            {[45, 60, 90].map((m) => (
               <SelectItem key={m} value={String(m)}>
-                {m} min
+                {m === 60 ? "1 hour" : m === 90 ? "1.5 hours" : `${m} min`}
               </SelectItem>
             ))}
           </SelectContent>
@@ -533,12 +614,20 @@ function BatchPalette({ batches }: { batches: Batch[] }) {
   );
 }
 
-function ClassBuilderInner({ batches, faculty }: { batches: Batch[]; faculty: Faculty[] }) {
+function ClassBuilderInner({
+  batches,
+  faculty,
+  defaultDuration,
+}: {
+  batches: Batch[];
+  faculty: Faculty[];
+  defaultDuration: number;
+}) {
   const [batchId, setBatchId] = useState<string>("");
   const [facultyId, setFacultyId] = useState<string>("");
   const [subject, setSubject] = useState("");
   const [room, setRoom] = useState("");
-  const [duration, setDuration] = useState<number>(60);
+  const [duration, setDuration] = useState<number>(defaultDuration);
 
   const selectedBatch = batches.find((b) => b.id === batchId);
   const selectedFaculty = faculty.find((f) => f.id === facultyId);
@@ -636,9 +725,9 @@ function ClassBuilderInner({ batches, faculty }: { batches: Batch[]; faculty: Fa
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {[30, 45, 60, 75, 90, 120].map((m) => (
+            {[45, 60, 90].map((m) => (
               <SelectItem key={m} value={String(m)}>
-                {m} min
+                {m === 60 ? "1 hour" : m === 90 ? "1.5 hours" : `${m} min`}
               </SelectItem>
             ))}
           </SelectContent>
@@ -679,17 +768,16 @@ function ClassBuilderInner({ batches, faculty }: { batches: Batch[]; faculty: Fa
   );
 }
 
-function buildBands(startHour: number, endHour: number, slotMinutes: number) {
+function buildBands(start: string, end: string, period: number) {
   const out: { start: string; end: string }[] = [];
-  const startM = Math.max(0, Math.min(23, startHour)) * 60;
-  const endM = Math.max(startM + slotMinutes, Math.min(24, endHour) * 60);
-  for (let m = startM; m + slotMinutes <= endM; m += slotMinutes) {
-    out.push({ start: fmt(m), end: fmt(m + slotMinutes) });
+  const step = Math.max(15, period || 60);
+  const startM = toMinutes(start);
+  const endM = Math.max(startM + step, toMinutes(end));
+  for (let m = startM; m < endM; m += step) {
+    out.push({ start: toHHMM(m), end: toHHMM(Math.min(m + step, endM)) });
   }
   return out;
 }
 function fmt(m: number) {
-  const h = Math.floor(m / 60),
-    mm = m % 60;
-  return `${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+  return toHHMM(m);
 }

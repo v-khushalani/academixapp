@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { portalApi } from "@/lib/api/portal";
 import { usePortalStudent, PortalCard } from "@/components/portal/portal-shell";
+import { formatTime12 } from "@/lib/time";
 
 export const Route = createFileRoute("/portal/timetable")({
   head: () => ({
@@ -73,8 +74,8 @@ function PortalTimetable() {
                           {s.room ? ` · Room ${s.room}` : ""}
                         </p>
                       </div>
-                      <span className="shrink-0 text-xs font-medium text-muted-foreground">
-                        {String(s.start_time).slice(0, 5)}–{String(s.end_time).slice(0, 5)}
+                      <span className="shrink-0 whitespace-nowrap text-xs font-medium text-muted-foreground">
+                        {formatTime12(s.start_time)} – {formatTime12(s.end_time)}
                       </span>
                     </li>
                   ))}
