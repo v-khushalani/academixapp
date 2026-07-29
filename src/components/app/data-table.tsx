@@ -154,11 +154,11 @@ export function DataTable<T extends { id: string | number }>({
               onClick={onRowClick ? () => onRowClick(r) : undefined}
               className={`rounded-lg border border-border bg-card p-3 ${onRowClick ? "active:bg-muted/40" : ""}`}
             >
-              <p className="text-sm font-medium text-foreground">
+              <div className="text-sm font-medium text-foreground">
                 {columns[0].cell
                   ? columns[0].cell(r)
                   : ((r as Record<string, unknown>)[columns[0].key] as ReactNode)}
-              </p>
+              </div>
               <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
                 {columns.slice(1).map((c) => (
                   <div key={c.key} className="min-w-0">
