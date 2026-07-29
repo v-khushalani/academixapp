@@ -27,7 +27,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
-import { canAccess, type ModuleKey } from "@/lib/rbac";
+import { canAccess, isSuperAdmin, type ModuleKey } from "@/lib/rbac";
 import { useEffect, useState } from "react";
 import { getInstitute } from "@/lib/academy-settings";
 
