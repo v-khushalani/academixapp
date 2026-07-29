@@ -55,3 +55,28 @@ export function openWhatsApp(phone: string | null | undefined, message: string):
   window.open(url, "_blank", "noopener,noreferrer");
   return true;
 }
+
+/**
+ * Daily schedule text for one teacher. Weekly grid is fixed, so this is generated
+ * from the same slots — subject is optional and only shown when filled in.
+ */
+export function teacherDayMessage(
+  facultyName: string,
+  dayLabel: string,
+  rows: {
+    start: string;
+    end: string;
+    batch?: string | null;
+    room?: string | null;
+    subject?: string | null;
+  }[],
+  academyName?: string,
+): string {
+  const head = `*${academyName || "Academy"}* — ${dayLabel}\nSchedule for ${facultyName}`;
+  if (!rows.length) return `${head}\n\nNo classes scheduled.`;
+  const lines = rows.map((r) => {
+    const parts = [r.batch, r.subject, r.room && `🚪 ${r.room}`].filter(Boolean);
+    return `• ${r.start}–${r.end} · ${parts.join(" · ") || "Class"}`;
+  });
+  return `${head}\n\n${lines.join("\n")}`;
+}

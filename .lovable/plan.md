@@ -1,39 +1,71 @@
-## Problem
+## Goal
 
-Aaj timetable 8 AM–8 PM ka 30-minute grid banata hai — 24 rows, 24-hour times, aur lamba scroll. Real life mein sirf do shifts chalti hain aur period 1 hour (ya 12th ke liye 1.5 hour) ka hota hai.
+Ek slot = ek batch + ek teacher + ek classroom. 3–4 PM mein 4 alag rooms mein 4 batches parallel chalein, bina teacher/batch/room clash ke. Weekly grid fix rahega (subject optional/blank), aur usi se har teacher ka daily schedule banega jo WhatsApp par bheja ja sake.
 
-## 1. Shifts (tabs)
+## 1. Classrooms master (Settings)
 
-Grid ke upar do tabs: **Morning** and **Evening**. Ek time pe sirf ek shift ka grid render hoga, isliye page scroll nahi karega.
+Naya `rooms` table: name, capacity, active flag (institute ke andar unique name).
 
-Har shift ke teen settings (edit karke Settings → Institute mein save honge, taaki har baar set na karna pade):
+- Settings mein "Classrooms" tab — add / rename / capacity / deactivate.
+- Timetable ka room field free-text se dropdown ban jayega (existing free-text names ek-baar rooms ke roop mein import ho jayenge, taaki purana data na tootey).
 
+## 2. Timetable grid — Room view / Teacher view toggle
 
-| Shift   | Start   | End      | Period length |
-| ------- | ------- | -------- | ------------- |
-| Morning | 7:00 AM | 11:00 AM | 60 min        |
-| Evening | 3:00 PM | 7:00 PM  | 60 min        |
+Ek day tabs row (Mon–Sun) + shift tabs (Morning/Evening) jaise abhi hai. Uske neeche ek view toggle:
 
+```text
+ROOM VIEW  ·  Wednesday  ·  Evening shift (3–7 PM)
 
-Rows exactly period length ke hisaab se bante hain — evening 3–7 PM @ 60 min 
+          Room 101      Room 102      Lab 1        Room 201
+3:00 PM   12-PCM        11-PCB        10-Found.    9-School
+          Sharma        Verma         Iyer         Khan
+4:00 PM   12-PCM        11-PCB        (empty)      10-Found.
+          Sharma        Verma                      Khan
+```
 
-## 2. Clean rows, no half-slots
+- **Room view**: columns = active classrooms, rows = time bands. Ek nazar mein pata chalta hai kaunsa room khaali hai.
+- **Teacher view**: columns = teachers, rows = time bands. Yehi view teacher ko daily schedule dene ke liye use hoga; khaali cell = free period.
+- Dono views ek hi data par chalte hain; drag-drop dono mein kaam karega (Room view mein batch drop karo → room fix, teacher chuno; Teacher view mein batch drop karo → teacher fix, room chuno).
+- Grid scroll-free rehta hai: rows sirf shift window ke andar, period length ke hisaab se (1 hr / 1.5 hr), 12-hour labels.
 
-- Grid step = shift ka period length. Ek class = exactly ek cell.
-- Class builder aur batch palette ka "duration" dropdown hat jayega — duration shift se aayega (Morning = 90 min ke kuch session and 60 min ke kuch sessions hai (11th ka 60 min session and 12th ka 90 min), Evening = 60). Ek chhota override abhi bhi rahega agar kabhi alag chahiye.
-- 12th wali batches evening shift mein drop hongi, isliye automatically 1.5 hour ki ho jayengi.
+## 3. Reconciliation checks
 
-## 3. 12-hour time everywhere
+Har drop/save par server-side validation + UI par live warnings:
 
-Grid row labels, slot cards, WhatsApp share text, teacher "Today" screen aur student portal timetable — sab jagah `3:00 PM` format. DB mein 24-hour hi store rahega (koi migration nahi); sirf display badlega ek shared `formatTime12()` helper se.
+- **Teacher double-booked** — same teacher, overlapping time, alag slot.
+- **Room double-booked** — same room, overlapping time.
+- **Batch double-booked** — same batch do jagah ek hi waqt.
+- **Room capacity** — batch ki active student count > room capacity → soft warning.
+- **Shift ke bahar** — badge, jaise abhi hai.
 
-## 4. Baaki behaviour same
+Grid ke upar ek "Reconciliation" panel: har clash ki line ("Wed 4 PM — Sharma: 12-PCM aur 11-PCB"), click karo to seedha us cell par jump. Clash wale cells red border. Save block nahi hoga hard clash par — warning ke saath confirm maangega, taaki emergency adjustments possible rahein.
 
-Drag-and-drop, room/teacher/batch conflict blocking, edit/delete, WhatsApp share — jaise hain waise hi chalenge. Jo slots shift window ke bahar hain unke liye tab par ek chhota "2 slots outside shift hours" badge dikhega taaki data chhupe nahi.
+Ek "Coverage" summary bhi: aaj ke din kitne slots bhare, kitne rooms idle, kaunsa teacher kitne periods (workload balance dekhne ke liye).
 
-## Technical notes
+## 4. Teacher daily schedule + WhatsApp
 
-- `src/routes/app.timetable.tsx`: `buildBands` ko shift-driven banana, `startHour/endHour/slotMinutes` inputs ko shift tabs + per-shift settings se replace karna, `covered` logic hataana (ab zaroorat nahi).
-- New `src/lib/time.ts` with `formatTime12()`, consumed by timetable, `timetable-slot-dialog.tsx`, `teach.index.tsx`, `portal.timetable.tsx`.
-- Shift config `academy-settings.ts` mein (localStorage cache + `institutes` row) — ek nayi `shifts` JSON column ki migration lagegi.
-- Playwright timetable test ka slot-count assertion shift tabs ke hisaab se update hoga.
+- `/teach` par teacher ko aaj ka din: time, batch, room (subject agar bhara ho).
+- Admin timetable par har teacher ke saamne "Send schedule" — WhatsApp app khulega pre-filled text ke saath:
+`Wed 12 Aug — Sharma: 3–4 PM 12-PCM (Room 101), 4–5 PM 11-PCB (Room 102)`
+- "Send to all teachers" list bhi, ek-ek karke tap karke bhejne ke liye (koi API nahi, seedha wa.me link).
+- Room-wise poore din ka schedule share karne wala existing WhatsApp button bana rahega.
+
+## 5. Subject
+
+Subject optional rehta hai (aapne kaha weekly timing same, subject daily badalta hai) — slot par blank chhoda ja sakta hai; agar bhara ho to grid aur WhatsApp text dono mein dikhega. Koi daily-override table nahi banega.  
+  
+6. left side pe batches honi chahiye, unko direct drag and drop to slots...rooms ke sath sath teachers assign kar denge
+
+&nbsp;
+
+---
+
+### Technical notes
+
+- Migration: `public.rooms` (id, institute_id, name, capacity, is_active, timestamps) with GRANTs + institute-scoped RLS; `timetable_slots.room_id uuid references rooms(id)`, purana `room` text backfill se map hoga aur read-only fallback ke roop mein rahega.
+- `src/lib/api/index.ts`: `roomsApi` (list/create/update/deactivate); `timetableApi.list` mein `room:rooms(id,name,capacity)` join.
+- `src/routes/app.timetable.tsx`: grid ko `<TimetableGrid axis="room" | "faculty">` mein refactor; conflict logic ek shared `src/lib/timetable/conflicts.ts` mein nikal jayega (`findConflicts`, `capacityWarnings`, `summarise`).
+- `src/lib/whatsapp.ts`: `teacherDayMessage(faculty, slots, date)` helper.
+- `src/components/app/timetable-slot-dialog.tsx`: room dropdown + 12-hour time labels.
+- `src/routes/app.settings.tsx`: naya Classrooms tab.
+- Playwright: room clash, teacher clash, aur teacher-view rendering ke liye test add.

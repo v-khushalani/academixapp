@@ -17,7 +17,7 @@ export async function myFaculty(userId?: string, email?: string | null) {
 export async function mySlots(facultyId: string, dayOfWeek: number) {
   const { data, error } = await supabase
     .from("timetable_slots")
-    .select("*, batch:batches(id,name)")
+    .select("*, batch:batches(id,name), room_ref:rooms(id,name,capacity)")
     .eq("faculty_id", facultyId)
     .eq("day_of_week", dayOfWeek)
     .order("start_time");

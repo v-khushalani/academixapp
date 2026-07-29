@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { coursesApi, subjectsApi, userRolesApi, type AppRole } from "@/lib/api";
+import { coursesApi, roomsApi, subjectsApi, userRolesApi, type AppRole } from "@/lib/api";
 import {
   getInstitute,
   saveInstitute,
@@ -44,6 +44,7 @@ function SettingsPage() {
           <TabsList className="mb-4 flex-wrap">
             <TabsTrigger value="institute">Institute</TabsTrigger>
             <TabsTrigger value="courses">Courses & Subjects</TabsTrigger>
+            <TabsTrigger value="rooms">Classrooms</TabsTrigger>
             <TabsTrigger value="fees">Fee structures</TabsTrigger>
             <TabsTrigger value="users">Users & roles</TabsTrigger>
             <TabsTrigger value="branding">Branding</TabsTrigger>
@@ -54,6 +55,9 @@ function SettingsPage() {
           </TabsContent>
           <TabsContent value="courses">
             <CoursesPanel />
+          </TabsContent>
+          <TabsContent value="rooms">
+            <RoomsPanel />
           </TabsContent>
           <TabsContent value="fees">
             <FeesPanel />
@@ -322,6 +326,133 @@ function CoursesPanel() {
         </ul>
       </Card>
     </div>
+  );
+}
+
+function RoomsPanel() {
+  const qc = useQueryClient();
+  const { data: rooms = [] } = useQuery({
+    queryKey: ["rooms-all"],
+    queryFn: () => roomsApi.list({ includeInactive: true }),
+  });
+  const [name, setName] = useState("");
+  const [capacity, setCapacity] = useState("30");
+
+  function refresh() {
+    qc.invalidateQueries({ queryKey: ["rooms-all"] });
+    qc.invalidateQueries({ queryKey: ["rooms"] });
+    qc.invalidateQueries({ queryKey: ["timetable"] });
+  }
+
+  const add = useMutation({
+    mutationFn: () =>
+      roomsApi.create({ name: name.trim(), capacity: Math.max(1, Number(capacity) || 30) }),
+    onSuccess: () => {
+      toast.success("Classroom added");
+      setName("");
+      setCapacity("30");
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const update = useMutation({
+    mutationFn: ({
+      id,
+      patch,
+    }: {
+      id: string;
+      patch: { name?: string; capacity?: number; is_active?: boolean };
+    }) => roomsApi.update(id, patch),
+    onSuccess: () => refresh(),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const remove = useMutation({
+    mutationFn: (id: string) => roomsApi.remove(id),
+    onSuccess: () => {
+      toast.success("Classroom removed");
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Card
+      title="Classrooms"
+      description="Parallel batches run in separate rooms — list them here so the timetable can catch room clashes and seat overflows."
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (name.trim()) add.mutate();
+        }}
+        className="flex flex-wrap gap-2"
+      >
+        <Input
+          placeholder="Room name (e.g. Room 101 / Physics Lab)"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="min-w-[180px] flex-1"
+        />
+        <Input
+          type="number"
+          min={1}
+          placeholder="Seats"
+          value={capacity}
+          onChange={(e) => setCapacity(e.target.value)}
+          className="w-24"
+        />
+        <Button type="submit" size="sm" className="gap-1">
+          <Plus className="h-4 w-4" />
+          Add
+        </Button>
+      </form>
+      <ul className="mt-3 divide-y divide-border">
+        {rooms.length === 0 && (
+          <li className="py-3 text-xs text-muted-foreground">
+            No classrooms yet — add one to start planning parallel batches.
+          </li>
+        )}
+        {rooms.map((r) => (
+          <li key={r.id} className="flex flex-wrap items-center gap-2 py-2 text-sm">
+            <Input
+              defaultValue={r.name}
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (v && v !== r.name) update.mutate({ id: r.id, patch: { name: v } });
+              }}
+              className="h-8 min-w-[140px] flex-1"
+            />
+            <Input
+              type="number"
+              min={1}
+              defaultValue={r.capacity}
+              onBlur={(e) => {
+                const v = Math.max(1, Number(e.target.value) || r.capacity);
+                if (v !== r.capacity) update.mutate({ id: r.id, patch: { capacity: v } });
+              }}
+              className="h-8 w-20"
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant={r.is_active ? "outline" : "secondary"}
+              className="h-8"
+              onClick={() => update.mutate({ id: r.id, patch: { is_active: !r.is_active } })}
+            >
+              {r.is_active ? "Active" : "Inactive"}
+            </Button>
+            <button
+              type="button"
+              onClick={() => remove.mutate(r.id)}
+              className="text-destructive hover:opacity-80"
+              title="Delete classroom"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }
 

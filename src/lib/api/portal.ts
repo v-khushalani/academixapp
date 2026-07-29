@@ -60,7 +60,7 @@ export const portalApi = {
     if (!batchId) return [];
     const { data, error } = await supabase
       .from("timetable_slots")
-      .select("*, faculty:faculty(id,full_name)")
+      .select("*, faculty:faculty(id,full_name), room_ref:rooms(id,name,capacity)")
       .eq("batch_id", batchId)
       .order("day_of_week")
       .order("start_time");
