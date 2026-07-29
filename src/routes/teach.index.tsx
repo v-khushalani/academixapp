@@ -81,12 +81,12 @@ function TeachHome() {
             key={s.id}
             className="flex items-center gap-3 rounded-lg border border-border bg-card p-3"
           >
-            <div className="flex w-20 shrink-0 flex-col text-xs text-muted-foreground">
+            <div className="flex w-24 shrink-0 flex-col text-xs text-muted-foreground">
               <span className="flex items-center gap-1 font-medium text-foreground">
                 <Clock className="h-3 w-3" />
-                {s.start_time?.slice(0, 5)}
+                {formatTime12(s.start_time)}
               </span>
-              <span>{s.end_time?.slice(0, 5)}</span>
+              <span>{formatTime12(s.end_time)}</span>
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{s.subject ?? "Class"}</p>
