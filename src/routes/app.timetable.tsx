@@ -330,58 +330,91 @@ function TimetablePage() {
             </p>
           </div>
         )}
-        <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-3">
-          <div className="space-y-1">
-            <Label className="text-xs">Day start</Label>
-            <Input
-              type="number"
-              min={0}
-              max={23}
-              value={startHour}
-              onChange={(e) => setStartHour(Number(e.target.value) || 0)}
-              className="h-8 w-20"
-            />
+        <div className="mb-4 space-y-3 rounded-lg border border-border bg-card p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex rounded-md border border-border p-0.5">
+              {(["morning", "evening"] as ShiftKey[]).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setShiftKey(k)}
+                  className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
+                    shiftKey === k
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {SHIFT_LABEL[k]} shift
+                </button>
+              ))}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {formatTime12(shift.start)} – {formatTime12(shift.end)} · {shift.period} min periods
+            </span>
+            {outsideCount > 0 && (
+              <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                {outsideCount} slot(s) outside this shift
+              </span>
+            )}
+            <p className="ml-auto text-xs text-muted-foreground">{slots.length} scheduled</p>
           </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Day end</Label>
-            <Input
-              type="number"
-              min={1}
-              max={24}
-              value={endHour}
-              onChange={(e) => setEndHour(Number(e.target.value) || 24)}
-              className="h-8 w-20"
-            />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Grid step (min)</Label>
-            <Input
-              type="number"
-              min={15}
-              max={60}
-              step={15}
-              value={slotMinutes}
-              onChange={(e) => setSlotMinutes(Number(e.target.value) || 30)}
-              className="h-8 w-24"
-            />
-          </div>
-          <p className="ml-auto text-xs text-muted-foreground">
-            {slots.length} scheduled · classes can be 30/45/60/90 min
-          </p>
+          {canWrite && (
+            <div className="flex flex-wrap items-end gap-3 border-t border-border pt-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Shift start</Label>
+                <Input
+                  type="time"
+                  value={shift.start}
+                  onChange={(e) => patchShift({ start: e.target.value })}
+                  className="h-8 w-32"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Shift end</Label>
+                <Input
+                  type="time"
+                  value={shift.end}
+                  onChange={(e) => patchShift({ end: e.target.value })}
+                  className="h-8 w-32"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Period length</Label>
+                <Select
+                  value={String(shift.period)}
+                  onValueChange={(v) => patchShift({ period: Number(v) })}
+                >
+                  <SelectTrigger className="h-8 w-28 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[45, 60, 90].map((m) => (
+                      <SelectItem key={m} value={String(m)}>
+                        {m} min
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button size="sm" variant="outline" className="h-8" onClick={persistShifts}>
+                Save timings
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="grid gap-4 md:grid-cols-[260px_1fr]">
           {canWrite && (
             <div className="space-y-4">
-              <BatchPalette batches={batches} />
-              <ClassBuilder batches={batches} faculty={faculty} />
+              <BatchPalette batches={batches} defaultDuration={shift.period} />
+              <ClassBuilder batches={batches} faculty={faculty} defaultDuration={shift.period} />
             </div>
           )}
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : (
             <div className="overflow-x-auto rounded-lg border border-border bg-card">
-              <table className="w-full min-w-[820px] text-sm">
+              <table className="w-full min-w-[760px] text-sm">
                 <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
                   <tr>
                     <th className="w-24 border-b border-border px-2 py-2">Time</th>
@@ -395,10 +428,10 @@ function TimetablePage() {
                 <tbody>
                   {bands.map((band) => (
                     <tr key={band.start} className="align-top">
-                      <td className="border-b border-border px-2 py-2 text-xs font-medium text-muted-foreground">
-                        {band.start}
+                      <td className="whitespace-nowrap border-b border-border px-2 py-2 text-xs font-medium text-muted-foreground">
+                        {formatTime12(band.start)}
                         <br />
-                        <span className="text-[10px]">– {band.end}</span>
+                        <span className="text-[10px]">– {formatTime12(band.end)}</span>
                       </td>
                       {DAY_INDEX.map((dow) => {
                         const cells = grid.get(`${dow}|${band.start}`) ?? [];
@@ -426,8 +459,8 @@ function TimetablePage() {
                                       <AlertTriangle className="h-3 w-3 shrink-0 text-destructive" />
                                     )}
                                   </div>
-                                  <p className="text-[10px] font-mono text-muted-foreground">
-                                    {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
+                                  <p className="text-[10px] text-muted-foreground">
+                                    {formatTime12(s.start_time)} – {formatTime12(s.end_time)}
                                   </p>
                                   <p className="truncate text-[10px] text-muted-foreground">
                                     {s.batch?.name ?? "—"}
