@@ -39,6 +39,7 @@ export const MODULE_ACCESS: Record<ModuleKey, AppRole[]> = {
 // Action-level permissions
 export type Action =
   | "student:write"
+  | "student:edit"
   | "batch:write"
   | "fees:write"
   | "lead:write"
@@ -48,6 +49,8 @@ export type Action =
 
 export const ACTION_ROLES: Record<Action, AppRole[]> = {
   "student:write": ["owner", "admin", "receptionist"],
+  // Enrolment details are locked after submission — only admins/owners may change them
+  "student:edit": ["owner", "admin"],
   "batch:write": ["owner", "admin"],
   "fees:write": ["owner", "admin", "accountant"],
   "lead:write": ["owner", "admin", "receptionist", "counsellor"],
