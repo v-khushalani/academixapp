@@ -156,6 +156,27 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
           <DialogTitle>{isEdit ? "Edit student" : "Add student"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+          {isEdit && (
+            <div className="sm:col-span-2 flex items-center justify-between rounded-md border border-border bg-muted/40 px-3 py-2">
+              <p className="text-xs text-muted-foreground">
+                {canEditDetails
+                  ? "Enrolment details are locked after the student submits the form. Only admins can change them."
+                  : "Enrolment details can only be changed by an admin."}
+              </p>
+              {canEditDetails && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDetails((v) => !v)}
+                >
+                  {showDetails ? "Hide details" : "Edit details"}
+                </Button>
+              )}
+            </div>
+          )}
+          {showDetails && (
+            <>
           <Field label="Admission #">
             <Input
               value={form.admission_no}
@@ -239,6 +260,8 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
           </Field>
+            </>
+          )}
           <Field label="Batch">
             <Select
               value={form.batch_id ?? "none"}
@@ -292,12 +315,14 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Address" className="sm:col-span-2">
-            <Input
-              value={form.address ?? ""}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-            />
-          </Field>
+          {showDetails && (
+            <Field label="Address" className="sm:col-span-2">
+              <Input
+                value={form.address ?? ""}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+              />
+            </Field>
+          )}
           <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
