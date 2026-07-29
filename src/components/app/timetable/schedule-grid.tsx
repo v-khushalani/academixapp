@@ -95,7 +95,7 @@ export function ScheduleGrid({
           </div>
 
           {/* board */}
-          <div className="py-3">
+          <div className="py-4">
           <div
             className="relative grid"
             style={{
