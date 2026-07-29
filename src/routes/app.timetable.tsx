@@ -2,16 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, type DragEvent } from "react";
 import { toast } from "sonner";
-import {
-  Plus,
-  Trash2,
-  GripVertical,
-  Pencil,
-  Share2,
-  AlertTriangle,
-  Send,
-  Users,
-} from "lucide-react";
+import { Plus, GripVertical, Share2, AlertTriangle, Send, Users } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { DailySchedule } from "@/components/app/daily-schedule";
 import { Button } from "@/components/ui/button";
@@ -50,6 +41,11 @@ import {
   type SlotRow,
 } from "@/lib/timetable/conflicts";
 import { openWhatsApp, teacherDayMessage } from "@/lib/whatsapp";
+import {
+  ScheduleGrid,
+  type GridBand,
+  type GridItem,
+} from "@/components/app/timetable/schedule-grid";
 
 export const Route = createFileRoute("/app/timetable")({
   head: () => ({
@@ -201,37 +197,25 @@ function TimetablePage() {
     return (view === "room" ? s.room_id : s.faculty_id) ?? UNASSIGNED;
   }
 
-  /** slot lookup: `${colId}|${bandStart}` for the selected day */
-  const cellMap = useMemo(() => {
-    const m = new Map<string, SlotRow[]>();
-    daySlots.forEach((s) => {
-      const key = `${colIdOf(s)}|${s.start_time.slice(0, 5)}`;
-      const arr = m.get(key) ?? [];
-      arr.push(s);
-      m.set(key, arr);
-    });
-    return m;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [daySlots, view]);
-
-  /** bands a longer class (90 min in a 60 min grid) continues into */
-  const covered = useMemo(() => {
-    const c = new Set<string>();
-    daySlots.forEach((s) => {
-      const sM = toMinutes(s.start_time);
-      const eM = toMinutes(s.end_time);
-      bands.forEach((b) => {
-        const bM = toMinutes(b.start);
-        if (bM > sM && bM < eM) c.add(`${colIdOf(s)}|${b.start}`);
-      });
-    });
-    return c;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [daySlots, bands, view]);
-
   const { clashes, badIds } = useMemo(() => reconcile(slots), [slots]);
   const capIssues = useMemo(() => capacityWarnings(slots, batchStrength), [slots, batchStrength]);
   const capIds = useMemo(() => new Set(capIssues.map((c) => c.slot.id)), [capIssues]);
+
+  const gridItems: GridItem[] = useMemo(
+    () =>
+      daySlots.map((s) => ({
+        id: s.id,
+        colId: colIdOf(s),
+        start: s.start_time,
+        end: s.end_time,
+        title: s.batch?.name ?? "Unassigned batch",
+        subject: s.subject,
+        person: view === "room" ? (s.faculty?.full_name ?? "No teacher") : (roomLabel(s) ?? "No room"),
+        tone: badIds.has(s.id) ? "clash" : capIds.has(s.id) ? "warn" : "default",
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [daySlots, view, badIds, capIds],
+  );
 
   const outsideCount = useMemo(
     () =>
