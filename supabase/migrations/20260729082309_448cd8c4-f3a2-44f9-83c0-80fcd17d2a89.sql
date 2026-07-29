@@ -1,0 +1,1 @@
+ALTER TABLE public.rooms ALTER COLUMN institute_id SET DEFAULT public.current_institute_id();
