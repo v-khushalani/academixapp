@@ -50,9 +50,12 @@ export function PortalShell({ children }: { children: ReactNode }) {
   const [selected, setSelected] = useState<string | null>(null);
 
   useEffect(() => {
-    setInstitute(getInstitute().name || "Academix");
+    const sync = () => setInstitute(getInstitute().name || "Academix");
+    sync();
+    window.addEventListener("vk-institute-changed", sync);
     const stored = window.localStorage.getItem(KEY);
     if (stored) setSelected(stored);
+    return () => window.removeEventListener("vk-institute-changed", sync);
   }, []);
 
   const { data: students = [], isLoading } = useQuery({
