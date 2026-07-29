@@ -17,7 +17,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { coursesApi, roomsApi, subjectsApi, userRolesApi, type AppRole } from "@/lib/api";
+import {
+  coursesApi,
+  instituteApi,
+  roomsApi,
+  subjectsApi,
+  userRolesApi,
+  type AppRole,
+} from "@/lib/api";
+import { PLANS, planFor } from "@/lib/plans";
 import {
   getInstitute,
   saveInstitute,
@@ -335,8 +343,17 @@ function RoomsPanel() {
     queryKey: ["rooms-all"],
     queryFn: () => roomsApi.list({ includeInactive: true }),
   });
+  const { data: institute } = useQuery({
+    queryKey: ["institute"],
+    queryFn: () => instituteApi.get(),
+  });
   const [name, setName] = useState("");
   const [capacity, setCapacity] = useState("30");
+
+  const plan = planFor(institute?.plan);
+  const limit = institute?.room_limit ?? plan.rooms;
+  const used = rooms.length;
+  const atLimit = used >= limit;
 
   function refresh() {
     qc.invalidateQueries({ queryKey: ["rooms-all"] });
@@ -344,9 +361,25 @@ function RoomsPanel() {
     qc.invalidateQueries({ queryKey: ["timetable"] });
   }
 
+  const changePlan = useMutation({
+    mutationFn: async (key: string) => {
+      if (!institute) throw new Error("Institute not loaded");
+      const p = planFor(key);
+      return instituteApi.setPlan(institute.id, p.key, p.rooms);
+    },
+    onSuccess: () => {
+      toast.success("Plan updated");
+      qc.invalidateQueries({ queryKey: ["institute"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const add = useMutation({
-    mutationFn: () =>
-      roomsApi.create({ name: name.trim(), capacity: Math.max(1, Number(capacity) || 30) }),
+    mutationFn: async () => {
+      if (atLimit)
+        throw new Error(`Your ${plan.name} plan allows ${limit} classrooms. Upgrade to add more.`);
+      return roomsApi.create({ name: name.trim(), capacity: Math.max(1, Number(capacity) || 30) });
+    },
     onSuccess: () => {
       toast.success("Classroom added");
       setName("");
@@ -378,8 +411,36 @@ function RoomsPanel() {
   return (
     <Card
       title="Classrooms"
-      description="Parallel batches run in separate rooms — list them here so the timetable can catch room clashes and seat overflows."
+      description="Parallel batches run in separate rooms. Rooms are never tied to a teacher — you attach them per class in the timetable."
     >
+      <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2">
+        <div className="text-sm">
+          <span className="font-medium">{plan.name} plan</span>{" "}
+          <span className="text-muted-foreground">
+            — {used} of {limit} classrooms used
+          </span>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <Label className="text-xs">Plan</Label>
+          <Select value={plan.key} onValueChange={(v) => changePlan.mutate(v)}>
+            <SelectTrigger className="h-8 w-52 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PLANS.map((p) => (
+                <SelectItem key={p.key} value={p.key}>
+                  {p.name} — {p.blurb}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      {atLimit && (
+        <p className="mb-2 text-xs text-destructive">
+          Classroom limit reached — upgrade the plan above to add more rooms.
+        </p>
+      )}
       <form
         onSubmit={(e) => {
           e.preventDefault();
