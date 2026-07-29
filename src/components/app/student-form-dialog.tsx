@@ -20,6 +20,8 @@ import {
 import { batchesApi, studentsApi, type Student, type StudentInsert } from "@/lib/api";
 import { Field } from "@/components/app/field";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
+import { useAuth } from "@/hooks/use-auth";
+import { can } from "@/lib/rbac";
 
 type Props = {
   open: boolean;
@@ -30,6 +32,13 @@ type Props = {
 export function StudentFormDialog({ open, onOpenChange, student }: Props) {
   const refresh = useRefreshLinked();
   const isEdit = Boolean(student);
+  const { roles } = useAuth();
+  const canEditDetails = can("student:edit", roles);
+  const [showDetails, setShowDetails] = useState(false);
+
+  useEffect(() => {
+    if (open) setShowDetails(!isEdit);
+  }, [open, isEdit]);
   const [form, setForm] = useState<StudentInsert>({
     admission_no: "",
     full_name: "",
