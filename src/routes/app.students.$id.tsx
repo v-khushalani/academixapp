@@ -19,7 +19,7 @@ function StudentDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const { roles } = useAuth();
-  const canWrite = can("student:write", roles);
+  const canWrite = can("student:edit", roles);
   const {
     data: s,
     isLoading,
