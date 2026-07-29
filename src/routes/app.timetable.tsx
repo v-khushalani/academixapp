@@ -744,17 +744,16 @@ function ClassBuilderInner({ batches, faculty }: { batches: Batch[]; faculty: Fa
   );
 }
 
-function buildBands(startHour: number, endHour: number, slotMinutes: number) {
+function buildBands(start: string, end: string, period: number) {
   const out: { start: string; end: string }[] = [];
-  const startM = Math.max(0, Math.min(23, startHour)) * 60;
-  const endM = Math.max(startM + slotMinutes, Math.min(24, endHour) * 60);
-  for (let m = startM; m + slotMinutes <= endM; m += slotMinutes) {
-    out.push({ start: fmt(m), end: fmt(m + slotMinutes) });
+  const step = Math.max(15, period || 60);
+  const startM = toMinutes(start);
+  const endM = Math.max(startM + step, toMinutes(end));
+  for (let m = startM; m < endM; m += step) {
+    out.push({ start: toHHMM(m), end: toHHMM(Math.min(m + step, endM)) });
   }
   return out;
 }
 function fmt(m: number) {
-  const h = Math.floor(m / 60),
-    mm = m % 60;
-  return `${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+  return toHHMM(m);
 }
