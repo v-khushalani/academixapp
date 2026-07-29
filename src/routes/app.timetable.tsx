@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState, type DragEvent } from "react";
+import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2, GripVertical, Pencil, Share2, AlertTriangle } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
@@ -273,7 +273,7 @@ function TimetablePage() {
       if (!rows.length) return;
       lines.push(`\n*${dayLabels[dow]}*`);
       rows.forEach((r) => {
-        const time = `${r.start_time.slice(0, 5)}–${r.end_time.slice(0, 5)}`;
+        const time = `${formatTime12(r.start_time)}–${formatTime12(r.end_time)}`;
         const parts = [
           time,
           r.batch?.name,
