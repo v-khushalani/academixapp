@@ -11,6 +11,7 @@ import {
   GraduationCap,
   BarChart3,
   Settings,
+  ShieldCheck,
   LogOut,
 } from "lucide-react";
 import {
@@ -50,6 +51,13 @@ const nav: NavItem[] = [
   { title: "Reports", url: "/app/reports", icon: BarChart3, key: "reports" },
   { title: "Settings", url: "/app/settings", icon: Settings, key: "settings" },
 ];
+
+const platformNav: NavItem = {
+  title: "Platform",
+  url: "/app/platform",
+  icon: ShieldCheck,
+  key: "platform",
+};
 
 export function AppSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar();
