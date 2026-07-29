@@ -1,5 +1,5 @@
 import { Fragment, type DragEvent, type ReactNode } from "react";
-import { AlertTriangle, Plus } from "lucide-react";
+import { AlertTriangle, Plus, Trash2 } from "lucide-react";
 import { formatTime12, toMinutes } from "@/lib/time";
 
 /** Vertical scale of the board. 1.25px per minute => a 60-min class is ~75px tall. */
@@ -43,6 +43,7 @@ export function ScheduleGrid({
   onItemClick,
   onEmptyClick,
   onDropCell,
+  onItemDelete,
   canWrite,
   emptyHint = "Add class",
   footer,
@@ -53,6 +54,7 @@ export function ScheduleGrid({
   onItemClick?: (item: GridItem) => void;
   onEmptyClick?: (colId: string, band: GridBand) => void;
   onDropCell?: (colId: string, band: GridBand, ev: DragEvent) => void;
+  onItemDelete?: (item: GridItem) => void;
   canWrite?: boolean;
   emptyHint?: string;
   footer?: ReactNode;
@@ -173,11 +175,15 @@ export function ScheduleGrid({
                     const tone = TONE[it.tone ?? "default"];
                     const short = e - s <= 45;
                     return (
-                      <button
+                      <div
                         key={it.id ?? idx}
-                        type="button"
+                        role="button"
+                        tabIndex={0}
                         onClick={() => onItemClick?.(it)}
-                        className={`absolute overflow-hidden rounded-lg border p-2 text-left transition-colors ${tone}`}
+                        onKeyDown={(ev) => {
+                          if (ev.key === "Enter" || ev.key === " ") onItemClick?.(it);
+                        }}
+                        className={`group absolute cursor-pointer overflow-hidden rounded-lg border p-2 text-left transition-colors ${tone}`}
                         style={{
                           top: (s - dayStart) * PX_PER_MIN + 2,
                           height: Math.max(28, (e - s) * PX_PER_MIN - 4),
@@ -185,6 +191,19 @@ export function ScheduleGrid({
                           width: `calc(${100 / lanes}% - 8px)`,
                         }}
                       >
+                        {canWrite && onItemDelete && (
+                          <button
+                            type="button"
+                            aria-label="Remove class"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              onItemDelete(it);
+                            }}
+                            className="absolute right-1 top-1 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-background hover:text-destructive group-hover:opacity-100"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        )}
                         <div className="flex items-start gap-1">
                           <p
                             className={`truncate text-xs font-semibold leading-tight ${
@@ -217,7 +236,7 @@ export function ScheduleGrid({
                             {it.badge}
                           </span>
                         )}
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
