@@ -1,7 +1,16 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertTriangle, RotateCcw, Share2 } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  DoorOpen,
+  RotateCcw,
+  Share2,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,19 +21,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { dayPlanApi, type Batch, type Faculty, type Room } from "@/lib/api";
 import type { SlotRow } from "@/lib/timetable/conflicts";
 import { roomLabel } from "@/lib/timetable/conflicts";
 import { formatTime12, toMinutes } from "@/lib/time";
 import { getInstitute } from "@/lib/academy-settings";
+import { ScheduleGrid, type GridColumn, type GridItem } from "./timetable/schedule-grid";
 
 const NONE = "__none__";
+const NO_ROOM = "__noroom__";
 const DAY_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 function todayISO() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function shiftDate(iso: string, days: number) {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setDate(d.getDate() + days);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function prettyDate(iso: string) {
+  const d = new Date(`${iso}T00:00:00`);
+  return d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" });
 }
 
 type Row = {
@@ -53,6 +81,7 @@ export function DailySchedule({
 }) {
   const qc = useQueryClient();
   const [date, setDate] = useState(todayISO());
+  const [openRow, setOpenRow] = useState<string | null>(null);
   const weekday = useMemo(() => new Date(`${date}T00:00:00`).getDay(), [date]);
 
   const { data: plans = [], isLoading } = useQuery({
@@ -122,6 +151,82 @@ export function DailySchedule({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, rooms, faculty, batches]);
 
+  /** ids of rows that are part of a clash, so the board can flag them in red */
+  const clashIds = useMemo(() => {
+    const bad = new Set<string>();
+    const live = rows.filter((r) => !r.cancelled);
+    for (let i = 0; i < live.length; i++) {
+      for (let j = i + 1; j < live.length; j++) {
+        const a = live[i];
+        const b = live[j];
+        const overlap =
+          toMinutes(a.slot.start_time) < toMinutes(b.slot.end_time) &&
+          toMinutes(b.slot.start_time) < toMinutes(a.slot.end_time);
+        if (!overlap) continue;
+        if (
+          (a.facultyId && a.facultyId === b.facultyId) ||
+          (a.roomId && a.roomId === b.roomId) ||
+          (a.batchId && a.batchId === b.batchId)
+        ) {
+          bad.add(a.slot.id);
+          bad.add(b.slot.id);
+        }
+      }
+    }
+    return bad;
+  }, [rows]);
+
+  /** classroom columns — every room, plus a catch-all for unassigned classes */
+  const columns: GridColumn[] = useMemo(() => {
+    const cols: GridColumn[] = rooms.map((r) => ({
+      id: r.id,
+      label: r.name,
+      sub: `${r.capacity} seats`,
+    }));
+    if (rows.some((r) => !r.roomId)) cols.push({ id: NO_ROOM, label: "Unassigned", sub: "pick a room" });
+    return cols.length ? cols : [{ id: NO_ROOM, label: "Unassigned", sub: "add classrooms in Settings" }];
+  }, [rooms, rows]);
+
+  /** time rail built from the day's own classes — no empty hours, no scrolling */
+  const bands = useMemo(() => {
+    if (!rows.length) return [];
+    const marks = new Set<string>();
+    rows.forEach((r) => {
+      marks.add(r.slot.start_time.slice(0, 5));
+      marks.add(r.slot.end_time.slice(0, 5));
+    });
+    const sorted = Array.from(marks).sort();
+    return sorted.slice(0, -1).map((s, i) => ({ start: s, end: sorted[i + 1] }));
+  }, [rows]);
+
+  const items: GridItem[] = useMemo(
+    () =>
+      rows.map((r) => ({
+        id: r.slot.id,
+        colId: r.roomId ?? NO_ROOM,
+        start: r.slot.start_time,
+        end: r.slot.end_time,
+        title: nameOfBatch(r.batchId),
+        subject: r.subject || null,
+        person: r.facultyId ? nameOfFaculty(r.facultyId) : "No teacher",
+        tone: r.cancelled
+          ? ("cancelled" as const)
+          : clashIds.has(r.slot.id)
+            ? ("clash" as const)
+            : r.changed
+              ? ("changed" as const)
+              : ("default" as const),
+        badge: r.cancelled ? "cancelled" : r.changed ? "changed today" : null,
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rows, clashIds, faculty, batches],
+  );
+
+  const active = rows.find((r) => r.slot.id === openRow) ?? null;
+  const liveRows = rows.filter((r) => !r.cancelled);
+  const busyRooms = new Set(liveRows.map((r) => r.roomId).filter(Boolean) as string[]);
+  const teachersOnDuty = new Set(liveRows.map((r) => r.facultyId).filter(Boolean) as string[]);
+
   function nameOfFaculty(id: string | null) {
     return faculty.find((f) => f.id === id)?.full_name ?? "Teacher";
   }
@@ -172,24 +277,60 @@ export function DailySchedule({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-3">
-        <div className="space-y-1">
-          <Label className="text-xs">Date</Label>
+      {/* date bar */}
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-2.5">
+        <div className="inline-flex items-center rounded-lg border border-border">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 rounded-r-none"
+            aria-label="Previous day"
+            onClick={() => setDate(shiftDate(date, -1))}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="min-w-[9.5rem] px-2 text-center text-sm font-semibold">
+            {prettyDate(date)}
+          </span>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 rounded-l-none"
+            aria-label="Next day"
+            onClick={() => setDate(shiftDate(date, 1))}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        <Button
+          size="sm"
+          variant={date === todayISO() ? "secondary" : "outline"}
+          className="h-8"
+          onClick={() => setDate(todayISO())}
+        >
+          Today
+        </Button>
+        <label className="relative inline-flex">
           <Input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value || todayISO())}
-            className="h-9 w-44"
+            className="h-8 w-[9.5rem] text-xs"
           />
+        </label>
+        <div className="ml-auto flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+          <Stat icon={<CalendarDays className="h-3.5 w-3.5" />} value={liveRows.length} label="classes" />
+          <Stat icon={<Users className="h-3.5 w-3.5" />} value={teachersOnDuty.size} label="teachers" />
+          <Stat
+            icon={<DoorOpen className="h-3.5 w-3.5" />}
+            value={Math.max(0, rooms.length - busyRooms.size)}
+            label="rooms free"
+          />
+          <Button size="sm" variant="outline" className="h-8 gap-1.5" onClick={shareDay}>
+            <Share2 className="h-4 w-4" />
+            Share
+          </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
-          {DAY_FULL[weekday]} · {rows.length} class(es) from the weekly plan. Changing anything here
-          only affects this date.
-        </p>
-        <Button size="sm" variant="outline" className="ml-auto gap-1.5" onClick={shareDay}>
-          <Share2 className="h-4 w-4" />
-          Share day
-        </Button>
       </div>
 
       {clashes.length > 0 && (
@@ -215,90 +356,142 @@ export function DailySchedule({
           No classes in the weekly plan for {DAY_FULL[weekday]}. Add them in the Weekly tab first.
         </div>
       ) : (
-        <ul className="space-y-2">
-          {rows.map((r) => (
-            <li
-              key={r.slot.id}
-              className={`rounded-lg border bg-card p-3 ${
-                r.cancelled ? "border-dashed opacity-60" : "border-border"
-              }`}
-            >
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-semibold">
-                  {formatTime12(r.slot.start_time)} – {formatTime12(r.slot.end_time)}
-                </span>
-                <Badge variant="secondary">{nameOfRoom(r.roomId) || roomLabel(r.slot) || "—"}</Badge>
-                {r.changed && !r.cancelled && (
-                  <Badge variant="outline" className="text-[10px]">
-                    changed today
-                  </Badge>
-                )}
-                {r.cancelled && <Badge className="bg-destructive text-white">Cancelled</Badge>}
-                {canWrite && (
-                  <div className="ml-auto flex items-center gap-1">
-                    <Button
-                      size="sm"
-                      variant={r.cancelled ? "secondary" : "outline"}
-                      className="h-8"
-                      onClick={() => patch(r, { cancelled: !r.cancelled })}
-                    >
-                      {r.cancelled ? "Restore" : "Cancel"}
-                    </Button>
-                    {r.planId && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        title="Reset to weekly plan"
-                        onClick={() => reset.mutate(r.planId as string)}
-                      >
-                        <RotateCcw className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
+        <>
+          <div className="hidden md:block">
+            <ScheduleGrid
+              columns={columns}
+              bands={bands}
+              items={items}
+              canWrite={canWrite}
+              onItemClick={(it) => setOpenRow(it.id)}
+              footer={
+                <p className="border-t border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
+                  Tap any class to change today&apos;s teacher, room or subject. Edits here apply to{" "}
+                  {prettyDate(date)} only — the weekly plan stays untouched.
+                </p>
+              }
+            />
+          </div>
 
-              <div className="mt-2 grid gap-2 sm:grid-cols-4">
+          {/* mobile-friendly list of the same day */}
+          <ul className="space-y-1.5 md:hidden">
+            {rows.map((r) => (
+              <li key={r.slot.id}>
+                <button
+                  type="button"
+                  onClick={() => setOpenRow(r.slot.id)}
+                  className={`flex w-full items-center gap-2 rounded-lg border p-2.5 text-left ${
+                    r.cancelled ? "border-dashed border-border opacity-60" : "border-border bg-card"
+                  }`}
+                >
+                  <span className="w-20 shrink-0 text-[11px] font-semibold text-muted-foreground">
+                    {formatTime12(r.slot.start_time)}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold">
+                      {nameOfBatch(r.batchId)}
+                      {r.subject ? ` · ${r.subject}` : ""}
+                    </span>
+                    <span className="block truncate text-[11px] text-muted-foreground">
+                      {nameOfRoom(r.roomId) || roomLabel(r.slot) || "No room"} ·{" "}
+                      {r.facultyId ? nameOfFaculty(r.facultyId) : "No teacher"}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      <Sheet open={Boolean(active)} onOpenChange={(o) => !o && setOpenRow(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-sm">
+          {active && (
+            <>
+              <SheetHeader>
+                <SheetTitle>
+                  {formatTime12(active.slot.start_time)} – {formatTime12(active.slot.end_time)}
+                </SheetTitle>
+                <SheetDescription>
+                  Changes apply to {prettyDate(date)} only.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="mt-5 space-y-3">
                 <Picker
                   label="Batch"
-                  value={r.batchId}
+                  value={active.batchId}
                   disabled={!canWrite}
                   options={batches.map((b) => ({ id: b.id, label: b.name }))}
-                  onChange={(v) => patch(r, { batchId: v })}
+                  onChange={(v) => patch(active, { batchId: v })}
                 />
                 <Picker
                   label="Teacher"
-                  value={r.facultyId}
+                  value={active.facultyId}
                   disabled={!canWrite}
                   options={faculty.map((f) => ({ id: f.id, label: f.full_name }))}
-                  onChange={(v) => patch(r, { facultyId: v })}
+                  onChange={(v) => patch(active, { facultyId: v })}
                 />
                 <Picker
                   label="Room"
-                  value={r.roomId}
+                  value={active.roomId}
                   disabled={!canWrite}
                   options={rooms.map((x) => ({ id: x.id, label: x.name }))}
-                  onChange={(v) => patch(r, { roomId: v })}
+                  onChange={(v) => patch(active, { roomId: v })}
                 />
                 <div className="space-y-1">
                   <Label className="text-xs">Subject (today)</Label>
                   <Input
-                    defaultValue={r.subject}
+                    key={active.slot.id}
+                    defaultValue={active.subject}
                     disabled={!canWrite}
                     placeholder="e.g. Kinematics"
                     className="h-9"
                     onBlur={(e) => {
                       const v = e.target.value.trim();
-                      if (v !== r.subject) patch(r, { subject: v });
+                      if (v !== active.subject) patch(active, { subject: v });
                     }}
                   />
                 </div>
+                {canWrite && (
+                  <div className="flex flex-wrap gap-2 border-t border-border pt-3">
+                    <Button
+                      size="sm"
+                      variant={active.cancelled ? "secondary" : "outline"}
+                      onClick={() => patch(active, { cancelled: !active.cancelled })}
+                    >
+                      {active.cancelled ? "Restore class" : "Cancel class"}
+                    </Button>
+                    {active.planId && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="gap-1.5"
+                        onClick={() => {
+                          reset.mutate(active.planId as string);
+                          setOpenRow(null);
+                        }}
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                        Reset to weekly
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
-            </li>
-          ))}
-        </ul>
-      )}
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
+  );
+}
+
+function Stat({ icon, value, label }: { icon: ReactNode; value: number; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1">
+      {icon}
+      <strong className="text-foreground">{value}</strong> {label}
+    </span>
   );
 }
 
