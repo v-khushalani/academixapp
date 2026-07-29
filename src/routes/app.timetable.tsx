@@ -25,7 +25,13 @@ import {
 } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
-import { getInstitute } from "@/lib/academy-settings";
+import {
+  getInstitute,
+  saveInstitute,
+  DEFAULT_SHIFTS,
+  type Shifts,
+} from "@/lib/academy-settings";
+import { formatTime12, toMinutes, toHHMM } from "@/lib/time";
 
 export const Route = createFileRoute("/app/timetable")({
   component: TimetablePage,
@@ -49,10 +55,9 @@ type DragPayload = {
   quick?: boolean;
 };
 
-function toMin(t: string) {
-  const [h, m] = t.slice(0, 5).split(":").map(Number);
-  return h * 60 + m;
-}
+const toMin = toMinutes;
+type ShiftKey = "morning" | "evening";
+const SHIFT_LABEL: Record<ShiftKey, string> = { morning: "Morning", evening: "Evening" };
 function overlaps(aS: string, aE: string, bS: string, bE: string) {
   return toMin(aS) < toMin(bE) && toMin(bS) < toMin(aE);
 }
@@ -113,14 +118,30 @@ function TimetablePage() {
     queryFn: () => facultyApi.list(),
   });
 
-  // Time band settings (editable)
-  const [startHour, setStartHour] = useState(8);
-  const [endHour, setEndHour] = useState(20);
-  const [slotMinutes, setSlotMinutes] = useState(30);
-  const bands = useMemo(
-    () => buildBands(startHour, endHour, slotMinutes),
-    [startHour, endHour, slotMinutes],
+  // Shift settings (persisted on the institute row)
+  const [shifts, setShifts] = useState<Shifts>(() => getInstitute().shifts ?? DEFAULT_SHIFTS);
+  const [shiftKey, setShiftKey] = useState<ShiftKey>(() =>
+    new Date().getHours() < 12 ? "morning" : "evening",
   );
+  const shift = shifts[shiftKey];
+  const bands = useMemo(
+    () => buildBands(shift.start, shift.end, shift.period),
+    [shift.start, shift.end, shift.period],
+  );
+  const windowStart = toMin(shift.start);
+  const windowEnd = toMin(shift.end);
+
+  function patchShift(patch: Partial<Shifts[ShiftKey]>) {
+    setShifts((prev) => ({ ...prev, [shiftKey]: { ...prev[shiftKey], ...patch } }));
+  }
+  async function persistShifts() {
+    try {
+      await saveInstitute({ ...getInstitute(), shifts });
+      toast.success("Shift timings saved");
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TimetableSlot | null>(null);
@@ -154,18 +175,29 @@ function TimetablePage() {
     return g;
   }, [slots]);
 
-  // Bands within a slot's duration (after its start band) that are "covered" and should hide the drop UI.
+  // Bands a longer class (e.g. 90 min in a 60 min grid) continues into.
   const covered = useMemo(() => {
     const c = new Set<string>();
     slots.forEach((s) => {
       const sM = toMin(s.start_time),
         eM = toMin(s.end_time);
-      for (let m = sM + slotMinutes; m < eM; m += slotMinutes) {
-        c.add(`${s.day_of_week}|${fmt(m)}`);
-      }
+      bands.forEach((b) => {
+        const bM = toMin(b.start);
+        if (bM > sM && bM < eM) c.add(`${s.day_of_week}|${b.start}`);
+      });
     });
     return c;
-  }, [slots, slotMinutes]);
+  }, [slots, bands]);
+
+  // Slots that fall outside the active shift window (so nothing is silently hidden).
+  const outsideCount = useMemo(
+    () =>
+      slots.filter((s) => {
+        const m = toMin(s.start_time);
+        return m < windowStart || m >= windowEnd;
+      }).length,
+    [slots, windowStart, windowEnd],
+  );
 
   // Precompute conflict set: any slot that overlaps another on same day for same room/teacher/batch
   const conflictIds = useMemo(() => {
