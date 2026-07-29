@@ -297,28 +297,30 @@ export const attendanceApi = {
 export const dashboardApi = {
   async summary() {
     const [studentsCount, activeBatches, pendingFees, monthAdmissions] = await Promise.all([
-      supabase.from("students").select("id", { count: "exact", head: true }).eq("status", "active"),
-      supabase.from("batches").select("id", { count: "exact", head: true }).eq("status", "active"),
-      supabase
-        .from("fees")
-        .select("amount, amount_paid")
-        .in("status", ["pending", "partial", "overdue"]),
       supabase
         .from("students")
         .select("id", { count: "exact", head: true })
+        .eq("status", "active")
+        .eq("approval_status", "approved"),
+      supabase.from("batches").select("id", { count: "exact", head: true }).eq("status", "active"),
+      supabase.from("fees").select("amount, amount_paid, status"),
+      supabase
+        .from("students")
+        .select("id", { count: "exact", head: true })
+        .eq("approval_status", "approved")
         .gte(
           "admission_date",
           new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10),
         ),
     ]);
-    const outstanding = (pendingFees.data ?? []).reduce(
-      (sum, f) => sum + Number(f.amount) - Number(f.amount_paid ?? 0),
-      0,
-    );
+    const rows = pendingFees.data ?? [];
+    const outstanding = rows.reduce((sum, f) => sum + outstandingOf(f), 0);
+    const collected = rows.reduce((sum, f) => sum + Number(f.amount_paid ?? 0), 0);
     return {
       students: studentsCount.count ?? 0,
       batches: activeBatches.count ?? 0,
       outstanding,
+      collected,
       newThisMonth: monthAdmissions.count ?? 0,
     };
   },

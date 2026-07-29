@@ -18,7 +18,7 @@ import { DataTable, type DTColumn } from "@/components/app/data-table";
 import { FeeFormDialog } from "@/components/app/fee-form-dialog";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { PaymentDialog, type PaymentTarget } from "@/components/app/payment-dialog";
-import { feesApi } from "@/lib/api";
+import { feesApi, outstandingOf } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { can } from "@/lib/rbac";
@@ -49,7 +49,7 @@ function FeesPage() {
     [data, status],
   );
 
-  const outstanding = data.reduce((a, b) => a + (Number(b.amount) - Number(b.amount_paid)), 0);
+  const outstanding = data.reduce((a, b) => a + outstandingOf(b), 0);
   const collected = data.reduce((a, b) => a + Number(b.amount_paid), 0);
   const overdue = data.filter(
     (f) =>
