@@ -21,7 +21,7 @@ test.describe("admin portal", () => {
     await login(page, "admin");
     for (const path of MODULES) {
       await page.goto(path, { waitUntil: "networkidle" });
-      await expect(page.locator("main, body")).toBeVisible();
+      await expect(page.locator("main").first()).toBeVisible();
       expect(page.url(), `redirected away from ${path}`).toContain(path);
     }
     expect(issues, issues.join("\n")).toEqual([]);
