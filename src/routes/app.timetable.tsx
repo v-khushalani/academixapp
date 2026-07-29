@@ -531,12 +531,28 @@ function TimetablePage() {
   );
 }
 
-function ClassBuilder({ batches, faculty }: { batches: Batch[]; faculty: Faculty[] }) {
-  return <ClassBuilderInner batches={batches} faculty={faculty} />;
+function ClassBuilder({
+  batches,
+  faculty,
+  defaultDuration,
+}: {
+  batches: Batch[];
+  faculty: Faculty[];
+  defaultDuration: number;
+}) {
+  return (
+    <ClassBuilderInner
+      key={defaultDuration}
+      batches={batches}
+      faculty={faculty}
+      defaultDuration={defaultDuration}
+    />
+  );
 }
 
-function BatchPalette({ batches }: { batches: Batch[] }) {
-  const [duration, setDuration] = useState(60);
+function BatchPalette({ batches, defaultDuration }: { batches: Batch[]; defaultDuration: number }) {
+  const [duration, setDuration] = useState(defaultDuration);
+  useEffect(() => setDuration(defaultDuration), [defaultDuration]);
 
   return (
     <aside className="space-y-2 rounded-lg border border-border bg-card p-3">
@@ -555,9 +571,9 @@ function BatchPalette({ batches }: { batches: Batch[] }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {[30, 45, 60, 75, 90, 120].map((m) => (
+            {[45, 60, 90].map((m) => (
               <SelectItem key={m} value={String(m)}>
-                {m} min
+                {m === 60 ? "1 hour" : m === 90 ? "1.5 hours" : `${m} min`}
               </SelectItem>
             ))}
           </SelectContent>
@@ -598,12 +614,20 @@ function BatchPalette({ batches }: { batches: Batch[] }) {
   );
 }
 
-function ClassBuilderInner({ batches, faculty }: { batches: Batch[]; faculty: Faculty[] }) {
+function ClassBuilderInner({
+  batches,
+  faculty,
+  defaultDuration,
+}: {
+  batches: Batch[];
+  faculty: Faculty[];
+  defaultDuration: number;
+}) {
   const [batchId, setBatchId] = useState<string>("");
   const [facultyId, setFacultyId] = useState<string>("");
   const [subject, setSubject] = useState("");
   const [room, setRoom] = useState("");
-  const [duration, setDuration] = useState<number>(60);
+  const [duration, setDuration] = useState<number>(defaultDuration);
 
   const selectedBatch = batches.find((b) => b.id === batchId);
   const selectedFaculty = faculty.find((f) => f.id === facultyId);
@@ -701,9 +725,9 @@ function ClassBuilderInner({ batches, faculty }: { batches: Batch[]; faculty: Fa
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {[30, 45, 60, 75, 90, 120].map((m) => (
+            {[45, 60, 90].map((m) => (
               <SelectItem key={m} value={String(m)}>
-                {m} min
+                {m === 60 ? "1 hour" : m === 90 ? "1.5 hours" : `${m} min`}
               </SelectItem>
             ))}
           </SelectContent>
