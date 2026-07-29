@@ -19,6 +19,8 @@ export type Faculty = Tables["faculty"]["Row"];
 export type FacultyInsert = Tables["faculty"]["Insert"];
 export type TimetableSlot = Tables["timetable_slots"]["Row"];
 export type TimetableSlotInsert = Tables["timetable_slots"]["Insert"];
+export type Room = Tables["rooms"]["Row"];
+export type RoomInsert = Tables["rooms"]["Insert"];
 export type Subject = Tables["subjects"]["Row"];
 export type Course = Tables["courses"]["Row"];
 export type CourseInsert = Tables["courses"]["Insert"];
@@ -42,6 +44,7 @@ export const LINKED_KEYS = [
   "attendance",
   "tests",
   "portal-fees",
+  "rooms",
 ] as const;
 
 // ---------- Students ----------
@@ -375,7 +378,9 @@ export const timetableApi = {
   async list() {
     const { data, error } = await supabase
       .from("timetable_slots")
-      .select("*, batch:batches(id,name), faculty:faculty(id,full_name)")
+      .select(
+        "*, batch:batches(id,name), faculty:faculty(id,full_name), room_ref:rooms(id,name,capacity)",
+      )
       .order("day_of_week")
       .order("start_time");
     if (error) throw error;
@@ -391,6 +396,27 @@ export const timetableApi = {
   },
   async remove(id: string) {
     const { error } = await supabase.from("timetable_slots").delete().eq("id", id);
+    if (error) throw error;
+  },
+};
+
+// ---------- Classrooms ----------
+export const roomsApi = {
+  async list(opts?: { includeInactive?: boolean }): Promise<Room[]> {
+    let q = supabase.from("rooms").select("*");
+    if (!opts?.includeInactive) q = q.eq("is_active", true);
+    const { data, error } = await q.order("name");
+    if (error) throw error;
+    return data ?? [];
+  },
+  async create(input: RoomInsert) {
+    return orThrow(await supabase.from("rooms").insert(input).select().single());
+  },
+  async update(id: string, input: Partial<RoomInsert>) {
+    return orThrow(await supabase.from("rooms").update(input).eq("id", id).select().single());
+  },
+  async remove(id: string) {
+    const { error } = await supabase.from("rooms").delete().eq("id", id);
     if (error) throw error;
   },
 };

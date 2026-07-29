@@ -71,7 +71,11 @@ function PortalTimetable() {
                         <p className="truncate text-sm font-medium">{s.subject ?? "Class"}</p>
                         <p className="text-xs text-muted-foreground">
                           {s.faculty?.full_name ?? "—"}
-                          {s.room ? ` · Room ${s.room}` : ""}
+                          {(s as { room_ref?: { name?: string } | null }).room_ref?.name
+                            ? ` · ${(s as { room_ref?: { name?: string } | null }).room_ref!.name}`
+                            : s.room
+                              ? ` · ${s.room}`
+                              : ""}
                         </p>
                       </div>
                       <span className="shrink-0 whitespace-nowrap text-xs font-medium text-muted-foreground">

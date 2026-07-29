@@ -720,6 +720,39 @@ export type Database = {
         }
         Relationships: []
       }
+      rooms: {
+        Row: {
+          capacity: number
+          created_at: string
+          id: string
+          institute_id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          id?: string
+          institute_id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          id?: string
+          institute_id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       student_activities: {
         Row: {
           created_at: string
@@ -1167,6 +1200,7 @@ export type Database = {
           id: string
           institute_id: string
           room: string | null
+          room_id: string | null
           start_time: string
           subject: string | null
           updated_at: string
@@ -1180,6 +1214,7 @@ export type Database = {
           id?: string
           institute_id?: string
           room?: string | null
+          room_id?: string | null
           start_time: string
           subject?: string | null
           updated_at?: string
@@ -1193,6 +1228,7 @@ export type Database = {
           id?: string
           institute_id?: string
           room?: string | null
+          room_id?: string | null
           start_time?: string
           subject?: string | null
           updated_at?: string
@@ -1217,6 +1253,13 @@ export type Database = {
             columns: ["institute_id"]
             isOneToOne: false
             referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_slots_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
             referencedColumns: ["id"]
           },
         ]

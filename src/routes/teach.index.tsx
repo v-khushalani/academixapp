@@ -93,7 +93,11 @@ function TeachHome() {
               <p className="truncate text-sm font-medium">{s.subject ?? "Class"}</p>
               <p className="truncate text-xs text-muted-foreground">
                 {(s as { batch?: { name?: string } }).batch?.name ?? "—"}
-                {s.room ? ` · Room ${s.room}` : ""}
+                {(s as { room_ref?: { name?: string } | null }).room_ref?.name
+                  ? ` · ${(s as { room_ref?: { name?: string } | null }).room_ref!.name}`
+                  : s.room
+                    ? ` · ${s.room}`
+                    : ""}
               </p>
             </div>
             <Link
