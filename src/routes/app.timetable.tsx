@@ -570,136 +570,39 @@ function TimetablePage() {
               Loading timetable…
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-border bg-card">
-              <table className="w-full min-w-[720px] text-sm">
-                <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-                  <tr>
-                    <th className="w-24 border-b border-border px-2 py-2">Time</th>
-                    {columns.map((c) => (
-                      <th key={c.id} className="border-b border-l border-border px-2 py-2">
-                        <span className="block truncate normal-case text-foreground">
-                          {c.label}
-                        </span>
-                        {c.sub && (
-                          <span className="block truncate text-[10px] font-normal normal-case">
-                            {c.sub}
-                          </span>
-                        )}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {bands.map((band) => (
-                    <tr key={band.start} className="align-top">
-                      <td className="whitespace-nowrap border-b border-border px-2 py-2 text-xs font-medium text-muted-foreground">
-                        {formatTime12(band.start)}
-                        <br />
-                        <span className="text-[10px]">– {formatTime12(band.end)}</span>
-                      </td>
-                      {columns.map((c) => {
-                        const cells = cellMap.get(`${c.id}|${band.start}`) ?? [];
-                        const isCovered = covered.has(`${c.id}|${band.start}`);
-                        return (
-                          <td
-                            key={c.id}
-                            onDragOver={(e) => {
-                              if (canWrite) e.preventDefault();
-                            }}
-                            onDrop={(e) => onDropCell(c.id, band, e)}
-                            className="border-b border-l border-border p-1"
-                          >
-                            <div className="flex min-h-[64px] flex-col gap-1">
-                              {cells.map((s) => (
-                                <div
-                                  key={s.id}
-                                  className={`group rounded-md border p-1.5 ${
-                                    badIds.has(s.id)
-                                      ? "border-destructive/60 bg-destructive/10"
-                                      : capIds.has(s.id)
-                                        ? "border-amber-500/60 bg-amber-500/10"
-                                        : "border-primary/20 bg-primary/5"
-                                  }`}
-                                >
-                                  <div className="flex items-start justify-between gap-1">
-                                    <p className="truncate text-xs font-semibold leading-tight">
-                                      {s.batch?.name ?? "—"}
-                                    </p>
-                                    {badIds.has(s.id) && (
-                                      <AlertTriangle className="h-3 w-3 shrink-0 text-destructive" />
-                                    )}
-                                  </div>
-                                  <p className="text-[10px] text-muted-foreground">
-                                    {formatTime12(s.start_time)} – {formatTime12(s.end_time)}
-                                  </p>
-                                  <p className="truncate text-[10px]">
-                                    {view === "room"
-                                      ? (s.faculty?.full_name ?? "No teacher")
-                                      : (roomLabel(s) ?? "No room")}
-                                  </p>
-                                  {s.subject && (
-                                    <p className="truncate text-[10px] text-muted-foreground">
-                                      {s.subject}
-                                    </p>
-                                  )}
-                                  {canWrite && (
-                                    <div className="mt-0.5 flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-                                      <button
-                                        className="rounded p-0.5 hover:bg-muted"
-                                        onClick={() => {
-                                          setEditing(s);
-                                          setPresets({ day: s.day_of_week });
-                                          setDialogOpen(true);
-                                        }}
-                                        title="Edit"
-                                      >
-                                        <Pencil className="h-3 w-3" />
-                                      </button>
-                                      <button
-                                        className="rounded p-0.5 text-destructive hover:bg-muted"
-                                        onClick={() => removeMut.mutate(s.id)}
-                                        title="Delete"
-                                      >
-                                        <Trash2 className="h-3 w-3" />
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                              {canWrite && cells.length === 0 && !isCovered && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setEditing(null);
-                                    setPresets({
-                                      day,
-                                      start: band.start,
-                                      end: toHHMM(toMinutes(band.start) + shift.period),
-                                      roomId: view === "room" && c.id !== UNASSIGNED ? c.id : null,
-                                      facultyId:
-                                        view === "faculty" && c.id !== UNASSIGNED ? c.id : null,
-                                    });
-                                    setDialogOpen(true);
-                                  }}
-                                  className="flex flex-1 items-center justify-center rounded-md border border-dashed border-border text-[11px] text-muted-foreground hover:border-primary hover:text-primary"
-                                >
-                                  + drop or add
-                                </button>
-                              )}
-                              {cells.length === 0 && isCovered && (
-                                <div className="flex flex-1 items-center justify-center rounded-md border border-dashed border-border/40 text-[10px] text-muted-foreground/60">
-                                  ↑ continued
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ScheduleGrid
+              columns={columns}
+              bands={bands}
+              items={gridItems}
+              canWrite={canWrite}
+              emptyHint="Add class"
+              onDropCell={(colId, band, ev) => onDropCell(colId, band, ev)}
+              onItemClick={(it) => {
+                const s = daySlots.find((x) => x.id === it.id);
+                if (!s) return;
+                setEditing(s);
+                setPresets({ day: s.day_of_week });
+                setDialogOpen(true);
+              }}
+              onItemDelete={(it) => removeMut.mutate(it.id)}
+              onEmptyClick={(colId, band) => {
+                setEditing(null);
+                setPresets({
+                  day,
+                  start: band.start,
+                  end: toHHMM(toMinutes(band.start) + shift.period),
+                  roomId: view === "room" && colId !== UNASSIGNED ? colId : null,
+                  facultyId: view === "faculty" && colId !== UNASSIGNED ? colId : null,
+                });
+                setDialogOpen(true);
+              }}
+              footer={
+                <p className="border-t border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
+                  Drag a batch from the left onto any empty cell, or click a cell to add a class.
+                  Click a class to edit it. Room, teacher and batch clashes are blocked automatically.
+                </p>
+              }
+            />
           )}
         </div>
           </>
