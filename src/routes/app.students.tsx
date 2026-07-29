@@ -33,6 +33,7 @@ type Row = Awaited<ReturnType<typeof studentsApi.list>>[number];
 function StudentsPage() {
   const { roles } = useAuth();
   const canWrite = can("student:write", roles);
+  const canEdit = can("student:edit", roles);
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data = [], isLoading } = useQuery({
@@ -160,6 +161,8 @@ function StudentsPage() {
             <Button
               size="icon"
               variant="ghost"
+              disabled={!canEdit}
+              title={canEdit ? "Edit student" : "Only admins can edit enrolment details"}
               onClick={() => {
                 setEditing(r);
                 setDialogOpen(true);
@@ -171,6 +174,7 @@ function StudentsPage() {
               size="icon"
               variant="ghost"
               className="text-destructive"
+              disabled={!canEdit}
               onClick={() => setDeleting(r)}
             >
               <Trash2 className="h-4 w-4" />
