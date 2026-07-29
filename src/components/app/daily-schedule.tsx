@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -357,19 +357,21 @@ export function DailySchedule({
         </div>
       ) : (
         <>
-          <ScheduleGrid
-            columns={columns}
-            bands={bands}
-            items={items}
-            canWrite={canWrite}
-            onItemClick={(it) => setOpenRow(it.id)}
-            footer={
-              <p className="border-t border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
-                Tap any class to change today&apos;s teacher, room or subject. Edits here apply to{" "}
-                {prettyDate(date)} only — the weekly plan stays untouched.
-              </p>
-            }
-          />
+          <div className="hidden md:block">
+            <ScheduleGrid
+              columns={columns}
+              bands={bands}
+              items={items}
+              canWrite={canWrite}
+              onItemClick={(it) => setOpenRow(it.id)}
+              footer={
+                <p className="border-t border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
+                  Tap any class to change today&apos;s teacher, room or subject. Edits here apply to{" "}
+                  {prettyDate(date)} only — the weekly plan stays untouched.
+                </p>
+              }
+            />
+          </div>
 
           {/* mobile-friendly list of the same day */}
           <ul className="space-y-1.5 md:hidden">
@@ -484,7 +486,7 @@ export function DailySchedule({
   );
 }
 
-function Stat({ icon, value, label }: { icon: React.ReactNode; value: number; label: string }) {
+function Stat({ icon, value, label }: { icon: ReactNode; value: number; label: string }) {
   return (
     <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1">
       {icon}
