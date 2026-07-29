@@ -41,11 +41,7 @@ import {
   type SlotRow,
 } from "@/lib/timetable/conflicts";
 import { openWhatsApp, teacherDayMessage } from "@/lib/whatsapp";
-import {
-  ScheduleGrid,
-  type GridBand,
-  type GridItem,
-} from "@/components/app/timetable/schedule-grid";
+import { ScheduleGrid, type GridItem } from "@/components/app/timetable/schedule-grid";
 
 export const Route = createFileRoute("/app/timetable")({
   head: () => ({
