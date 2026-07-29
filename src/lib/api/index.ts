@@ -27,6 +27,9 @@ export type CourseInsert = Tables["courses"]["Insert"];
 export type SubjectInsert = Tables["subjects"]["Insert"];
 export type UserRole = Tables["user_roles"]["Row"];
 export type AppRole = Database["public"]["Enums"]["app_role"];
+export type DayPlan = Tables["timetable_day_plan"]["Row"];
+export type DayPlanInsert = Tables["timetable_day_plan"]["Insert"];
+export type Institute = Tables["institutes"]["Row"];
 
 function orThrow<T>({ data, error }: { data: T | null; error: unknown }): T {
   if (error) throw error;
@@ -417,6 +420,70 @@ export const roomsApi = {
   },
   async remove(id: string) {
     const { error } = await supabase.from("rooms").delete().eq("id", id);
+    if (error) throw error;
+  },
+};
+
+// ---------- Institute (plan / limits) ----------
+export const instituteApi = {
+  async get(): Promise<Institute | null> {
+    const { data, error } = await supabase.from("institutes").select("*").maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+  async setPlan(id: string, plan: string, roomLimit: number) {
+    return orThrow(
+      await supabase
+        .from("institutes")
+        .update({ plan, room_limit: roomLimit })
+        .eq("id", id)
+        .select()
+        .single(),
+    );
+  },
+};
+
+// ---------- Daily schedule (per-date plan on top of the weekly grid) ----------
+export type DayPlanRow = DayPlan & {
+  batch?: { id: string; name: string } | null;
+  faculty?: { id: string; full_name: string; phone: string | null } | null;
+  room_ref?: { id: string; name: string; capacity: number } | null;
+};
+
+export const dayPlanApi = {
+  async listForDate(date: string): Promise<DayPlanRow[]> {
+    const { data, error } = await supabase
+      .from("timetable_day_plan")
+      .select(
+        "*, batch:batches(id,name), faculty:faculty(id,full_name,phone), room_ref:rooms(id,name,capacity)",
+      )
+      .eq("date", date);
+    if (error) throw error;
+    return (data ?? []) as DayPlanRow[];
+  },
+  /** One row per weekly slot per date — update when it already exists. */
+  async save(input: DayPlanInsert & { slot_id: string; date: string }) {
+    const { data: existing, error: findErr } = await supabase
+      .from("timetable_day_plan")
+      .select("id")
+      .eq("slot_id", input.slot_id)
+      .eq("date", input.date)
+      .maybeSingle();
+    if (findErr) throw findErr;
+    if (existing) {
+      return orThrow(
+        await supabase
+          .from("timetable_day_plan")
+          .update(input)
+          .eq("id", existing.id)
+          .select()
+          .single(),
+      );
+    }
+    return orThrow(await supabase.from("timetable_day_plan").insert(input).select().single());
+  },
+  async remove(id: string) {
+    const { error } = await supabase.from("timetable_day_plan").delete().eq("id", id);
     if (error) throw error;
   },
 };

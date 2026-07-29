@@ -11,6 +11,7 @@ import {
   GraduationCap,
   BarChart3,
   Settings,
+  ShieldCheck,
   LogOut,
 } from "lucide-react";
 import {
@@ -26,7 +27,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
-import { canAccess, type ModuleKey } from "@/lib/rbac";
+import { canAccess, isSuperAdmin, type ModuleKey } from "@/lib/rbac";
 import { useEffect, useState } from "react";
 import { getInstitute } from "@/lib/academy-settings";
 
@@ -51,6 +52,13 @@ const nav: NavItem[] = [
   { title: "Settings", url: "/app/settings", icon: Settings, key: "settings" },
 ];
 
+const platformNav: NavItem = {
+  title: "Platform",
+  url: "/app/platform",
+  icon: ShieldCheck,
+  key: "platform",
+};
+
 export function AppSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
@@ -68,7 +76,9 @@ export function AppSidebar() {
   const isActive = (url: string, exact?: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(url + "/");
 
-  const items = nav.filter((n) => roles.length === 0 || canAccess(n.key, roles));
+  const base = nav.filter((n) => roles.length === 0 || canAccess(n.key, roles));
+  // Platform console is only ever listed for Team Academix.
+  const items = isSuperAdmin(roles) ? [...base, platformNav] : base;
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
