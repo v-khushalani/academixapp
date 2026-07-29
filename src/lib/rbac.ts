@@ -11,7 +11,15 @@ export type ModuleKey =
   | "timetable"
   | "faculty"
   | "reports"
-  | "settings";
+  | "settings"
+  | "platform";
+
+/** Team Academix. Hidden from every institute-facing role picker. */
+export const SUPERADMIN: AppRole = "superadmin" as AppRole;
+
+export function isSuperAdmin(roles: AppRole[]): boolean {
+  return roles.includes(SUPERADMIN);
+}
 
 export const MODULE_ACCESS: Record<ModuleKey, AppRole[]> = {
   dashboard: [
@@ -34,6 +42,7 @@ export const MODULE_ACCESS: Record<ModuleKey, AppRole[]> = {
   faculty: ["owner", "admin"],
   reports: ["owner", "admin", "accountant"],
   settings: ["owner", "admin"],
+  platform: [],
 };
 
 // Action-level permissions
@@ -66,6 +75,7 @@ export const ACTION_ROLES: Record<Action, AppRole[]> = {
  * @returns true if user has access
  */
 export function canAccess(module: ModuleKey, roles: AppRole[]): boolean {
+  if (isSuperAdmin(roles)) return true;
   return roles.some((r) => MODULE_ACCESS[module].includes(r));
 }
 
@@ -76,5 +86,6 @@ export function canAccess(module: ModuleKey, roles: AppRole[]): boolean {
  * @returns true if user can perform action
  */
 export function can(action: Action, roles: AppRole[]): boolean {
+  if (isSuperAdmin(roles)) return true;
   return roles.some((r) => ACTION_ROLES[action].includes(r));
 }
