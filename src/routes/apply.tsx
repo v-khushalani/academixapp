@@ -7,10 +7,14 @@ import { AdmissionForm, type AdmissionFormValues } from "@/components/app/admiss
 import { getInstitute } from "@/lib/academy-settings";
 
 export const Route = createFileRoute("/apply")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    i: typeof search.i === "string" ? search.i : undefined,
+  }),
   component: ApplyPage,
 });
 
 function ApplyPage() {
+  const { i: instituteSlug } = Route.useSearch();
   const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
@@ -38,6 +42,7 @@ function ApplyPage() {
       _preferred_contact: v.preferred_contact,
       _intent: v.intent,
       _token_amount: v.token_amount ?? 0,
+      _institute_slug: instituteSlug ?? "",
     });
     setSaving(false);
     if (error) {

@@ -58,37 +58,33 @@ export const Route = createFileRoute("/app/admissions")({
 function AdmissionsPage() {
   const { roles } = useAuth();
   const canWrite = can("lead:write", roles);
-  const [tab, setTab] = useState("leads");
+  const [tab, setTab] = useState("applications");
 
   return (
     <>
       <PageHeader
         title="Admissions"
-        description="Leads pipeline, pending applications, and the public QR."
+        description="One QR → parent fills the form → you approve and give a batch. Everything not admitted stays in follow-ups."
       />
       <PageBody>
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList>
-            <TabsTrigger value="leads">Leads pipeline</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
-            <TabsTrigger value="records">Enquiry records</TabsTrigger>
-            <TabsTrigger value="qr">Public QR</TabsTrigger>
-            <TabsTrigger value="how">How it works</TabsTrigger>
+            <TabsTrigger value="records">Follow-ups</TabsTrigger>
+            <TabsTrigger value="qr">QR &amp; link</TabsTrigger>
           </TabsList>
-          <TabsContent value="leads" className="mt-4">
-            <LeadsBoard canWrite={canWrite} />
-          </TabsContent>
           <TabsContent value="applications" className="mt-4">
             <ApplicationsList canWrite={canWrite} />
           </TabsContent>
-          <TabsContent value="records" className="mt-4">
+          <TabsContent value="records" className="mt-4 space-y-8">
             <EnquiryRecords canWrite={canWrite} />
+            <div>
+              <h2 className="mb-2 text-sm font-semibold">Walk-in / call leads</h2>
+              <LeadsBoard canWrite={canWrite} />
+            </div>
           </TabsContent>
           <TabsContent value="qr" className="mt-4">
             <QrPanel />
-          </TabsContent>
-          <TabsContent value="how" className="mt-4">
-            <HowItWorks />
           </TabsContent>
         </Tabs>
       </PageBody>
