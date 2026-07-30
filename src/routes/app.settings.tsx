@@ -31,7 +31,9 @@ import {
   saveInstitute,
   getTemplates,
   saveTemplates,
+  DEFAULT_SHIFTS,
   type InstituteSettings,
+  type Shifts,
 } from "@/lib/academy-settings";
 import { WA_TEMPLATES, type WhatsAppTemplateKey } from "@/lib/whatsapp";
 import { useAuth } from "@/hooks/use-auth";
@@ -52,7 +54,7 @@ function SettingsPage() {
           <TabsList className="mb-4 flex-wrap">
             <TabsTrigger value="institute">Institute</TabsTrigger>
             <TabsTrigger value="courses">Courses & Subjects</TabsTrigger>
-            <TabsTrigger value="rooms">Classrooms</TabsTrigger>
+            <TabsTrigger value="rooms">Classrooms & timings</TabsTrigger>
             <TabsTrigger value="fees">Fee structures</TabsTrigger>
             <TabsTrigger value="users">Users & roles</TabsTrigger>
             <TabsTrigger value="branding">Branding</TabsTrigger>
@@ -65,7 +67,10 @@ function SettingsPage() {
             <CoursesPanel />
           </TabsContent>
           <TabsContent value="rooms">
-            <RoomsPanel />
+            <div className="space-y-4">
+              <RoomsPanel />
+              <ShiftTimingsPanel />
+            </div>
           </TabsContent>
           <TabsContent value="fees">
             <FeesPanel />
@@ -518,6 +523,94 @@ function RoomsPanel() {
 }
 
 function FeesPanel() {
+  return <FeesPanelInner />;
+}
+
+/** Default class timings for the timetable — set once, tweak whenever. */
+function ShiftTimingsPanel() {
+  const [shifts, setShifts] = useState<Shifts>(() => getInstitute().shifts ?? DEFAULT_SHIFTS);
+  const [saving, setSaving] = useState(false);
+
+  function patch(key: keyof Shifts, p: Partial<Shifts["morning"]>) {
+    setShifts((prev) => ({ ...prev, [key]: { ...prev[key], ...p } }));
+  }
+
+  async function save(next: Shifts = shifts) {
+    setSaving(true);
+    try {
+      await saveInstitute({ ...getInstitute(), shifts: next });
+      setShifts(next);
+      toast.success("Class timings saved");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card
+      title="Class timings"
+      description="Default morning and evening windows used by the timetable. Change them any time — existing classes are untouched."
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        {(["morning", "evening"] as const).map((k) => (
+          <div key={k} className="space-y-2 rounded-md border border-border p-3">
+            <p className="text-sm font-medium capitalize">{k} shift</p>
+            <div className="flex flex-wrap gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Start</Label>
+                <Input
+                  type="time"
+                  value={shifts[k].start}
+                  onChange={(e) => patch(k, { start: e.target.value })}
+                  className="h-8 w-32"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">End</Label>
+                <Input
+                  type="time"
+                  value={shifts[k].end}
+                  onChange={(e) => patch(k, { end: e.target.value })}
+                  className="h-8 w-32"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Period length</Label>
+                <Select
+                  value={String(shifts[k].period)}
+                  onValueChange={(v) => patch(k, { period: Number(v) })}
+                >
+                  <SelectTrigger className="h-8 w-28 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[45, 60, 90].map((m) => (
+                      <SelectItem key={m} value={String(m)}>
+                        {m === 60 ? "1 hour" : m === 90 ? "1.5 hours" : `${m} min`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button size="sm" disabled={saving} onClick={() => save()}>
+          Save timings
+        </Button>
+        <Button size="sm" variant="outline" disabled={saving} onClick={() => save(DEFAULT_SHIFTS)}>
+          Reset to default
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
+function FeesPanelInner() {
   return (
     <Card
       title="Fee structures"
