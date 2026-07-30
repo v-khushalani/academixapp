@@ -183,7 +183,7 @@ function TimetablePage() {
     onError: (e: Error) => toast.error(e.message),
   });
   const updateMut = useMutation({
-    mutationFn: ({ id, patch }: { id: string; patch: Record<string, unknown> }) =>
+    mutationFn: ({ id, patch }: { id: string; patch: Partial<TimetableSlot> }) =>
       timetableApi.update(id, patch),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["timetable"] }),
     onError: (e: Error) => toast.error(e.message),
@@ -295,6 +295,41 @@ function TimetablePage() {
       setEditing(created);
       setPresets({ day });
       setDialogOpen(true);
+    }
+  }
+
+  /** Drop a subject or a teacher straight onto a placed class to assign it. */
+  function onDropItem(itemId: string, ev: DragEvent) {
+    ev.preventDefault();
+    if (!canWrite) return;
+    const raw = ev.dataTransfer.getData("application/json");
+    if (!raw) return;
+    const p: DragPayload = JSON.parse(raw);
+    const slot = slots.find((s) => s.id === itemId);
+    if (!slot) return;
+    if (p.subject) {
+      updateMut.mutate({ id: slot.id, patch: { subject: p.subject } });
+      toast.success(`${p.subject} assigned`);
+      return;
+    }
+    if (p.facultyId) {
+      const clash = findConflicts({ ...slot, faculty_id: p.facultyId }, slots);
+      if (clash.length) {
+        toast.error("That teacher already has a class at this time.");
+        return;
+      }
+      updateMut.mutate({ id: slot.id, patch: { faculty_id: p.facultyId } });
+      toast.success("Teacher assigned");
+      return;
+    }
+    if (p.batchId) {
+      const clash = findConflicts({ ...slot, batch_id: p.batchId }, slots);
+      if (clash.length) {
+        toast.error("That batch already has a class at this time.");
+        return;
+      }
+      updateMut.mutate({ id: slot.id, patch: { batch_id: p.batchId } });
+      toast.success("Batch changed");
     }
   }
 
