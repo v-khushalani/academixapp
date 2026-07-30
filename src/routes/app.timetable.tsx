@@ -594,7 +594,7 @@ function TimetablePage() {
           </div>
         )}
 
-        <div className="flex flex-col gap-4 lg:h-[calc(100dvh-19rem)] lg:min-h-[420px] lg:flex-row">
+        <div className="flex flex-col gap-4 lg:h-[min(calc(100dvh-19rem),640px)] lg:min-h-[420px] lg:flex-row">
           {canWrite && (
             <PlanRail
               batches={batches}
