@@ -671,140 +671,203 @@ function TimetablePage() {
   );
 }
 
-function BatchPalette({
+/**
+ * Two-step planning rail. Step 1 places a batch on the board, step 2 drags a
+ * subject or a teacher onto that placed class. The rail itself never grows the
+ * page — only the active list scrolls inside it.
+ */
+function PlanRail({
   batches,
   rooms,
+  faculty,
+  subjects,
   defaultDuration,
   strength,
-}: {
-  batches: Batch[];
-  rooms: Room[];
-  defaultDuration: number;
-  strength: Map<string, number>;
-}) {
-  const [duration, setDuration] = useState(defaultDuration);
-  const [roomId, setRoomId] = useState<string>(UNASSIGNED);
-
-  return (
-    <aside className="space-y-2 rounded-lg border border-border bg-card p-3">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Batches
-        </p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
-          Drag a batch onto any cell — the column decides the room (or teacher), then pick the rest.
-        </p>
-      </div>
-      <div className="space-y-1.5">
-        <Label className="text-xs">Class length</Label>
-        <Select value={String(duration)} onValueChange={(v) => setDuration(Number(v))}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {[45, 60, 90].map((m) => (
-              <SelectItem key={m} value={String(m)}>
-                {m === 60 ? "1 hour" : m === 90 ? "1.5 hours" : `${m} min`}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-1.5">
-        <Label className="text-xs">Default room (teacher view)</Label>
-        <Select value={roomId} onValueChange={setRoomId}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={UNASSIGNED}>Decide later</SelectItem>
-            {rooms.map((r) => (
-              <SelectItem key={r.id} value={r.id}>
-                {r.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="max-h-72 space-y-1.5 overflow-y-auto pr-0.5">
-        {batches.length === 0 && (
-          <p className="text-[11px] text-muted-foreground">No batches yet — create one first.</p>
-        )}
-        {batches.map((b) => (
-          <div
-            key={b.id}
-            draggable
-            onDragStart={(e) =>
-              e.dataTransfer.setData(
-                "application/json",
-                JSON.stringify({
-                  batchId: b.id,
-                  roomId: roomId === UNASSIGNED ? undefined : roomId,
-                  durationMin: duration,
-                  quick: true,
-                } satisfies DragPayload),
-              )
-            }
-            className="flex cursor-grab items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-xs active:cursor-grabbing"
-          >
-            <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
-            <span className="truncate font-medium">{b.name}</span>
-            <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground">
-              <Users className="h-3 w-3" />
-              {strength.get(b.id) ?? 0}
-            </span>
-          </div>
-        ))}
-      </div>
-    </aside>
-  );
-}
-
-function TeacherDayPanel({
-  faculty,
   load,
   dayLabel,
   onSend,
+  idleRooms,
 }: {
+  batches: Batch[];
+  rooms: Room[];
   faculty: Faculty[];
+  subjects: string[];
+  defaultDuration: number;
+  strength: Map<string, number>;
   load: Map<string, number>;
   dayLabel: string;
   onSend: (f: Faculty) => void;
+  idleRooms: Room[];
 }) {
+  const [step, setStep] = useState<"batches" | "subjects" | "teachers">("batches");
+  const [duration, setDuration] = useState(defaultDuration);
+  const [roomId, setRoomId] = useState<string>(UNASSIGNED);
+
+  const drag = (payload: DragPayload) => (e: DragEvent<HTMLDivElement>) =>
+    e.dataTransfer.setData("application/json", JSON.stringify(payload));
+
+  const STEPS: { key: typeof step; label: string }[] = [
+    { key: "batches", label: "1 · Batches" },
+    { key: "subjects", label: "2 · Subjects" },
+    { key: "teachers", label: "3 · Teachers" },
+  ];
+
   return (
-    <aside className="space-y-2 rounded-lg border border-border bg-card p-3">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Teacher load · {dayLabel}
-        </p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
-          Send each teacher their day schedule on WhatsApp.
-        </p>
-      </div>
-      <div className="max-h-72 space-y-1 overflow-y-auto pr-0.5">
-        {faculty.length === 0 && (
-          <p className="text-[11px] text-muted-foreground">No teachers added yet.</p>
-        )}
-        {faculty.map((f) => (
-          <div
-            key={f.id}
-            className="flex items-center gap-1.5 rounded-md border border-border px-2 py-1.5 text-xs"
+    <aside className="flex w-full shrink-0 flex-col overflow-hidden rounded-lg border border-border bg-card lg:h-full lg:w-60">
+      <div className="grid grid-cols-3 border-b border-border">
+        {STEPS.map((s) => (
+          <button
+            key={s.key}
+            type="button"
+            onClick={() => setStep(s.key)}
+            className={`px-1 py-2 text-[11px] font-medium transition-colors ${
+              step === s.key
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
           >
-            <span className="truncate">{f.full_name}</span>
-            <span className="ml-auto shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-              {load.get(f.id) ?? 0}
-            </span>
-            <button
-              type="button"
-              onClick={() => onSend(f)}
-              title={`Send ${f.full_name}'s schedule`}
-              className="shrink-0 rounded p-0.5 text-primary hover:bg-muted"
-            >
-              <Send className="h-3.5 w-3.5" />
-            </button>
-          </div>
+            {s.label}
+          </button>
         ))}
       </div>
+
+      {step === "batches" && (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="space-y-2 border-b border-border p-3">
+            <p className="text-[11px] text-muted-foreground">
+              Drag a batch onto an empty cell. The column decides the room (or teacher).
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide">Length</Label>
+                <Select value={String(duration)} onValueChange={(v) => setDuration(Number(v))}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[45, 60, 90].map((m) => (
+                      <SelectItem key={m} value={String(m)}>
+                        {m === 60 ? "1 hour" : m === 90 ? "1.5 hr" : `${m} min`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide">Room</Label>
+                <Select value={roomId} onValueChange={setRoomId}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={UNASSIGNED}>Later</SelectItem>
+                    {rooms.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto p-3">
+            {batches.length === 0 && (
+              <p className="text-[11px] text-muted-foreground">
+                No batches yet — create one first.
+              </p>
+            )}
+            {batches.map((b) => (
+              <div
+                key={b.id}
+                draggable
+                onDragStart={drag({
+                  batchId: b.id,
+                  roomId: roomId === UNASSIGNED ? undefined : roomId,
+                  durationMin: duration,
+                  quick: false,
+                })}
+                className="flex cursor-grab items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-xs active:cursor-grabbing"
+              >
+                <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
+                <span className="truncate font-medium">{b.name}</span>
+                <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground">
+                  <Users className="h-3 w-3" />
+                  {strength.get(b.id) ?? 0}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === "subjects" && (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <p className="border-b border-border p-3 text-[11px] text-muted-foreground">
+            Drop a subject onto a placed class to set what is being taught.
+          </p>
+          <div className="min-h-0 flex-1 overflow-y-auto p-3">
+            {subjects.length === 0 ? (
+              <p className="text-[11px] text-muted-foreground">
+                Add subjects in Settings → Courses to drag them here.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {subjects.map((name) => (
+                  <div
+                    key={name}
+                    draggable
+                    onDragStart={drag({ subject: name })}
+                    className="cursor-grab rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[11px] font-medium active:cursor-grabbing"
+                  >
+                    {name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {step === "teachers" && (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <p className="border-b border-border p-3 text-[11px] text-muted-foreground">
+            Drop a teacher onto a class to assign them. Number = classes on {dayLabel}.
+          </p>
+          <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
+            {faculty.length === 0 && (
+              <p className="text-[11px] text-muted-foreground">No teachers added yet.</p>
+            )}
+            {faculty.map((f) => (
+              <div
+                key={f.id}
+                draggable
+                onDragStart={drag({ facultyId: f.id })}
+                className="flex cursor-grab items-center gap-1.5 rounded-md border border-border px-2 py-1.5 text-xs active:cursor-grabbing"
+              >
+                <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
+                <span className="truncate">{f.full_name}</span>
+                <span className="ml-auto shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                  {load.get(f.id) ?? 0}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onSend(f)}
+                  title={`Send ${f.full_name}'s schedule`}
+                  className="shrink-0 rounded p-0.5 text-primary hover:bg-muted"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+          {idleRooms.length > 0 && (
+            <p className="border-t border-border p-3 text-[10px] text-muted-foreground">
+              Free rooms: {idleRooms.map((r) => r.name).join(", ")}
+            </p>
+          )}
+        </div>
+      )}
     </aside>
   );
 }
