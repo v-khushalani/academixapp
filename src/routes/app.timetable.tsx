@@ -127,6 +127,14 @@ function TimetablePage() {
     return m;
   }, [students]);
 
+  /** Subject chips for the rail: catalogue subjects plus anything already on the board. */
+  const subjectNames = useMemo(() => {
+    const set = new Set<string>();
+    subjectRows.forEach((s) => s.name && set.add(s.name));
+    slots.forEach((s) => s.subject && set.add(s.subject));
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [subjectRows, slots]);
+
   // ----- shift + day + view -----
   const [shifts, setShifts] = useState<Shifts>(() => getInstitute().shifts ?? DEFAULT_SHIFTS);
   const [shiftKey, setShiftKey] = useState<ShiftKey>(() =>
