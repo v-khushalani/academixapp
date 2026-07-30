@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Plus, GripVertical, Share2, AlertTriangle, Send, Users } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { DailySchedule } from "@/components/app/daily-schedule";
+import { ClassTimetable } from "@/components/app/timetable/class-timetable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -83,9 +84,15 @@ const SHIFT_LABEL: Record<ShiftKey, string> = { morning: "Morning", evening: "Ev
 type ViewKey = "room" | "faculty";
 const UNASSIGNED = "__none__";
 
+const MODE_LABEL: Record<"daily" | "weekly" | "class", string> = {
+  daily: "Today (teachers)",
+  weekly: "Weekly plan (rooms)",
+  class: "Class timetable (students)",
+};
+
 function TimetablePage() {
   const qc = useQueryClient();
-  const [mode, setMode] = useState<"daily" | "weekly">("daily");
+  const [mode, setMode] = useState<"daily" | "weekly" | "class">("daily");
   const { roles } = useAuth();
   const canWrite = can("batch:write", roles);
 
@@ -363,19 +370,19 @@ function TimetablePage() {
         }
       />
       <PageBody>
-        <div className="mb-4 inline-flex rounded-md border border-border bg-muted/40 p-0.5">
-          {(["daily", "weekly"] as const).map((m) => (
+        <div className="mb-4 inline-flex flex-wrap rounded-md border border-border bg-muted/40 p-0.5">
+          {(["daily", "weekly", "class"] as const).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => setMode(m)}
-              className={`rounded px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+              className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
                 mode === m
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {m === "daily" ? "Today's schedule" : "Weekly plan"}
+              {MODE_LABEL[m]}
             </button>
           ))}
         </div>
@@ -388,6 +395,8 @@ function TimetablePage() {
             batches={batches}
             canWrite={canWrite}
           />
+        ) : mode === "class" ? (
+          <ClassTimetable slots={slots} batches={batches} />
         ) : (
           <>
         {/* controls */}
