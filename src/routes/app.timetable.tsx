@@ -587,33 +587,20 @@ function TimetablePage() {
           </div>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-[240px_1fr]">
+        <div className="flex flex-col gap-4 lg:h-[calc(100dvh-19rem)] lg:min-h-[420px] lg:flex-row">
           {canWrite && (
-            <div className="space-y-4">
-              <BatchPalette
-                batches={batches}
-                rooms={rooms}
-                defaultDuration={shift.period}
-                strength={batchStrength}
-              />
-              <TeacherDayPanel
-                faculty={faculty}
-                load={coverage.load}
-                dayLabel={DAY_FULL[day]}
-                onSend={sendTeacherDay}
-              />
-              {coverage.idleRooms.length > 0 && (
-                <aside className="rounded-lg border border-border bg-card p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Free classrooms
-                  </p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    {coverage.idleRooms.map((r) => r.name).join(", ")} — unused on {DAY_LABEL[day]}{" "}
-                    {SHIFT_LABEL[shiftKey].toLowerCase()} shift.
-                  </p>
-                </aside>
-              )}
-            </div>
+            <PlanRail
+              batches={batches}
+              rooms={rooms}
+              faculty={faculty}
+              subjects={subjectNames}
+              defaultDuration={shift.period}
+              strength={batchStrength}
+              load={coverage.load}
+              dayLabel={DAY_FULL[day]}
+              onSend={sendTeacherDay}
+              idleRooms={coverage.idleRooms}
+            />
           )}
 
           {isLoading ? (
@@ -621,6 +608,7 @@ function TimetablePage() {
               Loading timetable…
             </div>
           ) : (
+            <div className="min-w-0 flex-1 overflow-auto">
             <ScheduleGrid
               columns={columns}
               bands={bands}
@@ -628,6 +616,7 @@ function TimetablePage() {
               canWrite={canWrite}
               emptyHint="Add class"
               onDropCell={(colId, band, ev) => onDropCell(colId, band, ev)}
+              onDropItem={(it, ev) => onDropItem(it.id, ev)}
               onItemClick={(it) => {
                 const s = daySlots.find((x) => x.id === it.id);
                 if (!s) return;
@@ -649,11 +638,12 @@ function TimetablePage() {
               }}
               footer={
                 <p className="border-t border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
-                  Drag a batch from the left onto any empty cell, or click a cell to add a class.
-                  Click a class to edit it. Room, teacher and batch clashes are blocked automatically.
+                  Step 1 — drag a batch onto an empty cell. Step 2 — drag a subject or a teacher
+                  onto that class to assign it. Clashes are blocked automatically.
                 </p>
               }
             />
+            </div>
           )}
         </div>
           </>
