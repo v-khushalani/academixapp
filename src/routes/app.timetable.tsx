@@ -22,6 +22,7 @@ import {
   facultyApi,
   roomsApi,
   studentsApi,
+  subjectsApi,
   timetableApi,
   type Batch,
   type Faculty,
@@ -113,6 +114,10 @@ function TimetablePage() {
     queryKey: ["students"],
     queryFn: () => studentsApi.list(),
   });
+  const { data: subjectRows = [] } = useQuery({
+    queryKey: ["subjects"],
+    queryFn: () => subjectsApi.list(),
+  });
 
   const batchStrength = useMemo(() => {
     const m = new Map<string, number>();
@@ -174,6 +179,12 @@ function TimetablePage() {
   });
   const createMut = useMutation({
     mutationFn: (input: Parameters<typeof timetableApi.create>[0]) => timetableApi.create(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["timetable"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const updateMut = useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: Record<string, unknown> }) =>
+      timetableApi.update(id, patch),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["timetable"] }),
     onError: (e: Error) => toast.error(e.message),
   });
