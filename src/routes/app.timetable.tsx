@@ -297,9 +297,8 @@ function TimetablePage() {
       return;
     }
     const created = await createMut.mutateAsync(candidate);
-    toast.success("Class added");
-    const needsDetails = p.quick || !candidate.faculty_id || !candidate.room_id;
-    if (created && needsDetails) {
+    toast.success("Class placed — now drag a subject and a teacher onto it");
+    if (created && p.quick) {
       setEditing(created);
       setPresets({ day });
       setDialogOpen(true);
