@@ -1,71 +1,52 @@
-## Goal
+## 1. Public QR admissions — confirmed root cause
 
-Ek slot = ek batch + ek teacher + ek classroom. 3–4 PM mein 4 alag rooms mein 4 batches parallel chalein, bina teacher/batch/room clash ke. Weekly grid fix rahega (subject optional/blank), aur usi se har teacher ka daily schedule banega jo WhatsApp par bheja ja sake.
+Verified in the database: there are two institutes — **"Your Institute"** (slug `default`, created first, 2 users) and **"VK ACADEMY"** (5 users, the one you log in to). The public form's database routine sets the institute using a helper that returns *the oldest institute in the table*, so every QR/`/apply` submission lands in "Your Institute", while the Admissions screen only reads rows for VK ACADEMY. The rows are being saved correctly — they're just filed under the wrong institute (3 pending applications are sitting there right now).
 
-## 1. Classrooms master (Settings)
+Fix:
+- Make the public form institute-aware: `/apply?i=<slug>` (the QR in Admissions embeds your institute's slug), and the submit routine resolves the institute from that slug, falling back to the single institute when only one exists.
+- Backfill the 3 stranded pending applications to VK ACADEMY, and retire the placeholder "Your Institute" tenant so the fallback can't misfire again.
+- Show a confirmation state with the application number on submit, and make Admissions poll/refresh so a new entry appears without a manual reload.
 
-Naya `rooms` table: name, capacity, active flag (institute ke andar unique name).
+## 2. Admissions — simplified
 
-- Settings mein "Classrooms" tab — add / rename / capacity / deactivate.
-- Timetable ka room field free-text se dropdown ban jayega (existing free-text names ek-baar rooms ke roop mein import ho jayenge, taaki purana data na tootey).
-
-## 2. Timetable grid — Room view / Teacher view toggle
-
-Ek day tabs row (Mon–Sun) + shift tabs (Morning/Evening) jaise abhi hai. Uske neeche ek view toggle:
+Current: 5 tabs (Leads pipeline, Applications, Enquiry records, Public QR, How it works). New structure — 3 tabs, no explainer:
 
 ```text
-ROOM VIEW  ·  Wednesday  ·  Evening shift (3–7 PM)
-
-          Room 101      Room 102      Lab 1        Room 201
-3:00 PM   12-PCM        11-PCB        10-Found.    9-School
-          Sharma        Verma         Iyer         Khan
-4:00 PM   12-PCM        11-PCB        (empty)      10-Found.
-          Sharma        Verma                      Khan
+Admissions
+├── Applications   ← everything that came in (default tab)
+│     filter chips: New · Enquiry · Admitted · Rejected
+│     row → View / Admit (assign batch) / Reject
+├── Walk-ins       ← manually added enquiries (the old "lead", renamed, simple list not a kanban)
+└── QR & link      ← poster-ready QR + copy link + WhatsApp share
 ```
 
-- **Room view**: columns = active classrooms, rows = time bands. Ek nazar mein pata chalta hai kaunsa room khaali hai.
-- **Teacher view**: columns = teachers, rows = time bands. Yehi view teacher ko daily schedule dene ke liye use hoga; khaali cell = free period.
-- Dono views ek hi data par chalte hain; drag-drop dono mein kaam karega (Room view mein batch drop karo → room fix, teacher chuno; Teacher view mein batch drop karo → teacher fix, room chuno).
-- Grid scroll-free rehta hai: rows sirf shift window ke andar, period length ke hisaab se (1 hr / 1.5 hr), 12-hour labels.
+- "Leads pipeline" kanban with 7 stages is removed; a walk-in is just a name + phone + interest + a 3-state status (Open / Admitted / Not interested).
+- "Enquiry records" folds into the Applications tab as a filter chip.
+- "How it works" tab deleted; a one-line hint sits under the page title instead.
+- Existing lead rows are preserved and mapped onto the 3 states.
 
-## 3. Reconciliation checks
+## 3. Timetable — rebuilt, no scrolling
 
-Har drop/save par server-side validation + UI par live warnings:
+One board, no vertical or horizontal scroll: the grid fits the viewport by sizing rows to the active shift's periods and columns to the room count (`grid-template` with `1fr` tracks instead of fixed pixel heights). Long room lists collapse into a compact column with a room filter rather than a horizontal scrollbar.
 
-- **Teacher double-booked** — same teacher, overlapping time, alag slot.
-- **Room double-booked** — same room, overlapping time.
-- **Batch double-booked** — same batch do jagah ek hi waqt.
-- **Room capacity** — batch ki active student count > room capacity → soft warning.
-- **Shift ke bahar** — badge, jaise abhi hai.
+Left rail is redesigned so it no longer scrolls:
+- **Step 1 — Batches**: compact chips (name + strength), collapsible by class, drag onto any empty cell.
+- **Step 2 — Subjects**: once a batch is placed, the rail switches to that batch's subject chips (from the course's subject list) plus teacher chips; drag a subject chip straight onto a placed class to assign it. Drop a teacher chip the same way.
+- Rail is fixed-height, two stacked sections, no inner scroll — overflow becomes a "+N more" popover.
 
-Grid ke upar ek "Reconciliation" panel: har clash ki line ("Wed 4 PM — Sharma: 12-PCM aur 11-PCB"), click karo to seedha us cell par jump. Clash wale cells red border. Save block nahi hoga hard clash par — warning ke saath confirm maangega, taaki emergency adjustments possible rahein.
+Kept: clash blocking (room/teacher/batch), capacity warnings, the three modes (Today / Weekly / Class), WhatsApp share.
+Also applies to the daily and class views so all three read as one consistent board.
 
-Ek "Coverage" summary bhi: aaj ke din kitne slots bhare, kitne rooms idle, kaunsa teacher kitne periods (workload balance dekhne ke liye).
+## 4. Performance
 
-## 4. Teacher daily schedule + WhatsApp
+Findings: the query client is created with no caching defaults, so every page refetches every list on mount; pages also request full tables with `select("*")` and pull lists they only need for labels.
 
-- `/teach` par teacher ko aaj ka din: time, batch, room (subject agar bhara ho).
-- Admin timetable par har teacher ke saamne "Send schedule" — WhatsApp app khulega pre-filled text ke saath:
-`Wed 12 Aug — Sharma: 3–4 PM 12-PCM (Room 101), 4–5 PM 11-PCB (Room 102)`
-- "Send to all teachers" list bhi, ek-ek karke tap karke bhejne ke liye (koi API nahi, seedha wa.me link).
-- Room-wise poore din ka schedule share karne wala existing WhatsApp button bana rahega.
-
-## 5. Subject
-
-Subject optional rehta hai (aapne kaha weekly timing same, subject daily badalta hai) — slot par blank chhoda ja sakta hai; agar bhara ho to grid aur WhatsApp text dono mein dikhega. Koi daily-override table nahi banega.  
-  
-6. left side pe batches honi chahiye, unko direct drag and drop to slots...rooms ke sath sath teachers assign kar denge
-
-&nbsp;
-
----
+- Set `staleTime: 60s` / `gcTime: 5m` defaults and enable route preloading on link hover.
+- Narrow the column selects on the heavy lists (students, fees, attendance, timetable) to the fields actually rendered.
+- Share single cached queries for batches / faculty / rooms / subjects across pages instead of per-component copies.
+- Lazy-load the heavy bits (QR generator, PDF receipt, charts) so they don't sit in the first page bundle.
+- Measure before/after page-load in the preview and report the numbers.
 
 ### Technical notes
-
-- Migration: `public.rooms` (id, institute_id, name, capacity, is_active, timestamps) with GRANTs + institute-scoped RLS; `timetable_slots.room_id uuid references rooms(id)`, purana `room` text backfill se map hoga aur read-only fallback ke roop mein rahega.
-- `src/lib/api/index.ts`: `roomsApi` (list/create/update/deactivate); `timetableApi.list` mein `room:rooms(id,name,capacity)` join.
-- `src/routes/app.timetable.tsx`: grid ko `<TimetableGrid axis="room" | "faculty">` mein refactor; conflict logic ek shared `src/lib/timetable/conflicts.ts` mein nikal jayega (`findConflicts`, `capacityWarnings`, `summarise`).
-- `src/lib/whatsapp.ts`: `teacherDayMessage(faculty, slots, date)` helper.
-- `src/components/app/timetable-slot-dialog.tsx`: room dropdown + 12-hour time labels.
-- `src/routes/app.settings.tsx`: naya Classrooms tab.
-- Playwright: room clash, teacher clash, aur teacher-view rendering ke liye test add.
+- Files: `src/routes/app.timetable.tsx`, `src/components/app/timetable/*`, `src/components/app/daily-schedule.tsx`, `src/routes/app.admissions.tsx`, `src/components/app/enquiry-records.tsx`, `src/routes/apply.tsx`, `src/router.tsx`, `src/lib/api/index.ts`.
+- One migration: institute-slug parameter on `submit_admission_application`, backfill of the 3 stranded students, removal of the placeholder institute.

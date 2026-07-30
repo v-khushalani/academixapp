@@ -22,6 +22,7 @@ import {
   facultyApi,
   roomsApi,
   studentsApi,
+  subjectsApi,
   timetableApi,
   type Batch,
   type Faculty,
@@ -113,6 +114,10 @@ function TimetablePage() {
     queryKey: ["students"],
     queryFn: () => studentsApi.list(),
   });
+  const { data: subjectRows = [] } = useQuery({
+    queryKey: ["subjects"],
+    queryFn: () => subjectsApi.list(),
+  });
 
   const batchStrength = useMemo(() => {
     const m = new Map<string, number>();
@@ -121,6 +126,14 @@ function TimetablePage() {
     });
     return m;
   }, [students]);
+
+  /** Subject chips for the rail: catalogue subjects plus anything already on the board. */
+  const subjectNames = useMemo(() => {
+    const set = new Set<string>();
+    subjectRows.forEach((s) => s.name && set.add(s.name));
+    slots.forEach((s) => s.subject && set.add(s.subject));
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [subjectRows, slots]);
 
   // ----- shift + day + view -----
   const [shifts, setShifts] = useState<Shifts>(() => getInstitute().shifts ?? DEFAULT_SHIFTS);
@@ -174,6 +187,12 @@ function TimetablePage() {
   });
   const createMut = useMutation({
     mutationFn: (input: Parameters<typeof timetableApi.create>[0]) => timetableApi.create(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["timetable"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const updateMut = useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: Partial<TimetableSlot> }) =>
+      timetableApi.update(id, patch),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["timetable"] }),
     onError: (e: Error) => toast.error(e.message),
   });
@@ -278,12 +297,46 @@ function TimetablePage() {
       return;
     }
     const created = await createMut.mutateAsync(candidate);
-    toast.success("Class added");
-    const needsDetails = p.quick || !candidate.faculty_id || !candidate.room_id;
-    if (created && needsDetails) {
+    toast.success("Class placed — now drag a subject and a teacher onto it");
+    if (created && p.quick) {
       setEditing(created);
       setPresets({ day });
       setDialogOpen(true);
+    }
+  }
+
+  /** Drop a subject or a teacher straight onto a placed class to assign it. */
+  function onDropItem(itemId: string, ev: DragEvent) {
+    ev.preventDefault();
+    if (!canWrite) return;
+    const raw = ev.dataTransfer.getData("application/json");
+    if (!raw) return;
+    const p: DragPayload = JSON.parse(raw);
+    const slot = slots.find((s) => s.id === itemId);
+    if (!slot) return;
+    if (p.subject) {
+      updateMut.mutate({ id: slot.id, patch: { subject: p.subject } });
+      toast.success(`${p.subject} assigned`);
+      return;
+    }
+    if (p.facultyId) {
+      const clash = findConflicts({ ...slot, faculty_id: p.facultyId }, slots);
+      if (clash.length) {
+        toast.error("That teacher already has a class at this time.");
+        return;
+      }
+      updateMut.mutate({ id: slot.id, patch: { faculty_id: p.facultyId } });
+      toast.success("Teacher assigned");
+      return;
+    }
+    if (p.batchId) {
+      const clash = findConflicts({ ...slot, batch_id: p.batchId }, slots);
+      if (clash.length) {
+        toast.error("That batch already has a class at this time.");
+        return;
+      }
+      updateMut.mutate({ id: slot.id, patch: { batch_id: p.batchId } });
+      toast.success("Batch changed");
     }
   }
 
@@ -541,33 +594,20 @@ function TimetablePage() {
           </div>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-[240px_1fr]">
+        <div className="flex flex-col gap-4 lg:h-[min(calc(100dvh-19rem),640px)] lg:min-h-[420px] lg:flex-row">
           {canWrite && (
-            <div className="space-y-4">
-              <BatchPalette
-                batches={batches}
-                rooms={rooms}
-                defaultDuration={shift.period}
-                strength={batchStrength}
-              />
-              <TeacherDayPanel
-                faculty={faculty}
-                load={coverage.load}
-                dayLabel={DAY_FULL[day]}
-                onSend={sendTeacherDay}
-              />
-              {coverage.idleRooms.length > 0 && (
-                <aside className="rounded-lg border border-border bg-card p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Free classrooms
-                  </p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    {coverage.idleRooms.map((r) => r.name).join(", ")} — unused on {DAY_LABEL[day]}{" "}
-                    {SHIFT_LABEL[shiftKey].toLowerCase()} shift.
-                  </p>
-                </aside>
-              )}
-            </div>
+            <PlanRail
+              batches={batches}
+              rooms={rooms}
+              faculty={faculty}
+              subjects={subjectNames}
+              defaultDuration={shift.period}
+              strength={batchStrength}
+              load={coverage.load}
+              dayLabel={DAY_FULL[day]}
+              onSend={sendTeacherDay}
+              idleRooms={coverage.idleRooms}
+            />
           )}
 
           {isLoading ? (
@@ -575,6 +615,7 @@ function TimetablePage() {
               Loading timetable…
             </div>
           ) : (
+            <div className="min-w-0 flex-1 overflow-auto">
             <ScheduleGrid
               columns={columns}
               bands={bands}
@@ -582,6 +623,7 @@ function TimetablePage() {
               canWrite={canWrite}
               emptyHint="Add class"
               onDropCell={(colId, band, ev) => onDropCell(colId, band, ev)}
+              onDropItem={(it, ev) => onDropItem(it.id, ev)}
               onItemClick={(it) => {
                 const s = daySlots.find((x) => x.id === it.id);
                 if (!s) return;
@@ -603,11 +645,12 @@ function TimetablePage() {
               }}
               footer={
                 <p className="border-t border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
-                  Drag a batch from the left onto any empty cell, or click a cell to add a class.
-                  Click a class to edit it. Room, teacher and batch clashes are blocked automatically.
+                  Step 1 — drag a batch onto an empty cell. Step 2 — drag a subject or a teacher
+                  onto that class to assign it. Clashes are blocked automatically.
                 </p>
               }
             />
+            </div>
           )}
         </div>
           </>
@@ -627,140 +670,203 @@ function TimetablePage() {
   );
 }
 
-function BatchPalette({
+/**
+ * Two-step planning rail. Step 1 places a batch on the board, step 2 drags a
+ * subject or a teacher onto that placed class. The rail itself never grows the
+ * page — only the active list scrolls inside it.
+ */
+function PlanRail({
   batches,
   rooms,
+  faculty,
+  subjects,
   defaultDuration,
   strength,
-}: {
-  batches: Batch[];
-  rooms: Room[];
-  defaultDuration: number;
-  strength: Map<string, number>;
-}) {
-  const [duration, setDuration] = useState(defaultDuration);
-  const [roomId, setRoomId] = useState<string>(UNASSIGNED);
-
-  return (
-    <aside className="space-y-2 rounded-lg border border-border bg-card p-3">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Batches
-        </p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
-          Drag a batch onto any cell — the column decides the room (or teacher), then pick the rest.
-        </p>
-      </div>
-      <div className="space-y-1.5">
-        <Label className="text-xs">Class length</Label>
-        <Select value={String(duration)} onValueChange={(v) => setDuration(Number(v))}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {[45, 60, 90].map((m) => (
-              <SelectItem key={m} value={String(m)}>
-                {m === 60 ? "1 hour" : m === 90 ? "1.5 hours" : `${m} min`}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-1.5">
-        <Label className="text-xs">Default room (teacher view)</Label>
-        <Select value={roomId} onValueChange={setRoomId}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={UNASSIGNED}>Decide later</SelectItem>
-            {rooms.map((r) => (
-              <SelectItem key={r.id} value={r.id}>
-                {r.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="max-h-72 space-y-1.5 overflow-y-auto pr-0.5">
-        {batches.length === 0 && (
-          <p className="text-[11px] text-muted-foreground">No batches yet — create one first.</p>
-        )}
-        {batches.map((b) => (
-          <div
-            key={b.id}
-            draggable
-            onDragStart={(e) =>
-              e.dataTransfer.setData(
-                "application/json",
-                JSON.stringify({
-                  batchId: b.id,
-                  roomId: roomId === UNASSIGNED ? undefined : roomId,
-                  durationMin: duration,
-                  quick: true,
-                } satisfies DragPayload),
-              )
-            }
-            className="flex cursor-grab items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-xs active:cursor-grabbing"
-          >
-            <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
-            <span className="truncate font-medium">{b.name}</span>
-            <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground">
-              <Users className="h-3 w-3" />
-              {strength.get(b.id) ?? 0}
-            </span>
-          </div>
-        ))}
-      </div>
-    </aside>
-  );
-}
-
-function TeacherDayPanel({
-  faculty,
   load,
   dayLabel,
   onSend,
+  idleRooms,
 }: {
+  batches: Batch[];
+  rooms: Room[];
   faculty: Faculty[];
+  subjects: string[];
+  defaultDuration: number;
+  strength: Map<string, number>;
   load: Map<string, number>;
   dayLabel: string;
   onSend: (f: Faculty) => void;
+  idleRooms: Room[];
 }) {
+  const [step, setStep] = useState<"batches" | "subjects" | "teachers">("batches");
+  const [duration, setDuration] = useState(defaultDuration);
+  const [roomId, setRoomId] = useState<string>(UNASSIGNED);
+
+  const drag = (payload: DragPayload) => (e: DragEvent<HTMLDivElement>) =>
+    e.dataTransfer.setData("application/json", JSON.stringify(payload));
+
+  const STEPS: { key: typeof step; label: string }[] = [
+    { key: "batches", label: "1 · Batches" },
+    { key: "subjects", label: "2 · Subjects" },
+    { key: "teachers", label: "3 · Teachers" },
+  ];
+
   return (
-    <aside className="space-y-2 rounded-lg border border-border bg-card p-3">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Teacher load · {dayLabel}
-        </p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
-          Send each teacher their day schedule on WhatsApp.
-        </p>
-      </div>
-      <div className="max-h-72 space-y-1 overflow-y-auto pr-0.5">
-        {faculty.length === 0 && (
-          <p className="text-[11px] text-muted-foreground">No teachers added yet.</p>
-        )}
-        {faculty.map((f) => (
-          <div
-            key={f.id}
-            className="flex items-center gap-1.5 rounded-md border border-border px-2 py-1.5 text-xs"
+    <aside className="flex w-full shrink-0 flex-col overflow-hidden rounded-lg border border-border bg-card lg:h-full lg:w-60">
+      <div className="grid grid-cols-3 border-b border-border">
+        {STEPS.map((s) => (
+          <button
+            key={s.key}
+            type="button"
+            onClick={() => setStep(s.key)}
+            className={`px-1 py-2 text-[11px] font-medium transition-colors ${
+              step === s.key
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
           >
-            <span className="truncate">{f.full_name}</span>
-            <span className="ml-auto shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-              {load.get(f.id) ?? 0}
-            </span>
-            <button
-              type="button"
-              onClick={() => onSend(f)}
-              title={`Send ${f.full_name}'s schedule`}
-              className="shrink-0 rounded p-0.5 text-primary hover:bg-muted"
-            >
-              <Send className="h-3.5 w-3.5" />
-            </button>
-          </div>
+            {s.label}
+          </button>
         ))}
       </div>
+
+      {step === "batches" && (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="space-y-2 border-b border-border p-3">
+            <p className="text-[11px] text-muted-foreground">
+              Drag a batch onto an empty cell. The column decides the room (or teacher).
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide">Length</Label>
+                <Select value={String(duration)} onValueChange={(v) => setDuration(Number(v))}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[45, 60, 90].map((m) => (
+                      <SelectItem key={m} value={String(m)}>
+                        {m === 60 ? "1 hour" : m === 90 ? "1.5 hr" : `${m} min`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide">Room</Label>
+                <Select value={roomId} onValueChange={setRoomId}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={UNASSIGNED}>Later</SelectItem>
+                    {rooms.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto p-3">
+            {batches.length === 0 && (
+              <p className="text-[11px] text-muted-foreground">
+                No batches yet — create one first.
+              </p>
+            )}
+            {batches.map((b) => (
+              <div
+                key={b.id}
+                draggable
+                onDragStart={drag({
+                  batchId: b.id,
+                  roomId: roomId === UNASSIGNED ? undefined : roomId,
+                  durationMin: duration,
+                  quick: false,
+                })}
+                className="flex cursor-grab items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-xs active:cursor-grabbing"
+              >
+                <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
+                <span className="truncate font-medium">{b.name}</span>
+                <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground">
+                  <Users className="h-3 w-3" />
+                  {strength.get(b.id) ?? 0}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === "subjects" && (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <p className="border-b border-border p-3 text-[11px] text-muted-foreground">
+            Drop a subject onto a placed class to set what is being taught.
+          </p>
+          <div className="min-h-0 flex-1 overflow-y-auto p-3">
+            {subjects.length === 0 ? (
+              <p className="text-[11px] text-muted-foreground">
+                Add subjects in Settings → Courses to drag them here.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {subjects.map((name) => (
+                  <div
+                    key={name}
+                    draggable
+                    onDragStart={drag({ subject: name })}
+                    className="cursor-grab rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[11px] font-medium active:cursor-grabbing"
+                  >
+                    {name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {step === "teachers" && (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <p className="border-b border-border p-3 text-[11px] text-muted-foreground">
+            Drop a teacher onto a class to assign them. Number = classes on {dayLabel}.
+          </p>
+          <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
+            {faculty.length === 0 && (
+              <p className="text-[11px] text-muted-foreground">No teachers added yet.</p>
+            )}
+            {faculty.map((f) => (
+              <div
+                key={f.id}
+                draggable
+                onDragStart={drag({ facultyId: f.id })}
+                className="flex cursor-grab items-center gap-1.5 rounded-md border border-border px-2 py-1.5 text-xs active:cursor-grabbing"
+              >
+                <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
+                <span className="truncate">{f.full_name}</span>
+                <span className="ml-auto shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                  {load.get(f.id) ?? 0}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onSend(f)}
+                  title={`Send ${f.full_name}'s schedule`}
+                  className="shrink-0 rounded p-0.5 text-primary hover:bg-muted"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+          {idleRooms.length > 0 && (
+            <p className="border-t border-border p-3 text-[10px] text-muted-foreground">
+              Free rooms: {idleRooms.map((r) => r.name).join(", ")}
+            </p>
+          )}
+        </div>
+      )}
     </aside>
   );
 }

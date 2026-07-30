@@ -9,6 +9,7 @@ export type Shifts = { morning: Shift; evening: Shift };
 
 export type InstituteSettings = {
   name: string;
+  slug: string; // used by the public admission link/QR so submissions land here
   tagline: string;
   address: string;
   phone: string;
@@ -30,6 +31,7 @@ export const DEFAULT_SHIFTS: Shifts = {
 
 const DEFAULT_INSTITUTE: InstituteSettings = {
   name: "Your Institute",
+  slug: "",
   tagline: "",
   address: "",
   phone: "",
@@ -96,7 +98,7 @@ export async function hydrateInstitute() {
   const { data } = await supabase
     .from("institutes")
     .select(
-      "name, tagline, address, phone, email, academic_year, primary_color, upi_id, upi_name, shifts",
+      "name, slug, tagline, address, phone, email, academic_year, primary_color, upi_id, upi_name, shifts",
     )
     .maybeSingle();
   if (!data) return;

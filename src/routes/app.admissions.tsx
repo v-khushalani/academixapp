@@ -58,37 +58,33 @@ export const Route = createFileRoute("/app/admissions")({
 function AdmissionsPage() {
   const { roles } = useAuth();
   const canWrite = can("lead:write", roles);
-  const [tab, setTab] = useState("leads");
+  const [tab, setTab] = useState("applications");
 
   return (
     <>
       <PageHeader
         title="Admissions"
-        description="Leads pipeline, pending applications, and the public QR."
+        description="One QR → parent fills the form → you approve and give a batch. Everything not admitted stays in follow-ups."
       />
       <PageBody>
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList>
-            <TabsTrigger value="leads">Leads pipeline</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
-            <TabsTrigger value="records">Enquiry records</TabsTrigger>
-            <TabsTrigger value="qr">Public QR</TabsTrigger>
-            <TabsTrigger value="how">How it works</TabsTrigger>
+            <TabsTrigger value="records">Follow-ups</TabsTrigger>
+            <TabsTrigger value="qr">QR &amp; link</TabsTrigger>
           </TabsList>
-          <TabsContent value="leads" className="mt-4">
-            <LeadsBoard canWrite={canWrite} />
-          </TabsContent>
           <TabsContent value="applications" className="mt-4">
             <ApplicationsList canWrite={canWrite} />
           </TabsContent>
-          <TabsContent value="records" className="mt-4">
+          <TabsContent value="records" className="mt-4 space-y-8">
             <EnquiryRecords canWrite={canWrite} />
+            <div>
+              <h2 className="mb-2 text-sm font-semibold">Walk-in / call leads</h2>
+              <LeadsBoard canWrite={canWrite} />
+            </div>
           </TabsContent>
           <TabsContent value="qr" className="mt-4">
             <QrPanel />
-          </TabsContent>
-          <TabsContent value="how" className="mt-4">
-            <HowItWorks />
           </TabsContent>
         </Tabs>
       </PageBody>
@@ -581,7 +577,11 @@ function CredentialsDialog({
 
 /* -------------------- QR panel -------------------- */
 function QrPanel() {
-  const url = typeof window !== "undefined" ? `${window.location.origin}/apply` : "/apply";
+  const slug = getInstitute().slug;
+  const url =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/apply${slug ? `?i=${encodeURIComponent(slug)}` : ""}`
+      : "/apply";
   function copy() {
     navigator.clipboard.writeText(url).then(() => toast.success("Link copied"));
   }
@@ -610,7 +610,7 @@ function QrPanel() {
         </div>
       </div>
       <div className="space-y-3 text-sm">
-        <h3 className="text-base font-semibold">How to use this QR</h3>
+        <h3 className="text-base font-semibold">How admissions work</h3>
         <ol className="list-decimal space-y-1.5 pl-5 text-muted-foreground">
           <li>
             Print this QR and stick it at the reception or hand it to parents at a school visit.
@@ -618,92 +618,20 @@ function QrPanel() {
           <li>Parents scan the QR with any phone — no login needed.</li>
           <li>They fill in the admission form (child details, parents, class, program, photo).</li>
           <li>
-            The submission shows up under the <b>Applications</b> tab as "Pending".
+            The submission shows up under <b>Applications</b> within seconds.
           </li>
           <li>
-            Your reception / admin reviews and approves or rejects. Approved applicants become
-            active students.
+            You approve and pick a batch — the student goes live with the batch fee assigned
+            automatically. Anyone you don't admit moves to <b>Follow-ups</b>.
           </li>
         </ol>
+        {!slug && (
+          <p className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
+            Tip: open the app once as an admin so your institute code loads — the link then tags
+            every submission to your institute.
+          </p>
+        )}
       </div>
-    </div>
-  );
-}
-
-/* -------------------- How it works -------------------- */
-function HowItWorks() {
-  return (
-    <div className="prose prose-sm max-w-none text-sm">
-      <div className="rounded-lg border border-border bg-card p-6">
-        <h3 className="text-base font-semibold">Admissions module — the flow</h3>
-        <p className="mt-2 text-muted-foreground">
-          Think of it as three lanes that feed each other:
-        </p>
-
-        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <Lane n="1" title="Leads pipeline (Kanban)">
-            Enquiries from parents you meet or receive calls from. Track them from <i>New</i> →{" "}
-            <i>Contacted</i> → <i>Visit</i> → <i>Demo</i> → <i>Enrolled</i>. Update the stage in one
-            click. This is your day-to-day sales board.
-          </Lane>
-          <Lane n="2" title="Applications (self-serve)">
-            The parent fills the full form themselves — either via the Quick Admit link you send, or
-            by scanning the public QR at your reception. Applications land here as <b>Pending</b>.
-            Your admin approves or rejects. Approved applicants become students automatically.
-          </Lane>
-          <Lane n="3" title="Public QR">
-            One QR code printed at reception. Anyone scans → fills form → application lands in the
-            queue. Zero data entry for staff, zero cost.
-          </Lane>
-          <Lane n="4" title="Enquiry records">
-            Rejected or not-yet-joined applications never get deleted — they move to{" "}
-            <b>Enquiry records</b> with all details and a follow-up notes box. Call them back later,
-            send a WhatsApp follow-up, or click <i>Reconsider</i> to push them back into the pending
-            queue.
-          </Lane>
-        </div>
-
-        <h4 className="mt-6 font-semibold">Recommended workflow</h4>
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
-          <li>
-            <b>Parent visits or calls:</b> receptionist adds a <b>Lead</b> and shares the QR / Quick
-            Admit link.
-          </li>
-          <li>
-            <b>Parent fills the form on their phone.</b> Application enters the <b>Applications</b>{" "}
-            tab.
-          </li>
-          <li>
-            <b>Admin reviews the photo + details</b> → clicks Approve. Student becomes active and
-            can be assigned a batch on the Students page.
-          </li>
-          <li>
-            <b>Move the lead</b> to "Enrolled" and you're done.
-          </li>
-        </ul>
-
-        <h4 className="mt-6 font-semibold">Why this is better than paper forms</h4>
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
-          <li>No manual data entry — parent's own typing goes straight into your database.</li>
-          <li>Photo, DOB, parent phone all captured in one go.</li>
-          <li>Approval step keeps the "real students" list clean.</li>
-          <li>Zero cost: no WhatsApp API, no SMS, no third-party form service.</li>
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-function Lane({ n, title, children }: { n: string; title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-md border border-border bg-background p-4">
-      <div className="mb-1.5 flex items-center gap-2">
-        <Badge variant="secondary" className="bg-primary/10 text-primary">
-          {n}
-        </Badge>
-        <p className="font-medium">{title}</p>
-      </div>
-      <p className="text-xs text-muted-foreground">{children}</p>
     </div>
   );
 }
