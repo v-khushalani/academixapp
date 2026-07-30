@@ -43,6 +43,7 @@ export function ScheduleGrid({
   onItemClick,
   onEmptyClick,
   onDropCell,
+  onDropItem,
   onItemDelete,
   canWrite,
   emptyHint = "Add class",
@@ -54,6 +55,7 @@ export function ScheduleGrid({
   onItemClick?: (item: GridItem) => void;
   onEmptyClick?: (colId: string, band: GridBand) => void;
   onDropCell?: (colId: string, band: GridBand, ev: DragEvent) => void;
+  onDropItem?: (item: GridItem, ev: DragEvent) => void;
   onItemDelete?: (item: GridItem) => void;
   canWrite?: boolean;
   emptyHint?: string;
@@ -183,6 +185,17 @@ export function ScheduleGrid({
                         onClick={() => onItemClick?.(it)}
                         onKeyDown={(ev) => {
                           if (ev.key === "Enter" || ev.key === " ") onItemClick?.(it);
+                        }}
+                        onDragOver={(ev) => {
+                          if (canWrite && onDropItem) {
+                            ev.preventDefault();
+                            ev.stopPropagation();
+                          }
+                        }}
+                        onDrop={(ev) => {
+                          if (!onDropItem) return;
+                          ev.stopPropagation();
+                          onDropItem(it, ev);
                         }}
                         className={`group absolute cursor-pointer overflow-hidden rounded-lg border p-2 text-left transition-colors ${tone}`}
                         style={{
