@@ -291,6 +291,66 @@ export type Database = {
           },
         ]
       }
+      faculty_invites: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          faculty_id: string | null
+          full_name: string
+          id: string
+          institute_id: string
+          phone: string | null
+          subject: string | null
+          token: string
+          updated_at: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          faculty_id?: string | null
+          full_name: string
+          id?: string
+          institute_id: string
+          phone?: string | null
+          subject?: string | null
+          token?: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          faculty_id?: string | null
+          full_name?: string
+          id?: string
+          institute_id?: string
+          phone?: string | null
+          subject?: string | null
+          token?: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faculty_invites_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faculty_invites_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fees: {
         Row: {
           amount: number
@@ -1378,6 +1438,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_faculty_invite: { Args: { _token: string }; Returns: undefined }
       approve_admission: {
         Args: { _batch_id: string; _student_id: string; _token_amount?: number }
         Returns: undefined
@@ -1422,6 +1483,15 @@ export type Database = {
           }
       current_institute_id: { Args: never; Returns: string }
       default_institute_id: { Args: never; Returns: string }
+      get_faculty_invite: {
+        Args: { _token: string }
+        Returns: {
+          full_name: string
+          institute_name: string
+          subject: string
+          valid: boolean
+        }[]
+      }
       get_my_roles: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]
