@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState, type DragEvent } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, GripVertical, Image, Send, Users } from "lucide-react";
+import { AlertTriangle, GripVertical, Image, Users } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { ClassTimetable } from "@/components/app/timetable/class-timetable";
 import { PeriodGrid, type GridCell } from "@/components/app/timetable/period-grid";
@@ -550,5 +550,3 @@ function PlanRail({
     </aside>
   );
 }
-
-export { Send };
