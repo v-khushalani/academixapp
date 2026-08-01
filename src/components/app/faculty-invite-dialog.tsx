@@ -127,7 +127,7 @@ export function FacultyInviteDialog({
               mut.mutate();
             }}
           >
-            <F label="Teacher name" required>
+            <F label="Teacher name *">
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" />
             </F>
             <F label="WhatsApp number">
