@@ -2,12 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Send, Trash2 } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DataTable, type DTColumn } from "@/components/app/data-table";
 import { FacultyFormDialog } from "@/components/app/faculty-form-dialog";
+import { FacultyInviteDialog } from "@/components/app/faculty-invite-dialog";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { facultyApi, type Faculty } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
@@ -26,6 +27,7 @@ function FacultyPage() {
     queryFn: () => facultyApi.list(),
   });
   const [open, setOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [editing, setEditing] = useState<Faculty | null>(null);
   const [deleting, setDeleting] = useState<Faculty | null>(null);
 
@@ -112,17 +114,28 @@ function FacultyPage() {
         description={`${data.length} teachers`}
         actions={
           canWrite ? (
-            <Button
-              size="sm"
-              className="gap-1.5"
-              onClick={() => {
-                setEditing(null);
-                setOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4" />
-              Add faculty
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => setInviteOpen(true)}
+              >
+                <Send className="h-4 w-4" />
+                Invite on WhatsApp
+              </Button>
+              <Button
+                size="sm"
+                className="gap-1.5"
+                onClick={() => {
+                  setEditing(null);
+                  setOpen(true);
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                Add faculty
+              </Button>
+            </div>
           ) : null
         }
       />
@@ -131,12 +144,12 @@ function FacultyPage() {
           <p className="font-semibold">Giving teachers portal access</p>
           <ol className="mt-1 list-decimal space-y-0.5 pl-4">
             <li>
-              Ask the teacher to open the app and use <span className="font-mono">Sign up</span>{" "}
-              with their email.
+              Hit <span className="font-mono">Invite on WhatsApp</span> — the teacher gets a
+              one-time link on their phone.
             </li>
             <li>
-              Open <span className="font-mono">Settings → Users &amp; roles</span> and grant them
-              the <span className="font-mono">faculty</span> role.
+              They set an email and password on that link; the teacher role is granted
+              automatically.
             </li>
             <li>
               They will only see Dashboard, Attendance, Tests and Timetable — they can fill
@@ -155,6 +168,7 @@ function FacultyPage() {
         />
       </PageBody>
       <FacultyFormDialog open={open} onOpenChange={setOpen} faculty={editing} />
+      <FacultyInviteDialog open={inviteOpen} onOpenChange={setInviteOpen} />
       <ConfirmDialog
         open={Boolean(deleting)}
         onOpenChange={(v) => !v && setDeleting(null)}

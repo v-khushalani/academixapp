@@ -33,6 +33,7 @@ import { Route as OnboardTokenRouteImport } from './routes/onboard.$token'
 import { Route as LoginTeacherRouteImport } from './routes/login.teacher'
 import { Route as LoginStudentRouteImport } from './routes/login.student'
 import { Route as LoginAdminRouteImport } from './routes/login.admin'
+import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as AppTimetableRouteImport } from './routes/app.timetable'
 import { Route as AppTestsRouteImport } from './routes/app.tests'
 import { Route as AppStudentsRouteImport } from './routes/app.students'
@@ -168,6 +169,11 @@ const LoginAdminRoute = LoginAdminRouteImport.update({
   path: '/login/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JoinTokenRoute = JoinTokenRouteImport.update({
+  id: '/join/$token',
+  path: '/join/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppTimetableRoute = AppTimetableRouteImport.update({
   id: '/timetable',
   path: '/timetable',
@@ -260,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
+  '/join/$token': typeof JoinTokenRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/student': typeof LoginStudentRoute
   '/login/teacher': typeof LoginTeacherRoute
@@ -297,6 +304,7 @@ export interface FileRoutesByTo {
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
+  '/join/$token': typeof JoinTokenRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/student': typeof LoginStudentRoute
   '/login/teacher': typeof LoginTeacherRoute
@@ -338,6 +346,7 @@ export interface FileRoutesById {
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
+  '/join/$token': typeof JoinTokenRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/student': typeof LoginStudentRoute
   '/login/teacher': typeof LoginTeacherRoute
@@ -380,6 +389,7 @@ export interface FileRouteTypes {
     | '/app/students'
     | '/app/tests'
     | '/app/timetable'
+    | '/join/$token'
     | '/login/admin'
     | '/login/student'
     | '/login/teacher'
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
     | '/app/students'
     | '/app/tests'
     | '/app/timetable'
+    | '/join/$token'
     | '/login/admin'
     | '/login/student'
     | '/login/teacher'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/app/students'
     | '/app/tests'
     | '/app/timetable'
+    | '/join/$token'
     | '/login/admin'
     | '/login/student'
     | '/login/teacher'
@@ -487,6 +499,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
   TeachRoute: typeof TeachRouteWithChildren
+  JoinTokenRoute: typeof JoinTokenRoute
   LoginAdminRoute: typeof LoginAdminRoute
   LoginStudentRoute: typeof LoginStudentRoute
   LoginTeacherRoute: typeof LoginTeacherRoute
@@ -662,6 +675,13 @@ declare module '@tanstack/react-router' {
       path: '/login/admin'
       fullPath: '/login/admin'
       preLoaderRoute: typeof LoginAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join/$token': {
+      id: '/join/$token'
+      path: '/join/$token'
+      fullPath: '/join/$token'
+      preLoaderRoute: typeof JoinTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/timetable': {
@@ -878,6 +898,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
   TeachRoute: TeachRouteWithChildren,
+  JoinTokenRoute: JoinTokenRoute,
   LoginAdminRoute: LoginAdminRoute,
   LoginStudentRoute: LoginStudentRoute,
   LoginTeacherRoute: LoginTeacherRoute,
