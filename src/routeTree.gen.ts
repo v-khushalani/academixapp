@@ -33,6 +33,7 @@ import { Route as OnboardTokenRouteImport } from './routes/onboard.$token'
 import { Route as LoginTeacherRouteImport } from './routes/login.teacher'
 import { Route as LoginStudentRouteImport } from './routes/login.student'
 import { Route as LoginAdminRouteImport } from './routes/login.admin'
+import { Route as AppTimetableRouteImport } from './routes/app.timetable'
 import { Route as AppTestsRouteImport } from './routes/app.tests'
 import { Route as AppStudentsRouteImport } from './routes/app.students'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
@@ -167,6 +168,11 @@ const LoginAdminRoute = LoginAdminRouteImport.update({
   path: '/login/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppTimetableRoute = AppTimetableRouteImport.update({
+  id: '/timetable',
+  path: '/timetable',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTestsRoute = AppTestsRouteImport.update({
   id: '/tests',
   path: '/tests',
@@ -253,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/tests': typeof AppTestsRouteWithChildren
+  '/app/timetable': typeof AppTimetableRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/student': typeof LoginStudentRoute
   '/login/teacher': typeof LoginTeacherRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/tests': typeof AppTestsRouteWithChildren
+  '/app/timetable': typeof AppTimetableRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/student': typeof LoginStudentRoute
   '/login/teacher': typeof LoginTeacherRoute
@@ -329,6 +337,7 @@ export interface FileRoutesById {
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/tests': typeof AppTestsRouteWithChildren
+  '/app/timetable': typeof AppTimetableRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/student': typeof LoginStudentRoute
   '/login/teacher': typeof LoginTeacherRoute
@@ -370,6 +379,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/students'
     | '/app/tests'
+    | '/app/timetable'
     | '/login/admin'
     | '/login/student'
     | '/login/teacher'
@@ -406,6 +416,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/students'
     | '/app/tests'
+    | '/app/timetable'
     | '/login/admin'
     | '/login/student'
     | '/login/teacher'
@@ -445,6 +456,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/students'
     | '/app/tests'
+    | '/app/timetable'
     | '/login/admin'
     | '/login/student'
     | '/login/teacher'
@@ -652,6 +664,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/timetable': {
+      id: '/app/timetable'
+      path: '/timetable'
+      fullPath: '/app/timetable'
+      preLoaderRoute: typeof AppTimetableRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/tests': {
       id: '/app/tests'
       path: '/tests'
@@ -793,6 +812,7 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppStudentsRoute: typeof AppStudentsRouteWithChildren
   AppTestsRoute: typeof AppTestsRouteWithChildren
+  AppTimetableRoute: typeof AppTimetableRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -807,6 +827,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
   AppStudentsRoute: AppStudentsRouteWithChildren,
   AppTestsRoute: AppTestsRouteWithChildren,
+  AppTimetableRoute: AppTimetableRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
