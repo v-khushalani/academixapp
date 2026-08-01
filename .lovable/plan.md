@@ -1,52 +1,64 @@
-## 1. Public QR admissions — confirmed root cause
+# Four fixes: form, timetable, landing, teacher invites
 
-Verified in the database: there are two institutes — **"Your Institute"** (slug `default`, created first, 2 users) and **"VK ACADEMY"** (5 users, the one you log in to). The public form's database routine sets the institute using a helper that returns *the oldest institute in the table*, so every QR/`/apply` submission lands in "Your Institute", while the Admissions screen only reads rows for VK ACADEMY. The rows are being saved correctly — they're just filed under the wrong institute (3 pending applications are sitting there right now).
+## 1. Public form: enquiry-first, step by step
 
-Fix:
-- Make the public form institute-aware: `/apply?i=<slug>` (the QR in Admissions embeds your institute's slug), and the submit routine resolves the institute from that slug, falling back to the single institute when only one exists.
-- Backfill the 3 stranded pending applications to VK ACADEMY, and retire the placeholder "Your Institute" tenant so the fallback can't misfire again.
-- Show a confirmation state with the application number on submit, and make Admissions poll/refresh so a new entry appears without a manual reload.
+Today `/apply` asks "admission or enquiry?" plus a token-amount field, and dumps every field on one screen.
 
-## 2. Admissions — simplified
+New flow:
 
-Current: 5 tabs (Leads pipeline, Applications, Enquiry records, Public QR, How it works). New structure — 3 tabs, no explainer:
+- Remove the intent choice and the token/advance amount completely. **Every public submission is an enquiry.**
+- Split the form into 4 short frames with a progress bar ("Step 2 of 4"), one card at a time, Back/Next, validation per step:
+  1. **Student** — name, phone (WhatsApp), class applying for, stream/program (only when relevant)
+  2. **Parents** — father name+phone, mother name+phone, who monitors studies
+  3. **More about you** — DOB, current school, email, address (all optional, clearly marked "optional — skip if in a hurry")
+  4. **Photo + submit** — optional photo, then thank-you screen
+- Answers persist while moving between steps; mobile-first, big tap targets, one question group per screen.
+
+Admin side becomes a single pipeline:
 
 ```text
-Admissions
-├── Applications   ← everything that came in (default tab)
-│     filter chips: New · Enquiry · Admitted · Rejected
-│     row → View / Admit (assign batch) / Reject
-├── Walk-ins       ← manually added enquiries (the old "lead", renamed, simple list not a kanban)
-└── QR & link      ← poster-ready QR + copy link + WhatsApp share
+Enquiry  →  Admission confirmed  →  Batch assigned (student created)
+   └── not converted → stays in Leads list for follow-up / marketing WhatsApp
 ```
 
-- "Leads pipeline" kanban with 7 stages is removed; a walk-in is just a name + phone + interest + a 3-state status (Open / Admitted / Not interested).
-- "Enquiry records" folds into the Applications tab as a filter chip.
-- "How it works" tab deleted; a one-line hint sits under the page title instead.
-- Existing lead rows are preserved and mapped onto the 3 states.
+- Admissions page tabs reduce to **Enquiries** (new, needs action) and **Leads** (not converted / future follow-up), plus the QR & link tab.
+- Confirming an enquiry opens one dialog: pick batch → student record, fee plan and portal login are created. Fees/token are handled inside the app afterwards, never in the public form.
 
-## 3. Timetable — rebuilt, no scrolling
+## 2. Timetable: ditch it, rebuild simple
 
-One board, no vertical or horizontal scroll: the grid fits the viewport by sizing rows to the active shift's periods and columns to the room count (`grid-template` with `1fr` tracks instead of fixed pixel heights). Long room lists collapse into a compact column with a room filter rather than a horizontal scrollbar.
+The drag-and-drop board (batches rail → subjects → teachers, room columns, day-plan overrides) goes away entirely.
 
-Left rail is redesigned so it no longer scrolls:
-- **Step 1 — Batches**: compact chips (name + strength), collapsible by class, drag onto any empty cell.
-- **Step 2 — Subjects**: once a batch is placed, the rail switches to that batch's subject chips (from the course's subject list) plus teacher chips; drag a subject chip straight onto a placed class to assign it. Drop a teacher chip the same way.
-- Rail is fixed-height, two stacked sections, no inner scroll — overflow becomes a "+N more" popover.
+Replacement is form-based, not drag-based, and rests on one idea the institute already lives by: **the weekly time grid is fixed; only the content changes.**
 
-Kept: clash blocking (room/teacher/batch), capacity warnings, the three modes (Today / Weekly / Class), WhatsApp share.
-Also applies to the daily and class views so all three read as one consistent board.
+- **Setup (once)**: in Settings you already define shifts and period length. Timetable derives fixed period slots from that — no free-form times.
+- **Build (per batch)**: choose a batch, get a simple week grid of that batch's periods. Conflicts (teacher or room already booked at that time) are checked on save and shown in plain language. Left side mein batches hogi pehle...woh sab assign karne ke baad, teachers and then subjects...just drag and drop hona chahiye
+- **Copy row / copy day** buttons so a repeated subject is filled in one tap.
 
-## 4. Performance
+Three read-only views generated from that one source:
 
-Findings: the query client is created with no caching defaults, so every page refetches every list on mount; pages also request full tables with `select("*")` and pull lists they only need for labels.
+- **Today (teacher sheet)** — a list: time, room, batch, subject, per teacher. Shareable to WhatsApp. Optional one-off change for today (substitute teacher / cancelled) that does not touch the weekly plan. (Sharing via whatsapp should be like screenshot of that table, aisa image hi jaana chahiye...not text)
+- **Week by batch (student/school style)** — days down, periods across.
+- **Week by teacher** — what each teacher's week looks like.  
+  
+SAB PROPER SYNC KARO
 
-- Set `staleTime: 60s` / `gcTime: 5m` defaults and enable route preloading on link hover.
-- Narrow the column selects on the heavy lists (students, fees, attendance, timetable) to the fields actually rendered.
-- Share single cached queries for batches / faculty / rooms / subjects across pages instead of per-component copies.
-- Lazy-load the heavy bits (QR generator, PDF receipt, charts) so they don't sit in the first page bundle.
-- Measure before/after page-load in the preview and report the numbers.
+Everything fits the screen without horizontal scrolling; on mobile the grid becomes a day-by-day list.
 
-### Technical notes
-- Files: `src/routes/app.timetable.tsx`, `src/components/app/timetable/*`, `src/components/app/daily-schedule.tsx`, `src/routes/app.admissions.tsx`, `src/components/app/enquiry-records.tsx`, `src/routes/apply.tsx`, `src/router.tsx`, `src/lib/api/index.ts`.
-- One migration: institute-slug parameter on `submit_admission_application`, backfill of the 3 stranded students, removal of the placeholder institute.
+## 3. Landing page: cut it down
+
+Trim `/` to four blocks: header, hero (keeping "Built for coaching institutes. By people who run one."), the three-portal sign-in picker, short footer. The 6 module cards and the 4-step flow section move to `/for-institutes`, which is where someone who actually wants detail goes. One CTA in the hero, one in the footer.
+
+## 4. Teacher signup by invite
+
+Replace the current "tell teachers to sign up, then grant a role in Settings" note with an invite link, same mechanism as the student onboarding link that already works.
+
+- On the Faculty page, **Invite teacher** → enter name, phone, subject → generates a one-time link and opens WhatsApp with the message pre-filled (no paid API, as always).
+- The teacher opens the link, sets email + password, and is created already carrying the `faculty` role for that institute — no manual role granting.
+- Faculty list shows invite state: Invited / Joined, with resend and revoke.
+
+## Technical notes
+
+- Public form: rewrite `admission-form.tsx` as a step machine; drop `intent` and `token_amount` from `AdmissionFormValues` and from the `submit_admission_application` RPC signature (migration).
+- Leads/enquiry status handled by an existing status column on applications; conversion writes student + fee rows as it does now.
+- Timetable: delete the drag layer (`schedule-grid.tsx`, batch/subject/teacher palettes, `react-dnd` usage in `app.timetable.tsx`); keep `src/lib/timetable/conflicts.ts` for the save-time check and `src/lib/time.ts` for 12-hour formatting. Existing `timetable_slots` and `timetable_day_plan` tables are reused unchanged.
+- Teacher invites: new `faculty_invites` table (token, institute, expiry, used_at) with RLS + grants, plus a public route `/join/$token` and an RPC that creates the account with the faculty role.

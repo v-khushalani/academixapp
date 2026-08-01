@@ -1,21 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState, type DragEvent } from "react";
+import { useMemo, useRef, useState, type DragEvent } from "react";
 import { toast } from "sonner";
-import { Plus, GripVertical, Share2, AlertTriangle, Send, Users } from "lucide-react";
+import { AlertTriangle, GripVertical, Image, Users } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
-import { DailySchedule } from "@/components/app/daily-schedule";
 import { ClassTimetable } from "@/components/app/timetable/class-timetable";
+import { PeriodGrid, type GridCell } from "@/components/app/timetable/period-grid";
+import { TeacherDaySheet } from "@/components/app/timetable/teacher-day-sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { TimetableSlotDialog } from "@/components/app/timetable-slot-dialog";
 import {
   batchesApi,
@@ -24,40 +16,36 @@ import {
   studentsApi,
   subjectsApi,
   timetableApi,
-  type Batch,
-  type Faculty,
-  type Room,
   type TimetableSlot,
 } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
-import { getInstitute, saveInstitute, DEFAULT_SHIFTS, type Shifts } from "@/lib/academy-settings";
-import { formatTime12, toMinutes, toHHMM } from "@/lib/time";
+import { getInstitute, DEFAULT_SHIFTS, type Shifts } from "@/lib/academy-settings";
+import { toMinutes, toHHMM } from "@/lib/time";
 import {
   buildBands,
-  capacityWarnings,
   conflictReason,
   findConflicts,
   reconcile,
   roomLabel,
+  type Band,
   type SlotRow,
 } from "@/lib/timetable/conflicts";
-import { openWhatsApp, teacherDayMessage } from "@/lib/whatsapp";
-import { ScheduleGrid, type GridItem } from "@/components/app/timetable/schedule-grid";
+import { shareTableAsImage } from "@/lib/timetable/share-image";
 
 export const Route = createFileRoute("/app/timetable")({
   head: () => ({
     meta: [
-      { title: "Class Timetable — Academix" },
+      { title: "Timetable — Academix" },
       {
         name: "description",
         content:
-          "Plan parallel batches across classrooms and teachers with automatic clash detection.",
+          "Plan the week once: drag a batch into a period, then drop the teacher and subject on it. Share today's sheet as an image.",
       },
-      { property: "og:title", content: "Class Timetable — Academix" },
+      { property: "og:title", content: "Timetable — Academix" },
       {
         property: "og:description",
-        content: "Room-wise and teacher-wise weekly schedule with reconciliation checks.",
+        content: "One weekly plan; teacher day sheets and student class timetables come from it.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -68,47 +56,30 @@ export const Route = createFileRoute("/app/timetable")({
 
 const DAY_LABEL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const DAY_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
-
-type DragPayload = {
-  batchId?: string;
-  facultyId?: string;
-  subject?: string;
-  roomId?: string;
-  durationMin?: number;
-  /** dropped straight from the batch list — open the editor to finish the details */
-  quick?: boolean;
-};
-
-type ShiftKey = "morning" | "evening";
-const SHIFT_LABEL: Record<ShiftKey, string> = { morning: "Morning", evening: "Evening" };
-type ViewKey = "room" | "faculty";
+const DAY_ORDER = [1, 2, 3, 4, 5, 6];
 const UNASSIGNED = "__none__";
 
-const MODE_LABEL: Record<"daily" | "weekly" | "class", string> = {
-  daily: "Today (teachers)",
-  weekly: "Weekly plan (rooms)",
-  class: "Class timetable (students)",
+type Mode = "plan" | "today" | "class";
+const MODE_LABEL: Record<Mode, string> = {
+  plan: "Plan the week",
+  today: "Today — teachers",
+  class: "Class timetable",
 };
+
+type DragPayload = { batchId?: string; facultyId?: string; subject?: string };
 
 function TimetablePage() {
   const qc = useQueryClient();
-  const [mode, setMode] = useState<"daily" | "weekly" | "class">("daily");
   const { roles } = useAuth();
   const canWrite = can("batch:write", roles);
+  const [mode, setMode] = useState<Mode>("plan");
 
   const { data: slots = [], isLoading } = useQuery({
     queryKey: ["timetable"],
     queryFn: () => timetableApi.list() as Promise<SlotRow[]>,
   });
-  const { data: batches = [] } = useQuery({
-    queryKey: ["batches"],
-    queryFn: () => batchesApi.list(),
-  });
-  const { data: faculty = [] } = useQuery({
-    queryKey: ["faculty"],
-    queryFn: () => facultyApi.list(),
-  });
+  const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
+  const { data: faculty = [] } = useQuery({ queryKey: ["faculty"], queryFn: () => facultyApi.list() });
   const { data: rooms = [] } = useQuery({ queryKey: ["rooms"], queryFn: () => roomsApi.list() });
   const { data: students = [] } = useQuery({
     queryKey: ["students"],
@@ -119,15 +90,12 @@ function TimetablePage() {
     queryFn: () => subjectsApi.list(),
   });
 
-  const batchStrength = useMemo(() => {
+  const strength = useMemo(() => {
     const m = new Map<string, number>();
-    students.forEach((s) => {
-      if (s.batch_id) m.set(s.batch_id, (m.get(s.batch_id) ?? 0) + 1);
-    });
+    students.forEach((s) => s.batch_id && m.set(s.batch_id, (m.get(s.batch_id) ?? 0) + 1));
     return m;
   }, [students]);
 
-  /** Subject chips for the rail: catalogue subjects plus anything already on the board. */
   const subjectNames = useMemo(() => {
     const set = new Set<string>();
     subjectRows.forEach((s) => s.name && set.add(s.name));
@@ -135,56 +103,32 @@ function TimetablePage() {
     return [...set].sort((a, b) => a.localeCompare(b));
   }, [subjectRows, slots]);
 
-  // ----- shift + day + view -----
-  const [shifts, setShifts] = useState<Shifts>(() => getInstitute().shifts ?? DEFAULT_SHIFTS);
-  const [shiftKey, setShiftKey] = useState<ShiftKey>(() =>
+  // shift windows come from Settings — the grid is fixed, only the content changes
+  const shifts: Shifts = useMemo(() => getInstitute().shifts ?? DEFAULT_SHIFTS, []);
+  const [shiftKey, setShiftKey] = useState<"morning" | "evening">(() =>
     new Date().getHours() < 12 ? "morning" : "evening",
   );
-  const [day, setDay] = useState<number>(() => {
-    const d = new Date().getDay();
-    return d === 0 ? 1 : d;
-  });
-  const [view, setView] = useState<ViewKey>("room");
-
   const shift = shifts[shiftKey];
   const bands = useMemo(
     () => buildBands(shift.start, shift.end, shift.period),
     [shift.start, shift.end, shift.period],
   );
-  const windowStart = toMinutes(shift.start);
-  const windowEnd = toMinutes(shift.end);
 
-  function patchShift(patch: Partial<Shifts[ShiftKey]>) {
-    setShifts((prev) => ({ ...prev, [shiftKey]: { ...prev[shiftKey], ...patch } }));
-  }
-  async function persistShifts() {
-    try {
-      await saveInstitute({ ...getInstitute(), shifts });
-      toast.success("Shift timings saved");
-    } catch (e) {
-      toast.error((e as Error).message);
-    }
-  }
+  const [day, setDay] = useState<number>(() => {
+    const d = new Date().getDay();
+    return d === 0 ? 1 : d;
+  });
+  const today = new Date().getDay() === 0 ? 1 : new Date().getDay();
 
-  // ----- dialog -----
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TimetableSlot | null>(null);
   const [presets, setPresets] = useState<{
     day: number;
     start?: string;
     end?: string;
-    roomId?: string | null;
-    facultyId?: string | null;
+    roomId?: string;
   }>({ day: 1 });
 
-  const removeMut = useMutation({
-    mutationFn: (id: string) => timetableApi.remove(id),
-    onSuccess: () => {
-      toast.success("Slot removed");
-      qc.invalidateQueries({ queryKey: ["timetable"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
   const createMut = useMutation({
     mutationFn: (input: Parameters<typeof timetableApi.create>[0]) => timetableApi.create(input),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["timetable"] }),
@@ -196,123 +140,83 @@ function TimetablePage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["timetable"] }),
     onError: (e: Error) => toast.error(e.message),
   });
-
-  // ----- derived -----
-  const daySlots = useMemo(() => slots.filter((s) => s.day_of_week === day), [slots, day]);
-
-  const columns = useMemo(() => {
-    if (view === "room") {
-      const cols = rooms.map((r) => ({ id: r.id, label: r.name, sub: `${r.capacity} seats` }));
-      if (daySlots.some((s) => !s.room_id))
-        cols.push({ id: UNASSIGNED, label: "No room", sub: "assign a classroom" });
-      return cols.length
-        ? cols
-        : [{ id: UNASSIGNED, label: "No room", sub: "add classrooms in Settings" }];
-    }
-    const cols = faculty.map((f) => ({ id: f.id, label: f.full_name, sub: f.subject ?? "" }));
-    if (daySlots.some((s) => !s.faculty_id))
-      cols.push({ id: UNASSIGNED, label: "No teacher", sub: "assign a teacher" });
-    return cols.length ? cols : [{ id: UNASSIGNED, label: "No teacher", sub: "add faculty first" }];
-  }, [view, rooms, faculty, daySlots]);
-
-  function colIdOf(s: SlotRow) {
-    return (view === "room" ? s.room_id : s.faculty_id) ?? UNASSIGNED;
-  }
+  const removeMut = useMutation({
+    mutationFn: (id: string) => timetableApi.remove(id),
+    onSuccess: () => {
+      toast.success("Class removed");
+      qc.invalidateQueries({ queryKey: ["timetable"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { clashes, badIds } = useMemo(() => reconcile(slots), [slots]);
-  const capIssues = useMemo(() => capacityWarnings(slots, batchStrength), [slots, batchStrength]);
-  const capIds = useMemo(() => new Set(capIssues.map((c) => c.slot.id)), [capIssues]);
 
-  const gridItems: GridItem[] = useMemo(
-    () =>
-      daySlots.map((s) => ({
+  const columns = useMemo(() => {
+    const cols = rooms.map((r) => ({ id: r.id, label: r.name, sub: `${r.capacity} seats` }));
+    return cols.length ? cols : [{ id: UNASSIGNED, label: "Classroom 1", sub: "add rooms in Settings" }];
+  }, [rooms]);
+
+  const daySlots = useMemo(() => slots.filter((s) => s.day_of_week === day), [slots, day]);
+
+  function slotAt(colId: string, band: Band, list: SlotRow[]) {
+    return list.find(
+      (s) =>
+        (s.room_id ?? UNASSIGNED) === colId && s.start_time.slice(0, 5) === band.start.slice(0, 5),
+    );
+  }
+
+  function cellOf(list: SlotRow[]) {
+    return (colId: string, band: Band): GridCell | null => {
+      const s = slotAt(colId, band, list);
+      if (!s) return null;
+      return {
         id: s.id,
-        colId: colIdOf(s),
-        start: s.start_time,
-        end: s.end_time,
-        title: s.batch?.name ?? "Unassigned batch",
+        title: s.batch?.name ?? "Batch?",
         subject: s.subject,
-        person: view === "room" ? (s.faculty?.full_name ?? "No teacher") : (roomLabel(s) ?? "No room"),
-        tone: badIds.has(s.id) ? "clash" : capIds.has(s.id) ? "warn" : "default",
-      })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [daySlots, view, badIds, capIds],
-  );
-
-  const outsideCount = useMemo(
-    () =>
-      daySlots.filter((s) => {
-        const m = toMinutes(s.start_time);
-        return m < windowStart || m >= windowEnd;
-      }).length,
-    [daySlots, windowStart, windowEnd],
-  );
-
-  const coverage = useMemo(() => {
-    const inShift = daySlots.filter((s) => {
-      const m = toMinutes(s.start_time);
-      return m >= windowStart && m < windowEnd;
-    });
-    const usedRooms = new Set(inShift.map((s) => s.room_id).filter(Boolean) as string[]);
-    const load = new Map<string, number>();
-    inShift.forEach((s) => {
-      if (s.faculty_id) load.set(s.faculty_id, (load.get(s.faculty_id) ?? 0) + 1);
-    });
-    return {
-      filled: inShift.length,
-      capacityCells: bands.length * Math.max(1, rooms.length),
-      idleRooms: rooms.filter((r) => !usedRooms.has(r.id)),
-      load,
+        person: s.faculty?.full_name ?? "No teacher",
+        clash: badIds.has(s.id),
+        warn: !s.faculty_id || !s.subject,
+      };
     };
-  }, [daySlots, windowStart, windowEnd, bands.length, rooms]);
+  }
 
-  // ----- drag & drop -----
-  async function onDropCell(colId: string, band: { start: string; end: string }, ev: DragEvent) {
+  async function dropOnCell(colId: string, band: Band, ev: DragEvent) {
     ev.preventDefault();
     if (!canWrite) return;
     const raw = ev.dataTransfer.getData("application/json");
     if (!raw) return;
-    const p: DragPayload = JSON.parse(raw);
-    const duration = Math.max(15, p.durationMin ?? toMinutes(band.end) - toMinutes(band.start));
-    const startM = toMinutes(band.start);
-    const colRoom = view === "room" && colId !== UNASSIGNED ? colId : (p.roomId ?? null);
-    const colFaculty = view === "faculty" && colId !== UNASSIGNED ? colId : (p.facultyId ?? null);
+    const p: DragPayload = JSON.parse(raw) as DragPayload;
+    if (!p.batchId) {
+      toast.info("Drop a batch on an empty period first, then the teacher and subject.");
+      return;
+    }
     const candidate = {
       day_of_week: day,
       start_time: `${band.start}:00`,
-      end_time: `${toHHMM(startM + duration)}:00`,
-      batch_id: p.batchId ?? null,
-      faculty_id: colFaculty,
-      subject: p.subject ?? null,
-      room_id: colRoom,
-      room: colRoom ? (rooms.find((r) => r.id === colRoom)?.name ?? null) : null,
+      end_time: `${toHHMM(toMinutes(band.end))}:00`,
+      batch_id: p.batchId,
+      faculty_id: null,
+      subject: null,
+      room_id: colId === UNASSIGNED ? null : colId,
+      room: colId === UNASSIGNED ? null : (rooms.find((r) => r.id === colId)?.name ?? null),
     };
     const conflicts = findConflicts(candidate, slots);
     if (conflicts.length) {
-      const reasons = conflicts
-        .map((c) => conflictReason(candidate, c))
-        .filter(Boolean)
-        .join("; ");
-      toast.error(`Clash with an existing class (${reasons || "same day & time"}). Not added.`);
+      const why = conflicts.map((c) => conflictReason(candidate, c)).filter(Boolean).join("; ");
+      toast.error(`Already booked (${why || "same day & time"}).`);
       return;
     }
-    const created = await createMut.mutateAsync(candidate);
-    toast.success("Class placed — now drag a subject and a teacher onto it");
-    if (created && p.quick) {
-      setEditing(created);
-      setPresets({ day });
-      setDialogOpen(true);
-    }
+    await createMut.mutateAsync(candidate);
+    toast.success("Batch placed — now drop a teacher and a subject on it");
   }
 
-  /** Drop a subject or a teacher straight onto a placed class to assign it. */
-  function onDropItem(itemId: string, ev: DragEvent) {
+  function dropOnCard(cellId: string, ev: DragEvent) {
     ev.preventDefault();
     if (!canWrite) return;
     const raw = ev.dataTransfer.getData("application/json");
     if (!raw) return;
-    const p: DragPayload = JSON.parse(raw);
-    const slot = slots.find((s) => s.id === itemId);
+    const p: DragPayload = JSON.parse(raw) as DragPayload;
+    const slot = slots.find((s) => s.id === cellId);
     if (!slot) return;
     if (p.subject) {
       updateMut.mutate({ id: slot.id, patch: { subject: p.subject } });
@@ -320,8 +224,7 @@ function TimetablePage() {
       return;
     }
     if (p.facultyId) {
-      const clash = findConflicts({ ...slot, faculty_id: p.facultyId }, slots);
-      if (clash.length) {
+      if (findConflicts({ ...slot, faculty_id: p.facultyId }, slots).length) {
         toast.error("That teacher already has a class at this time.");
         return;
       }
@@ -330,8 +233,7 @@ function TimetablePage() {
       return;
     }
     if (p.batchId) {
-      const clash = findConflicts({ ...slot, batch_id: p.batchId }, slots);
-      if (clash.length) {
+      if (findConflicts({ ...slot, batch_id: p.batchId }, slots).length) {
         toast.error("That batch already has a class at this time.");
         return;
       }
@@ -340,91 +242,34 @@ function TimetablePage() {
     }
   }
 
-  // ----- sharing -----
-  function shareWeekly() {
-    const inst = getInstitute();
-    const byDay = new Map<number, SlotRow[]>();
-    slots.forEach((s) => {
-      const arr = byDay.get(s.day_of_week) ?? [];
-      arr.push(s);
-      byDay.set(s.day_of_week, arr);
-    });
-    const lines: string[] = [`*${inst.name || "Academy"} — Weekly Timetable*`];
-    DAY_ORDER.forEach((dow) => {
-      const rows = (byDay.get(dow) ?? []).sort((a, b) => a.start_time.localeCompare(b.start_time));
-      if (!rows.length) return;
-      lines.push(`\n*${DAY_LABEL[dow]}*`);
-      rows.forEach((r) => {
-        const parts = [
-          `${formatTime12(r.start_time)}–${formatTime12(r.end_time)}`,
-          r.batch?.name,
-          r.subject,
-          r.faculty?.full_name && `👨‍🏫 ${r.faculty.full_name}`,
-          roomLabel(r) && `🚪 ${roomLabel(r)}`,
-        ].filter(Boolean);
-        lines.push(`• ${parts.join(" · ")}`);
-      });
-    });
-    if (lines.length === 1) {
-      toast.info("No slots to share yet.");
-      return;
-    }
-    window.open(
-      `https://wa.me/?text=${encodeURIComponent(lines.join("\n"))}`,
-      "_blank",
-      "noopener,noreferrer",
+  const planRef = useRef<HTMLDivElement>(null);
+  async function sharePlanImage() {
+    const res = await shareTableAsImage(
+      planRef.current,
+      `timetable-${DAY_LABEL[day].toLowerCase()}`,
+      `${getInstitute().name || "Academy"} — ${DAY_FULL[day]} timetable`,
     );
-  }
-
-  function sendTeacherDay(f: Faculty) {
-    const inst = getInstitute();
-    const rows = daySlots
-      .filter((s) => s.faculty_id === f.id)
-      .sort((a, b) => a.start_time.localeCompare(b.start_time))
-      .map((s) => ({
-        start: formatTime12(s.start_time),
-        end: formatTime12(s.end_time),
-        batch: s.batch?.name ?? null,
-        room: roomLabel(s),
-        subject: s.subject,
-      }));
-    const msg = teacherDayMessage(f.full_name, DAY_FULL[day], rows, inst.name);
-    if (!openWhatsApp(f.phone, msg)) {
-      toast.error(`No WhatsApp number saved for ${f.full_name}.`);
-    }
+    if (res === "failed") toast.error("Could not create the image. Try again.");
+    else if (res === "downloaded") toast.success("Image saved — attach it in WhatsApp");
   }
 
   return (
     <>
       <PageHeader
         title="Timetable"
-        description="Weekly plan across classrooms. Drag a batch onto a cell, then set teacher & subject. Room, teacher and batch clashes are blocked."
+        description="Build the week once. Teachers get their day sheet, students get their class timetable — both from the same plan."
         actions={
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" className="gap-1.5" onClick={shareWeekly}>
-              <Share2 className="h-4 w-4" />
-              Share week
+          mode === "plan" ? (
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={sharePlanImage}>
+              <Image className="h-4 w-4" />
+              Share as image
             </Button>
-            {canWrite && (
-              <Button
-                size="sm"
-                className="gap-1.5"
-                onClick={() => {
-                  setEditing(null);
-                  setPresets({ day });
-                  setDialogOpen(true);
-                }}
-              >
-                <Plus className="h-4 w-4" />
-                New class
-              </Button>
-            )}
-          </div>
+          ) : null
         }
       />
       <PageBody>
         <div className="mb-4 inline-flex flex-wrap rounded-md border border-border bg-muted/40 p-0.5">
-          {(["daily", "weekly", "class"] as const).map((m) => (
+          {(Object.keys(MODE_LABEL) as Mode[]).map((m) => (
             <button
               key={m}
               type="button"
@@ -440,219 +285,160 @@ function TimetablePage() {
           ))}
         </div>
 
-        {mode === "daily" ? (
-          <DailySchedule
-            slots={slots}
-            rooms={rooms}
+        {mode === "today" && (
+          <TeacherDaySheet
+            slots={slots.filter((s) => s.day_of_week === today)}
             faculty={faculty}
-            batches={batches}
-            canWrite={canWrite}
+            dayLabel={DAY_FULL[today]}
           />
-        ) : mode === "class" ? (
-          <ClassTimetable slots={slots} batches={batches} />
-        ) : (
-          <>
-        {/* controls */}
-        <div className="mb-4 space-y-3 rounded-lg border border-border bg-card p-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {DAY_ORDER.map((d) => (
-              <button
-                key={d}
-                type="button"
-                onClick={() => setDay(d)}
-                className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                  day === d
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                {DAY_LABEL[d]}
-              </button>
-            ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex rounded-md border border-border p-0.5">
-              {(["morning", "evening"] as ShiftKey[]).map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => setShiftKey(k)}
-                  className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
-                    shiftKey === k
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  {SHIFT_LABEL[k]} shift
-                </button>
-              ))}
-            </div>
-            <div className="inline-flex rounded-md border border-border p-0.5">
-              {(["room", "faculty"] as ViewKey[]).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => setView(v)}
-                  className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
-                    view === v
-                      ? "bg-foreground text-background"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  {v === "room" ? "Room view" : "Teacher view"}
-                </button>
-              ))}
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {formatTime12(shift.start)} – {formatTime12(shift.end)} · {shift.period} min periods
-            </span>
-            {outsideCount > 0 && (
-              <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                {outsideCount} class(es) outside this shift
-              </span>
-            )}
-            <p className="ml-auto text-xs text-muted-foreground">
-              {coverage.filled} class(es) on {DAY_FULL[day]}
-            </p>
-          </div>
-          {canWrite && (
-            <div className="flex flex-wrap items-end gap-3 border-t border-border pt-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Shift start</Label>
-                <Input
-                  type="time"
-                  value={shift.start}
-                  onChange={(e) => patchShift({ start: e.target.value })}
-                  className="h-8 w-32"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Shift end</Label>
-                <Input
-                  type="time"
-                  value={shift.end}
-                  onChange={(e) => patchShift({ end: e.target.value })}
-                  className="h-8 w-32"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Period length</Label>
-                <Select
-                  value={String(shift.period)}
-                  onValueChange={(v) => patchShift({ period: Number(v) })}
-                >
-                  <SelectTrigger className="h-8 w-28 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[45, 60, 90].map((m) => (
-                      <SelectItem key={m} value={String(m)}>
-                        {m === 60 ? "1 hour" : m === 90 ? "1.5 hours" : `${m} min`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button size="sm" variant="outline" className="h-8" onClick={persistShifts}>
-                Save timings
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* reconciliation */}
-        {(clashes.length > 0 || capIssues.length > 0) && (
-          <div className="mb-4 space-y-2 rounded-lg border border-destructive/40 bg-destructive/5 p-3">
-            <p className="flex items-center gap-2 text-sm font-semibold text-destructive">
-              <AlertTriangle className="h-4 w-4" />
-              Reconciliation — {clashes.length} clash(es), {capIssues.length} capacity warning(s)
-            </p>
-            <ul className="space-y-1 text-xs">
-              {clashes.map((c) => (
-                <li key={c.key}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDay(c.day);
-                      setView(c.kind === "teacher" ? "faculty" : "room");
-                    }}
-                    className="text-left text-destructive underline-offset-2 hover:underline"
-                  >
-                    {DAY_LABEL[c.day]} {formatTime12(c.time)} — {c.kind} {c.who} double-booked:{" "}
-                    {c.slots.map((s) => s.batch?.name ?? "—").join(" & ")}
-                  </button>
-                </li>
-              ))}
-              {capIssues.map((w) => (
-                <li key={`cap-${w.slot.id}`} className="text-muted-foreground">
-                  {DAY_LABEL[w.slot.day_of_week]} {formatTime12(w.slot.start_time)} —{" "}
-                  {w.slot.batch?.name ?? "Batch"} has {w.strength} students but {roomLabel(w.slot)}{" "}
-                  seats {w.capacity}
-                </li>
-              ))}
-            </ul>
-          </div>
         )}
 
-        <div className="flex flex-col gap-4 lg:h-[min(calc(100dvh-19rem),640px)] lg:min-h-[420px] lg:flex-row">
-          {canWrite && (
-            <PlanRail
-              batches={batches}
-              rooms={rooms}
-              faculty={faculty}
-              subjects={subjectNames}
-              defaultDuration={shift.period}
-              strength={batchStrength}
-              load={coverage.load}
-              dayLabel={DAY_FULL[day]}
-              onSend={sendTeacherDay}
-              idleRooms={coverage.idleRooms}
-            />
-          )}
+        {mode === "class" && <ClassTimetable slots={slots} batches={batches} />}
 
-          {isLoading ? (
-            <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
-              Loading timetable…
+        {mode === "plan" && (
+          <>
+            {/* day + shift */}
+            <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-2">
+              <div className="flex flex-wrap gap-1">
+                {DAY_ORDER.map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setDay(d)}
+                    className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                      day === d
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {DAY_LABEL[d]}
+                  </button>
+                ))}
+              </div>
+              <div className="inline-flex rounded-md border border-border p-0.5">
+                {(["morning", "evening"] as const).map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setShiftKey(k)}
+                    className={`rounded px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                      shiftKey === k
+                        ? "bg-foreground text-background"
+                        : "text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {k}
+                  </button>
+                ))}
+              </div>
+              <p className="ml-auto text-[11px] text-muted-foreground">
+                Timings come from Settings → Classrooms &amp; timings
+              </p>
             </div>
-          ) : (
-            <div className="min-w-0 flex-1 overflow-auto">
-            <ScheduleGrid
-              columns={columns}
-              bands={bands}
-              items={gridItems}
-              canWrite={canWrite}
-              emptyHint="Add class"
-              onDropCell={(colId, band, ev) => onDropCell(colId, band, ev)}
-              onDropItem={(it, ev) => onDropItem(it.id, ev)}
-              onItemClick={(it) => {
-                const s = daySlots.find((x) => x.id === it.id);
-                if (!s) return;
-                setEditing(s);
-                setPresets({ day: s.day_of_week });
-                setDialogOpen(true);
-              }}
-              onItemDelete={(it) => removeMut.mutate(it.id)}
-              onEmptyClick={(colId, band) => {
-                setEditing(null);
-                setPresets({
-                  day,
-                  start: band.start,
-                  end: toHHMM(toMinutes(band.start) + shift.period),
-                  roomId: view === "room" && colId !== UNASSIGNED ? colId : null,
-                  facultyId: view === "faculty" && colId !== UNASSIGNED ? colId : null,
-                });
-                setDialogOpen(true);
-              }}
-              footer={
-                <p className="border-t border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
-                  Step 1 — drag a batch onto an empty cell. Step 2 — drag a subject or a teacher
-                  onto that class to assign it. Clashes are blocked automatically.
+
+            {clashes.length > 0 && (
+              <div className="mb-3 rounded-lg border border-destructive/40 bg-destructive/5 p-3">
+                <p className="flex items-center gap-2 text-xs font-semibold text-destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  {clashes.length} clash(es) to fix
                 </p>
-              }
-            />
+                <ul className="mt-1 space-y-0.5 text-[11px] text-muted-foreground">
+                  {clashes.slice(0, 4).map((c) => (
+                    <li key={c.key}>
+                      {DAY_LABEL[c.day]} — {c.kind} {c.who} is in two classes at once
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3 lg:flex-row">
+              {canWrite && (
+                <PlanRail
+                  batches={batches.map((b) => ({ id: b.id, name: b.name }))}
+                  faculty={faculty.map((f) => ({ id: f.id, name: f.full_name }))}
+                  subjects={subjectNames}
+                  strength={strength}
+                />
+              )}
+              <div className="min-w-0 flex-1">
+                {isLoading ? (
+                  <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+                    Loading timetable…
+                  </div>
+                ) : (
+                  <>
+                    <div className="hidden md:block">
+                      <PeriodGrid
+                        innerRef={planRef}
+                        columns={columns}
+                        bands={bands}
+                        cell={cellOf(daySlots)}
+                        canWrite={canWrite}
+                        onCellDrop={dropOnCell}
+                        onCardDrop={dropOnCard}
+                        onDelete={(id) => removeMut.mutate(id)}
+                        onCellClick={(colId, band) => {
+                          setEditing(null);
+                          setPresets({
+                            day,
+                            start: band.start,
+                            end: band.end,
+                            roomId: colId === UNASSIGNED ? undefined : colId,
+                          });
+                          setDialogOpen(true);
+                        }}
+                        caption={
+                          <p className="border-b border-border bg-muted/30 px-3 py-1.5 text-[11px] text-muted-foreground">
+                            {DAY_FULL[day]} · drag a <b>batch</b> into an empty period, then drop a{" "}
+                            <b>teacher</b> and a <b>subject</b> on it. Clashes are blocked.
+                          </p>
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2 md:hidden">
+                      {bands.map((b, i) => {
+                        const rows = columns
+                          .map((c) => ({ col: c, s: slotAt(c.id, b, daySlots) }))
+                          .filter((r) => r.s);
+                        return (
+                          <div key={b.start} className="rounded-lg border border-border bg-card p-3">
+                            <p className="text-xs font-semibold">
+                              P{i + 1} · {b.start} – {b.end}
+                            </p>
+                            {rows.length === 0 ? (
+                              <p className="mt-1 text-[11px] text-muted-foreground">Free</p>
+                            ) : (
+                              rows.map(({ col, s }) => (
+                                <button
+                                  key={col.id}
+                                  type="button"
+                                  onClick={() => {
+                                    if (!canWrite || !s) return;
+                                    setEditing(s);
+                                    setPresets({ day });
+                                    setDialogOpen(true);
+                                  }}
+                                  className="mt-1.5 block w-full rounded-md bg-primary/10 px-2 py-1.5 text-left"
+                                >
+                                  <p className="text-xs font-medium">
+                                    {s!.batch?.name ?? "Batch?"} · {s!.subject ?? "Subject?"}
+                                  </p>
+                                  <p className="text-[11px] text-muted-foreground">
+                                    {s!.faculty?.full_name ?? "No teacher"} ·{" "}
+                                    {roomLabel(s!) ?? col.label}
+                                  </p>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          )}
-        </div>
           </>
         )}
       </PageBody>
@@ -663,129 +449,54 @@ function TimetablePage() {
         defaultDay={presets.day}
         defaultStart={presets.start}
         defaultEnd={presets.end}
-        defaultRoomId={presets.roomId ?? undefined}
-        defaultFacultyId={presets.facultyId ?? undefined}
+        defaultRoomId={presets.roomId}
       />
     </>
   );
 }
 
-/**
- * Two-step planning rail. Step 1 places a batch on the board, step 2 drags a
- * subject or a teacher onto that placed class. The rail itself never grows the
- * page — only the active list scrolls inside it.
- */
+/** Step rail: batches first, then teachers, then subjects — dragged onto the board. */
 function PlanRail({
   batches,
-  rooms,
   faculty,
   subjects,
-  defaultDuration,
   strength,
-  load,
-  dayLabel,
-  onSend,
-  idleRooms,
 }: {
-  batches: Batch[];
-  rooms: Room[];
-  faculty: Faculty[];
+  batches: { id: string; name: string }[];
+  faculty: { id: string; name: string }[];
   subjects: string[];
-  defaultDuration: number;
   strength: Map<string, number>;
-  load: Map<string, number>;
-  dayLabel: string;
-  onSend: (f: Faculty) => void;
-  idleRooms: Room[];
 }) {
-  const [step, setStep] = useState<"batches" | "subjects" | "teachers">("batches");
-  const [duration, setDuration] = useState(defaultDuration);
-  const [roomId, setRoomId] = useState<string>(UNASSIGNED);
-
+  const [step, setStep] = useState<0 | 1 | 2>(0);
   const drag = (payload: DragPayload) => (e: DragEvent<HTMLDivElement>) =>
     e.dataTransfer.setData("application/json", JSON.stringify(payload));
 
-  const STEPS: { key: typeof step; label: string }[] = [
-    { key: "batches", label: "1 · Batches" },
-    { key: "subjects", label: "2 · Subjects" },
-    { key: "teachers", label: "3 · Teachers" },
-  ];
+  const tabs = ["1 · Batches", "2 · Teachers", "3 · Subjects"];
 
   return (
-    <aside className="flex w-full shrink-0 flex-col overflow-hidden rounded-lg border border-border bg-card lg:h-full lg:w-60">
+    <aside className="w-full shrink-0 overflow-hidden rounded-lg border border-border bg-card lg:w-56">
       <div className="grid grid-cols-3 border-b border-border">
-        {STEPS.map((s) => (
+        {tabs.map((t, i) => (
           <button
-            key={s.key}
+            key={t}
             type="button"
-            onClick={() => setStep(s.key)}
+            onClick={() => setStep(i as 0 | 1 | 2)}
             className={`px-1 py-2 text-[11px] font-medium transition-colors ${
-              step === s.key
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:text-foreground"
+              step === i ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {s.label}
+            {t}
           </button>
         ))}
       </div>
-
-      {step === "batches" && (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="space-y-2 border-b border-border p-3">
-            <p className="text-[11px] text-muted-foreground">
-              Drag a batch onto an empty cell. The column decides the room (or teacher).
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-[10px] uppercase tracking-wide">Length</Label>
-                <Select value={String(duration)} onValueChange={(v) => setDuration(Number(v))}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[45, 60, 90].map((m) => (
-                      <SelectItem key={m} value={String(m)}>
-                        {m === 60 ? "1 hour" : m === 90 ? "1.5 hr" : `${m} min`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-[10px] uppercase tracking-wide">Room</Label>
-                <Select value={roomId} onValueChange={setRoomId}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={UNASSIGNED}>Later</SelectItem>
-                    {rooms.map((r) => (
-                      <SelectItem key={r.id} value={r.id}>
-                        {r.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-          <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto p-3">
-            {batches.length === 0 && (
-              <p className="text-[11px] text-muted-foreground">
-                No batches yet — create one first.
-              </p>
-            )}
-            {batches.map((b) => (
+      <div className="max-h-[46vh] space-y-1.5 overflow-y-auto p-2.5">
+        {step === 0 &&
+          (batches.length ? (
+            batches.map((b) => (
               <div
                 key={b.id}
                 draggable
-                onDragStart={drag({
-                  batchId: b.id,
-                  roomId: roomId === UNASSIGNED ? undefined : roomId,
-                  durationMin: duration,
-                  quick: false,
-                })}
+                onDragStart={drag({ batchId: b.id })}
                 className="flex cursor-grab items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-xs active:cursor-grabbing"
               >
                 <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
@@ -795,49 +506,13 @@ function PlanRail({
                   {strength.get(b.id) ?? 0}
                 </span>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {step === "subjects" && (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <p className="border-b border-border p-3 text-[11px] text-muted-foreground">
-            Drop a subject onto a placed class to set what is being taught.
-          </p>
-          <div className="min-h-0 flex-1 overflow-y-auto p-3">
-            {subjects.length === 0 ? (
-              <p className="text-[11px] text-muted-foreground">
-                Add subjects in Settings → Courses to drag them here.
-              </p>
-            ) : (
-              <div className="flex flex-wrap gap-1.5">
-                {subjects.map((name) => (
-                  <div
-                    key={name}
-                    draggable
-                    onDragStart={drag({ subject: name })}
-                    className="cursor-grab rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[11px] font-medium active:cursor-grabbing"
-                  >
-                    {name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {step === "teachers" && (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <p className="border-b border-border p-3 text-[11px] text-muted-foreground">
-            Drop a teacher onto a class to assign them. Number = classes on {dayLabel}.
-          </p>
-          <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
-            {faculty.length === 0 && (
-              <p className="text-[11px] text-muted-foreground">No teachers added yet.</p>
-            )}
-            {faculty.map((f) => (
+            ))
+          ) : (
+            <p className="text-[11px] text-muted-foreground">Create a batch first.</p>
+          ))}
+        {step === 1 &&
+          (faculty.length ? (
+            faculty.map((f) => (
               <div
                 key={f.id}
                 draggable
@@ -845,28 +520,33 @@ function PlanRail({
                 className="flex cursor-grab items-center gap-1.5 rounded-md border border-border px-2 py-1.5 text-xs active:cursor-grabbing"
               >
                 <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
-                <span className="truncate">{f.full_name}</span>
-                <span className="ml-auto shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                  {load.get(f.id) ?? 0}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => onSend(f)}
-                  title={`Send ${f.full_name}'s schedule`}
-                  className="shrink-0 rounded p-0.5 text-primary hover:bg-muted"
-                >
-                  <Send className="h-3.5 w-3.5" />
-                </button>
+                <span className="truncate">{f.name}</span>
               </div>
-            ))}
-          </div>
-          {idleRooms.length > 0 && (
-            <p className="border-t border-border p-3 text-[10px] text-muted-foreground">
-              Free rooms: {idleRooms.map((r) => r.name).join(", ")}
-            </p>
-          )}
-        </div>
-      )}
+            ))
+          ) : (
+            <p className="text-[11px] text-muted-foreground">Invite teachers from the Faculty page.</p>
+          ))}
+        {step === 2 &&
+          (subjects.length ? (
+            <div className="flex flex-wrap gap-1.5">
+              {subjects.map((s) => (
+                <div
+                  key={s}
+                  draggable
+                  onDragStart={drag({ subject: s })}
+                  className="cursor-grab rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[11px] font-medium active:cursor-grabbing"
+                >
+                  {s}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[11px] text-muted-foreground">Add subjects in Settings → Courses.</p>
+          ))}
+      </div>
+      <p className="border-t border-border px-2.5 py-2 text-[10px] text-muted-foreground">
+        Drag onto the board. Step 1 fills the period, steps 2 and 3 drop onto that class.
+      </p>
     </aside>
   );
 }

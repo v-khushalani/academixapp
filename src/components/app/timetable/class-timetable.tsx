@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
-import { Printer, Share2 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { Image, Printer, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -11,6 +12,7 @@ import {
 import { formatTime12, toMinutes } from "@/lib/time";
 import { roomLabel, type SlotRow } from "@/lib/timetable/conflicts";
 import { getInstitute } from "@/lib/academy-settings";
+import { shareTableAsImage } from "@/lib/timetable/share-image";
 import type { Batch } from "@/lib/api";
 
 const DAY_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -24,6 +26,7 @@ export function ClassTimetable({ slots, batches }: { slots: SlotRow[]; batches: 
   const [batchId, setBatchId] = useState<string>(() => batches[0]?.id ?? "");
   const activeId = batchId || batches[0]?.id || "";
   const batch = batches.find((b) => b.id === activeId);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const rows = useMemo(() => slots.filter((s) => s.batch_id === activeId), [slots, activeId]);
 
@@ -72,6 +75,16 @@ export function ClassTimetable({ slots, batches }: { slots: SlotRow[]; batches: 
     );
   }
 
+  async function shareImage() {
+    const res = await shareTableAsImage(
+      gridRef.current,
+      `class-timetable-${batch?.name ?? "batch"}`,
+      `${getInstitute().name || "Academy"} — ${batch?.name ?? "Batch"} timetable`,
+    );
+    if (res === "failed") toast.error("Could not create the image. Try again.");
+    else if (res === "downloaded") toast.success("Image saved — attach it in WhatsApp");
+  }
+
   if (!batches.length) {
     return (
       <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
@@ -99,9 +112,13 @@ export function ClassTimetable({ slots, batches }: { slots: SlotRow[]; batches: 
           </Select>
         </div>
         <div className="flex shrink-0 gap-2 sm:ml-auto">
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={shareImage}>
+            <Image className="h-4 w-4" />
+            <span className="hidden sm:inline">Image</span>
+          </Button>
           <Button size="sm" variant="outline" className="gap-1.5" onClick={share}>
             <Share2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Share</span>
+            <span className="hidden sm:inline">Text</span>
           </Button>
           <Button
             size="sm"
@@ -120,8 +137,8 @@ export function ClassTimetable({ slots, batches }: { slots: SlotRow[]; batches: 
           No classes scheduled for {batch?.name ?? "this batch"} yet — add them in the weekly plan.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-card">
-          <table className="w-full border-collapse text-sm">
+        <div ref={gridRef} className="overflow-x-auto rounded-xl border border-border bg-card">
+          <table className="w-full table-fixed border-collapse text-sm">
             <thead>
               <tr className="bg-muted/60">
                 <th className="sticky left-0 z-10 bg-muted/60 px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
