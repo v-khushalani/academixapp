@@ -1,13 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  ArrowRight,
-  BadgeIndianRupee,
-  CalendarCheck,
-  ClipboardList,
-  MessageCircle,
-  QrCode,
-  Users,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PortalPicker } from "@/components/marketing/portal-picker";
 
@@ -32,46 +24,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Index,
 });
-
-const MODULES = [
-  {
-    icon: QrCode,
-    title: "Paperless admissions",
-    desc: "One QR at the front desk. Parents fill the full form on their phone; you approve and the student record, login and fee plan are created.",
-  },
-  {
-    icon: BadgeIndianRupee,
-    title: "Fees that add up",
-    desc: "Batch fee auto-applies to every student, discounts and scholarships adjust it, UPI QR collects it, and receipts print as PDF.",
-  },
-  {
-    icon: CalendarCheck,
-    title: "Attendance in one tap",
-    desc: "Teachers mark a whole batch from their phone. Absentee parents get a WhatsApp message with a single tap.",
-  },
-  {
-    icon: ClipboardList,
-    title: "Tests and progress",
-    desc: "Enter marks batch-wise; families see scores, trends and rank movement in their own portal.",
-  },
-  {
-    icon: Users,
-    title: "Batches and timetable",
-    desc: "A visual weekly grid with room, teacher and subject on one card — with clash warnings before you save.",
-  },
-  {
-    icon: MessageCircle,
-    title: "WhatsApp, zero cost",
-    desc: "No paid API. Every reminder opens WhatsApp with the message ready — you press send.",
-  },
-];
-
-const FLOW = [
-  { step: "01", title: "Enquiry", desc: "Parent scans your QR and fills the form." },
-  { step: "02", title: "Approval", desc: "Office reviews and approves — or keeps it for follow-up." },
-  { step: "03", title: "Enrolled", desc: "Student, batch fee and portal logins are created together." },
-  { step: "04", title: "Everyday", desc: "Attendance, marks, fees and reminders run on their own rails." },
-];
 
 function Index() {
   return (
