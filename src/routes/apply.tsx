@@ -18,7 +18,6 @@ function ApplyPage() {
   const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
-  const [intent, setIntent] = useState<"admission" | "enquiry">("admission");
   const instituteName = getInstitute().name || "Academix";
   const initials = (instituteName.match(/\b\w/g) || ["A"]).slice(0, 2).join("").toUpperCase();
 
@@ -40,8 +39,8 @@ function ApplyPage() {
       _stream: v.stream,
       _photo_path: photoPath ?? "",
       _preferred_contact: v.preferred_contact,
-      _intent: v.intent,
-      _token_amount: v.token_amount ?? 0,
+      _intent: "enquiry",
+      _token_amount: 0,
       _institute_slug: instituteSlug ?? "",
     });
     setSaving(false);
@@ -50,7 +49,6 @@ function ApplyPage() {
       return;
     }
     setName(v.full_name);
-    setIntent(v.intent);
     setDone(true);
   }
 
@@ -73,16 +71,14 @@ function ApplyPage() {
             </div>
             <h1 className="text-lg font-semibold">Thank you, {name}!</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              {intent === "enquiry"
-                ? "Your enquiry has been received. Our team will call you with all the details shortly."
-                : "Your admission form has been submitted. The admissions office will confirm your batch and fees shortly."}
+              Your enquiry has been received. Our team will call you shortly with batch, timing and
+              fee details.
             </p>
           </div>
         ) : (
           <>
             <p className="mb-4 text-sm text-muted-foreground">
-              Fill in the details below. Fields marked * are required. Your application will be
-              reviewed by our admissions office.
+              Takes about a minute — we ask a few questions at a time.
             </p>
             <AdmissionForm onSubmit={onSubmit} saving={saving} />
           </>
