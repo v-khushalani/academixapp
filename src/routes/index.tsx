@@ -107,22 +107,20 @@ function Index() {
         </div>
       </section>
 
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="border-primary-foreground/40 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-            >
-              <Link to="/pricing">See pricing</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
       <footer className="border-t border-border bg-background">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <span>© {new Date().getFullYear()} Academix</span>
-          <span className="text-xs">Built for coaching institutes. By people who run one.</span>
+          <div className="flex items-center gap-4 text-xs">
+            <Link to="/for-institutes" className="hover:text-foreground">
+              How it works
+            </Link>
+            <Link to="/pricing" className="hover:text-foreground">
+              Pricing
+            </Link>
+            <Link to="/signup" className="font-medium text-primary hover:underline">
+              Start free
+            </Link>
+          </div>
         </div>
       </footer>
     </div>
