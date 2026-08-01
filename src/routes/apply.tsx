@@ -61,7 +61,7 @@ function ApplyPage() {
           </div>
           <div>
             <p className="text-sm font-semibold tracking-tight">{instituteName}</p>
-            <p className="text-xs text-muted-foreground">Admission Application Form</p>
+            <p className="text-xs text-muted-foreground">Enquiry / Admission Form</p>
           </div>
         </div>
         {done ? (
