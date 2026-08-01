@@ -107,57 +107,6 @@ function Index() {
         </div>
       </section>
 
-      {/* Modules */}
-      <section className="border-b border-border bg-card">
-        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Everything an institute actually does in a day
-          </h2>
-          <div className="mt-8 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
-            {MODULES.map((m) => (
-              <div key={m.title} className="bg-background p-6">
-                <m.icon className="h-5 w-5 text-primary" />
-                <h3 className="mt-3.5 text-base font-semibold">{m.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{m.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Flow */}
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            From walk-in to enrolled, without a single paper form
-          </h2>
-          <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {FLOW.map((f) => (
-              <li key={f.step} className="border-t-2 border-primary pt-4">
-                <span className="text-xs font-semibold tracking-widest text-primary">{f.step}</span>
-                <p className="mt-1.5 text-base font-semibold">{f.title}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* Closing CTA */}
-      <section className="bg-primary text-primary-foreground">
-        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6">
-          <h2 className="max-w-2xl text-2xl font-semibold tracking-tight sm:text-3xl">
-            Set up your institute today. Take your first admission tomorrow.
-          </h2>
-          <p className="mt-3 max-w-xl text-sm opacity-80">
-            No card, no installation. Create a workspace, add a batch, print your admission QR.
-          </p>
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg" variant="secondary" className="gap-2">
-              <Link to="/signup">
-                Create your institute <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
             <Button
               asChild
               size="lg"
