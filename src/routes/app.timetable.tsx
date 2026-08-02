@@ -435,6 +435,7 @@ function TimetablePage() {
                   faculty={faculty.map((f) => ({ id: f.id, name: f.full_name }))}
                   subjects={subjectNames}
                   strength={strength}
+                  placed={placedBatchIds}
                 />
               )}
               <div className="min-w-0 flex-1">
@@ -454,6 +455,14 @@ function TimetablePage() {
                         onCellDrop={dropOnCell}
                         onCardDrop={dropOnCard}
                         onDelete={(id) => removeMut.mutate(id)}
+                        onEditCol={(colId) => {
+                          const r = rooms.find((x) => x.id === colId);
+                          if (!r) {
+                            toast.info("Add classrooms in Settings → Classrooms & timings");
+                            return;
+                          }
+                          setEditRoom({ id: r.id, name: r.name, capacity: r.capacity });
+                        }}
                         onCellClick={(colId, band) => {
                           setEditing(null);
                           setPresets({
@@ -480,7 +489,7 @@ function TimetablePage() {
                         return (
                           <div key={b.start} className="rounded-lg border border-border bg-card p-3">
                             <p className="text-xs font-semibold">
-                              P{i + 1} · {b.start} – {b.end}
+                              {formatTime12(b.start)} – {formatTime12(b.end)}
                             </p>
                             {rows.length === 0 ? (
                               <p className="mt-1 text-[11px] text-muted-foreground">Free</p>
