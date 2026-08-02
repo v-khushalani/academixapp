@@ -131,6 +131,7 @@ export type Database = {
       batches: {
         Row: {
           capacity: number
+          class_level: string | null
           course_id: string | null
           created_at: string
           default_fee: number
@@ -148,6 +149,7 @@ export type Database = {
         }
         Insert: {
           capacity?: number
+          class_level?: string | null
           course_id?: string | null
           created_at?: string
           default_fee?: number
@@ -165,6 +167,7 @@ export type Database = {
         }
         Update: {
           capacity?: number
+          class_level?: string | null
           course_id?: string | null
           created_at?: string
           default_fee?: number
