@@ -1141,6 +1141,147 @@ export type Database = {
           },
         ]
       }
+      syllabus_chapters: {
+        Row: {
+          batch_id: string
+          completed_by: string | null
+          completed_on: string | null
+          created_at: string
+          id: string
+          institute_id: string
+          planned_sessions: number
+          position: number
+          started_on: string | null
+          status: string
+          subject: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          batch_id: string
+          completed_by?: string | null
+          completed_on?: string | null
+          created_at?: string
+          id?: string
+          institute_id?: string
+          planned_sessions?: number
+          position?: number
+          started_on?: string | null
+          status?: string
+          subject: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string
+          completed_by?: string | null
+          completed_on?: string | null
+          created_at?: string
+          id?: string
+          institute_id?: string
+          planned_sessions?: number
+          position?: number
+          started_on?: string | null
+          status?: string
+          subject?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "syllabus_chapters_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "syllabus_chapters_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      syllabus_logs: {
+        Row: {
+          batch_id: string | null
+          chapter_id: string
+          created_at: string
+          created_by: string | null
+          date: string
+          faculty_id: string | null
+          id: string
+          institute_id: string
+          note: string | null
+          slot_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          batch_id?: string | null
+          chapter_id: string
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          faculty_id?: string | null
+          id?: string
+          institute_id?: string
+          note?: string | null
+          slot_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string | null
+          chapter_id?: string
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          faculty_id?: string | null
+          id?: string
+          institute_id?: string
+          note?: string | null
+          slot_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "syllabus_logs_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "syllabus_logs_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "syllabus_chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "syllabus_logs_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "syllabus_logs_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "syllabus_logs_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "timetable_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       test_results: {
         Row: {
           created_at: string
