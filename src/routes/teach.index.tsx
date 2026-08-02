@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarCheck, ClipboardList, Clock } from "lucide-react";
+import { BookOpen, CalendarCheck, ClipboardList, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { myFaculty, mySlots } from "@/lib/api/teach";
 import { formatTime12 } from "@/lib/time";
@@ -59,6 +59,12 @@ function TeachHome() {
         >
           <ClipboardList className="h-5 w-5 text-primary" /> Enter marks
         </Link>
+        <Link
+          to="/teach/syllabus"
+          className="col-span-2 flex items-center gap-2 rounded-lg border border-border bg-card p-4 text-sm font-medium hover:bg-muted"
+        >
+          <BookOpen className="h-5 w-5 text-primary" /> Update syllabus progress
+        </Link>
       </div>
 
       <h2 className="mt-6 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -100,13 +106,22 @@ function TeachHome() {
                     : ""}
               </p>
             </div>
-            <Link
-              to="/teach/attendance"
-              search={{ batch: s.batch_id ?? undefined }}
-              className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground"
-            >
-              Attendance
-            </Link>
+            <div className="flex shrink-0 flex-col gap-1">
+              <Link
+                to="/teach/attendance"
+                search={{ batch: s.batch_id ?? undefined }}
+                className="rounded-md bg-primary px-3 py-1.5 text-center text-xs font-medium text-primary-foreground"
+              >
+                Attendance
+              </Link>
+              <Link
+                to="/teach/syllabus"
+                search={{ batch: s.batch_id ?? undefined, subject: s.subject ?? undefined }}
+                className="rounded-md border border-border px-3 py-1.5 text-center text-xs font-medium"
+              >
+                Chapter
+              </Link>
+            </div>
           </div>
         ))}
       </div>
