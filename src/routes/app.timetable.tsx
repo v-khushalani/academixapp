@@ -546,13 +546,17 @@ function PlanRail({
   faculty,
   subjects,
   strength,
+  placed,
 }: {
   batches: { id: string; name: string }[];
   faculty: { id: string; name: string }[];
   subjects: string[];
   strength: Map<string, number>;
+  placed: Set<string>;
 }) {
   const [step, setStep] = useState<0 | 1 | 2>(0);
+  /** a batch can run twice a day — ask for it back and it becomes draggable again */
+  const [again, setAgain] = useState<Set<string>>(new Set());
   const drag = (payload: DragPayload) => (e: DragEvent<HTMLDivElement>) =>
     e.dataTransfer.setData("application/json", JSON.stringify(payload));
 
@@ -577,21 +581,42 @@ function PlanRail({
       <div className="max-h-[46vh] space-y-1.5 overflow-y-auto p-2.5">
         {step === 0 &&
           (batches.length ? (
-            batches.map((b) => (
-              <div
-                key={b.id}
-                draggable
-                onDragStart={drag({ batchId: b.id })}
-                className="flex cursor-grab items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-xs active:cursor-grabbing"
-              >
-                <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
-                <span className="truncate font-medium">{b.name}</span>
-                <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground">
-                  <Users className="h-3 w-3" />
-                  {strength.get(b.id) ?? 0}
-                </span>
-              </div>
-            ))
+            batches.map((b) => {
+              const done = placed.has(b.id) && !again.has(b.id);
+              if (done)
+                return (
+                  <div
+                    key={b.id}
+                    className="flex items-center gap-1.5 rounded-md border border-dashed border-border px-2 py-1.5 text-xs text-muted-foreground"
+                  >
+                    <span className="truncate line-through">{b.name}</span>
+                    <button
+                      type="button"
+                      title="Add another session for this batch"
+                      onClick={() => setAgain((s) => new Set(s).add(b.id))}
+                      className="ml-auto flex shrink-0 items-center gap-0.5 rounded px-1 text-[10px] font-medium text-primary hover:bg-primary/10"
+                    >
+                      <Plus className="h-3 w-3" />
+                      session
+                    </button>
+                  </div>
+                );
+              return (
+                <div
+                  key={b.id}
+                  draggable
+                  onDragStart={drag({ batchId: b.id })}
+                  className="flex cursor-grab items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-xs active:cursor-grabbing"
+                >
+                  <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
+                  <span className="truncate font-medium">{b.name}</span>
+                  <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground">
+                    <Users className="h-3 w-3" />
+                    {strength.get(b.id) ?? 0}
+                  </span>
+                </div>
+              );
+            })
           ) : (
             <p className="text-[11px] text-muted-foreground">Create a batch first.</p>
           ))}
