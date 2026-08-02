@@ -2,12 +2,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState, type DragEvent } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, GripVertical, Image, Users } from "lucide-react";
+import { AlertTriangle, CopyPlus, GripVertical, Image, Plus, Users } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { ClassTimetable } from "@/components/app/timetable/class-timetable";
 import { PeriodGrid, type GridCell } from "@/components/app/timetable/period-grid";
 import { TeacherDaySheet } from "@/components/app/timetable/teacher-day-sheet";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Field } from "@/components/app/field";
 import { TimetableSlotDialog } from "@/components/app/timetable-slot-dialog";
 import {
   batchesApi,
@@ -22,6 +31,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import { getInstitute, DEFAULT_SHIFTS, type Shifts } from "@/lib/academy-settings";
 import { toMinutes, toHHMM } from "@/lib/time";
+import { formatTime12 } from "@/lib/time";
 import {
   buildBands,
   conflictReason,
