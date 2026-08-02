@@ -1,46 +1,45 @@
-## 1. Quick Admit vs Add Student — remove the duplicate
+## Idea in short
 
-Today there are two ways to create a student: **Quick Admit** (name + phone, then a self-fill link) and **Add Student** (full form). They overlap, and enquiries already come through the QR form.
+Syllabus = a list of chapters for each subject of each batch. Teacher taps "what I taught today" from his class card; management sees a live percentage bar per batch/subject and how many chapters are left before the exam date.
 
-- Keep **one** entry point on Students: "Add student", with two tabs inside the same dialog — *Send self-fill link* (name + phone + WhatsApp) and *Fill now* (full form).
-- Delete `quick-admit-dialog.tsx` and its trigger; keep the onboarding-link logic inside the merged dialog so nothing breaks.
+## How it works for each person
 
-## 2. Batch disappears from the rail once placed (with an "extend" option)
+**Admin / management (Settings → Syllabus, plus a new Syllabus page)**
+- Create a chapter list per subject per class/batch (e.g. Class 11 Physics: 14 chapters, each with a name, order, and optional "planned sessions").
+- Copy a list from one batch to another in one click, so it's set up once per year.
+- Syllabus page shows a card per batch: overall %, per-subject bars, chapters in progress, chapters not started, and "X chapters left, Y teaching days to exam" — the number to quote to a parent standing at the desk.
 
-- The Batches step in the planning rail shows only batches **not yet scheduled** for the selected day+shift; placed batches move into a dimmed "Scheduled" section below.
-- Each scheduled batch gets a small **+ Add another session** action, which makes it draggable again for one more slot. The second session is a separate row, so subject, room and teacher can differ. Clash checks still block the same batch in two rooms at the same time.
+**Teacher (/teach)**
+- Today's class card gets a "Chapter" line. Tap it → sheet with that batch+subject's chapters.
+- Three taps only: pick chapter → mark *In progress* (becomes "currently teaching") or *Done*. Optional one-line topic note ("Ray optics — mirrors").
+- Next day the same chapter is pre-selected, so it's one tap to continue and one tap to finish.
+- A "My syllabus" tab lists his batches with progress bars — he sees his own pending chapters.
 
-## 3. Timings instead of P1/P2 + editable rooms in place
+**Parents / students (portal)**
+- Read-only progress bar per subject: "Physics 62% covered". No chapter-level noise.
 
-- Row headers show only the time range (e.g. `3:00 PM – 4:00 PM`). The "Period" label and `P1, P2…` are removed.
-- Column headers become editable: click the room name or the capacity to rename / change seats inline (writes to the `rooms` table, same permissions as Settings). An "+ Add room" column appears when the plan limit allows.
+## Data model
 
-## 4. Carry today's plan to the next day
+- `syllabus_chapters` — institute_id, batch_id, subject, title, position, planned_sessions, status (`pending` / `in_progress` / `done`), started_on, completed_on, completed_by.
+- `syllabus_logs` — institute_id, chapter_id, batch_id, faculty_id, date, note, slot_id (optional link to the timetable slot). One row per class taught, so "kis din kya padha" is auditable.
+- Progress % = done chapters ÷ total chapters (weighted by planned_sessions when set).
+- RLS: same institute isolation as the rest; teachers can insert logs and update status only for batches they teach; admin/owner full control; students/parents read-only progress.
 
-- Add a **Copy to next day** action next to the day tabs: duplicates every class of the selected day into the following day, skipping anything that would clash.
-- Optional "keep in sync going forward" is out of scope; a one-click copy plus drag-and-drop edits covers the workflow you described.
+## Timetable link
 
-## 5. Share only via WhatsApp
+- The daily plan row already knows batch + subject + teacher, so the chapter sheet opens pre-filtered — no extra selection.
+- Syllabus page shows "at current pace, Physics finishes on <date>" against the next test date, so scheduling extra sessions is a judgement call with a number behind it.
 
-- `share-image.ts` currently falls back to a file download. Change it so the button always renders the PNG and hands it to WhatsApp: native share sheet on phones, and on desktop it copies the image to the clipboard and opens WhatsApp Web with the caption pre-filled, so it can be pasted straight into the group. No silent downloads, no other targets.
+## Screens to build
 
-## 6. Link class to batch
-
-- Add a `class_level` column to `batches` (values: 6–12, matching what the admission form collects).
-- Batch form gets a "Class" selector.
-- Anywhere a batch is chosen for a student (approve applicant, edit student, assign batch), only batches whose class matches the student's class are listed, with a "show all" escape hatch.
-
-## 7. Route-by-route pass + the signup failure
-
-- Reproduce the new-user registration error in the browser (signup → institute creation) and read the exact Postgres error. Most likely a constraint or RLS violation in the profile/institute bootstrap trigger; the fix goes in a migration once the real message is captured.
-- Then walk every route logged in as admin, teacher and student, listing anything broken before fixing.
-
-## 8. Supabase + Git only
-
-Nothing to migrate here — the app already talks directly to your own Supabase project (`vk-academy-os`); no Lovable Cloud database or edge functions are in use. The only Lovable piece is the build config, which is required for the project to compile. Code lives in Git via the GitHub connection in project settings.
+1. `app/syllabus` — batch cards, per-subject bars, chapter editor dialog, copy-to-batch.
+2. `teach/syllabus` — teacher's batches + chapter sheet with In progress / Done.
+3. Chapter chip on today's class card in `/teach`.
+4. Progress strip on the batch detail page and on the family portal progress page.
+5. Dashboard KPI: "Syllabus coverage" average across active batches.
 
 ## Technical notes
 
-- Migration: `ALTER TABLE public.batches ADD COLUMN class_level text` (+ index); no RLS change needed.
-- Timetable rail filtering derives from the existing `slots` query — no new endpoint.
-- Room inline editing reuses `roomsApi.update` and respects the plan's room limit.
+- One migration creates both tables with GRANTs, RLS, updated_at triggers, and an index on (batch_id, subject, position).
+- New `src/lib/api/syllabus.ts` with list/create/reorder/setStatus/log; reuse `useRefreshLinked` keys so bars refresh everywhere.
+- Chapter status changes write a `syllabus_logs` row and a `student_activities` entry, keeping the existing activity feed consistent.
