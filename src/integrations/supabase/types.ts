@@ -131,6 +131,7 @@ export type Database = {
       batches: {
         Row: {
           capacity: number
+          class_level: string | null
           course_id: string | null
           created_at: string
           default_fee: number
@@ -148,6 +149,7 @@ export type Database = {
         }
         Insert: {
           capacity?: number
+          class_level?: string | null
           course_id?: string | null
           created_at?: string
           default_fee?: number
@@ -165,6 +167,7 @@ export type Database = {
         }
         Update: {
           capacity?: number
+          class_level?: string | null
           course_id?: string | null
           created_at?: string
           default_fee?: number
@@ -1443,44 +1446,29 @@ export type Database = {
         Args: { _batch_id: string; _student_id: string; _token_amount?: number }
         Returns: undefined
       }
-      complete_student_onboarding:
-        | {
-            Args: {
-              _address: string
-              _class: string
-              _email: string
-              _full_name: string
-              _parent_name: string
-              _parent_phone: string
-              _phone: string
-              _school: string
-              _token: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              _address: string
-              _class: string
-              _dob?: string
-              _email: string
-              _father_name?: string
-              _father_phone?: string
-              _full_name: string
-              _mother_name?: string
-              _mother_phone?: string
-              _parent_name: string
-              _parent_phone: string
-              _phone: string
-              _photo_path?: string
-              _preferred_contact?: string
-              _program?: string
-              _school: string
-              _stream?: string
-              _token: string
-            }
-            Returns: undefined
-          }
+      complete_student_onboarding: {
+        Args: {
+          _address: string
+          _class: string
+          _dob?: string
+          _email: string
+          _father_name?: string
+          _father_phone?: string
+          _full_name: string
+          _mother_name?: string
+          _mother_phone?: string
+          _parent_name: string
+          _parent_phone: string
+          _phone: string
+          _photo_path?: string
+          _preferred_contact?: string
+          _program?: string
+          _school: string
+          _stream?: string
+          _token: string
+        }
+        Returns: undefined
+      }
       current_institute_id: { Args: never; Returns: string }
       default_institute_id: { Args: never; Returns: string }
       get_faculty_invite: {

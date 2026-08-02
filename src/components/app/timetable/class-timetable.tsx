@@ -82,7 +82,8 @@ export function ClassTimetable({ slots, batches }: { slots: SlotRow[]; batches: 
       `${getInstitute().name || "Academy"} — ${batch?.name ?? "Batch"} timetable`,
     );
     if (res === "failed") toast.error("Could not create the image. Try again.");
-    else if (res === "downloaded") toast.success("Image saved — attach it in WhatsApp");
+    else if (res === "copied")
+      toast.success("Image copied — paste it in the WhatsApp chat with Ctrl+V");
   }
 
   if (!batches.length) {

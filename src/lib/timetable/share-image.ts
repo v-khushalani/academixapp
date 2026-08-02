@@ -1,15 +1,16 @@
 import { toPng } from "html-to-image";
 
 /**
- * Timetables get shared in WhatsApp groups as a picture, not as a wall of text.
- * On phones this hands the PNG straight to the share sheet; on desktop it saves
- * the file and opens WhatsApp Web so it can be attached.
+ * Timetables are only ever shared on WhatsApp, as a picture. On phones the
+ * PNG goes straight into WhatsApp through the share sheet. On desktop the
+ * picture is copied to the clipboard and WhatsApp Web opens, so it can be
+ * pasted into the group with Ctrl+V.
  */
 export async function shareTableAsImage(
   node: HTMLElement | null,
   filename: string,
   caption: string,
-): Promise<"shared" | "downloaded" | "failed"> {
+): Promise<"shared" | "copied" | "failed"> {
   if (!node) return "failed";
   try {
     const dataUrl = await toPng(node, {
@@ -24,16 +25,13 @@ export async function shareTableAsImage(
       await nav.share({ files: [file], text: caption });
       return "shared";
     }
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = `${filename}.png`;
-    a.click();
-    window.open(
-      `https://wa.me/?text=${encodeURIComponent(caption)}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
-    return "downloaded";
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    } catch {
+      return "failed";
+    }
+    window.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
+    return "copied";
   } catch {
     return "failed";
   }

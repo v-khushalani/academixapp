@@ -2,12 +2,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState, type DragEvent } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, GripVertical, Image, Users } from "lucide-react";
+import { AlertTriangle, CopyPlus, GripVertical, Image, Plus, Users } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { ClassTimetable } from "@/components/app/timetable/class-timetable";
 import { PeriodGrid, type GridCell } from "@/components/app/timetable/period-grid";
 import { TeacherDaySheet } from "@/components/app/timetable/teacher-day-sheet";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Field } from "@/components/app/field";
 import { TimetableSlotDialog } from "@/components/app/timetable-slot-dialog";
 import {
   batchesApi,
@@ -22,6 +31,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import { getInstitute, DEFAULT_SHIFTS, type Shifts } from "@/lib/academy-settings";
 import { toMinutes, toHHMM } from "@/lib/time";
+import { formatTime12 } from "@/lib/time";
 import {
   buildBands,
   conflictReason,
@@ -243,6 +253,59 @@ function TimetablePage() {
   }
 
   const planRef = useRef<HTMLDivElement>(null);
+
+  /** batches already sitting on today's board — they leave the rail until asked back */
+  const placedBatchIds = useMemo(
+    () => new Set(daySlots.map((s) => s.batch_id).filter(Boolean) as string[]),
+    [daySlots],
+  );
+
+  const [editRoom, setEditRoom] = useState<{ id: string; name: string; capacity: number } | null>(
+    null,
+  );
+  const roomMut = useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: { name: string; capacity: number } }) =>
+      roomsApi.update(id, patch),
+    onSuccess: () => {
+      toast.success("Classroom updated");
+      setEditRoom(null);
+      qc.invalidateQueries({ queryKey: ["rooms"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const nextDay = day === 6 ? 1 : day + 1;
+  const copyMut = useMutation({
+    mutationFn: async () => {
+      const existing = slots.filter((s) => s.day_of_week === nextDay);
+      let made = 0;
+      for (const s of daySlots) {
+        const candidate = {
+          day_of_week: nextDay,
+          start_time: s.start_time,
+          end_time: s.end_time,
+          batch_id: s.batch_id,
+          faculty_id: s.faculty_id,
+          subject: s.subject,
+          room_id: s.room_id,
+          room: s.room,
+        };
+        if (findConflicts(candidate, existing).length) continue;
+        await timetableApi.create(candidate);
+        existing.push({ ...(s as SlotRow), ...candidate, id: `tmp-${made}` });
+        made += 1;
+      }
+      return made;
+    },
+    onSuccess: (made) => {
+      qc.invalidateQueries({ queryKey: ["timetable"] });
+      toast.success(
+        made ? `${made} class(es) copied to ${DAY_FULL[nextDay]}` : `${DAY_FULL[nextDay]} already has these classes`,
+      );
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   async function sharePlanImage() {
     const res = await shareTableAsImage(
       planRef.current,
@@ -250,7 +313,8 @@ function TimetablePage() {
       `${getInstitute().name || "Academy"} — ${DAY_FULL[day]} timetable`,
     );
     if (res === "failed") toast.error("Could not create the image. Try again.");
-    else if (res === "downloaded") toast.success("Image saved — attach it in WhatsApp");
+    else if (res === "copied")
+      toast.success("Image copied — paste it in the WhatsApp chat with Ctrl+V");
   }
 
   return (
@@ -334,6 +398,18 @@ function TimetablePage() {
               <p className="ml-auto text-[11px] text-muted-foreground">
                 Timings come from Settings → Classrooms &amp; timings
               </p>
+              {canWrite && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5"
+                  disabled={copyMut.isPending || daySlots.length === 0}
+                  onClick={() => copyMut.mutate()}
+                >
+                  <CopyPlus className="h-4 w-4" />
+                  Copy to {DAY_LABEL[nextDay]}
+                </Button>
+              )}
             </div>
 
             {clashes.length > 0 && (
@@ -359,6 +435,7 @@ function TimetablePage() {
                   faculty={faculty.map((f) => ({ id: f.id, name: f.full_name }))}
                   subjects={subjectNames}
                   strength={strength}
+                  placed={placedBatchIds}
                 />
               )}
               <div className="min-w-0 flex-1">
@@ -378,6 +455,14 @@ function TimetablePage() {
                         onCellDrop={dropOnCell}
                         onCardDrop={dropOnCard}
                         onDelete={(id) => removeMut.mutate(id)}
+                        onEditCol={(colId) => {
+                          const r = rooms.find((x) => x.id === colId);
+                          if (!r) {
+                            toast.info("Add classrooms in Settings → Classrooms & timings");
+                            return;
+                          }
+                          setEditRoom({ id: r.id, name: r.name, capacity: r.capacity });
+                        }}
                         onCellClick={(colId, band) => {
                           setEditing(null);
                           setPresets({
@@ -404,7 +489,7 @@ function TimetablePage() {
                         return (
                           <div key={b.start} className="rounded-lg border border-border bg-card p-3">
                             <p className="text-xs font-semibold">
-                              P{i + 1} · {b.start} – {b.end}
+                              {formatTime12(b.start)} – {formatTime12(b.end)}
                             </p>
                             {rows.length === 0 ? (
                               <p className="mt-1 text-[11px] text-muted-foreground">Free</p>
@@ -451,6 +536,49 @@ function TimetablePage() {
         defaultEnd={presets.end}
         defaultRoomId={presets.roomId}
       />
+      <Dialog open={Boolean(editRoom)} onOpenChange={(v) => !v && setEditRoom(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Classroom</DialogTitle>
+          </DialogHeader>
+          {editRoom && (
+            <div className="space-y-3">
+              <Field label="Room name">
+                <Input
+                  value={editRoom.name}
+                  onChange={(e) => setEditRoom({ ...editRoom, name: e.target.value })}
+                />
+              </Field>
+              <Field label="Seats">
+                <Input
+                  type="number"
+                  min={1}
+                  value={editRoom.capacity}
+                  onChange={(e) =>
+                    setEditRoom({ ...editRoom, capacity: Number(e.target.value) || 0 })
+                  }
+                />
+              </Field>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEditRoom(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  disabled={roomMut.isPending || !editRoom.name.trim()}
+                  onClick={() =>
+                    roomMut.mutate({
+                      id: editRoom.id,
+                      patch: { name: editRoom.name.trim(), capacity: editRoom.capacity },
+                    })
+                  }
+                >
+                  Save
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -461,13 +589,17 @@ function PlanRail({
   faculty,
   subjects,
   strength,
+  placed,
 }: {
   batches: { id: string; name: string }[];
   faculty: { id: string; name: string }[];
   subjects: string[];
   strength: Map<string, number>;
+  placed: Set<string>;
 }) {
   const [step, setStep] = useState<0 | 1 | 2>(0);
+  /** a batch can run twice a day — ask for it back and it becomes draggable again */
+  const [again, setAgain] = useState<Set<string>>(new Set());
   const drag = (payload: DragPayload) => (e: DragEvent<HTMLDivElement>) =>
     e.dataTransfer.setData("application/json", JSON.stringify(payload));
 
@@ -492,21 +624,42 @@ function PlanRail({
       <div className="max-h-[46vh] space-y-1.5 overflow-y-auto p-2.5">
         {step === 0 &&
           (batches.length ? (
-            batches.map((b) => (
-              <div
-                key={b.id}
-                draggable
-                onDragStart={drag({ batchId: b.id })}
-                className="flex cursor-grab items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-xs active:cursor-grabbing"
-              >
-                <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
-                <span className="truncate font-medium">{b.name}</span>
-                <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground">
-                  <Users className="h-3 w-3" />
-                  {strength.get(b.id) ?? 0}
-                </span>
-              </div>
-            ))
+            batches.map((b) => {
+              const done = placed.has(b.id) && !again.has(b.id);
+              if (done)
+                return (
+                  <div
+                    key={b.id}
+                    className="flex items-center gap-1.5 rounded-md border border-dashed border-border px-2 py-1.5 text-xs text-muted-foreground"
+                  >
+                    <span className="truncate line-through">{b.name}</span>
+                    <button
+                      type="button"
+                      title="Add another session for this batch"
+                      onClick={() => setAgain((s) => new Set(s).add(b.id))}
+                      className="ml-auto flex shrink-0 items-center gap-0.5 rounded px-1 text-[10px] font-medium text-primary hover:bg-primary/10"
+                    >
+                      <Plus className="h-3 w-3" />
+                      session
+                    </button>
+                  </div>
+                );
+              return (
+                <div
+                  key={b.id}
+                  draggable
+                  onDragStart={drag({ batchId: b.id })}
+                  className="flex cursor-grab items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-xs active:cursor-grabbing"
+                >
+                  <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
+                  <span className="truncate font-medium">{b.name}</span>
+                  <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground">
+                    <Users className="h-3 w-3" />
+                    {strength.get(b.id) ?? 0}
+                  </span>
+                </div>
+              );
+            })
           ) : (
             <p className="text-[11px] text-muted-foreground">Create a batch first.</p>
           ))}

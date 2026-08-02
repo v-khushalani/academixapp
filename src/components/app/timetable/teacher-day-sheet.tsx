@@ -40,7 +40,8 @@ export function TeacherDaySheet({
       `${academy} — ${dayLabel} teacher schedule`,
     );
     if (res === "failed") toast.error("Could not create the image. Try again.");
-    else if (res === "downloaded") toast.success("Image saved — attach it in WhatsApp");
+    else if (res === "copied")
+      toast.success("Image copied — paste it in the WhatsApp chat with Ctrl+V");
   }
 
   if (!faculty.length) {

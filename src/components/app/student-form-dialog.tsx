@@ -1,6 +1,7 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Copy, MessageCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,9 @@ import { Field } from "@/components/app/field";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
+import { supabase } from "@/integrations/supabase/client";
+import { openWhatsApp } from "@/lib/whatsapp";
+import { getInstitute } from "@/lib/academy-settings";
 
 type Props = {
   open: boolean;
@@ -35,9 +39,14 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
   const { roles } = useAuth();
   const canEditDetails = can("student:edit", roles);
   const [showDetails, setShowDetails] = useState(false);
+  /** create mode has two ways in: send a self-fill link, or type it all yourself */
+  const [tab, setTab] = useState<"link" | "form">("link");
 
   useEffect(() => {
-    if (open) setShowDetails(!isEdit);
+    if (open) {
+      setShowDetails(!isEdit);
+      setTab(isEdit ? "form" : "link");
+    }
   }, [open, isEdit]);
   const [form, setForm] = useState<StudentInsert>({
     admission_no: "",
@@ -110,6 +119,14 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
     enabled: open,
   });
 
+  /** a class-9 student should only ever see class-9 batches */
+  const batchOptions = useMemo(() => {
+    const cls = (form.class ?? "").trim();
+    if (!batches) return [];
+    if (!cls) return batches;
+    return batches.filter((b) => !b.class_level || b.class_level === cls);
+  }, [batches, form.class]);
+
   const mutation = useMutation({
     mutationFn: async (input: StudentInsert) => {
       const pc = input.preferred_contact === "mother" ? "mother" : "father";
@@ -153,8 +170,34 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit student" : "Add student"}</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit student" : "New student"}</DialogTitle>
         </DialogHeader>
+        {!isEdit && (
+          <div className="inline-flex rounded-md border border-border bg-muted/40 p-0.5">
+            {(
+              [
+                ["link", "Send self-fill link"],
+                ["form", "Fill the form myself"],
+              ] as const
+            ).map(([k, label]) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setTab(k)}
+                className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
+                  tab === k
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+        {!isEdit && tab === "link" ? (
+          <SelfFillLink onDone={() => onOpenChange(false)} />
+        ) : (
         <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
           {isEdit && (
             <div className="sm:col-span-2 flex items-center justify-between rounded-md border border-border bg-muted/40 px-3 py-2">
@@ -272,7 +315,7 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Unassigned</SelectItem>
-                {batches?.map((b) => (
+                {batchOptions.map((b) => (
                   <SelectItem key={b.id} value={b.id}>
                     {b.name}
                   </SelectItem>
@@ -332,7 +375,106 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * Name + phone is all the front desk needs: the student fills the rest through
+ * the link, so nobody re-types an enrolment form.
+ */
+function SelfFillLink({ onDone }: { onDone: () => void }) {
+  const refresh = useRefreshLinked();
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [link, setLink] = useState<string | null>(null);
+
+  const mut = useMutation({
+    mutationFn: async () => {
+      const token = crypto.randomUUID().replace(/-/g, "").slice(0, 24);
+      const { data, error } = await supabase
+        .from("students")
+        .insert({
+          full_name: fullName.trim(),
+          phone: phone.trim() || null,
+          admission_no: `ADM-${Date.now().toString().slice(-6)}`,
+          onboarding_token: token,
+          status: "active",
+        })
+        .select("id, onboarding_token")
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (row) => {
+      setLink(`${window.location.origin}/onboard/${row.onboarding_token}`);
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (link) {
+    const msg = `Hello ${fullName},\n\nWelcome to ${getInstitute().name || "our institute"}. Please fill your admission details here:\n${link}\n\nThank you.`;
+    return (
+      <div className="space-y-3">
+        <div className="rounded-md border border-border bg-muted/40 p-2">
+          <p className="break-all font-mono text-xs">{link}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1 gap-1.5"
+            onClick={() => navigator.clipboard.writeText(link).then(() => toast.success("Link copied"))}
+          >
+            <Copy className="h-4 w-4" />
+            Copy link
+          </Button>
+          <Button
+            type="button"
+            className="flex-1 gap-1.5 bg-success text-success-foreground hover:bg-success/90"
+            onClick={() => {
+              if (!openWhatsApp(phone, msg)) toast.error("Add a phone number to send on WhatsApp");
+            }}
+          >
+            <MessageCircle className="h-4 w-4" />
+            Send on WhatsApp
+          </Button>
+        </div>
+        <DialogFooter>
+          <Button type="button" onClick={onDone}>
+            Done
+          </Button>
+        </DialogFooter>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      className="space-y-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!fullName.trim()) return toast.error("Name is required");
+        mut.mutate();
+      }}
+    >
+      <Field label="Student name">
+        <Input value={fullName} onChange={(e) => setFullName(e.target.value)} required autoFocus />
+      </Field>
+      <Field label="WhatsApp number">
+        <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="10-digit" />
+      </Field>
+      <p className="text-xs text-muted-foreground">
+        The student fills class, parents, address and photo themselves through the link.
+      </p>
+      <DialogFooter>
+        <Button type="submit" disabled={mut.isPending}>
+          {mut.isPending ? "Creating…" : "Create & get link"}
+        </Button>
+      </DialogFooter>
+    </form>
   );
 }

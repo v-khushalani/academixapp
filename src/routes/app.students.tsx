@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Link2, MessageCircle, Pencil, Plus, Trash2, Upload, UserPlus } from "lucide-react";
+import { Link2, MessageCircle, Pencil, Plus, Trash2, Upload } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/select";
 import { DataTable, type DTColumn } from "@/components/app/data-table";
 import { StudentFormDialog } from "@/components/app/student-form-dialog";
-import { QuickAdmitDialog } from "@/components/app/quick-admit-dialog";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { BulkImportDialog } from "@/components/app/bulk-import-dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +43,6 @@ function StudentsPage() {
   const [status, setStatus] = useState<string>("all");
   const [cls, setCls] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [quickOpen, setQuickOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
   const [deleting, setDeleting] = useState<Row | null>(null);
@@ -203,15 +201,6 @@ function StudentsPage() {
               </Button>
               <Button
                 size="sm"
-                variant="outline"
-                className="gap-1.5"
-                onClick={() => setQuickOpen(true)}
-              >
-                <UserPlus className="h-4 w-4" />
-                Quick admit
-              </Button>
-              <Button
-                size="sm"
                 className="gap-1.5"
                 onClick={() => {
                   setEditing(null);
@@ -219,7 +208,7 @@ function StudentsPage() {
                 }}
               >
                 <Plus className="h-4 w-4" />
-                Add student
+                New student
               </Button>
             </div>
           ) : null
@@ -297,7 +286,6 @@ function StudentsPage() {
           qc.invalidateQueries({ queryKey: ["students"] });
         }}
       />
-      <QuickAdmitDialog open={quickOpen} onOpenChange={setQuickOpen} />
       <ConfirmDialog
         open={Boolean(deleting)}
         onOpenChange={(v) => !v && setDeleting(null)}
