@@ -17,11 +17,12 @@ function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -34,13 +35,30 @@ function SignupPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Account created");
-    const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-    if (signInErr) {
-      navigate({ to: "/login" });
+    if (!data.session) {
+      // email confirmation is on — say so instead of bouncing to /login silently
+      setSent(true);
       return;
     }
+    toast.success("Account created");
     navigate({ to: "/app" });
+  }
+
+  if (sent) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background px-6">
+        <div className="w-full max-w-sm text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">Confirm your email</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            We sent a confirmation link to <span className="font-medium">{email}</span>. Open it to
+            activate your institute workspace, then sign in.
+          </p>
+          <Button className="mt-6 w-full" onClick={() => navigate({ to: "/login" })}>
+            Go to sign in
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
