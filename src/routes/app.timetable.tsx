@@ -253,6 +253,59 @@ function TimetablePage() {
   }
 
   const planRef = useRef<HTMLDivElement>(null);
+
+  /** batches already sitting on today's board — they leave the rail until asked back */
+  const placedBatchIds = useMemo(
+    () => new Set(daySlots.map((s) => s.batch_id).filter(Boolean) as string[]),
+    [daySlots],
+  );
+
+  const [editRoom, setEditRoom] = useState<{ id: string; name: string; capacity: number } | null>(
+    null,
+  );
+  const roomMut = useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: { name: string; capacity: number } }) =>
+      roomsApi.update(id, patch),
+    onSuccess: () => {
+      toast.success("Classroom updated");
+      setEditRoom(null);
+      qc.invalidateQueries({ queryKey: ["rooms"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const nextDay = day === 6 ? 1 : day + 1;
+  const copyMut = useMutation({
+    mutationFn: async () => {
+      const existing = slots.filter((s) => s.day_of_week === nextDay);
+      let made = 0;
+      for (const s of daySlots) {
+        const candidate = {
+          day_of_week: nextDay,
+          start_time: s.start_time,
+          end_time: s.end_time,
+          batch_id: s.batch_id,
+          faculty_id: s.faculty_id,
+          subject: s.subject,
+          room_id: s.room_id,
+          room: s.room,
+        };
+        if (findConflicts(candidate, existing).length) continue;
+        await timetableApi.create(candidate);
+        existing.push({ ...(s as SlotRow), ...candidate, id: `tmp-${made}` });
+        made += 1;
+      }
+      return made;
+    },
+    onSuccess: (made) => {
+      qc.invalidateQueries({ queryKey: ["timetable"] });
+      toast.success(
+        made ? `${made} class(es) copied to ${DAY_FULL[nextDay]}` : `${DAY_FULL[nextDay]} already has these classes`,
+      );
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   async function sharePlanImage() {
     const res = await shareTableAsImage(
       planRef.current,
@@ -345,6 +398,18 @@ function TimetablePage() {
               <p className="ml-auto text-[11px] text-muted-foreground">
                 Timings come from Settings → Classrooms &amp; timings
               </p>
+              {canWrite && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5"
+                  disabled={copyMut.isPending || daySlots.length === 0}
+                  onClick={() => copyMut.mutate()}
+                >
+                  <CopyPlus className="h-4 w-4" />
+                  Copy to {DAY_LABEL[nextDay]}
+                </Button>
+              )}
             </div>
 
             {clashes.length > 0 && (
