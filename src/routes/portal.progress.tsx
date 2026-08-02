@@ -11,6 +11,8 @@ import {
 } from "recharts";
 import { portalApi } from "@/lib/api/portal";
 import { usePortalStudent, StatTile, PortalCard } from "@/components/portal/portal-shell";
+import { syllabusApi } from "@/lib/api/syllabus";
+import { SyllabusBars } from "@/components/app/syllabus-bar";
 
 export const Route = createFileRoute("/portal/progress")({
   head: () => ({
@@ -35,6 +37,11 @@ function PortalProgress() {
     queryKey: ["portal-results", student?.id],
     queryFn: () => portalApi.results(student!.id),
     enabled: !!student,
+  });
+  const { data: chapters = [] } = useQuery({
+    queryKey: ["syllabus", student?.batch_id],
+    queryFn: () => syllabusApi.chapters(student!.batch_id!),
+    enabled: Boolean(student?.batch_id),
   });
 
   if (!student) return <p className="text-sm text-muted-foreground">No student linked.</p>;
