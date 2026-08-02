@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CalendarCheck, ClipboardList, Home, LogOut } from "lucide-react";
+import { BookOpen, CalendarCheck, ClipboardList, Home, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { getInstitute } from "@/lib/academy-settings";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ const NAV = [
   { to: "/teach", label: "Today", icon: Home, exact: true },
   { to: "/teach/attendance", label: "Attendance", icon: CalendarCheck },
   { to: "/teach/marks", label: "Marks", icon: ClipboardList },
+  { to: "/teach/syllabus", label: "Syllabus", icon: BookOpen },
 ];
 
 function TeachLayout() {
@@ -79,7 +80,7 @@ function TeachLayout() {
         <Outlet />
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-3 border-t border-border bg-card md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-border bg-card md:hidden">
         {NAV.map((n) => (
           <Link
             key={n.to}

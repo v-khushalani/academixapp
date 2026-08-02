@@ -8,6 +8,7 @@ export type ModuleKey =
   | "attendance"
   | "fees"
   | "tests"
+  | "syllabus"
   | "timetable"
   | "faculty"
   | "reports"
@@ -38,6 +39,7 @@ export const MODULE_ACCESS: Record<ModuleKey, AppRole[]> = {
   attendance: ["owner", "admin", "faculty", "student", "parent"],
   fees: ["owner", "admin", "accountant", "receptionist", "student", "parent"],
   tests: ["owner", "admin", "faculty", "student", "parent"],
+  syllabus: ["owner", "admin", "faculty", "receptionist"],
   timetable: ["owner", "admin", "faculty", "receptionist", "student", "parent"],
   faculty: ["owner", "admin"],
   reports: ["owner", "admin", "accountant"],
@@ -54,6 +56,7 @@ export type Action =
   | "lead:write"
   | "attendance:write"
   | "test:write"
+  | "syllabus:write"
   | "role:manage";
 
 export const ACTION_ROLES: Record<Action, AppRole[]> = {
@@ -65,6 +68,7 @@ export const ACTION_ROLES: Record<Action, AppRole[]> = {
   "lead:write": ["owner", "admin", "receptionist", "counsellor"],
   "attendance:write": ["owner", "admin", "faculty"],
   "test:write": ["owner", "admin", "faculty"],
+  "syllabus:write": ["owner", "admin"],
   "role:manage": ["owner", "admin"],
 };
 
