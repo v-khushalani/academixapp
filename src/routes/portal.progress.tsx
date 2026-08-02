@@ -97,6 +97,14 @@ function PortalProgress() {
         )}
       </PortalCard>
 
+      <PortalCard title="Syllabus covered">
+        <SyllabusBars
+          chapters={chapters}
+          showCurrent
+          empty="Syllabus coverage will appear here once the institute adds the chapter list."
+        />
+      </PortalCard>
+
       <PortalCard title="All results">
         {data.length === 0 ? (
           <p className="text-sm text-muted-foreground">No results published yet.</p>
