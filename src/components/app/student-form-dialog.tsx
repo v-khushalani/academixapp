@@ -1,6 +1,7 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Copy, MessageCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,9 @@ import { Field } from "@/components/app/field";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
+import { supabase } from "@/integrations/supabase/client";
+import { openWhatsApp } from "@/lib/whatsapp";
+import { getInstitute } from "@/lib/academy-settings";
 
 type Props = {
   open: boolean;
@@ -35,9 +39,14 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
   const { roles } = useAuth();
   const canEditDetails = can("student:edit", roles);
   const [showDetails, setShowDetails] = useState(false);
+  /** create mode has two ways in: send a self-fill link, or type it all yourself */
+  const [tab, setTab] = useState<"link" | "form">("link");
 
   useEffect(() => {
-    if (open) setShowDetails(!isEdit);
+    if (open) {
+      setShowDetails(!isEdit);
+      setTab(isEdit ? "form" : "link");
+    }
   }, [open, isEdit]);
   const [form, setForm] = useState<StudentInsert>({
     admission_no: "",
@@ -109,6 +118,14 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
     queryFn: () => batchesApi.list(),
     enabled: open,
   });
+
+  /** a class-9 student should only ever see class-9 batches */
+  const batchOptions = useMemo(() => {
+    const cls = (form.class ?? "").trim();
+    if (!batches) return [];
+    if (!cls) return batches;
+    return batches.filter((b) => !b.class_level || b.class_level === cls);
+  }, [batches, form.class]);
 
   const mutation = useMutation({
     mutationFn: async (input: StudentInsert) => {
