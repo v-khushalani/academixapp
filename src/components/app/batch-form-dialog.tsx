@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { batchesApi, type Batch, type BatchInsert } from "@/lib/api";
-import { CLASS_LEVELS } from "@/lib/constants";
+import { CLASSES } from "@/lib/constants";
 import { Field as F } from "@/components/app/field";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 
@@ -90,7 +90,7 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="any">Any class</SelectItem>
-                {CLASS_LEVELS.map((c) => (
+                {CLASSES.map((c) => (
                   <SelectItem key={c} value={c}>
                     Class {c}
                   </SelectItem>
