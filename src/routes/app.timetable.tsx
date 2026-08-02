@@ -536,6 +536,49 @@ function TimetablePage() {
         defaultEnd={presets.end}
         defaultRoomId={presets.roomId}
       />
+      <Dialog open={Boolean(editRoom)} onOpenChange={(v) => !v && setEditRoom(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Classroom</DialogTitle>
+          </DialogHeader>
+          {editRoom && (
+            <div className="space-y-3">
+              <Field label="Room name">
+                <Input
+                  value={editRoom.name}
+                  onChange={(e) => setEditRoom({ ...editRoom, name: e.target.value })}
+                />
+              </Field>
+              <Field label="Seats">
+                <Input
+                  type="number"
+                  min={1}
+                  value={editRoom.capacity}
+                  onChange={(e) =>
+                    setEditRoom({ ...editRoom, capacity: Number(e.target.value) || 0 })
+                  }
+                />
+              </Field>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEditRoom(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  disabled={roomMut.isPending || !editRoom.name.trim()}
+                  onClick={() =>
+                    roomMut.mutate({
+                      id: editRoom.id,
+                      patch: { name: editRoom.name.trim(), capacity: editRoom.capacity },
+                    })
+                  }
+                >
+                  Save
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
