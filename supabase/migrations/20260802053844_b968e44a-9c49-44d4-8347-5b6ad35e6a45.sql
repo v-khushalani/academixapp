@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.complete_student_onboarding(text, text, text, text, text, text, text, text, text);
