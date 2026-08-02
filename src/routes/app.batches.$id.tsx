@@ -4,6 +4,8 @@ import { ArrowLeft } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { batchesApi } from "@/lib/api";
+import { syllabusApi, overallPct } from "@/lib/api/syllabus";
+import { SyllabusBars } from "@/components/app/syllabus-bar";
 
 export const Route = createFileRoute("/app/batches/$id")({
   component: BatchDetail,
@@ -20,6 +22,10 @@ function BatchDetail() {
     queryKey: ["batch-roster", id],
     queryFn: () => batchesApi.roster(id),
     enabled: Boolean(batch),
+  });
+  const { data: chapters = [] } = useQuery({
+    queryKey: ["syllabus", id],
+    queryFn: () => syllabusApi.chapters(id),
   });
 
   if (isLoading)
@@ -53,10 +59,20 @@ function BatchDetail() {
         }
       />
       <PageBody>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-4">
           <Stat label="Enrolled" value={`${roster.length}/${batch.capacity}`} />
           <Stat label="Status" value={batch.status} />
           <Stat label="Starts" value={batch.start_date ?? "—"} />
+          <Stat label="Syllabus" value={`${overallPct(chapters)}%`} />
+        </div>
+        <div className="mt-6 rounded-lg border border-border bg-card p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold">Syllabus coverage</h3>
+            <Link to="/app/syllabus" className="text-xs text-primary hover:underline">
+              Manage
+            </Link>
+          </div>
+          <SyllabusBars chapters={chapters} />
         </div>
         <div className="mt-6 overflow-hidden rounded-lg border border-border bg-card">
           <div className="border-b border-border p-4">

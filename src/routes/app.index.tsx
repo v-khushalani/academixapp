@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Users, Layers, Wallet, UserPlus, CalendarCheck, FileText } from "lucide-react";
+import { Users, Layers, Wallet, UserPlus, CalendarCheck, FileText, BookOpen } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { KpiCard } from "@/components/app/kpi-card";
 import { dashboardApi } from "@/lib/api";
+import { syllabusApi, overallPct } from "@/lib/api/syllabus";
 import { useAuth } from "@/hooks/use-auth";
 import { getInstitute } from "@/lib/academy-settings";
 
@@ -18,6 +19,7 @@ const QUICK = [
   { to: "/app/attendance", label: "Attendance", icon: CalendarCheck },
   { to: "/app/fees", label: "Fees", icon: Wallet },
   { to: "/app/tests", label: "Tests", icon: FileText },
+  { to: "/app/syllabus", label: "Syllabus", icon: BookOpen },
 ] as const;
 
 function DashboardPage() {
@@ -25,6 +27,10 @@ function DashboardPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-summary"],
     queryFn: () => dashboardApi.summary(),
+  });
+  const { data: chapters = [] } = useQuery({
+    queryKey: ["syllabus"],
+    queryFn: () => syllabusApi.chapters(),
   });
 
   const name = user?.user_metadata?.full_name || user?.email || "there";
@@ -59,6 +65,11 @@ function DashboardPage() {
             value={isLoading ? "—" : String(data?.newThisMonth ?? 0)}
             icon={UserPlus}
             tone="success"
+          />
+          <KpiCard
+            label="Syllabus covered"
+            value={chapters.length ? `${overallPct(chapters)}%` : "—"}
+            icon={BookOpen}
           />
         </div>
 
