@@ -170,9 +170,20 @@ export function LoginCard({
 
           <div className="mt-6 space-y-2 text-center text-xs text-muted-foreground">
             {footer}
+            {kind !== "admin" && (
+              <p>
+                No account yet? Your institute creates it and sends you the login link — there is no
+                self-signup here.
+              </p>
+            )}
             <p>
               <Link to={cfg.elsewhereTo} className="text-primary hover:underline">
                 {cfg.elsewhere}
+              </Link>
+            </p>
+            <p>
+              <Link to="/" className="hover:text-foreground">
+                ← Back to Academix
               </Link>
             </p>
           </div>
