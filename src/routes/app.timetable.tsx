@@ -527,6 +527,7 @@ function TimetablePage() {
                 )}
               </div>
             </div>
+            </TimetableDragProvider>
           </>
         )}
       </PageBody>
