@@ -432,6 +432,7 @@ function TimetablePage() {
               </div>
             )}
 
+            <TimetableDragProvider onDrop={handleDrop}>
             <div className="flex flex-col gap-3 lg:flex-row">
               {canWrite && (
                 <PlanRail
@@ -456,8 +457,6 @@ function TimetablePage() {
                         bands={bands}
                         cell={cellOf(daySlots)}
                         canWrite={canWrite}
-                        onCellDrop={dropOnCell}
-                        onCardDrop={dropOnCard}
                         onDelete={(id) => removeMut.mutate(id)}
                         onEditCol={(colId) => {
                           const r = rooms.find((x) => x.id === colId);
