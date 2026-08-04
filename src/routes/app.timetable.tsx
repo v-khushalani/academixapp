@@ -195,12 +195,10 @@ function TimetablePage() {
     };
   }
 
-  async function dropOnCell(colId: string, band: Band, ev: DragEvent) {
-    ev.preventDefault();
+  async function dropOnCell(colId: string, bandStart: string, p: DragPayload) {
     if (!canWrite) return;
-    const raw = ev.dataTransfer.getData("application/json");
-    if (!raw) return;
-    const p: DragPayload = JSON.parse(raw) as DragPayload;
+    const band = bands.find((b) => b.start === bandStart);
+    if (!band) return;
     if (!p.batchId) {
       toast.info("Drop a batch on an empty period first, then the teacher and subject.");
       return;
@@ -225,12 +223,8 @@ function TimetablePage() {
     toast.success("Batch placed — now drop a teacher and a subject on it");
   }
 
-  function dropOnCard(cellId: string, ev: DragEvent) {
-    ev.preventDefault();
+  function dropOnCard(cellId: string, p: DragPayload) {
     if (!canWrite) return;
-    const raw = ev.dataTransfer.getData("application/json");
-    if (!raw) return;
-    const p: DragPayload = JSON.parse(raw) as DragPayload;
     const slot = slots.find((s) => s.id === cellId);
     if (!slot) return;
     if (p.subject) {
@@ -255,6 +249,11 @@ function TimetablePage() {
       updateMut.mutate({ id: slot.id, patch: { batch_id: p.batchId } });
       toast.success("Batch changed");
     }
+  }
+
+  function handleDrop(payload: DragPayload, target: DropTarget) {
+    if ("cardId" in target) dropOnCard(target.cardId, payload);
+    else void dropOnCell(target.colId, target.bandStart, payload);
   }
 
   const planRef = useRef<HTMLDivElement>(null);
