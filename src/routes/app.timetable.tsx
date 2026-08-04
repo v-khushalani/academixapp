@@ -1,11 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useRef, useState, type DragEvent } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AlertTriangle, CopyPlus, GripVertical, Image, Plus, Users } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { ClassTimetable } from "@/components/app/timetable/class-timetable";
 import { PeriodGrid, type GridCell } from "@/components/app/timetable/period-grid";
+import {
+  TimetableDragProvider,
+  dragChipProps,
+  useTimetableDrag,
+  type DragPayload,
+  type DropTarget,
+} from "@/components/app/timetable/drag";
 import { TeacherDaySheet } from "@/components/app/timetable/teacher-day-sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,8 +82,6 @@ const MODE_LABEL: Record<Mode, string> = {
   today: "Today — teachers",
   class: "Class timetable",
 };
-
-type DragPayload = { batchId?: string; facultyId?: string; subject?: string };
 
 function TimetablePage() {
   const qc = useQueryClient();
