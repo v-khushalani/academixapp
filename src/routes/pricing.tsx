@@ -41,13 +41,25 @@ const COMPARE: { group: string; rows: { label: string; v: Cmp[] }[] }[] = [
     group: "What it costs",
     rows: [
       { label: "Setup fee", v: ["₹0", "₹15k–20k", "Variable", "₹10k–25k", "₹5k–10k", "₹50k+"] },
+      { label: "Yearly plans only (no monthly churn pricing)", v: [true, false, false, false, false, false] },
+      { label: "Multi-year discount (3 / 5 years)", v: ["20% / 30%", false, false, "Negotiated", "Negotiated", false] },
       {
         label: "Per student / year",
-        v: ["₹0 (flat plan)", "Quote-based", "₹50–100", "₹80–150", "₹80–150", "₹150–200"],
+        v: ["₹9–12 (flat plan)", "Quote-based", "₹50–100", "₹80–150", "₹80–150", "₹150–200"],
       },
       { label: "Commission on your fees", v: ["₹0", "Yes", "No", "No", "No", "No"] },
       { label: "Free forever tier", v: [true, false, "partial", false, false, false] },
       { label: "Self-serve signup (no sales call)", v: [true, false, true, false, false, false] },
+    ],
+  },
+  {
+    group: "Locked behind a paid plan elsewhere",
+    rows: [
+      { label: "Attendance", v: ["Free plan", "Paid", "Paid", "Paid", "Paid", "Paid"] },
+      { label: "Fee management & receipts", v: ["Free plan", "Paid", "Paid", "Paid", "Paid", "Paid"] },
+      { label: "Parent communication", v: ["Free plan", "Paid", "Paid", "Paid", "Paid", "Paid"] },
+      { label: "Reports", v: ["Growth", "Paid", "Paid", "Paid", "Paid", "Paid"] },
+      { label: "Multiple admin / staff logins", v: ["Free plan", "Paid", "Paid", "Paid", "Paid", "Paid"] },
     ],
   },
   {
@@ -87,17 +99,28 @@ const COMPARE: { group: string; rows: { label: string; v: Cmp[] }[] }[] = [
 const COLS = ["Academix", "Classplus", "Teachmint", "MyClassCampus", "Fedena", "CampusCare"];
 
 const ROADMAP = [
+  { q: "Q4 2026", item: "Scheduled WhatsApp reminders & absentee automation (Growth)" },
   { q: "Q4 2026", item: "Online fee gateway (UPI autopay + cards)" },
   { q: "Q4 2026", item: "Report-card generator with your template" },
+  { q: "Q1 2027", item: "Audit log & custom fields (Campus)" },
   { q: "Q1 2027", item: "Branded parent app on Play Store" },
   { q: "Q1 2027", item: "Live classes & recorded content" },
+  { q: "Q2 2027", item: "API / webhooks and analytics forecasting (Campus)" },
   { q: "Q2 2027", item: "Biometric attendance devices, transport module" },
 ];
 
 const FAQ = [
   {
     q: "Is the free plan a trial?",
-    a: "No. It stays free at 75 students and 3 classrooms, with every core module unlocked. You upgrade only when the centre grows.",
+    a: "No. It stays free at 100 students and 4 classrooms, with every core module unlocked — admissions, attendance, fees, tests, syllabus, timetable and all three portals. You upgrade only when you want scale or automation.",
+  },
+  {
+    q: "Why is there no monthly plan?",
+    a: "Yearly terms let us keep the price this low and keep supporting you properly instead of chasing monthly renewals. A 3-year term saves 20% and a 5-year term 30%, with the rate locked for the whole period.",
+  },
+  {
+    q: "What happens at the end of my term?",
+    a: "You renew at your locked rate, move to a different term, or export everything and leave. Founding institutes keep their rate for life.",
   },
   {
     q: "Do you take a cut of my fee collection?",
@@ -438,7 +461,8 @@ function PricingPage() {
         <div className="mt-10 rounded-2xl border border-primary/30 bg-primary/5 p-8 text-center">
           <h2 className="text-xl font-bold">Built for coaching institutes. By people who run one.</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Start on the free plan today — no card, no sales call, no setup fee.
+            Start on the free plan today — no card, no sales call, no setup fee. Move to a yearly
+            term whenever you are ready.
           </p>
           <Button asChild className="mt-5">
             <Link to="/signup">Create your institute</Link>
