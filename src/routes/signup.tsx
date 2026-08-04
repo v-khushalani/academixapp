@@ -5,8 +5,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { MarketingShell } from "@/components/marketing/marketing-shell";
 
 export const Route = createFileRoute("/signup")({
+  head: () => ({
+    meta: [
+      { title: "Create your institute — Academix" },
+      {
+        name: "description",
+        content:
+          "Set up your coaching institute on Academix in a minute. Free for 100 students, no card and no setup fee.",
+      },
+      { property: "og:title", content: "Create your institute — Academix" },
+      {
+        property: "og:description",
+        content: "Start free on Academix — admissions, attendance, fees, tests and timetable.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: SignupPage,
 });
 
@@ -46,8 +64,8 @@ function SignupPage() {
 
   if (sent) {
     return (
-      <div className="grid min-h-screen place-items-center bg-background px-6">
-        <div className="w-full max-w-sm text-center">
+      <MarketingShell>
+        <div className="mx-auto w-full max-w-sm px-5 py-20 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Confirm your email</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             We sent a confirmation link to <span className="font-medium">{email}</span>. Open it to
@@ -57,19 +75,13 @@ function SignupPage() {
             Go to sign in
           </Button>
         </div>
-      </div>
+      </MarketingShell>
     );
   }
 
   return (
-    <div className="grid min-h-screen place-items-center bg-background px-6">
-      <div className="w-full max-w-sm">
-        <Link to="/" className="mb-8 inline-flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground">
-            <span className="text-sm font-bold">A</span>
-          </div>
-          <span className="text-sm font-semibold">Academix</span>
-        </Link>
+    <MarketingShell>
+      <div className="mx-auto w-full max-w-sm px-5 py-12 sm:py-16">
         <h1 className="text-2xl font-semibold tracking-tight">Create your institute</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           You become the owner of this institute workspace. Your data stays yours alone.
@@ -120,7 +132,11 @@ function SignupPage() {
             Sign in
           </Link>
         </p>
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          Teachers, students and parents don&apos;t sign up here — your institute sends you a login
+          link.
+        </p>
       </div>
-    </div>
+    </MarketingShell>
   );
 }
