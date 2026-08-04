@@ -1,7 +1,8 @@
-import { type DragEvent, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { AlertTriangle, Plus, Trash2 } from "lucide-react";
 import { formatTime12 } from "@/lib/time";
 import type { Band } from "@/lib/timetable/conflicts";
+import { cardKey, cellKey, useTimetableDrag } from "./drag";
 
 export type GridCol = { id: string; label: string; sub?: string };
 
@@ -24,8 +25,6 @@ export function PeriodGrid({
   cell,
   canWrite,
   onCellClick,
-  onCellDrop,
-  onCardDrop,
   onDelete,
   emptyLabel = "Add class",
   caption,
@@ -37,8 +36,6 @@ export function PeriodGrid({
   cell: (colId: string, band: Band) => GridCell | null;
   canWrite?: boolean;
   onCellClick?: (colId: string, band: Band) => void;
-  onCellDrop?: (colId: string, band: Band, ev: DragEvent) => void;
-  onCardDrop?: (cellId: string, ev: DragEvent) => void;
   onDelete?: (cellId: string) => void;
   emptyLabel?: string;
   caption?: ReactNode;
@@ -46,6 +43,7 @@ export function PeriodGrid({
   /** click a room header to rename it / change its capacity */
   onEditCol?: (colId: string) => void;
 }) {
+  const drag = useTimetableDrag();
   if (!columns.length || !bands.length) return null;
 
   return (
@@ -90,22 +88,24 @@ export function PeriodGrid({
               </th>
               {columns.map((c) => {
                 const item = cell(c.id, b);
+                const hot =
+                  drag?.active != null &&
+                  drag.hoverKey === (item ? cardKey(item.id) : cellKey(c.id, b.start));
                 return (
                   <td
                     key={c.id}
-                    className="border-l border-border p-1 align-top"
-                    onDragOver={(e) => {
-                      if (canWrite && (onCellDrop || onCardDrop)) e.preventDefault();
-                    }}
-                    onDrop={(e) => {
-                      if (!canWrite) return;
-                      if (item && onCardDrop) onCardDrop(item.id, e);
-                      else onCellDrop?.(c.id, b, e);
-                    }}
+                    data-drop-col={canWrite && !item ? c.id : undefined}
+                    data-drop-band={canWrite && !item ? b.start : undefined}
+                    className={`border-l border-border p-1 align-top transition-colors ${
+                      hot ? "bg-primary/15" : ""
+                    }`}
                   >
                     {item ? (
                       <div
+                        data-drop-card={canWrite ? item.id : undefined}
                         className={`group relative rounded-md border px-2 py-1.5 ${
+                          hot ? "ring-2 ring-primary " : ""
+                        }${
                           item.clash
                             ? "border-destructive/60 bg-destructive/10"
                             : item.warn
@@ -140,13 +140,17 @@ export function PeriodGrid({
                       <button
                         type="button"
                         onClick={() => onCellClick(c.id, b)}
-                        className="flex h-full min-h-[46px] w-full items-center justify-center gap-1 rounded-md border border-dashed border-border/70 text-[10px] text-muted-foreground/50 transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary"
+                        className={`flex h-full min-h-[52px] w-full items-center justify-center gap-1 rounded-md border border-dashed text-[10px] transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary ${
+                          hot
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border/70 text-muted-foreground/50"
+                        }`}
                       >
                         <Plus className="h-3 w-3" />
                         {emptyLabel}
                       </button>
                     ) : (
-                      <div className="min-h-[46px] rounded-md border border-dashed border-border/50" />
+                      <div className="min-h-[52px] rounded-md border border-dashed border-border/50" />
                     )}
                   </td>
                 );
