@@ -759,6 +759,87 @@ export type Database = {
           },
         ]
       }
+      plan_catalog: {
+        Row: {
+          contact_only: boolean
+          created_at: string
+          cta: string
+          highlight: boolean
+          id: string
+          key: string
+          name: string
+          price_yearly: number | null
+          room_limit: number
+          sort_order: number
+          student_limit: number
+          tagline: string
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          contact_only?: boolean
+          created_at?: string
+          cta?: string
+          highlight?: boolean
+          id?: string
+          key: string
+          name: string
+          price_yearly?: number | null
+          room_limit?: number
+          sort_order?: number
+          student_limit?: number
+          tagline?: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          contact_only?: boolean
+          created_at?: string
+          cta?: string
+          highlight?: boolean
+          id?: string
+          key?: string
+          name?: string
+          price_yearly?: number | null
+          room_limit?: number
+          sort_order?: number
+          student_limit?: number
+          tagline?: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: []
+      }
+      plan_features: {
+        Row: {
+          created_at: string
+          group_name: string
+          id: string
+          label: string
+          sort_order: number
+          updated_at: string
+          values: Json
+        }
+        Insert: {
+          created_at?: string
+          group_name?: string
+          id?: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+          values?: Json
+        }
+        Update: {
+          created_at?: string
+          group_name?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+          values?: Json
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1549,21 +1630,21 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          institute_id: string
+          institute_id: string | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
-          institute_id?: string
+          institute_id?: string | null
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
-          institute_id?: string
+          institute_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }

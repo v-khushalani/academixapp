@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PortalPicker } from "@/components/marketing/portal-picker";
+import { MarketingShell } from "@/components/marketing/marketing-shell";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,38 +28,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 sm:px-6">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-              Ax
-            </span>
-            <span className="text-base font-semibold tracking-tight">Academix</span>
-          </Link>
-          <nav className="flex items-center gap-2 sm:gap-4">
-            <Link
-              to="/for-institutes"
-              className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline"
-            >
-              Features
-            </Link>
-            <Link
-              to="/pricing"
-              className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline"
-            >
-              Pricing
-            </Link>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/login">Sign in</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link to="/signup">Start free</Link>
-            </Button>
-          </nav>
-        </div>
-      </header>
-
+    <MarketingShell>
       {/* Hero */}
       <section className="border-b border-border bg-card">
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6 sm:py-24">
@@ -79,14 +49,14 @@ function Index() {
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/for-institutes">See how it works</Link>
+              <Link to="/for-institutes">See the features</Link>
             </Button>
           </div>
         </div>
       </section>
 
       {/* Portal picker — the thing users get lost in */}
-      <section className="border-b border-border">
+      <section>
         <div className="mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-16">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div>
@@ -104,25 +74,12 @@ function Index() {
           <div className="mt-7">
             <PortalPicker />
           </div>
+          <p className="mt-5 text-xs text-muted-foreground">
+            Students and teachers do not create their own accounts — your institute sends the login
+            link.
+          </p>
         </div>
       </section>
-
-      <footer className="border-t border-border bg-background">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <span>© {new Date().getFullYear()} Academix</span>
-          <div className="flex items-center gap-4 text-xs">
-            <Link to="/for-institutes" className="hover:text-foreground">
-              How it works
-            </Link>
-            <Link to="/pricing" className="hover:text-foreground">
-              Pricing
-            </Link>
-            <Link to="/signup" className="font-medium text-primary hover:underline">
-              Start free
-            </Link>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </MarketingShell>
   );
 }

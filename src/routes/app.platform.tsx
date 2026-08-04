@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { isSuperAdmin } from "@/lib/rbac";
-import { PLANS, planFor } from "@/lib/plans";
+import { planFor } from "@/lib/plans";
+import { PricingAdmin } from "@/components/app/pricing-admin";
 
 export const Route = createFileRoute("/app/platform")({
   head: () => ({
@@ -211,9 +212,14 @@ function PlatformPage() {
           </ul>
         </div>
 
-        <p className="mt-4 text-[11px] text-muted-foreground">
-          Plans available: {PLANS.map((p) => `${p.name} (${p.rooms} rooms)`).join(" · ")}
-        </p>
+        <div className="mt-6">
+          <h2 className="text-sm font-semibold">Pricing control</h2>
+          <p className="mb-3 mt-1 text-xs text-muted-foreground">
+            Prices, limits and the tick/cross comparison table on the public pricing page. Changes
+            go live immediately.
+          </p>
+          <PricingAdmin />
+        </div>
       </PageBody>
     </>
   );
