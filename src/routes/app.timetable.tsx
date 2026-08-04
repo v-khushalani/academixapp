@@ -604,13 +604,13 @@ function PlanRail({
   const [step, setStep] = useState<0 | 1 | 2>(0);
   /** a batch can run twice a day — ask for it back and it becomes draggable again */
   const [again, setAgain] = useState<Set<string>>(new Set());
-  const drag = (payload: DragPayload) => (e: DragEvent<HTMLDivElement>) =>
-    e.dataTransfer.setData("application/json", JSON.stringify(payload));
+  const dnd = useTimetableDrag();
+  const chip = (payload: DragPayload) => dragChipProps(payload, dnd?.begin);
 
   const tabs = ["1 · Batches", "2 · Teachers", "3 · Subjects"];
 
   return (
-    <aside className="w-full shrink-0 overflow-hidden rounded-lg border border-border bg-card lg:w-56">
+    <aside className="w-full shrink-0 overflow-hidden rounded-lg border border-border bg-card lg:w-64">
       <div className="grid grid-cols-3 border-b border-border">
         {tabs.map((t, i) => (
           <button
@@ -625,7 +625,7 @@ function PlanRail({
           </button>
         ))}
       </div>
-      <div className="max-h-[46vh] space-y-1.5 overflow-y-auto p-2.5">
+      <div className="flex max-h-[46vh] flex-wrap content-start gap-1.5 overflow-y-auto p-2.5">
         {step === 0 &&
           (batches.length ? (
             batches.map((b) => {
@@ -634,14 +634,14 @@ function PlanRail({
                 return (
                   <div
                     key={b.id}
-                    className="flex items-center gap-1.5 rounded-md border border-dashed border-border px-2 py-1.5 text-xs text-muted-foreground"
+                    className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-dashed border-border px-2 py-1.5 text-xs text-muted-foreground"
                   >
                     <span className="truncate line-through">{b.name}</span>
                     <button
                       type="button"
                       title="Add another session for this batch"
                       onClick={() => setAgain((s) => new Set(s).add(b.id))}
-                      className="ml-auto flex shrink-0 items-center gap-0.5 rounded px-1 text-[10px] font-medium text-primary hover:bg-primary/10"
+                      className="flex shrink-0 items-center gap-0.5 rounded px-1 text-[10px] font-medium text-primary hover:bg-primary/10"
                     >
                       <Plus className="h-3 w-3" />
                       session
@@ -651,13 +651,12 @@ function PlanRail({
               return (
                 <div
                   key={b.id}
-                  draggable
-                  onDragStart={drag({ batchId: b.id })}
-                  className="flex cursor-grab items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-xs active:cursor-grabbing"
+                  {...chip({ batchId: b.id, label: b.name })}
+                  className="inline-flex max-w-full cursor-grab select-none items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-xs active:cursor-grabbing"
                 >
                   <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
                   <span className="truncate font-medium">{b.name}</span>
-                  <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground">
+                  <span className="flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground">
                     <Users className="h-3 w-3" />
                     {strength.get(b.id) ?? 0}
                   </span>
@@ -672,9 +671,8 @@ function PlanRail({
             faculty.map((f) => (
               <div
                 key={f.id}
-                draggable
-                onDragStart={drag({ facultyId: f.id })}
-                className="flex cursor-grab items-center gap-1.5 rounded-md border border-border px-2 py-1.5 text-xs active:cursor-grabbing"
+                {...chip({ facultyId: f.id, label: f.name })}
+                className="inline-flex max-w-full cursor-grab select-none items-center gap-1.5 rounded-md border border-border px-2 py-1.5 text-xs active:cursor-grabbing"
               >
                 <GripVertical className="h-3 w-3 shrink-0 text-muted-foreground" />
                 <span className="truncate">{f.name}</span>
@@ -685,24 +683,22 @@ function PlanRail({
           ))}
         {step === 2 &&
           (subjects.length ? (
-            <div className="flex flex-wrap gap-1.5">
-              {subjects.map((s) => (
-                <div
-                  key={s}
-                  draggable
-                  onDragStart={drag({ subject: s })}
-                  className="cursor-grab rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[11px] font-medium active:cursor-grabbing"
-                >
-                  {s}
-                </div>
-              ))}
-            </div>
+            subjects.map((s) => (
+              <div
+                key={s}
+                {...chip({ subject: s, label: s })}
+                className="inline-flex cursor-grab select-none rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[11px] font-medium active:cursor-grabbing"
+              >
+                {s}
+              </div>
+            ))
           ) : (
             <p className="text-[11px] text-muted-foreground">Add subjects in Settings → Courses.</p>
           ))}
       </div>
       <p className="border-t border-border px-2.5 py-2 text-[10px] text-muted-foreground">
-        Drag onto the board. Step 1 fills the period, steps 2 and 3 drop onto that class.
+        Drag onto the board — no long press needed. Step 1 fills the period, steps 2 and 3 drop onto
+        that class.
       </p>
     </aside>
   );
