@@ -126,7 +126,7 @@ function Mark({ v, own }: { v: Cmp; own: boolean }) {
 }
 
 function PricingPage() {
-  const [yearly, setYearly] = useState(true);
+  const [years, setYears] = useState<number>(3);
 
   return (
     <div className="min-h-screen bg-background">
@@ -150,45 +150,41 @@ function PricingPage() {
             Cheaper than every ERP. Missing none of the features.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-            No setup fee. No commission on your fee collection. No per-student billing. One flat
-            plan per institute — and a free tier that actually runs a small centre.
+            The whole daily operation — admissions, attendance, fees, tests, syllabus, timetable,
+            portals — is free forever. Paid plans add scale, automation and intelligence. Yearly
+            plans only, with real discounts for committing longer.
           </p>
 
           <div className="mt-8 inline-flex rounded-lg border border-border bg-muted/40 p-1">
-            {[
-              { k: false, label: "Monthly" },
-              { k: true, label: "Yearly · 2 months free" },
-            ].map((o) => (
+            {TERM_YEARS.map((y) => (
               <button
-                key={o.label}
+                key={y}
                 type="button"
-                onClick={() => setYearly(o.k)}
+                onClick={() => setYears(y)}
                 className={`rounded-md px-4 py-1.5 text-xs font-medium transition-colors ${
-                  yearly === o.k
+                  years === y
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {o.label}
+                {TERM_LABEL[y]}
+                {y === 3 && " · save 20%"}
+                {y === 5 && " · save 30%"}
               </button>
             ))}
           </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            No monthly billing. Longer term, lower price — and it stays locked for the whole term.
+          </p>
         </div>
 
         <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {PLANS.map((p) => {
-            const copy = TIER_COPY[p.key];
+            const term = termFor(p, years);
             const highlight = p.key === "growth";
+            const perYear = term.price == null ? null : Math.round(term.price / term.years);
             const price =
-              p.priceMonthly == null
-                ? "Custom"
-                : p.priceMonthly === 0
-                  ? "₹0"
-                  : yearly
-                    ? inr(p.priceYearly!)
-                    : inr(p.priceMonthly);
-            const period =
-              p.priceMonthly == null ? null : p.priceMonthly === 0 ? "forever" : yearly ? "/year" : "/month";
+              term.price == null ? "Custom" : term.price === 0 ? "₹0" : inr(term.price);
             return (
               <div
                 key={p.key}
@@ -196,31 +192,50 @@ function PricingPage() {
                   highlight ? "border-primary bg-primary/5 shadow-lg" : "border-border bg-card"
                 }`}
               >
-                {highlight && (
-                  <span className="mb-2 inline-flex w-fit rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground">
-                    Most institutes
-                  </span>
-                )}
+                <div className="mb-2 flex min-h-5 items-center gap-2">
+                  {highlight && (
+                    <span className="inline-flex w-fit rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground">
+                      Most institutes
+                    </span>
+                  )}
+                  {term.save > 0 && term.price ? (
+                    <span className="inline-flex w-fit rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-600">
+                      Save {term.save}%
+                    </span>
+                  ) : null}
+                </div>
                 <h2 className="text-lg font-semibold">{p.name}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">{copy.tagline}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{p.tagline}</p>
                 <div className="mt-5 flex items-baseline gap-1">
                   <span className="text-3xl font-bold">{price}</span>
-                  {period && <span className="text-xs text-muted-foreground">{period}</span>}
+                  {term.price != null && (
+                    <span className="text-xs text-muted-foreground">
+                      {term.price === 0 ? "forever" : `/ ${TERM_LABEL[term.years]}`}
+                    </span>
+                  )}
                 </div>
-                {p.priceMonthly ? (
+                {term.price ? (
                   <p className="mt-1 text-[11px] text-muted-foreground">
-                    ≈ ₹{Math.round((p.priceYearly ?? 0) / p.students)} per student / year at full
-                    capacity
+                    {inr(perYear!)} per year · ≈ ₹{(perYear! / p.students).toFixed(2)} per student /
+                    year at full capacity
                   </p>
-                ) : p.priceMonthly === 0 ? (
-                  <p className="mt-1 text-[11px] text-muted-foreground">No card required</p>
+                ) : term.price === 0 ? (
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    No card required, no expiry
+                  </p>
                 ) : (
                   <p className="mt-1 text-[11px] text-muted-foreground">
                     Priced per branch — talk to us
                   </p>
                 )}
-                <ul className="mt-5 flex-1 space-y-2.5 text-sm">
-                  {copy.features.map((f) => (
+                {p.key !== "free" && (
+                  <p className="mt-3 text-[11px] font-medium text-muted-foreground">
+                    Everything in {p.key === "growth" ? "Free" : p.key === "campus" ? "Growth" : "Campus"},
+                    plus:
+                  </p>
+                )}
+                <ul className="mt-3 flex-1 space-y-2.5 text-sm">
+                  {p.adds.map((f) => (
                     <li key={f} className="flex items-start gap-2">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                       <span>{f}</span>
@@ -232,18 +247,31 @@ function PricingPage() {
                   className="mt-6 w-full"
                   variant={highlight ? "default" : "outline"}
                 >
-                  <Link to="/signup">{copy.cta}</Link>
+                  <Link to="/signup">{p.cta}</Link>
                 </Button>
               </div>
             );
           })}
         </div>
 
-        <div className="mt-8 grid gap-3 rounded-xl border border-border bg-muted/30 p-5 sm:grid-cols-3">
+        <div className="mt-6 rounded-xl border border-primary/30 bg-primary/5 p-5">
+          <p className="text-sm font-semibold">What the {TERM_LABEL[years]} term includes</p>
+          <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
+            {TERM_PERKS[years].map((t) => (
+              <li key={t} className="flex items-start gap-2 text-xs text-muted-foreground">
+                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                <span>{t}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="mt-6 grid gap-3 rounded-xl border border-border bg-muted/30 p-5 sm:grid-cols-4">
           {[
             ["₹0 setup fee", "Others charge ₹5,000 to ₹50,000 before you start."],
             ["₹0 commission", "Your fee collection is yours. We never touch it."],
             ["₹0 per student", "Add students without watching the meter."],
+            ["Free tier stays free", "100 students, every core module, forever."],
           ].map(([t, d]) => (
             <div key={t}>
               <p className="text-sm font-semibold">{t}</p>
@@ -253,8 +281,71 @@ function PricingPage() {
         </div>
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          Launch offer: the first 50 institutes keep their price locked for life.
+          Founding offer: the first 100 institutes keep their rate for life, on any term. Growth on a
+          5-year term works out to ₹8.75 per student per year — Teachmint charges ₹50–100 and Fedena
+          ₹80–150.
         </p>
+      </section>
+
+      <section className="border-t border-border/50">
+        <div className="mx-auto max-w-6xl px-6 py-14">
+          <h2 className="text-2xl font-bold tracking-tight">What each plan includes</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Everything an institute does every day sits in the free plan. Paid tiers buy scale,
+            automation and accountability.
+          </p>
+
+          <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-card">
+            <table className="w-full min-w-[720px] border-collapse text-sm">
+              <thead>
+                <tr className="bg-muted/60">
+                  <th className="w-[320px] px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Capability
+                  </th>
+                  {PLANS.map((p) => (
+                    <th
+                      key={p.key}
+                      className={`px-3 py-3 text-center text-xs font-semibold ${
+                        p.key === "growth" ? "bg-primary/10 text-primary" : "text-muted-foreground"
+                      }`}
+                    >
+                      {p.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {PLAN_FEATURE_MATRIX.map((g) => (
+                  <Fragment key={g.group}>
+                    <tr className="border-t border-border">
+                      <td
+                        colSpan={PLANS.length + 1}
+                        className="bg-muted/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+                      >
+                        {g.group}
+                      </td>
+                    </tr>
+                    {g.rows.map((r) => (
+                      <tr key={r.label} className="border-t border-border/70">
+                        <td className="px-4 py-2.5 text-xs">{r.label}</td>
+                        {r.v.map((v, i) => (
+                          <td
+                            key={i}
+                            className={`px-3 py-2.5 text-center ${
+                              PLANS[i]?.key === "growth" ? "bg-primary/5" : ""
+                            }`}
+                          >
+                            <Mark v={v as Cmp} own={PLANS[i]?.key === "growth"} />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <section className="border-t border-border/50 bg-muted/20">
