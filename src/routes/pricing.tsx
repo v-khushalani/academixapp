@@ -2,7 +2,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Fragment, useState } from "react";
 import { Check, Minus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PLANS, inr } from "@/lib/plans";
+import {
+  PLANS,
+  PLAN_FEATURE_MATRIX,
+  TERM_LABEL,
+  TERM_PERKS,
+  TERM_YEARS,
+  inr,
+  termFor,
+} from "@/lib/plans";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -11,13 +19,13 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "Zero setup fee, zero commission, no per-student billing. Free forever for 75 students, ₹999/month for 300. Compare Academix with Classplus, Teachmint, MyClassCampus and Fedena.",
+          "Yearly plans only. Free forever for 100 students. Growth from ₹4,990/year — under ₹9 per student per year on a 5-year term. Zero setup fee, zero commission.",
       },
       { property: "og:title", content: "Academix pricing — cheaper than every coaching ERP" },
       {
         property: "og:description",
         content:
-          "Free forever tier, ₹999/month Growth, no setup fee and no commission. Full feature comparison with the Indian market.",
+          "Free forever tier, Growth at ₹4,990/year, big discounts on 3 and 5-year terms. No setup fee, no commission, full market comparison.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -25,54 +33,6 @@ export const Route = createFileRoute("/pricing")({
   }),
   component: PricingPage,
 });
-
-const TIER_COPY: Record<string, { tagline: string; cta: string; features: string[] }> = {
-  free: {
-    tagline: "Enough to actually run a small centre.",
-    cta: "Start free",
-    features: [
-      "75 students, 3 classrooms",
-      "Unlimited staff & teachers",
-      "Admissions, batches, attendance, fees",
-      "Tests, syllabus tracker, timetable",
-      "Teacher & parent portals",
-      "WhatsApp messaging (no API cost)",
-    ],
-  },
-  growth: {
-    tagline: "The single-centre coaching plan.",
-    cta: "Start free, upgrade later",
-    features: [
-      "300 students, 8 classrooms",
-      "Everything in Free",
-      "Reports & CSV/PDF exports",
-      "Fee receipts + UPI QR collection",
-      "Multi-room daily scheduling",
-      "Email support within 24h",
-    ],
-  },
-  campus: {
-    tagline: "For established institutes.",
-    cta: "Start free, upgrade later",
-    features: [
-      "1,000 students, 25 classrooms",
-      "Everything in Growth",
-      "Priority support",
-      "Onboarding & data import help",
-      "Role-based access for large teams",
-    ],
-  },
-  chain: {
-    tagline: "Multiple branches, one dashboard.",
-    cta: "Talk to us",
-    features: [
-      "Unlimited students & classrooms",
-      "Branch-wise rollup reporting",
-      "Dedicated onboarding manager",
-      "Custom branding",
-    ],
-  },
-};
 
 type Cmp = true | false | "partial" | string;
 
