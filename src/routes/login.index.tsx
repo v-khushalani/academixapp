@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PortalPicker } from "@/components/marketing/portal-picker";
+import { MarketingShell } from "@/components/marketing/marketing-shell";
 
 export const Route = createFileRoute("/login/")({
   head: () => ({
@@ -24,29 +25,24 @@ export const Route = createFileRoute("/login/")({
 
 function LoginChooser() {
   return (
-    <div className="grid min-h-screen place-items-center bg-background px-5 py-12">
-      <div className="w-full max-w-4xl">
-        <Link to="/" className="mb-8 inline-flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground text-sm font-bold">
-            Ax
-          </span>
-          <span className="text-sm font-semibold">Academix</span>
-        </Link>
+    <MarketingShell>
+      <div className="mx-auto w-full max-w-5xl px-5 py-12 sm:px-6 sm:py-16">
         <h1 className="text-3xl font-semibold tracking-tight">Which login do you need?</h1>
         <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-          Academix has three separate portals so everyone sees only what matters to them. Pick
-          yours — if you land on the wrong one, we will point you to the right door.
+          Three portals, one platform. Pick yours — if you land on the wrong one, we point you to
+          the right door.
         </p>
         <div className="mt-8">
           <PortalPicker />
         </div>
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          Running an institute and new here?{" "}
+          Students and teachers get their login from their institute. Running an institute and new
+          here?{" "}
           <Link to="/signup" className="text-primary hover:underline">
             Create your institute workspace
           </Link>
         </p>
       </div>
-    </div>
+    </MarketingShell>
   );
 }
