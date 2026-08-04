@@ -252,8 +252,12 @@ function PricingPage() {
                     ≈ ₹{Math.round((p.priceYearly ?? 0) / p.students)} per student / year at full
                     capacity
                   </p>
-                ) : (
+                ) : p.priceMonthly === 0 ? (
                   <p className="mt-1 text-[11px] text-muted-foreground">No card required</p>
+                ) : (
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Priced per branch — talk to us
+                  </p>
                 )}
                 <ul className="mt-5 flex-1 space-y-2.5 text-sm">
                   {copy.features.map((f) => (
