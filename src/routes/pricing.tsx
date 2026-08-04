@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Check, Minus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PLANS, inr } from "@/lib/plans";
@@ -322,8 +322,8 @@ function PricingPage() {
               </thead>
               <tbody>
                 {COMPARE.map((g) => (
-                  <>
-                    <tr key={g.group} className="border-t border-border">
+                  <Fragment key={g.group}>
+                    <tr className="border-t border-border">
                       <td
                         colSpan={COLS.length + 1}
                         className="bg-muted/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
@@ -344,7 +344,7 @@ function PricingPage() {
                         ))}
                       </tr>
                     ))}
-                  </>
+                  </Fragment>
                 ))}
               </tbody>
             </table>
