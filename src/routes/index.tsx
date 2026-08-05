@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PortalPicker } from "@/components/marketing/portal-picker";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { PostAuthGate } from "@/components/auth/post-auth-gate";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   return (
+    <PostAuthGate>
     <MarketingShell>
       {/* Hero */}
       <section className="border-b border-border bg-card">
@@ -81,5 +83,6 @@ function Index() {
         </div>
       </section>
     </MarketingShell>
+    </PostAuthGate>
   );
 }
