@@ -1668,6 +1668,13 @@ export type Database = {
         Args: { _batch_id: string; _student_id: string; _token_amount?: number }
         Returns: undefined
       }
+      batch_faculty_names: {
+        Args: { _batch_id: string }
+        Returns: {
+          full_name: string
+          id: string
+        }[]
+      }
       complete_student_onboarding: {
         Args: {
           _address: string

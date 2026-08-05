@@ -60,12 +60,18 @@ export const portalApi = {
     if (!batchId) return [];
     const { data, error } = await supabase
       .from("timetable_slots")
-      .select("*, faculty:faculty(id,full_name), room_ref:rooms(id,name,capacity)")
+      .select("*, room_ref:rooms(id,name,capacity)")
       .eq("batch_id", batchId)
       .order("day_of_week")
       .order("start_time");
     if (error) throw error;
-    return data ?? [];
+    const slots = data ?? [];
+    const { data: names } = await supabase.rpc("batch_faculty_names", { _batch_id: batchId });
+    const byId = new Map((names ?? []).map((n) => [n.id, n.full_name]));
+    return slots.map((s) => ({
+      ...s,
+      faculty: s.faculty_id ? { id: s.faculty_id, full_name: byId.get(s.faculty_id) ?? null } : null,
+    }));
   },
 
   async homework(batchId: string | null) {
