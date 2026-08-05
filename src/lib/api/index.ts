@@ -201,10 +201,105 @@ export const feesApi = {
     return orThrow(await supabase.from("fees").update(input).eq("id", id).select().single());
   },
   async remove(id: string) {
+    const { data: row, error: e0 } = await supabase
+      .from("fees")
+      .select("amount_paid")
+      .eq("id", id)
+      .single();
+    if (e0) throw e0;
+    if (Number(row.amount_paid ?? 0) > 0)
+      throw new Error(
+        "Money has already been received on this entry. Cancel the bill or reverse the payment instead of deleting it.",
+      );
     const { error } = await supabase.from("fees").delete().eq("id", id);
     if (error) throw error;
   },
+  /**
+   * Write off a bill that should not have been raised. Cash already received stays
+   * in Collected; the pending amount goes to zero.
+   */
+  async cancel(id: string, reason: string) {
+    const { data: row, error: e0 } = await supabase
+      .from("fees")
+      .select("amount, amount_paid, student_id, institute_id")
+      .eq("id", id)
+      .single();
+    if (e0) throw e0;
+    const { error } = await supabase
+      .from("fees")
+      .update({ status: "cancelled" as Database["public"]["Enums"]["fee_status"] })
+      .eq("id", id);
+    if (error) throw error;
+    await logAdjustment({
+      fee_id: id,
+      student_id: row.student_id,
+      institute_id: row.institute_id,
+      kind: "cancel",
+      amount: Math.max(0, Number(row.amount) - Number(row.amount_paid ?? 0)),
+      reason,
+    });
+  },
+  /** Reverse money recorded by mistake (or refunded to the parent). */
+  async reversePayment(id: string, amount: number, reason: string) {
+    const { data: row, error: e0 } = await supabase
+      .from("fees")
+      .select("amount, amount_paid, student_id, institute_id, status")
+      .eq("id", id)
+      .single();
+    if (e0) throw e0;
+    const back = Math.min(Math.max(0, Number(amount)), Number(row.amount_paid ?? 0));
+    if (back <= 0) throw new Error("Nothing to reverse on this entry.");
+    const paid = Number(row.amount_paid ?? 0) - back;
+    const billed = Number(row.amount);
+    const status: Database["public"]["Enums"]["fee_status"] =
+      row.status === "cancelled"
+        ? "cancelled"
+        : paid <= 0
+          ? "pending"
+          : paid >= billed
+            ? "paid"
+            : "partial";
+    const { error } = await supabase
+      .from("fees")
+      .update({ amount_paid: paid, status, paid_date: paid > 0 ? undefined : null })
+      .eq("id", id);
+    if (error) throw error;
+    await logAdjustment({
+      fee_id: id,
+      student_id: row.student_id,
+      institute_id: row.institute_id,
+      kind: "refund",
+      amount: back,
+      reason,
+    });
+  },
+  async adjustments(feeId: string) {
+    const { data, error } = await supabase
+      .from("fee_adjustments")
+      .select("*")
+      .eq("fee_id", feeId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
+  },
 };
+
+async function logAdjustment(input: {
+  fee_id: string;
+  student_id: string | null;
+  institute_id: string;
+  kind: "cancel" | "refund";
+  amount: number;
+  reason: string;
+}) {
+  const { data: auth } = await supabase.auth.getUser();
+  const { error } = await supabase.from("fee_adjustments").insert({
+    ...input,
+    reason: input.reason || null,
+    created_by: auth.user?.id ?? null,
+  });
+  if (error) throw error;
+}
 
 export function makeReceiptNo() {
   const d = new Date();
@@ -214,8 +309,13 @@ export function makeReceiptNo() {
 
 /** Single source of truth for "how much is still owed" on one fee row. */
 export function outstandingOf(f: { amount: number | string; amount_paid?: number | string | null; status?: string | null }) {
-  if (f.status === "waived" || f.status === "paid") return 0;
+  if (f.status === "waived" || f.status === "paid" || f.status === "cancelled") return 0;
   return Math.max(0, Number(f.amount) - Number(f.amount_paid ?? 0));
+}
+
+/** Bills that count towards "billed" totals — cancelled entries are excluded. */
+export function isLiveBill(f: { status?: string | null }) {
+  return f.status !== "cancelled";
 }
 
 // ---------- Tests ----------
@@ -328,6 +428,132 @@ export const dashboardApi = {
       outstanding,
       collected,
       newThisMonth: monthAdmissions.count ?? 0,
+    };
+  },
+
+  /** Everything the rebuilt dashboard needs, in one round trip. */
+  async overview() {
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      .toISOString()
+      .slice(0, 10);
+    const dow = now.getDay();
+
+    const [
+      studentsCount,
+      activeBatches,
+      feeRows,
+      monthAdmissions,
+      pendingApps,
+      enquiryCount,
+      slots,
+      attendanceToday,
+      upcomingTests,
+    ] = await Promise.all([
+      supabase
+        .from("students")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "active")
+        .eq("approval_status", "approved"),
+      supabase.from("batches").select("id", { count: "exact", head: true }).eq("status", "active"),
+      supabase
+        .from("fees")
+        .select(
+          "id, amount, amount_paid, status, due_date, paid_date, student:students(id, full_name, parent_phone, phone)",
+        ),
+      supabase
+        .from("students")
+        .select("id", { count: "exact", head: true })
+        .eq("approval_status", "approved")
+        .gte("admission_date", monthStart),
+      supabase.from("students").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
+      supabase
+        .from("students")
+        .select("id", { count: "exact", head: true })
+        .eq("approval_status", "enquiry")
+        .gte("created_at", monthStart),
+      supabase.from("timetable_slots").select("id, batch_id").eq("day_of_week", dow),
+      supabase.from("attendance").select("status, batch_id, student_id").eq("date", today),
+      supabase
+        .from("tests")
+        .select("id, title, date, batch:batches(name)")
+        .gte("date", today)
+        .order("date", { ascending: true })
+        .limit(5),
+    ]);
+
+    const rows = feeRows.data ?? [];
+    const live = rows.filter(isLiveBill);
+    const billed = live.reduce((s, f) => s + Number(f.amount), 0);
+    const outstanding = live.reduce((s, f) => s + outstandingOf(f), 0);
+    const collected = rows.reduce((s, f) => s + Number(f.amount_paid ?? 0), 0);
+    const collectedThisMonth = rows
+      .filter((f) => (f.paid_date ?? "") >= monthStart)
+      .reduce((s, f) => s + Number(f.amount_paid ?? 0), 0);
+    const collectedLastMonth = rows
+      .filter((f) => (f.paid_date ?? "") >= lastMonthStart && (f.paid_date ?? "") < monthStart)
+      .reduce((s, f) => s + Number(f.amount_paid ?? 0), 0);
+
+    const ageing = { current: 0, d30: 0, d60: 0 };
+    const defaulters: { id: string; name: string; phone: string | null; due: number }[] = [];
+    for (const f of live) {
+      const due = outstandingOf(f);
+      if (due <= 0) continue;
+      const days = f.due_date
+        ? Math.floor((now.getTime() - new Date(f.due_date).getTime()) / 86400000)
+        : 0;
+      if (days <= 30) ageing.current += due;
+      else if (days <= 60) ageing.d30 += due;
+      else ageing.d60 += due;
+      const s = f.student as { id?: string; full_name?: string; parent_phone?: string | null; phone?: string | null } | null;
+      if (s?.id) {
+        const found = defaulters.find((d) => d.id === s.id);
+        if (found) found.due += due;
+        else
+          defaulters.push({
+            id: s.id,
+            name: s.full_name ?? "Student",
+            phone: s.parent_phone ?? s.phone ?? null,
+            due,
+          });
+      }
+    }
+    defaulters.sort((a, b) => b.due - a.due);
+
+    const att = attendanceToday.data ?? [];
+    const batchesToday = new Set((slots.data ?? []).map((s) => s.batch_id).filter(Boolean));
+    const markedBatches = new Set(att.map((a) => a.batch_id).filter(Boolean));
+
+    return {
+      students: studentsCount.count ?? 0,
+      batches: activeBatches.count ?? 0,
+      newThisMonth: monthAdmissions.count ?? 0,
+      pendingApprovals: pendingApps.count ?? 0,
+      enquiriesThisMonth: enquiryCount.count ?? 0,
+      money: {
+        billed,
+        outstanding,
+        collected,
+        collectedThisMonth,
+        collectedLastMonth,
+        ageing,
+        defaulters: defaulters.slice(0, 5),
+      },
+      today: {
+        classes: (slots.data ?? []).length,
+        batchesScheduled: batchesToday.size,
+        batchesMarked: [...markedBatches].filter((b) => batchesToday.has(b)).length,
+        present: att.filter((a) => a.status === "present").length,
+        absent: att.filter((a) => a.status === "absent").length,
+      },
+      upcomingTests: (upcomingTests.data ?? []) as {
+        id: string;
+        title: string;
+        date: string;
+        batch?: { name?: string } | null;
+      }[],
     };
   },
 };

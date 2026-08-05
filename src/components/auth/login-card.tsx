@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "@/hooks/use-auth";
 import { GoogleButton, OrDivider } from "@/components/auth/google-button";
 
-export type PortalKind = "admin" | "teacher" | "family";
+export type PortalKind = "admin" | "teacher" | "family" | "platform";
 
 const STAFF_ROLES: AppRole[] = [
   "owner",
@@ -38,6 +38,13 @@ const CONFIG = {
     destination: "/portal",
     label: "student & parent",
     elsewhere: "Staff member? Sign in here",
+    elsewhereTo: "/login/admin",
+  },
+  platform: {
+    roles: ["superadmin" as AppRole],
+    destination: "/app/platform",
+    label: "Academix platform",
+    elsewhere: "Institute staff? Sign in here",
     elsewhereTo: "/login/admin",
   },
 } as const;

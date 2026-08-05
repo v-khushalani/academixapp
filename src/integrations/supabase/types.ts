@@ -354,6 +354,64 @@ export type Database = {
           },
         ]
       }
+      fee_adjustments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          fee_id: string
+          id: string
+          institute_id: string
+          kind: string
+          reason: string | null
+          student_id: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          fee_id: string
+          id?: string
+          institute_id: string
+          kind: string
+          reason?: string | null
+          student_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          fee_id?: string
+          id?: string
+          institute_id?: string
+          kind?: string
+          reason?: string | null
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_adjustments_fee_id_fkey"
+            columns: ["fee_id"]
+            isOneToOne: false
+            referencedRelation: "fees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_adjustments_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_adjustments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fees: {
         Row: {
           amount: number
@@ -1859,7 +1917,13 @@ export type Database = {
         | "birthday"
         | "manual"
       batch_status: "active" | "upcoming" | "completed" | "cancelled"
-      fee_status: "pending" | "partial" | "paid" | "overdue" | "waived"
+      fee_status:
+        | "pending"
+        | "partial"
+        | "paid"
+        | "overdue"
+        | "waived"
+        | "cancelled"
       lead_stage:
         | "new"
         | "contacted"
@@ -2031,7 +2095,14 @@ export const Constants = {
         "manual",
       ],
       batch_status: ["active", "upcoming", "completed", "cancelled"],
-      fee_status: ["pending", "partial", "paid", "overdue", "waived"],
+      fee_status: [
+        "pending",
+        "partial",
+        "paid",
+        "overdue",
+        "waived",
+        "cancelled",
+      ],
       lead_stage: [
         "new",
         "contacted",
