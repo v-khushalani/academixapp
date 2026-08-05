@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "@/hooks/use-auth";
+import { GoogleButton, OrDivider } from "@/components/auth/google-button";
 
 export type PortalKind = "admin" | "teacher" | "family";
 
@@ -121,7 +122,12 @@ export function LoginCard({
           <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
 
-          <form className="mt-8 space-y-4" onSubmit={onSubmit}>
+          <div className="mt-8 space-y-3">
+            <GoogleButton />
+            <OrDivider />
+          </div>
+
+          <form className="mt-3 space-y-4" onSubmit={onSubmit}>
             <div className="space-y-1.5">
               <Label htmlFor="email">Login ID</Label>
               <Input
