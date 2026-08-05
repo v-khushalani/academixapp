@@ -33,6 +33,7 @@ import { Route as PortalAttendanceRouteImport } from './routes/portal.attendance
 import { Route as OnboardTokenRouteImport } from './routes/onboard.$token'
 import { Route as LoginTeacherRouteImport } from './routes/login.teacher'
 import { Route as LoginStudentRouteImport } from './routes/login.student'
+import { Route as LoginPlatformRouteImport } from './routes/login.platform'
 import { Route as LoginAdminRouteImport } from './routes/login.admin'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
@@ -172,6 +173,11 @@ const LoginStudentRoute = LoginStudentRouteImport.update({
   path: '/login/student',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginPlatformRoute = LoginPlatformRouteImport.update({
+  id: '/login/platform',
+  path: '/login/platform',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginAdminRoute = LoginAdminRouteImport.update({
   id: '/login/admin',
   path: '/login/admin',
@@ -288,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
   '/login/admin': typeof LoginAdminRoute
+  '/login/platform': typeof LoginPlatformRoute
   '/login/student': typeof LoginStudentRoute
   '/login/teacher': typeof LoginTeacherRoute
   '/onboard/$token': typeof OnboardTokenRoute
@@ -329,6 +336,7 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
   '/login/admin': typeof LoginAdminRoute
+  '/login/platform': typeof LoginPlatformRoute
   '/login/student': typeof LoginStudentRoute
   '/login/teacher': typeof LoginTeacherRoute
   '/onboard/$token': typeof OnboardTokenRoute
@@ -374,6 +382,7 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
   '/login/admin': typeof LoginAdminRoute
+  '/login/platform': typeof LoginPlatformRoute
   '/login/student': typeof LoginStudentRoute
   '/login/teacher': typeof LoginTeacherRoute
   '/onboard/$token': typeof OnboardTokenRoute
@@ -420,6 +429,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/join/$token'
     | '/login/admin'
+    | '/login/platform'
     | '/login/student'
     | '/login/teacher'
     | '/onboard/$token'
@@ -461,6 +471,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/join/$token'
     | '/login/admin'
+    | '/login/platform'
     | '/login/student'
     | '/login/teacher'
     | '/onboard/$token'
@@ -505,6 +516,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/join/$token'
     | '/login/admin'
+    | '/login/platform'
     | '/login/student'
     | '/login/teacher'
     | '/onboard/$token'
@@ -538,6 +550,7 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   JoinTokenRoute: typeof JoinTokenRoute
   LoginAdminRoute: typeof LoginAdminRoute
+  LoginPlatformRoute: typeof LoginPlatformRoute
   LoginStudentRoute: typeof LoginStudentRoute
   LoginTeacherRoute: typeof LoginTeacherRoute
   OnboardTokenRoute: typeof OnboardTokenRoute
@@ -712,6 +725,13 @@ declare module '@tanstack/react-router' {
       path: '/login/student'
       fullPath: '/login/student'
       preLoaderRoute: typeof LoginStudentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login/platform': {
+      id: '/login/platform'
+      path: '/login/platform'
+      fullPath: '/login/platform'
+      preLoaderRoute: typeof LoginPlatformRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login/admin': {
@@ -963,6 +983,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   JoinTokenRoute: JoinTokenRoute,
   LoginAdminRoute: LoginAdminRoute,
+  LoginPlatformRoute: LoginPlatformRoute,
   LoginStudentRoute: LoginStudentRoute,
   LoginTeacherRoute: LoginTeacherRoute,
   OnboardTokenRoute: OnboardTokenRoute,
