@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { AlertTriangle, Plus, Trash2 } from "lucide-react";
 import { formatTime12 } from "@/lib/time";
 import type { Band } from "@/lib/timetable/conflicts";
-import { cardKey, cellKey, useTimetableDrag } from "./drag";
+import { cardKey, cellKey, dragChipProps, useTimetableDrag, type DragPayload } from "./drag";
 
 export type GridCol = { id: string; label: string; sub?: string };
 
@@ -30,6 +30,7 @@ export function PeriodGrid({
   caption,
   innerRef,
   onEditCol,
+  cardDrag,
 }: {
   columns: GridCol[];
   bands: Band[];
@@ -42,6 +43,8 @@ export function PeriodGrid({
   innerRef?: React.Ref<HTMLDivElement>;
   /** click a room header to rename it / change its capacity */
   onEditCol?: (colId: string) => void;
+  /** make a placed class draggable (move it, or drop it back on the rail to unassign) */
+  cardDrag?: (item: GridCell) => DragPayload | null;
 }) {
   const drag = useTimetableDrag();
   if (!columns.length || !bands.length) return null;
@@ -103,7 +106,12 @@ export function PeriodGrid({
                     {item ? (
                       <div
                         data-drop-card={canWrite ? item.id : undefined}
+                        {...(canWrite && cardDrag && cardDrag(item)
+                          ? dragChipProps(cardDrag(item)!, drag?.begin)
+                          : {})}
                         className={`group relative rounded-md border px-2 py-1.5 ${
+                          canWrite && cardDrag ? "cursor-grab active:cursor-grabbing " : ""
+                        }${
                           hot ? "ring-2 ring-primary " : ""
                         }${
                           item.clash
