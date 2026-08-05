@@ -199,6 +199,34 @@ function TimetablePage() {
     if (!canWrite) return;
     const band = bands.find((b) => b.start === bandStart);
     if (!band) return;
+    if (p.slotId) {
+      const moving = slots.find((s) => s.id === p.slotId);
+      if (!moving) return;
+      const moved = {
+        ...moving,
+        day_of_week: day,
+        start_time: `${band.start}:00`,
+        end_time: `${toHHMM(toMinutes(band.end))}:00`,
+        room_id: colId === UNASSIGNED ? null : colId,
+        room: colId === UNASSIGNED ? null : (rooms.find((r) => r.id === colId)?.name ?? null),
+      };
+      if (findConflicts(moved, slots.filter((s) => s.id !== moving.id)).length) {
+        toast.error("That period is already booked for this batch, teacher or room.");
+        return;
+      }
+      updateMut.mutate({
+        id: moving.id,
+        patch: {
+          day_of_week: moved.day_of_week,
+          start_time: moved.start_time,
+          end_time: moved.end_time,
+          room_id: moved.room_id,
+          room: moved.room,
+        },
+      });
+      toast.success("Class moved");
+      return;
+    }
     if (!p.batchId) {
       toast.info("Drop a batch on an empty period first, then the teacher and subject.");
       return;
@@ -227,6 +255,7 @@ function TimetablePage() {
     if (!canWrite) return;
     const slot = slots.find((s) => s.id === cellId);
     if (!slot) return;
+    if (p.slotId) return;
     if (p.subject) {
       updateMut.mutate({ id: slot.id, patch: { subject: p.subject } });
       toast.success(`${p.subject} assigned`);
@@ -252,6 +281,11 @@ function TimetablePage() {
   }
 
   function handleDrop(payload: DragPayload, target: DropTarget) {
+    if ("rail" in target) {
+      if (!canWrite || !payload.slotId) return;
+      removeMut.mutate(payload.slotId);
+      return;
+    }
     if ("cardId" in target) dropOnCard(target.cardId, payload);
     else void dropOnCell(target.colId, target.bandStart, payload);
   }
@@ -458,6 +492,7 @@ function TimetablePage() {
                         cell={cellOf(daySlots)}
                         canWrite={canWrite}
                         onDelete={(id) => removeMut.mutate(id)}
+                        cardDrag={(item) => ({ slotId: item.id, label: item.title })}
                         onEditCol={(colId) => {
                           const r = rooms.find((x) => x.id === colId);
                           if (!r) {
