@@ -17,7 +17,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Run admissions, attendance, fees, tests and timetable in one place. Separate logins for admin, teachers and families.",
+          "Admissions by QR, attendance, fees with UPI, tests and timetable — plus separate portals for admin, teachers and parents. Built for coaching institutes.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
