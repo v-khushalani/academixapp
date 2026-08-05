@@ -16,7 +16,7 @@ import { PageHeader, PageBody } from "@/components/app/page-header";
 import { dashboardApi, batchesApi } from "@/lib/api";
 import { syllabusApi, overallPct } from "@/lib/api/syllabus";
 import { useAuth } from "@/hooks/use-auth";
-import { can } from "@/lib/rbac";
+import { canAccess } from "@/lib/rbac";
 import { getInstitute } from "@/lib/academy-settings";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/app/")({
 
 function DashboardPage() {
   const { user, roles } = useAuth();
-  const showMoney = can("fees:read", roles);
+  const showMoney = canAccess("fees", roles);
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-summary"],
     queryFn: () => dashboardApi.overview(),
