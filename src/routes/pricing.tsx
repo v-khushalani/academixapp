@@ -7,7 +7,6 @@ import {
   fetchFeatures,
   fetchPlans,
   groupFeatures,
-  inr,
   type FeatureValue,
 } from "@/lib/pricing-catalog";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
@@ -19,13 +18,13 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "Simple yearly pricing. Free forever for 100 students, Growth and Campus for bigger institutes. No setup fee, no commission.",
+          "Free forever for 100 students. Growth and Campus for bigger institutes — pricing shared on a quick call. No setup fee, no commission.",
       },
-      { property: "og:title", content: "Academix pricing — start free, scale cheap" },
+      { property: "og:title", content: "Academix plans — start free, scale simple" },
       {
         property: "og:description",
         content:
-          "Free forever tier plus two yearly paid plans. Compare every feature at a glance.",
+          "Free forever tier plus two paid plans. Compare every feature at a glance.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -38,6 +37,10 @@ const FAQ = [
   {
     q: "Is the free plan a trial?",
     a: "No. It stays free forever — every core module, all three portals, no card.",
+  },
+  {
+    q: "What do the paid plans cost?",
+    a: "We walk you through plans on a quick call, so you only pay for what your institute actually needs.",
   },
   {
     q: "Any setup fee or commission?",
@@ -74,10 +77,11 @@ function PricingPage() {
       <section className="mx-auto max-w-5xl px-5 py-14 sm:px-6 sm:py-20">
         <div className="text-center">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            Simple yearly pricing.
+            Simple plans. Start free.
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-base text-muted-foreground">
-            Run your whole institute free. Pay only when you need more scale and automation.
+            Run your whole institute free. Need more scale or automation? We'll take you through
+            the paid plans on a quick call.
           </p>
         </div>
 
@@ -100,16 +104,10 @@ function PricingPage() {
               <p className="mt-1 text-sm text-muted-foreground">{p.tagline}</p>
               <div className="mt-5 flex items-baseline gap-1.5">
                 <span className="text-3xl font-semibold">
-                  {p.contact_only || p.price_yearly == null
-                    ? "Custom"
-                    : p.price_yearly === 0
-                      ? "₹0"
-                      : inr(p.price_yearly)}
+                  {p.price_yearly === 0 && !p.contact_only ? "Free" : "Talk to us"}
                 </span>
-                {!p.contact_only && p.price_yearly != null && (
-                  <span className="text-xs text-muted-foreground">
-                    {p.price_yearly === 0 ? "forever" : "/ year"}
-                  </span>
+                {p.price_yearly === 0 && !p.contact_only && (
+                  <span className="text-xs text-muted-foreground">forever</span>
                 )}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -120,7 +118,13 @@ function PricingPage() {
                 className="mt-6 w-full"
                 variant={p.highlight ? "default" : "outline"}
               >
-                <Link to="/signup">{p.cta}</Link>
+                {p.price_yearly === 0 && !p.contact_only ? (
+                  <Link to="/signup">{p.cta}</Link>
+                ) : (
+                  <a href="mailto:hello@academix.website?subject=Academix%20plan%20enquiry">
+                    Talk to us
+                  </a>
+                )}
               </Button>
             </div>
           ))}
@@ -128,9 +132,12 @@ function PricingPage() {
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
           No setup fee · No commission on your fees · Multi-branch or longer terms?{" "}
-          <Link to="/login" className="text-primary hover:underline">
+          <a
+            href="mailto:hello@academix.website?subject=Academix%20plan%20enquiry"
+            className="text-primary hover:underline"
+          >
             Talk to us
-          </Link>
+          </a>
         </p>
 
         <div className="mt-12 overflow-x-auto rounded-xl border border-border bg-card">
