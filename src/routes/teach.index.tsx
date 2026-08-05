@@ -61,6 +61,7 @@ function TeachHome() {
         </Link>
         <Link
           to="/teach/syllabus"
+          search={{ batch: undefined, subject: undefined }}
           className="col-span-2 flex items-center gap-2 rounded-lg border border-border bg-card p-4 text-sm font-medium hover:bg-muted"
         >
           <BookOpen className="h-5 w-5 text-primary" /> Update syllabus progress

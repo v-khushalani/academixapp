@@ -9,7 +9,14 @@ import type { AppRole } from "@/hooks/use-auth";
 
 export type PortalKind = "admin" | "teacher" | "family";
 
-const STAFF_ROLES: AppRole[] = ["owner", "admin", "receptionist", "counsellor", "accountant"];
+const STAFF_ROLES: AppRole[] = [
+  "owner",
+  "admin",
+  "receptionist",
+  "counsellor",
+  "accountant",
+  "superadmin" as AppRole,
+];
 const CONFIG = {
   admin: {
     roles: STAFF_ROLES,

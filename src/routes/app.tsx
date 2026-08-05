@@ -13,7 +13,15 @@ export const Route = createFileRoute("/app")({
 function AppLayout() {
   const { session, roles, loading } = useAuth();
   const navigate = useNavigate();
-  const staffRoles = ["owner", "admin", "faculty", "receptionist", "counsellor", "accountant"];
+  const staffRoles = [
+    "owner",
+    "admin",
+    "faculty",
+    "receptionist",
+    "counsellor",
+    "accountant",
+    "superadmin",
+  ];
   const isStaff = roles.some((r) => staffRoles.includes(r));
   const isFamilyOnly = !isStaff && (roles.includes("student") || roles.includes("parent"));
 
