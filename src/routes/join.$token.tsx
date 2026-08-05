@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field as F } from "@/components/app/field";
+import { GoogleButton, OrDivider } from "@/components/auth/google-button";
 
 export const Route = createFileRoute("/join/$token")({
   head: () => ({
@@ -34,6 +35,8 @@ function JoinPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const claimed = useRef(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["faculty-invite", token],
@@ -43,6 +46,23 @@ function JoinPage() {
       return data?.[0] ?? null;
     },
   });
+
+  // Already signed in (e.g. returned from Google on this same link) — just claim it.
+  useEffect(() => {
+    if (!data?.valid || claimed.current) return;
+    (async () => {
+      const { data: s } = await supabase.auth.getSession();
+      if (!s.session) return;
+      claimed.current = true;
+      const { error } = await supabase.rpc("accept_faculty_invite", { _token: token });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("You're in — welcome aboard!");
+      void navigate({ to: "/teach" });
+    })();
+  }, [data?.valid, token, navigate]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -103,13 +123,29 @@ function JoinPage() {
             a fresh one.
           </p>
         ) : (
-          <form className="space-y-3" onSubmit={onSubmit}>
+          <div className="space-y-3">
             {data?.full_name && (
               <p className="rounded-md bg-muted/50 px-3 py-2 text-sm">
                 Hello <span className="font-semibold">{data.full_name}</span>
                 {data.subject ? ` · ${data.subject}` : ""}
               </p>
             )}
+            <GoogleButton label="Continue with Google" inviteToken={token} />
+            <p className="text-center text-[11px] text-muted-foreground">
+              Fastest way in — no email verification needed.
+            </p>
+            {!showPassword ? (
+              <button
+                type="button"
+                className="w-full text-center text-xs text-primary hover:underline"
+                onClick={() => setShowPassword(true)}
+              >
+                Use email and password instead
+              </button>
+            ) : (
+              <>
+                <OrDivider />
+                <form className="space-y-3" onSubmit={onSubmit}>
             <F label="Your email *">
               <Input
                 type="email"
@@ -132,10 +168,13 @@ function JoinPage() {
             <Button type="submit" className="w-full" disabled={saving || isLoading}>
               {saving ? "Setting up…" : "Create my teacher account"}
             </Button>
+                </form>
+              </>
+            )}
             <p className="text-center text-[11px] text-muted-foreground">
               You'll be able to mark attendance and enter test marks — nothing else.
             </p>
-          </form>
+          </div>
         )}
       </div>
     </div>
