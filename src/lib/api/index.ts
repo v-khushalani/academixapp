@@ -201,10 +201,105 @@ export const feesApi = {
     return orThrow(await supabase.from("fees").update(input).eq("id", id).select().single());
   },
   async remove(id: string) {
+    const { data: row, error: e0 } = await supabase
+      .from("fees")
+      .select("amount_paid")
+      .eq("id", id)
+      .single();
+    if (e0) throw e0;
+    if (Number(row.amount_paid ?? 0) > 0)
+      throw new Error(
+        "Money has already been received on this entry. Cancel the bill or reverse the payment instead of deleting it.",
+      );
     const { error } = await supabase.from("fees").delete().eq("id", id);
     if (error) throw error;
   },
+  /**
+   * Write off a bill that should not have been raised. Cash already received stays
+   * in Collected; the pending amount goes to zero.
+   */
+  async cancel(id: string, reason: string) {
+    const { data: row, error: e0 } = await supabase
+      .from("fees")
+      .select("amount, amount_paid, student_id, institute_id")
+      .eq("id", id)
+      .single();
+    if (e0) throw e0;
+    const { error } = await supabase
+      .from("fees")
+      .update({ status: "cancelled" as Database["public"]["Enums"]["fee_status"] })
+      .eq("id", id);
+    if (error) throw error;
+    await logAdjustment({
+      fee_id: id,
+      student_id: row.student_id,
+      institute_id: row.institute_id,
+      kind: "cancel",
+      amount: Math.max(0, Number(row.amount) - Number(row.amount_paid ?? 0)),
+      reason,
+    });
+  },
+  /** Reverse money recorded by mistake (or refunded to the parent). */
+  async reversePayment(id: string, amount: number, reason: string) {
+    const { data: row, error: e0 } = await supabase
+      .from("fees")
+      .select("amount, amount_paid, student_id, institute_id, status")
+      .eq("id", id)
+      .single();
+    if (e0) throw e0;
+    const back = Math.min(Math.max(0, Number(amount)), Number(row.amount_paid ?? 0));
+    if (back <= 0) throw new Error("Nothing to reverse on this entry.");
+    const paid = Number(row.amount_paid ?? 0) - back;
+    const billed = Number(row.amount);
+    const status: Database["public"]["Enums"]["fee_status"] =
+      row.status === "cancelled"
+        ? "cancelled"
+        : paid <= 0
+          ? "pending"
+          : paid >= billed
+            ? "paid"
+            : "partial";
+    const { error } = await supabase
+      .from("fees")
+      .update({ amount_paid: paid, status, paid_date: paid > 0 ? undefined : null })
+      .eq("id", id);
+    if (error) throw error;
+    await logAdjustment({
+      fee_id: id,
+      student_id: row.student_id,
+      institute_id: row.institute_id,
+      kind: "refund",
+      amount: back,
+      reason,
+    });
+  },
+  async adjustments(feeId: string) {
+    const { data, error } = await supabase
+      .from("fee_adjustments")
+      .select("*")
+      .eq("fee_id", feeId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
+  },
 };
+
+async function logAdjustment(input: {
+  fee_id: string;
+  student_id: string | null;
+  institute_id: string;
+  kind: "cancel" | "refund";
+  amount: number;
+  reason: string;
+}) {
+  const { data: auth } = await supabase.auth.getUser();
+  const { error } = await supabase.from("fee_adjustments").insert({
+    ...input,
+    reason: input.reason || null,
+    created_by: auth.user?.id ?? null,
+  });
+  if (error) throw error;
+}
 
 export function makeReceiptNo() {
   const d = new Date();
@@ -214,8 +309,13 @@ export function makeReceiptNo() {
 
 /** Single source of truth for "how much is still owed" on one fee row. */
 export function outstandingOf(f: { amount: number | string; amount_paid?: number | string | null; status?: string | null }) {
-  if (f.status === "waived" || f.status === "paid") return 0;
+  if (f.status === "waived" || f.status === "paid" || f.status === "cancelled") return 0;
   return Math.max(0, Number(f.amount) - Number(f.amount_paid ?? 0));
+}
+
+/** Bills that count towards "billed" totals — cancelled entries are excluded. */
+export function isLiveBill(f: { status?: string | null }) {
+  return f.status !== "cancelled";
 }
 
 // ---------- Tests ----------
