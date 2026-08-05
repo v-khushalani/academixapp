@@ -70,7 +70,10 @@ export function PricingAdmin() {
     <div className="space-y-4">
       <div className="rounded-lg border border-border bg-card p-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Plans & prices (live on the public pricing page)
+          Plans & limits (live on the public pricing page)
+        </p>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Prices are internal only — the public page shows “Talk to us” instead of an amount.
         </p>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[720px] text-sm">
@@ -78,7 +81,7 @@ export function PricingAdmin() {
               <tr>
                 <th className="px-2 py-1.5">Plan</th>
                 <th className="px-2 py-1.5">Tagline</th>
-                <th className="px-2 py-1.5">₹ / year</th>
+                <th className="px-2 py-1.5">₹ / year (internal)</th>
                 <th className="px-2 py-1.5">Students</th>
                 <th className="px-2 py-1.5">Rooms</th>
                 <th className="px-2 py-1.5">Popular</th>

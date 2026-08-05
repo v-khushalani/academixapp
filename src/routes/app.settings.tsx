@@ -25,7 +25,7 @@ import {
   userRolesApi,
   type AppRole,
 } from "@/lib/api";
-import { PLANS, inr, planFor } from "@/lib/plans";
+import { PLANS, planFor } from "@/lib/plans";
 import {
   getInstitute,
   saveInstitute,
@@ -435,11 +435,7 @@ function RoomsPanel() {
               {PLANS.map((p) => (
                 <SelectItem key={p.key} value={p.key}>
                   {p.name} — {p.blurb}
-                  {p.priceYearly == null
-                    ? " · custom"
-                    : p.priceYearly === 0
-                      ? " · free"
-                      : ` · ${inr(p.priceYearly)}/year`}
+                  {p.priceYearly === 0 ? " · free" : ""}
                 </SelectItem>
               ))}
             </SelectContent>

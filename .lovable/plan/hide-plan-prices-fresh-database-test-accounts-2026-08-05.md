@@ -22,15 +22,17 @@ Verified: the tenant tables are already empty (0 institutes, students, batches, 
 
 One test institute on the Free plan plus five accounts, all `@academix.website` with a shared password shared with you after creation:
 
-| Account | Role |
-| --- | --- |
-| `super@academix.website` | Academix owner (superadmin, platform console) |
-| `owner@academix.website` | Institute owner / admin |
-| `faculty@academix.website` | Faculty (teacher portal) |
-| `student@academix.website` | Student (family portal) |
-| `parent@academix.website` | Parent (family portal) |
 
-The institute gets a minimal working spine so the portals aren't empty: one course, one batch with a fee, one classroom, one timetable slot, the faculty linked to the batch, and the student enrolled with the parent linked. Existing super-admin account `vk0001@gmail.com` is kept.
+| Account                    | Role                                          |
+| -------------------------- | --------------------------------------------- |
+| `super@academix.website`   | Academix owner (superadmin, platform console) |
+| `owner@academix.website`   | Institute owner / admin                       |
+| `faculty@academix.website` | Faculty (teacher portal)                      |
+| `student@academix.website` | Student (family portal)                       |
+| `parent@academix.website`  | Parent (family portal)                        |
+
+
+The institute gets a minimal working spine so the portals aren't empty: one course, one batch with a fee, one classroom, one timetable slot, the faculty linked to the batch, and the student enrolled with the parent linked. Existing all accounts should be deleted before creating fresh ones. Password: Test@1234
 
 ## 4. Log in as each account and fix what's broken
 
