@@ -94,7 +94,7 @@ function ApplyPage() {
       _phone: v.phone,
       _email: "",
       _class: v.class,
-      _dob: null,
+      _dob: "",
       _school: "",
       _father_name: v.parent_name,
       _father_phone: v.phone,
