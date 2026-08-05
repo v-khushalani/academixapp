@@ -25,7 +25,7 @@ import {
   userRolesApi,
   type AppRole,
 } from "@/lib/api";
-import { PLANS, inr, planFor } from "@/lib/plans";
+import { PLANS, planFor } from "@/lib/plans";
 import {
   getInstitute,
   saveInstitute,
