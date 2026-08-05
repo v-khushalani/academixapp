@@ -430,6 +430,132 @@ export const dashboardApi = {
       newThisMonth: monthAdmissions.count ?? 0,
     };
   },
+
+  /** Everything the rebuilt dashboard needs, in one round trip. */
+  async overview() {
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      .toISOString()
+      .slice(0, 10);
+    const dow = now.getDay();
+
+    const [
+      studentsCount,
+      activeBatches,
+      feeRows,
+      monthAdmissions,
+      pendingApps,
+      enquiryCount,
+      slots,
+      attendanceToday,
+      upcomingTests,
+    ] = await Promise.all([
+      supabase
+        .from("students")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "active")
+        .eq("approval_status", "approved"),
+      supabase.from("batches").select("id", { count: "exact", head: true }).eq("status", "active"),
+      supabase
+        .from("fees")
+        .select(
+          "id, amount, amount_paid, status, due_date, paid_date, student:students(id, full_name, parent_phone, phone)",
+        ),
+      supabase
+        .from("students")
+        .select("id", { count: "exact", head: true })
+        .eq("approval_status", "approved")
+        .gte("admission_date", monthStart),
+      supabase.from("students").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
+      supabase
+        .from("students")
+        .select("id", { count: "exact", head: true })
+        .eq("approval_status", "enquiry")
+        .gte("created_at", monthStart),
+      supabase.from("timetable_slots").select("id, batch_id").eq("day_of_week", dow),
+      supabase.from("attendance").select("status, batch_id, student_id").eq("date", today),
+      supabase
+        .from("tests")
+        .select("id, title, date, batch:batches(name)")
+        .gte("date", today)
+        .order("date", { ascending: true })
+        .limit(5),
+    ]);
+
+    const rows = feeRows.data ?? [];
+    const live = rows.filter(isLiveBill);
+    const billed = live.reduce((s, f) => s + Number(f.amount), 0);
+    const outstanding = live.reduce((s, f) => s + outstandingOf(f), 0);
+    const collected = rows.reduce((s, f) => s + Number(f.amount_paid ?? 0), 0);
+    const collectedThisMonth = rows
+      .filter((f) => (f.paid_date ?? "") >= monthStart)
+      .reduce((s, f) => s + Number(f.amount_paid ?? 0), 0);
+    const collectedLastMonth = rows
+      .filter((f) => (f.paid_date ?? "") >= lastMonthStart && (f.paid_date ?? "") < monthStart)
+      .reduce((s, f) => s + Number(f.amount_paid ?? 0), 0);
+
+    const ageing = { current: 0, d30: 0, d60: 0 };
+    const defaulters: { id: string; name: string; phone: string | null; due: number }[] = [];
+    for (const f of live) {
+      const due = outstandingOf(f);
+      if (due <= 0) continue;
+      const days = f.due_date
+        ? Math.floor((now.getTime() - new Date(f.due_date).getTime()) / 86400000)
+        : 0;
+      if (days <= 30) ageing.current += due;
+      else if (days <= 60) ageing.d30 += due;
+      else ageing.d60 += due;
+      const s = f.student as { id?: string; full_name?: string; parent_phone?: string | null; phone?: string | null } | null;
+      if (s?.id) {
+        const found = defaulters.find((d) => d.id === s.id);
+        if (found) found.due += due;
+        else
+          defaulters.push({
+            id: s.id,
+            name: s.full_name ?? "Student",
+            phone: s.parent_phone ?? s.phone ?? null,
+            due,
+          });
+      }
+    }
+    defaulters.sort((a, b) => b.due - a.due);
+
+    const att = attendanceToday.data ?? [];
+    const batchesToday = new Set((slots.data ?? []).map((s) => s.batch_id).filter(Boolean));
+    const markedBatches = new Set(att.map((a) => a.batch_id).filter(Boolean));
+
+    return {
+      students: studentsCount.count ?? 0,
+      batches: activeBatches.count ?? 0,
+      newThisMonth: monthAdmissions.count ?? 0,
+      pendingApprovals: pendingApps.count ?? 0,
+      enquiriesThisMonth: enquiryCount.count ?? 0,
+      money: {
+        billed,
+        outstanding,
+        collected,
+        collectedThisMonth,
+        collectedLastMonth,
+        ageing,
+        defaulters: defaulters.slice(0, 5),
+      },
+      today: {
+        classes: (slots.data ?? []).length,
+        batchesScheduled: batchesToday.size,
+        batchesMarked: [...markedBatches].filter((b) => batchesToday.has(b)).length,
+        present: att.filter((a) => a.status === "present").length,
+        absent: att.filter((a) => a.status === "absent").length,
+      },
+      upcomingTests: (upcomingTests.data ?? []) as {
+        id: string;
+        title: string;
+        date: string;
+        batch?: { name?: string } | null;
+      }[],
+    };
+  },
 };
 
 // ---------- Profiles + Users ----------
