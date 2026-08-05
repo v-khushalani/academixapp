@@ -2,8 +2,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { PENDING_INVITE_KEY, rememberInvite } from "@/lib/post-auth";
 
-export const PENDING_INVITE_KEY = "academix.pendingInvite";
+export { PENDING_INVITE_KEY };
 
 /**
  * Google sign-in. Everyone lands on /auth/callback, which figures out the
@@ -20,15 +21,13 @@ export function GoogleButton({
 
   async function onClick() {
     setBusy(true);
-    try {
-      if (inviteToken) sessionStorage.setItem(PENDING_INVITE_KEY, inviteToken);
-      else sessionStorage.removeItem(PENDING_INVITE_KEY);
-    } catch {
-      /* private mode — invite is re-checked from the link anyway */
-    }
+    rememberInvite(inviteToken);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: { prompt: "select_account" },
+      },
     });
     if (error) {
       setBusy(false);

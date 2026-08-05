@@ -2,8 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { PENDING_INVITE_KEY } from "@/components/auth/google-button";
-import type { AppRole } from "@/hooks/use-auth";
+import { resolvePostAuthDestination, waitForSession } from "@/lib/post-auth";
 
 export const Route = createFileRoute("/auth/callback")({
   ssr: false,
@@ -20,15 +19,6 @@ export const Route = createFileRoute("/auth/callback")({
   component: AuthCallback,
 });
 
-const STAFF: AppRole[] = [
-  "owner",
-  "admin",
-  "receptionist",
-  "counsellor",
-  "accountant",
-  "superadmin" as AppRole,
-];
-
 function AuthCallback() {
   const navigate = useNavigate();
   const ran = useRef(false);
@@ -39,52 +29,21 @@ function AuthCallback() {
     ran.current = true;
 
     (async () => {
-      // give supabase-js a moment to exchange the code in the URL
-      let session = null;
-      for (let i = 0; i < 20; i++) {
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
-          session = data.session;
-          break;
-        }
-        await new Promise((r) => setTimeout(r, 200));
-      }
+      const session = await waitForSession();
       if (!session) {
         toast.error("Google sign-in did not complete. Please try again.");
         void navigate({ to: "/login" });
         return;
       }
-
-      let token: string | null = null;
-      try {
-        token = sessionStorage.getItem(PENDING_INVITE_KEY);
-        sessionStorage.removeItem(PENDING_INVITE_KEY);
-      } catch {
-        token = null;
+      setMessage("Setting up your account…");
+      const { to, error } = await resolvePostAuthDestination();
+      if (to) {
+        void navigate({ to });
+        return;
       }
-
-      if (token) {
-        setMessage("Finishing your invite…");
-        const { error } = await supabase.rpc("accept_faculty_invite", { _token: token });
-        if (error) toast.error(error.message);
-      }
-
-      const { data: roleRows } = await supabase.rpc("get_my_roles");
-      const roles = (roleRows ?? []) as AppRole[];
-
-      if (roles.some((r) => STAFF.includes(r))) {
-        void navigate({ to: "/app" });
-      } else if (roles.includes("faculty")) {
-        void navigate({ to: "/teach" });
-      } else if (roles.includes("student") || roles.includes("parent")) {
-        void navigate({ to: "/portal" });
-      } else {
-        await supabase.auth.signOut();
-        toast.error(
-          "This Google account isn't linked to any institute yet. Open the invite link your institute sent you on WhatsApp.",
-        );
-        void navigate({ to: "/login" });
-      }
+      await supabase.auth.signOut();
+      toast.error(error!);
+      void navigate({ to: "/login" });
     })();
   }, [navigate]);
 
