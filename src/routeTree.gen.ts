@@ -35,6 +35,7 @@ import { Route as LoginTeacherRouteImport } from './routes/login.teacher'
 import { Route as LoginStudentRouteImport } from './routes/login.student'
 import { Route as LoginAdminRouteImport } from './routes/login.admin'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppTimetableRouteImport } from './routes/app.timetable'
 import { Route as AppTestsRouteImport } from './routes/app.tests'
 import { Route as AppSyllabusRouteImport } from './routes/app.syllabus'
@@ -181,6 +182,11 @@ const JoinTokenRoute = JoinTokenRouteImport.update({
   path: '/join/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppTimetableRoute = AppTimetableRouteImport.update({
   id: '/timetable',
   path: '/timetable',
@@ -279,6 +285,7 @@ export interface FileRoutesByFullPath {
   '/app/syllabus': typeof AppSyllabusRoute
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/student': typeof LoginStudentRoute
@@ -319,6 +326,7 @@ export interface FileRoutesByTo {
   '/app/syllabus': typeof AppSyllabusRoute
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/student': typeof LoginStudentRoute
@@ -363,6 +371,7 @@ export interface FileRoutesById {
   '/app/syllabus': typeof AppSyllabusRoute
   '/app/tests': typeof AppTestsRouteWithChildren
   '/app/timetable': typeof AppTimetableRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
   '/login/admin': typeof LoginAdminRoute
   '/login/student': typeof LoginStudentRoute
@@ -408,6 +417,7 @@ export interface FileRouteTypes {
     | '/app/syllabus'
     | '/app/tests'
     | '/app/timetable'
+    | '/auth/callback'
     | '/join/$token'
     | '/login/admin'
     | '/login/student'
@@ -448,6 +458,7 @@ export interface FileRouteTypes {
     | '/app/syllabus'
     | '/app/tests'
     | '/app/timetable'
+    | '/auth/callback'
     | '/join/$token'
     | '/login/admin'
     | '/login/student'
@@ -491,6 +502,7 @@ export interface FileRouteTypes {
     | '/app/syllabus'
     | '/app/tests'
     | '/app/timetable'
+    | '/auth/callback'
     | '/join/$token'
     | '/login/admin'
     | '/login/student'
@@ -523,6 +535,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
   TeachRoute: typeof TeachRouteWithChildren
+  AuthCallbackRoute: typeof AuthCallbackRoute
   JoinTokenRoute: typeof JoinTokenRoute
   LoginAdminRoute: typeof LoginAdminRoute
   LoginStudentRoute: typeof LoginStudentRoute
@@ -713,6 +726,13 @@ declare module '@tanstack/react-router' {
       path: '/join/$token'
       fullPath: '/join/$token'
       preLoaderRoute: typeof JoinTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/timetable': {
@@ -940,6 +960,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
   TeachRoute: TeachRouteWithChildren,
+  AuthCallbackRoute: AuthCallbackRoute,
   JoinTokenRoute: JoinTokenRoute,
   LoginAdminRoute: LoginAdminRoute,
   LoginStudentRoute: LoginStudentRoute,
