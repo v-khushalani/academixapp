@@ -10,6 +10,23 @@ export const Route = createFileRoute("/apply")({
   validateSearch: (search: Record<string, unknown>) => ({
     i: typeof search.i === "string" ? search.i : undefined,
   }),
+  head: () => ({
+    meta: [
+      { title: "Apply for admission — Academix" },
+      {
+        name: "description",
+        content:
+          "Apply online to your coaching institute: student details, parent contacts and photo in one short form.",
+      },
+      { property: "og:title", content: "Apply for admission — Academix" },
+      {
+        property: "og:description",
+        content: "Online admission and enquiry form powered by Academix.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: ApplyPage,
 });
 
