@@ -643,9 +643,24 @@ function PlanRail({
   const chip = (payload: DragPayload) => dragChipProps(payload, dnd?.begin);
 
   const tabs = ["1 · Batches", "2 · Teachers", "3 · Subjects"];
+  const unassigning = Boolean(dnd?.active?.slotId);
 
   return (
-    <aside className="w-full shrink-0 overflow-hidden rounded-lg border border-border bg-card lg:w-64">
+    <aside
+      data-drop-rail="1"
+      className={`w-full shrink-0 overflow-hidden rounded-lg border bg-card transition-colors lg:w-64 ${
+        unassigning
+          ? dnd?.hoverKey === "rail"
+            ? "border-destructive bg-destructive/10"
+            : "border-dashed border-primary"
+          : "border-border"
+      }`}
+    >
+      {unassigning && (
+        <p className="bg-destructive/10 px-2.5 py-1.5 text-center text-[11px] font-medium text-destructive">
+          Drop here to remove this class from the board
+        </p>
+      )}
       <div className="grid grid-cols-3 border-b border-border">
         {tabs.map((t, i) => (
           <button
@@ -733,7 +748,7 @@ function PlanRail({
       </div>
       <p className="border-t border-border px-2.5 py-2 text-[10px] text-muted-foreground">
         Drag onto the board — no long press needed. Step 1 fills the period, steps 2 and 3 drop onto
-        that class.
+        that class. Drag a placed class to another period to move it, or back here to unassign.
       </p>
     </aside>
   );
