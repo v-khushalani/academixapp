@@ -561,55 +561,94 @@ function CredentialsDialog({
 }
 
 /* -------------------- QR panel -------------------- */
-function QrPanel() {
-  const slug = getInstitute().slug;
-  const url =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/apply${slug ? `?i=${encodeURIComponent(slug)}` : ""}`
-      : "/apply";
+function QrCard({
+  title,
+  blurb,
+  url,
+}: {
+  title: string;
+  blurb: string;
+  url: string;
+}) {
   function copy() {
     navigator.clipboard.writeText(url).then(() => toast.success("Link copied"));
   }
   return (
-    <div className="grid gap-6 md:grid-cols-[auto_1fr]">
-      <div className="rounded-lg border border-border bg-card p-6 text-center">
-        <div className="rounded-md bg-white p-4">
-          <QRCodeSVG value={url} size={220} includeMargin />
-        </div>
-        <p className="mt-3 font-mono text-xs break-all">{url}</p>
-        <div className="mt-4 flex justify-center gap-2">
-          <Button size="sm" variant="outline" className="gap-1.5" onClick={copy}>
-            <Copy className="h-4 w-4" />
-            Copy link
-          </Button>
-          <Button size="sm" variant="outline" className="gap-1.5" asChild>
-            <a href={url} target="_blank" rel="noreferrer">
-              <ExternalLink className="h-4 w-4" />
-              Open
-            </a>
-          </Button>
-          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => window.print()}>
-            <Printer className="h-4 w-4" />
-            Print
-          </Button>
-        </div>
+    <div className="rounded-lg border border-border bg-card p-5 text-center">
+      <p className="text-sm font-semibold">{title}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{blurb}</p>
+      <div className="mt-3 rounded-md bg-white p-3">
+        <QRCodeSVG value={url} size={180} includeMargin />
+      </div>
+      <p className="mt-3 font-mono text-[10px] break-all">{url}</p>
+      <div className="mt-3 flex flex-wrap justify-center gap-2">
+        <Button size="sm" variant="outline" className="gap-1.5" onClick={copy}>
+          <Copy className="h-4 w-4" />
+          Copy
+        </Button>
+        <Button size="sm" variant="outline" className="gap-1.5" asChild>
+          <a href={url} target="_blank" rel="noreferrer">
+            <ExternalLink className="h-4 w-4" />
+            Open
+          </a>
+        </Button>
+        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => window.print()}>
+          <Printer className="h-4 w-4" />
+          Print
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function QrPanel() {
+  const slug = getInstitute().slug;
+  const base = typeof window !== "undefined" ? window.location.origin : "";
+  const q = slug ? `i=${encodeURIComponent(slug)}&` : "";
+  const enquiryUrl = `${base}/apply?${q}mode=enquiry`;
+  const admissionUrl = `${base}/apply?${q}mode=admission`;
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[auto_1fr]">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <QrCard
+          title="Enquiry QR"
+          blurb="5 fields · for hoardings, school visits, walk-ins"
+          url={enquiryUrl}
+        />
+        <QrCard
+          title="Admission QR"
+          blurb="Full details + photo · for parents ready to join"
+          url={admissionUrl}
+        />
       </div>
       <div className="space-y-3 text-sm">
-        <h3 className="text-base font-semibold">How admissions work</h3>
+        <h3 className="text-base font-semibold">How the admissions funnel works</h3>
         <ol className="list-decimal space-y-1.5 pl-5 text-muted-foreground">
           <li>
-            Print this QR and stick it at the reception or hand it to parents at a school visit.
-          </li>
-          <li>Parents scan the QR with any phone — no login needed.</li>
-          <li>They fill in the admission form (child details, parents, class, program, photo).</li>
-          <li>
-            The submission shows up under <b>Applications</b> within seconds.
+            <b>Enquiry QR</b> — someone just asking about fees or timing scans this and gives only
+            student name, parent name, phone, class and interest. It lands in <b>Follow-ups</b>.
           </li>
           <li>
-            You approve and pick a batch — the student goes live with the batch fee assigned
-            automatically. Anyone you don't admit moves to <b>Follow-ups</b>.
+            <b>Follow-ups</b> — your counsellor calls them, notes what happened, and when the
+            parent agrees, sends them the admission link (or fills it at the desk).
+          </li>
+          <li>
+            <b>Admission QR</b> — full form: child details, both parents, address, program and
+            photo. It lands in <b>Applications</b> within seconds.
+          </li>
+          <li>
+            <b>Approve</b> — you verify the details and pick a batch. The student goes live and the
+            batch fee is assigned automatically on the Fees page.
+          </li>
+          <li>
+            Anyone you do not admit stays in <b>Follow-ups</b> so nobody is lost.
           </li>
         </ol>
+        <p className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
+          Rule of thumb: enquiry QR on anything public (banner, pamphlet, WhatsApp status),
+          admission QR only after the parent has said yes.
+        </p>
         {!slug && (
           <p className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
             Tip: open the app once as an admin so your institute code loads — the link then tags
