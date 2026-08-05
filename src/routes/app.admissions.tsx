@@ -348,8 +348,6 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
     setToken(Number(s.token_amount ?? 0));
   }
 
-  const admitBatch = batches.find((b) => b.id === batchId);
-
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (data.length === 0)
     return (
@@ -455,28 +453,15 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
                 <SelectContent>
                   {batches.map((b) => (
                     <SelectItem key={b.id} value={b.id}>
-                      {b.name} · ₹{Number(b.default_fee ?? 0).toLocaleString("en-IN")}
+                      {b.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>Token / advance received (₹)</Label>
-              <Input
-                type="number"
-                min={0}
-                value={token}
-                onChange={(e) => setToken(Number(e.target.value) || 0)}
-              />
-            </div>
             <p className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
-              Batch fee{" "}
-              <span className="font-medium text-foreground">
-                ₹{Number(admitBatch?.default_fee ?? 0).toLocaleString("en-IN")}
-              </span>{" "}
-              is assigned automatically. Scholarship or discount can be set later on the student —
-              the fee updates itself.
+              The batch fee is applied automatically once admitted. Payments, scholarship and
+              discount are handled from the Fees page.
             </p>
           </div>
           <DialogFooter>
