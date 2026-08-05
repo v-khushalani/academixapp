@@ -1,83 +1,88 @@
-# Which URLs to put where (academix.website on Vercel)
+# Academix: fee corrections, super-admin access, receipts, funnel + dashboard rebuild
 
-You host on Vercel, the domain is academix.website, and the code also sits in Lovable + GitHub. Below is exactly what to paste in each box. Copy them literally.
+## 1. Deleting a fee entry (the illogical part)
 
-## Decide one "real" address first
+Today "Remove" hard-deletes the row, so any money already recorded against it vanishes from both Collected and Pending. That is wrong: a receipt that was issued is a real event.
 
-Public address for teachers/parents: **https://academix.website**
+New behaviour:
+- If nothing was collected on the entry (amount_paid = 0): allow a real delete — it was a genuine mistake.
+- If money was collected: no delete. Two actions instead.
+  - **Cancel / void entry** — the bill is written off. Pending drops to zero, Collected keeps the money already received (with the entry shown as `cancelled`).
+  - **Reverse payment (refund)** — removes the received amount from Collected and puts the bill back to pending, with a reason stored.
+- Every void/reversal is logged (who, when, why) and appears in the student's activity timeline, so numbers can always be explained to a parent.
+- Fees KPIs (Fees page + dashboard) exclude cancelled bills from Billed/Pending but keep real cash in Collected.
 
-Everything else (Vercel's auto URLs, the Lovable preview) exists only for you and testing. Keep them allowed for testing, but never send them to teachers.
+## 2. Super admin login
 
-## 1. Supabase → Authentication → URL Configuration
+There is no separate super-admin door today — the role exists in the database but you sign in through the normal admin login and the extra "Platform" console appears only if your account carries the `superadmin` role.
 
-**Site URL** (only one allowed):
+Plan:
+- Add a dedicated route `/login/platform` (unlinked from the marketing site, reachable only if you know it) with Google + email sign-in.
+- After sign-in, non-superadmins get bounced to their normal dashboard; superadmins land directly on the Platform console.
+- Add a short "Platform" entry in the sidebar for superadmins only (already partly present, will be made obvious).
+- Document exactly which account is the super admin and how to promote another one.
+
+## 3. Fee receipt template
+
+Current receipt is a plain key/value table. Rebuild as a proper A5 receipt:
+- Institute logo + name, address, phone/email in a header band; academic year.
+- Receipt no., date, mode (cash/UPI/bank), and a clear "Received with thanks from …".
+- Student block: name, admission no., class/batch, father/mother name.
+- Line-item table: particulars, amount billed, discount/scholarship, paid now, balance.
+- Amount in words, running balance, next due date.
+- Footer: UPI QR (if UPI id set), "computer generated receipt", signatory line.
+- Same layout reused for the WhatsApp-shared image/PDF so parents get a clean document.
+
+## 4. Admissions funnel — simplified, and explained
+
+**How it works today (why it feels complex):** one QR points to one long form (`/apply`), which asks admission-grade detail — parents/photo/program/address. Everything submitted becomes a `students` row awaiting approval, and there is also a separate manual leads board. So enquiries and admissions use the same heavy form, and follow-ups live in two places.
+
+**Proposed funnel (three clean stages, one board):**
+
+```text
+ENQUIRY            ->   APPLICATION            ->   ADMITTED
+short form (30s)        full form (parents,         approve + assign batch
+name, phone, class      DOB, address, photo)        fee auto-created
 ```
-https://academix.website
-```
 
-**Redirect URLs** (add each on its own line, the `/**` matters):
-```
-https://academix.website/**
-https://www.academix.website/**
-https://academixapp.lovable.app/**
-https://id-preview--16835a18-300a-469b-8bf2-6c7cc98982e8.lovable.app/**
-http://localhost:8080/**
-```
-Optionally also your Vercel URLs if you test on them:
-```
-https://<your-project>.vercel.app/**
-```
+- **Two QRs / two links.** "Enquiry QR" opens a 4-field form (name, phone, class, interested in). "Admission QR" opens the existing full form. Same page, mode chosen by the link.
+- Enquiries land in a single **Follow-ups** board with call/WhatsApp buttons and next-follow-up date. One button "Convert to admission" sends the parent the full form link on WhatsApp, pre-filled with what we already know.
+- Applications tab keeps only forms that are actually complete and awaiting approval.
+- Approve = pick batch. Fee is created automatically; no amounts asked in that dialog (already done).
+- Remove the parallel manual "leads" kanban and fold walk-in/phone enquiries into the same Follow-ups board, so there is exactly one place to chase people.
 
-Do NOT add: `http://academix.website` (plain http), bare URLs without `/**`, or the Supabase URL itself.
+## 5. Dashboard rebuilt
 
-## 2. Google Cloud → Credentials → your OAuth Client ID
+Current dashboard is 5 flat KPI tiles plus link buttons — no insight. Rebuild around "what needs my attention today":
 
-**Authorised JavaScript origins** (no trailing slash, no `/**`):
-```
-https://academix.website
-https://www.academix.website
-https://academixapp.lovable.app
-```
+- **Today strip:** classes running today, attendance marked vs pending (by batch), absentees needing a parent message, teachers absent.
+- **Money card:** collected this month vs last month, outstanding split by ageing (0-30 / 30-60 / 60+), top 5 defaulters with one-tap WhatsApp reminder.
+- **Admissions funnel card:** enquiries → applications → admitted this month, with conversion %.
+- **Academics card:** syllabus coverage per batch (bar list, red where behind schedule), upcoming tests, last test average.
+- **Action queue:** pending approvals, unmarked attendance, unassigned batches, fees overdue — each row jumps straight to the fix.
+- Role-aware: owner/admin see money; receptionist sees admissions + attendance; faculty see their own batches.
+- Visual work stays inside the existing token system (no new colours invented), denser cards, sparkline/mini-bars instead of bare numbers.
 
-**Authorised redirect URIs** — exactly one line, nothing else:
-```
-https://jjqdcdwvcxmeplmuhvha.supabase.co/auth/v1/callback
-```
-This is the single most-mistaken box: it is the *Supabase* callback, never your own domain.
+## 6. Competitive read (Classplus, Teachmint, Eduflex/MyClassCampus, Entab)
 
-Also on **OAuth consent screen**: if it says "Testing", click **Publish app**. Otherwise only emails you listed can sign in.
+Where we already match or beat them: WhatsApp-first communication without paid API, room-wise drag timetable, syllabus tracking visible to management and parents, zero-cost UPI collection, aggressive pricing.
 
-## 3. Vercel
+Gaps worth closing, in priority order:
+1. **Fee instalment plans** — define 3/4-instalment schedules per batch with due dates and auto-overdue. Every competitor has this; we only have a single bill.
+2. **Automated reminder scheduling** — queue fee/absent reminders instead of only manual taps.
+3. **Report cards / result PDFs** — per-test and consolidated, parent-shareable.
+4. **Enquiry source analytics** — where admissions come from (reference, walk-in, Instagram) to justify marketing spend.
+5. **Study material / homework attachments** in the parent portal.
+6. **Expense + payroll basics** — so the owner sees profit, not just fee collection.
+7. **Bulk import** improvements and an audit log for money edits (ties into item 1 above).
 
-- Domains: `academix.website` as primary, `www.academix.website` redirecting to it.
-- Environment Variables (Production + Preview), then redeploy:
-  - `VITE_SUPABASE_URL` = `https://jjqdcdwvcxmeplmuhvha.supabase.co`
-  - `VITE_SUPABASE_PUBLISHABLE_KEY` = anon key from Supabase → Settings → API
-- Nothing else is needed; no service-role key on Vercel.
-
-## 4. Lovable
-
-Since Vercel serves the real traffic, do not connect academix.website in Lovable too — one domain cannot point at two hosts. Keep `academixapp.lovable.app` as a staging copy only.
-
-## 5. Test (10 minutes, incognito or phone)
-
-1. Open https://academix.website → landing page loads.
-2. Owner login → admin dashboard.
-3. Create a faculty invite → open the WhatsApp link on a phone.
-4. **Continue with Google** with a fresh Gmail → must land on the teacher dashboard, not the landing page.
-5. Teacher: mark attendance, enter a mark, update a chapter.
-6. Student/parent login → attendance, fees, timetable open.
-
-If step 4 dumps you on the landing page, Supabase Site URL / Redirect URLs weren't saved — screenshot that page and send it.
-
-## Do not
-
-- Don't put your own domain in Google's "Authorised redirect URIs".
-- Don't leave off the `/**` in Supabase redirect URLs.
-- Don't run the app on Vercel and Lovable custom domain at the same time.
-- Don't leave the Google consent screen in Testing.
-- Don't change `.env` values by hand in the repo.
+These are listed for sequencing; this plan implements items 1-5 of the sections above, and I will pick up the competitive gaps in the next round unless you want any of them pulled in now.
 
 ## Technical notes
 
-No code changes are needed for this — `src/components/auth/google-button.tsx` already sends `redirectTo: ${window.location.origin}/auth/callback`, so it works on whichever host serves the page, as long as that origin is in the Supabase allow-list. `src/routes/auth.callback.tsx` plus the `PostAuthGate` on the landing page handle invite claiming and portal routing.
+- Migration: add `cancelled` to fee status handling, plus `fee_adjustments` table (fee_id, kind void/refund, amount, reason, created_by) with grants + RLS scoped to institute staff; keep cash figures derived from `fees.amount_paid` minus reversals.
+- `feesApi.remove` split into `remove` (only when unpaid), `voidFee`, `reversePayment`; all KPI helpers (`outstandingOf`, dashboard summary) updated to skip cancelled bills.
+- Receipt rebuilt in `src/lib/receipt.ts` with jsPDF + autotable, UPI QR rendered via a canvas data URL.
+- Enquiry mode added to `src/routes/apply.tsx` via a `?mode=enquiry` param; `submit_admission_application` already supports `_intent`.
+- Admissions page: drop the leads kanban, single Follow-ups board sourced from enquiry-intent students plus manually added walk-ins.
+- Dashboard split into small components under `src/components/app/dashboard/` fed by one aggregated query.
