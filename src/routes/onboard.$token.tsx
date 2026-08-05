@@ -7,6 +7,20 @@ import { CheckCircle2 } from "lucide-react";
 import { getInstitute } from "@/lib/academy-settings";
 
 export const Route = createFileRoute("/onboard/$token")({
+  head: () => ({
+    meta: [
+      { title: "Complete your admission form — Academix" },
+      {
+        name: "description",
+        content:
+          "Fill in student and parent details to complete your admission at your coaching institute.",
+      },
+      { property: "og:title", content: "Complete your admission form — Academix" },
+      { property: "og:description", content: "Secure student onboarding link from your institute." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: OnboardPage,
 });
 
