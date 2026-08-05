@@ -14,11 +14,13 @@ export type DragPayload = {
   batchId?: string;
   facultyId?: string;
   subject?: string;
+  /** an existing class card being moved / sent back to the rail */
+  slotId?: string;
   label: string;
 };
 
-/** Where it landed: on an existing class card, or on an empty period cell. */
-export type DropTarget = { cardId: string } | { colId: string; bandStart: string };
+/** Where it landed: on an existing class card, an empty period cell, or back on the rail. */
+export type DropTarget = { cardId: string } | { colId: string; bandStart: string } | { rail: true };
 
 type Ctx = {
   begin: (payload: DragPayload, e: ReactPointerEvent) => void;
@@ -47,6 +49,9 @@ function resolve(x: number, y: number): { key: string; target: DropTarget } | nu
     const colId = cell.dataset.dropCol;
     const bandStart = cell.dataset.dropBand;
     return { key: cellKey(colId, bandStart), target: { colId, bandStart } };
+  }
+  if (el.closest<HTMLElement>("[data-drop-rail]")) {
+    return { key: "rail", target: { rail: true } };
   }
   return null;
 }
