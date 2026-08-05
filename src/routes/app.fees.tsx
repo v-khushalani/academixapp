@@ -67,6 +67,7 @@ function FeesPage() {
       refresh();
       setDeleting(null);
     },
+    onError: (e: unknown) => toast.error((e as Error).message),
   });
 
   const columns: DTColumn<Row>[] = [
