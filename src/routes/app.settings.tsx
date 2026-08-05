@@ -662,8 +662,7 @@ function FeesPanelInner() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{b.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {b.class ? `Class ${b.class}` : "—"}
-                    {b.subject ? ` · ${b.subject}` : ""}
+                    {b.class_level ? `Class ${b.class_level}` : "—"}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
