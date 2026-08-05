@@ -348,8 +348,6 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
     setToken(Number(s.token_amount ?? 0));
   }
 
-  const admitBatch = batches.find((b) => b.id === batchId);
-
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (data.length === 0)
     return (
