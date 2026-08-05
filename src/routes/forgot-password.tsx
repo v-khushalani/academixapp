@@ -4,6 +4,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/forgot-password")({
+  head: () => ({
+    meta: [
+      { title: "Reset your password — Academix" },
+      {
+        name: "description",
+        content: "Reset the password for your Academix institute, teacher or family account.",
+      },
+      { property: "og:title", content: "Reset your password — Academix" },
+      { property: "og:description", content: "Password recovery for Academix accounts." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: ForgotPage,
 });
 
