@@ -18,7 +18,8 @@ import { DataTable, type DTColumn } from "@/components/app/data-table";
 import { FeeFormDialog } from "@/components/app/fee-form-dialog";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { PaymentDialog, type PaymentTarget } from "@/components/app/payment-dialog";
-import { feesApi, outstandingOf } from "@/lib/api";
+import { feesApi, outstandingOf, isLiveBill } from "@/lib/api";
+import { FeeCorrectionDialog, type CorrectionTarget } from "@/components/app/fee-correction-dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { can } from "@/lib/rbac";
@@ -43,15 +44,17 @@ function FeesPage() {
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState<Row | null>(null);
   const [collecting, setCollecting] = useState<PaymentTarget | null>(null);
+  const [correcting, setCorrecting] = useState<CorrectionTarget | null>(null);
 
   const filtered = useMemo(
     () => (status === "all" ? data : data.filter((f) => f.status === status)),
     [data, status],
   );
 
-  const outstanding = data.reduce((a, b) => a + outstandingOf(b), 0);
+  const live = data.filter(isLiveBill);
+  const outstanding = live.reduce((a, b) => a + outstandingOf(b), 0);
   const collected = data.reduce((a, b) => a + Number(b.amount_paid), 0);
-  const overdue = data.filter(
+  const overdue = live.filter(
     (f) =>
       f.status === "overdue" ||
       (f.due_date && f.status !== "paid" && new Date(f.due_date) < new Date()),
@@ -119,7 +122,9 @@ function FeesPage() {
               ? "bg-destructive/10 text-destructive"
               : r.status === "partial"
                 ? "bg-warning/10 text-warning"
-                : "bg-muted text-muted-foreground";
+                : r.status === "cancelled"
+                  ? "bg-muted text-muted-foreground line-through"
+                  : "bg-muted text-muted-foreground";
         return (
           <Badge variant="secondary" className={cls}>
             {r.status}
@@ -154,7 +159,21 @@ function FeesPage() {
               size="icon"
               variant="ghost"
               className="text-destructive"
-              onClick={() => setDeleting(r)}
+              onClick={() =>
+                Number(r.amount_paid) > 0
+                  ? setCorrecting({
+                      id: r.id,
+                      student_name: r.student?.full_name ?? "Student",
+                      description: r.description,
+                      amount: Number(r.amount),
+                      amount_paid: Number(r.amount_paid),
+                      status: r.status,
+                    })
+                  : setDeleting(r)
+              }
+              title={
+                Number(r.amount_paid) > 0 ? "Cancel bill / reverse payment" : "Delete wrong entry"
+              }
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -275,6 +294,7 @@ function FeesPage() {
                   <SelectItem value="paid">Paid</SelectItem>
                   <SelectItem value="overdue">Overdue</SelectItem>
                   <SelectItem value="waived">Waived</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
             }
@@ -282,11 +302,13 @@ function FeesPage() {
         </div>
       </PageBody>
       <PaymentDialog target={collecting} onOpenChange={(v) => !v && setCollecting(null)} />
+      <FeeCorrectionDialog target={correcting} onOpenChange={(v) => !v && setCorrecting(null)} />
       <FeeFormDialog open={open} onOpenChange={setOpen} />
       <ConfirmDialog
         open={Boolean(deleting)}
         onOpenChange={(v) => !v && setDeleting(null)}
-        title="Remove fee entry?"
+        title="Delete this fee entry?"
+        description="Nothing has been collected on it, so it can be removed safely."
         confirmLabel="Remove"
         destructive
         onConfirm={() => deleting && removeMut.mutate(deleting.id)}
