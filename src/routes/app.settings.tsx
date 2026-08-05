@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
+  batchesApi,
   coursesApi,
   instituteApi,
   roomsApi,
@@ -612,23 +613,91 @@ function ShiftTimingsPanel() {
 }
 
 function FeesPanelInner() {
+  const qc = useQueryClient();
+  const { data: batches = [], isLoading } = useQuery({
+    queryKey: ["batches"],
+    queryFn: () => batchesApi.list(),
+  });
+  const [draft, setDraft] = useState<Record<string, string>>({});
+
+  const saveMut = useMutation({
+    mutationFn: async (rows: { id: string; fee: number }[]) => {
+      for (const r of rows) await batchesApi.update(r.id, { default_fee: r.fee });
+      return rows.length;
+    },
+    onSuccess: (n) => {
+      setDraft({});
+      qc.invalidateQueries({ queryKey: ["batches"] });
+      qc.invalidateQueries({ queryKey: ["fees"] });
+      qc.invalidateQueries({ queryKey: ["students"] });
+      toast.success(`${n} batch fee(s) updated — students in those batches are re-synced`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const dirty = batches
+    .filter((b) => draft[b.id] !== undefined && Number(draft[b.id]) !== Number(b.default_fee ?? 0))
+    .map((b) => ({ id: b.id, fee: Number(draft[b.id]) || 0 }));
+
   return (
     <Card
       title="Fee structures"
-      description="Per-batch default fees are the source of truth — every student in the batch auto-inherits them, with optional scholarship % and flat discount at the student level."
+      description="Set every batch's fee right here. Each student in the batch inherits it automatically; scholarship % and flat discount stay per student."
     >
-      <div className="space-y-2 text-sm">
-        <p>
-          Set or update a batch's default fee on the{" "}
+      {isLoading && <p className="text-xs text-muted-foreground">Loading batches…</p>}
+      {!isLoading && batches.length === 0 && (
+        <p className="text-sm text-muted-foreground">
+          No batches yet — create one on the{" "}
           <Link to="/app/batches" className="font-medium text-primary underline">
             Batches
           </Link>{" "}
-          page. Changes propagate to all students in that batch automatically.
+          page.
         </p>
-        <p className="text-muted-foreground">
-          Per-student overrides live on the student profile → Scholarship % / Discount fields.
-        </p>
-      </div>
+      )}
+      {batches.length > 0 && (
+        <>
+          <ul className="divide-y divide-border">
+            {batches.map((b) => (
+              <li key={b.id} className="flex items-center gap-3 py-2">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{b.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {b.class ? `Class ${b.class}` : "—"}
+                    {b.subject ? ` · ${b.subject}` : ""}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground">₹</span>
+                  <Input
+                    type="number"
+                    min={0}
+                    className="h-8 w-32"
+                    value={draft[b.id] ?? String(b.default_fee ?? 0)}
+                    onChange={(e) => setDraft((d) => ({ ...d, [b.id]: e.target.value }))}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              disabled={dirty.length === 0 || saveMut.isPending}
+              onClick={() => saveMut.mutate(dirty)}
+            >
+              {saveMut.isPending ? "Saving…" : `Save ${dirty.length || ""} change(s)`}
+            </Button>
+            {dirty.length > 0 && (
+              <Button size="sm" variant="outline" onClick={() => setDraft({})}>
+                Reset
+              </Button>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Per-student scholarship / discount lives on the student profile.
+            </p>
+          </div>
+        </>
+      )}
     </Card>
   );
 }
