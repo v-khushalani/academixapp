@@ -199,6 +199,34 @@ function TimetablePage() {
     if (!canWrite) return;
     const band = bands.find((b) => b.start === bandStart);
     if (!band) return;
+    if (p.slotId) {
+      const moving = slots.find((s) => s.id === p.slotId);
+      if (!moving) return;
+      const moved = {
+        ...moving,
+        day_of_week: day,
+        start_time: `${band.start}:00`,
+        end_time: `${toHHMM(toMinutes(band.end))}:00`,
+        room_id: colId === UNASSIGNED ? null : colId,
+        room: colId === UNASSIGNED ? null : (rooms.find((r) => r.id === colId)?.name ?? null),
+      };
+      if (findConflicts(moved, slots.filter((s) => s.id !== moving.id)).length) {
+        toast.error("That period is already booked for this batch, teacher or room.");
+        return;
+      }
+      updateMut.mutate({
+        id: moving.id,
+        patch: {
+          day_of_week: moved.day_of_week,
+          start_time: moved.start_time,
+          end_time: moved.end_time,
+          room_id: moved.room_id,
+          room: moved.room,
+        },
+      });
+      toast.success("Class moved");
+      return;
+    }
     if (!p.batchId) {
       toast.info("Drop a batch on an empty period first, then the teacher and subject.");
       return;
@@ -227,6 +255,7 @@ function TimetablePage() {
     if (!canWrite) return;
     const slot = slots.find((s) => s.id === cellId);
     if (!slot) return;
+    if (p.slotId) return;
     if (p.subject) {
       updateMut.mutate({ id: slot.id, patch: { subject: p.subject } });
       toast.success(`${p.subject} assigned`);
@@ -252,6 +281,11 @@ function TimetablePage() {
   }
 
   function handleDrop(payload: DragPayload, target: DropTarget) {
+    if ("rail" in target) {
+      if (!canWrite || !payload.slotId) return;
+      removeMut.mutate(payload.slotId);
+      return;
+    }
     if ("cardId" in target) dropOnCard(target.cardId, payload);
     else void dropOnCell(target.colId, target.bandStart, payload);
   }
@@ -458,6 +492,7 @@ function TimetablePage() {
                         cell={cellOf(daySlots)}
                         canWrite={canWrite}
                         onDelete={(id) => removeMut.mutate(id)}
+                        cardDrag={(item) => ({ slotId: item.id, label: item.title })}
                         onEditCol={(colId) => {
                           const r = rooms.find((x) => x.id === colId);
                           if (!r) {
@@ -608,9 +643,24 @@ function PlanRail({
   const chip = (payload: DragPayload) => dragChipProps(payload, dnd?.begin);
 
   const tabs = ["1 · Batches", "2 · Teachers", "3 · Subjects"];
+  const unassigning = Boolean(dnd?.active?.slotId);
 
   return (
-    <aside className="w-full shrink-0 overflow-hidden rounded-lg border border-border bg-card lg:w-64">
+    <aside
+      data-drop-rail="1"
+      className={`w-full shrink-0 overflow-hidden rounded-lg border bg-card transition-colors lg:w-64 ${
+        unassigning
+          ? dnd?.hoverKey === "rail"
+            ? "border-destructive bg-destructive/10"
+            : "border-dashed border-primary"
+          : "border-border"
+      }`}
+    >
+      {unassigning && (
+        <p className="bg-destructive/10 px-2.5 py-1.5 text-center text-[11px] font-medium text-destructive">
+          Drop here to remove this class from the board
+        </p>
+      )}
       <div className="grid grid-cols-3 border-b border-border">
         {tabs.map((t, i) => (
           <button
@@ -698,7 +748,7 @@ function PlanRail({
       </div>
       <p className="border-t border-border px-2.5 py-2 text-[10px] text-muted-foreground">
         Drag onto the board — no long press needed. Step 1 fills the period, steps 2 and 3 drop onto
-        that class.
+        that class. Drag a placed class to another period to move it, or back here to unassign.
       </p>
     </aside>
   );

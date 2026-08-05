@@ -33,8 +33,24 @@ export type LeadStage = (typeof LEAD_STAGES)[number];
 export const BATCH_STATUSES = ["active", "completed", "inactive"] as const;
 export type BatchStatus = (typeof BATCH_STATUSES)[number];
 
-/** Application form class options */
-export const CLASSES = ["8", "9", "10", "11", "12", "JEE", "NEET", "CA", "ICSE", "CBSE"] as const;
+/** Class / grade options (school grades only — programs are a separate field) */
+export const CLASSES = [
+  "Nursery",
+  "LKG",
+  "UKG",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "11",
+  "12",
+] as const;
 
 /** Application form program options */
 export const PROGRAMS = ["JEE Main", "JEE Advanced", "NEET", "CA"] as const;
