@@ -1,0 +1,1 @@
+ALTER TABLE public.institutes ADD COLUMN IF NOT EXISTS logo_url text;
