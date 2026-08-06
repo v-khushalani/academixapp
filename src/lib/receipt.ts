@@ -76,10 +76,11 @@ export function amountInWords(value: number): string {
 }
 
 /** Builds the A5 receipt. Only the amount received on this payment is shown. */
-export function buildReceipt(f: ReceiptInput): { doc: jsPDF; no: string } {
+export async function buildReceipt(f: ReceiptInput): Promise<{ doc: jsPDF; no: string }> {
   const inst = getInstitute();
   const no = receiptNo(f.receipt_no);
   const doc = new jsPDF({ unit: "mm", format: "a5", orientation: "portrait" });
+  const FONT = await useSaira(doc);
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
   const M = 10;
@@ -89,48 +90,60 @@ export function buildReceipt(f: ReceiptInput): { doc: jsPDF; no: string } {
   doc.setFillColor(23, 37, 84);
   doc.rect(0, 0, W, 26, "F");
   doc.setTextColor(255);
-  doc.setFont("helvetica", "bold");
+  let left = M;
+  if (inst.logo_url?.startsWith("data:image")) {
+    try {
+      doc.addImage(inst.logo_url, "PNG", M, 4.5, 17, 17, undefined, "FAST");
+      left = M + 21;
+    } catch {
+      /* unreadable logo — fall back to text-only header */
+    }
+  }
+  doc.setFont(FONT, "bold");
   doc.setFontSize(14);
-  doc.text(inst.name || "Institute", M, 11);
-  doc.setFont("helvetica", "normal");
+  doc.text(inst.name || "Institute", left, 11);
+  doc.setFont(FONT, "normal");
   doc.setFontSize(7.5);
   const contact = [inst.address, [inst.phone, inst.email].filter(Boolean).join("  ·  ")]
     .filter(Boolean)
     .join("\n");
-  if (contact) doc.text(contact, M, 16, { maxWidth: W - 2 * M - 34 });
-  doc.setFont("helvetica", "bold");
+  if (contact) doc.text(contact, left, 16, { maxWidth: W - left - M - 34 });
+  doc.setFont(FONT, "bold");
   doc.setFontSize(9);
   doc.text("FEE RECEIPT", W - M, 11, { align: "right" });
-  doc.setFont("helvetica", "normal");
+  doc.setFont(FONT, "normal");
   doc.setFontSize(7.5);
   if (inst.academic_year) doc.text(`AY ${inst.academic_year}`, W - M, 16, { align: "right" });
 
   // ---- receipt meta ------------------------------------------------------
   doc.setTextColor(20);
   doc.setFontSize(8.5);
-  const paidOn = f.paid_date ?? new Date().toISOString().slice(0, 10);
+  const paidOn = formatDate(f.paid_date ?? new Date());
   doc.text(`Receipt no.  ${no}`, M, 34);
   doc.text(`Date  ${paidOn}`, W - M, 34, { align: "right" });
-  doc.text(`Mode  ${(f.method || "cash").toUpperCase()}`, W - M, 39, { align: "right" });
+  doc.text(`Mode  ${f.method || "Cash"}`, W - M, 39, { align: "right" });
 
   doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT, "bold");
   doc.text(`Received with thanks from ${f.parent_name || f.student_name}`, M, 44);
-  doc.setFont("helvetica", "normal");
+  doc.setFont(FONT, "normal");
 
   // ---- student block -----------------------------------------------------
+  const details: string[][] = [["Student", f.student_name, "Adm. no.", f.admission_no ?? "—"]];
+  const second = [
+    f.class_name ? ["Class", f.class_name] : null,
+    f.batch_name ? ["Batch", f.batch_name] : null,
+  ].filter(Boolean) as string[][];
+  if (second.length) details.push(second.flat().concat(second.length === 1 ? ["", ""] : []));
   autoTable(doc, {
     startY: 48,
     theme: "plain",
-    styles: { fontSize: 8.5, cellPadding: 1.2 },
+    styles: { font: FONT, fontSize: 8.5, cellPadding: 1.2 },
     columnStyles: {
       0: { fontStyle: "bold", cellWidth: 24, textColor: 110 },
       2: { fontStyle: "bold", cellWidth: 24, textColor: 110 },
     },
-    body: [
-      ["Student", f.student_name, "Adm. no.", f.admission_no ?? "—"],
-      ["Class", f.class_name ?? "—", "Batch", f.batch_name ?? "—"],
-    ],
+    body: details,
   });
 
   // ---- amount received ---------------------------------------------------
@@ -139,8 +152,8 @@ export function buildReceipt(f: ReceiptInput): { doc: jsPDF; no: string } {
   autoTable(doc, {
     startY: afterStudent,
     theme: "grid",
-    headStyles: { fillColor: [238, 240, 246], textColor: 30, fontSize: 8.5 },
-    styles: { fontSize: 8.5, cellPadding: 2 },
+    headStyles: { font: FONT, fillColor: [238, 240, 246], textColor: 30, fontSize: 8.5 },
+    styles: { font: FONT, fontSize: 8.5, cellPadding: 2 },
     head: [["Particulars", "Amount received"]],
     body: [[f.description ?? "Tuition fee", rs(received)]],
     columnStyles: {
@@ -152,10 +165,10 @@ export function buildReceipt(f: ReceiptInput): { doc: jsPDF; no: string } {
     ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 80) + 6;
 
   // big headline figure
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT, "bold");
   doc.setFontSize(18);
   doc.text(rs(received), W - M, y + 4, { align: "right" });
-  doc.setFont("helvetica", "normal");
+  doc.setFont(FONT, "normal");
   doc.setFontSize(8);
   doc.setTextColor(110);
   doc.text("AMOUNT RECEIVED", W - M, y + 9, { align: "right" });
@@ -163,9 +176,9 @@ export function buildReceipt(f: ReceiptInput): { doc: jsPDF; no: string } {
   y += 16;
 
   doc.setFontSize(8.5);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT, "bold");
   doc.text(`Amount in words: `, M, y);
-  doc.setFont("helvetica", "normal");
+  doc.setFont(FONT, "normal");
   doc.text(amountInWords(received), M + 26, y, { maxWidth: W - 2 * M - 26 });
 
   // ---- footer ------------------------------------------------------------
@@ -179,15 +192,15 @@ export function buildReceipt(f: ReceiptInput): { doc: jsPDF; no: string } {
 }
 
 /** Generates the receipt PDF and triggers download. Returns the receipt number used. */
-export function downloadReceipt(f: ReceiptInput): string {
-  const { doc, no } = buildReceipt(f);
+export async function downloadReceipt(f: ReceiptInput): Promise<string> {
+  const { doc, no } = await buildReceipt(f);
   doc.save(`${no}.pdf`);
   return no;
 }
 
 /** Receipt as a File, for the native share sheet (WhatsApp attachment). */
-export function receiptFile(f: ReceiptInput): { file: File; no: string } {
-  const { doc, no } = buildReceipt(f);
+export async function receiptFile(f: ReceiptInput): Promise<{ file: File; no: string }> {
+  const { doc, no } = await buildReceipt(f);
   const blob = doc.output("blob");
   return { file: new File([blob], `${no}.pdf`, { type: "application/pdf" }), no };
 }
