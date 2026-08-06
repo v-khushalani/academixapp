@@ -26,6 +26,7 @@ import { can } from "@/lib/rbac";
 import { WA_TEMPLATES, openWhatsApp, renderTemplate } from "@/lib/whatsapp";
 import { getTemplates, getInstitute } from "@/lib/academy-settings";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDate } from "@/lib/dates";
 
 export const Route = createFileRoute("/app/fees")({
   component: FeesPage,
@@ -108,7 +109,7 @@ function FeesPage() {
       header: "Due",
       sortable: true,
       value: (r) => r.due_date ?? "",
-      cell: (r) => r.due_date ?? "—",
+      cell: (r) => formatDate(r.due_date),
     },
     {
       key: "status",
@@ -243,7 +244,7 @@ function FeesPage() {
       amount: inr(Number(r.amount)),
       amount_paid: inr(Number(r.amount_paid)),
       amount_due: inr(Number(r.amount) - Number(r.amount_paid)),
-      due_date: r.due_date ?? "—",
+      due_date: formatDate(r.due_date),
       paid_date: r.paid_date ?? new Date().toISOString().slice(0, 10),
       receipt_no: r.receipt_no ?? "—",
       academy_name: getInstitute().name,

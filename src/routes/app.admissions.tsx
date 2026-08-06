@@ -39,6 +39,7 @@ import { getInstitute } from "@/lib/academy-settings";
 import { ApplicantPreview } from "@/components/app/applicant-preview";
 import { EnquiryRecords } from "@/components/app/enquiry-records";
 import type { Database } from "@/integrations/supabase/types";
+import { formatDate } from "@/lib/dates";
 
 type Stage = Database["public"]["Enums"]["lead_stage"];
 const STAGES: { key: Stage; label: string }[] = [
@@ -402,7 +403,7 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
               </td>
               <td className="px-4 py-3 text-xs text-muted-foreground">
                 {s.onboarding_completed_at
-                  ? new Date(s.onboarding_completed_at).toLocaleDateString()
+                  ? formatDate(s.onboarding_completed_at)
                   : "—"}
               </td>
               <td className="px-4 py-3">

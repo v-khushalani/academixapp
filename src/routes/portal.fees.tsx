@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { feeStats, portalApi } from "@/lib/api/portal";
 import { usePortalStudent, StatTile, PortalCard } from "@/components/portal/portal-shell";
 import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/lib/dates";
 
 export const Route = createFileRoute("/portal/fees")({
   head: () => ({
@@ -60,7 +61,7 @@ function PortalFees() {
                 <div className="min-w-0">
                   <p className="truncate font-medium">{f.description ?? "Fee"}</p>
                   <p className="text-xs text-muted-foreground">
-                    Due {f.due_date ?? "—"}
+                    Due {formatDate(f.due_date)}
                     {f.receipt_no ? ` · Receipt ${f.receipt_no}` : ""}
                   </p>
                 </div>
