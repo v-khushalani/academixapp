@@ -5,6 +5,48 @@ import { cn } from "@/lib/utils";
 
 export const inr = (n: number) => "₹" + Math.round(Number(n) || 0).toLocaleString("en-IN");
 
+/** Oversized headline figure. No card chrome — whitespace does the work. */
+export function HeroStat({
+  label,
+  value,
+  tone = "default",
+  to,
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "success" | "warning" | "danger";
+  to?: string;
+}) {
+  const toneCls = {
+    default: "text-foreground",
+    success: "text-success",
+    warning: "text-warning",
+    danger: "text-destructive",
+  } as const;
+  const body = (
+    <>
+      <p
+        className={cn(
+          "truncate text-3xl font-semibold tabular-nums tracking-tight sm:text-4xl",
+          toneCls[tone],
+        )}
+      >
+        {value}
+      </p>
+      <p className="mt-1 truncate text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+        {label}
+      </p>
+    </>
+  );
+  return to ? (
+    <Link to={to} className="min-w-0 transition-opacity hover:opacity-70">
+      {body}
+    </Link>
+  ) : (
+    <div className="min-w-0">{body}</div>
+  );
+}
+
 export function Panel({
   title,
   action,

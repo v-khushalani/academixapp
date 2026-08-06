@@ -37,6 +37,8 @@ import {
   type Shifts,
 } from "@/lib/academy-settings";
 import { WA_TEMPLATES, type WhatsAppTemplateKey } from "@/lib/whatsapp";
+import { InstallmentPlanEditor } from "@/components/app/installment-plan-editor";
+import { DEFAULT_PLAN, type Installment } from "@/lib/installments";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/app/settings")({
@@ -525,7 +527,50 @@ function RoomsPanel() {
 }
 
 function FeesPanel() {
-  return <FeesPanelInner />;
+  return (
+    <>
+      <InstallmentDefaultsPanel />
+      <FeesPanelInner />
+    </>
+  );
+}
+
+/** Institute-wide default installment schedule; batches can override it. */
+function InstallmentDefaultsPanel() {
+  const [plan, setPlan] = useState<Installment[]>(() => getInstitute().installment_plan);
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    setSaving(true);
+    try {
+      await saveInstitute({ ...getInstitute(), installment_plan: plan });
+      toast.success("Installment plan saved");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card
+      title="Installment plan (default)"
+      description="How every batch fee is split and when each part falls due. A batch can override this from its own edit dialog."
+    >
+      <InstallmentPlanEditor plan={plan} onChange={setPlan} />
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button size="sm" disabled={saving} onClick={save}>
+          {saving ? "Saving…" : "Save plan"}
+        </Button>
+        <Button size="sm" variant="outline" disabled={saving} onClick={() => setPlan(DEFAULT_PLAN)}>
+          Reset to 50 / 50
+        </Button>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        New admissions get one bill per installment with the due date calculated automatically.
+      </p>
+    </Card>
+  );
 }
 
 /** Default class timings for the timetable — set once, tweak whenever. */

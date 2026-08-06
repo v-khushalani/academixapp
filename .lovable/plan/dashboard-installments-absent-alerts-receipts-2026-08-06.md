@@ -20,6 +20,7 @@ Behind on syllabus: 9th SSC 32%  ·  10th CBSE 48%
 ```
 
 Rules for the rebuild:
+
 - One hero row of four numbers in oversized type; whitespace does the work, no boxes inside boxes.
 - Exactly two panels below: "Needs you now" (max four clickable action rows) and "Money".
 - One slim strip for syllabus showing only batches that are behind; upcoming tests becomes a single-line footnote.
@@ -29,6 +30,7 @@ Rules for the rebuild:
 ## 2. Batch-wise installment schedule
 
 An institute-level default plan, overridable per batch:
+
 - The default plan lives on the institute: how many installments, and each one's share and due rule.
 - Each installment is due either "N days after admission" or "N days after batch start".
 - Example default: 2 installments — 1st 50% due 7 days after admission, 2nd 50% due 90 days after batch start.
@@ -58,4 +60,6 @@ An institute-level default plan, overridable per batch:
 - The fee-generation trigger on batch assignment is updated to expand the plan into multiple rows.
 - `src/routes/app.index.tsx` and `src/components/app/dashboard/dashboard-cards.tsx` are rewritten using semantic tokens only.
 - `src/lib/receipt.ts`: register a Unicode TTF in jsPDF for numerals and the rupee glyph; drop the billed/balance columns.
-- `src/components/app/payment-dialog.tsx`: two-phase state (collect -> receipt).
+- `src/components/app/payment-dialog.tsx`: two-phase state (collect -> receipt).  
+  
+ALSO, JAB FEES MEIN QR DE RAHE HAI TOH PURA AMOUNT DELETE NAHI HO RAHA HAI...HAMESHA AISA THODI HOGA KI PARENT PURA AMOUNT ONE TIME MEIN HI KARE...HUM AMOUNT APNE ACCORDING MODIFY KAREIN AND JAB SEND WHATSAPP KAR RAHE HAI...TOH QR BHI JAANA CHAHIYE, NOT JUST LINK

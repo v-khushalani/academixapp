@@ -22,6 +22,7 @@ export type Database = {
           id: string
           institute_id: string
           marked_by: string | null
+          notified_at: string | null
           remarks: string | null
           status: Database["public"]["Enums"]["attendance_status"]
           student_id: string
@@ -34,6 +35,7 @@ export type Database = {
           id?: string
           institute_id?: string
           marked_by?: string | null
+          notified_at?: string | null
           remarks?: string | null
           status: Database["public"]["Enums"]["attendance_status"]
           student_id: string
@@ -46,6 +48,7 @@ export type Database = {
           id?: string
           institute_id?: string
           marked_by?: string | null
+          notified_at?: string | null
           remarks?: string | null
           status?: Database["public"]["Enums"]["attendance_status"]
           student_id?: string
@@ -138,6 +141,7 @@ export type Database = {
           end_date: string | null
           faculty_id: string | null
           id: string
+          installment_plan: Json | null
           institute_id: string
           name: string
           notes: string | null
@@ -156,6 +160,7 @@ export type Database = {
           end_date?: string | null
           faculty_id?: string | null
           id?: string
+          installment_plan?: Json | null
           institute_id?: string
           name: string
           notes?: string | null
@@ -174,6 +179,7 @@ export type Database = {
           end_date?: string | null
           faculty_id?: string | null
           id?: string
+          installment_plan?: Json | null
           institute_id?: string
           name?: string
           notes?: string | null
@@ -421,6 +427,8 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          installment_no: number
+          installment_of: number
           institute_id: string
           method: string | null
           paid_date: string | null
@@ -437,6 +445,8 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          installment_no?: number
+          installment_of?: number
           institute_id?: string
           method?: string | null
           paid_date?: string | null
@@ -453,6 +463,8 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          installment_no?: number
+          installment_of?: number
           institute_id?: string
           method?: string | null
           paid_date?: string | null
@@ -549,6 +561,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          installment_plan: Json
           name: string
           phone: string | null
           plan: string
@@ -568,6 +581,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          installment_plan?: Json
           name: string
           phone?: string | null
           plan?: string
@@ -587,6 +601,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          installment_plan?: Json
           name?: string
           phone?: string | null
           plan?: string
@@ -1811,6 +1826,7 @@ export type Database = {
       }
       is_my_student: { Args: { _student_id: string }; Returns: boolean }
       is_superadmin: { Args: never; Returns: boolean }
+      mark_attendance_notified: { Args: { _ids: string[] }; Returns: undefined }
       my_batch_ids: { Args: never; Returns: string[] }
       my_faculty_batch_ids: { Args: never; Returns: string[] }
       set_student_approval: {

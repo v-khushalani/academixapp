@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { inr, upiLink } from "@/lib/payments";
-import { downloadReceipt, type ReceiptInput } from "@/lib/receipt";
+import { downloadReceipt, receiptFile, type ReceiptInput } from "@/lib/receipt";
 import { getInstitute } from "@/lib/academy-settings";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { feesApi } from "@/lib/api";
@@ -43,16 +43,17 @@ export function PaymentDialog({
 }) {
   const dueDefault = target ? Math.max(Number(target.amount) - Number(target.amount_paid), 0) : 0;
   const [amount, setAmount] = useState<string>("");
+  const [collected, setCollected] = useState<number | null>(null);
   const value = amount === "" ? dueDefault : Number(amount);
   const inst = getInstitute();
   const refresh = useRefreshLinked();
 
   const collect = useMutation({
     mutationFn: (v: { id: string; received: number }) => feesApi.collect(v.id, v.received, "upi"),
-    onSuccess: () => {
+    onSuccess: (_d, v) => {
       toast.success("Payment recorded");
       refresh();
-      onOpenChange(false);
+      setCollected(v.received);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -78,14 +79,77 @@ export function PaymentDialog({
     batch_name: target.batch_name,
     description: target.description,
     amount: Number(target.amount),
-    amount_paid: Number(target.amount_paid),
+    amount_paid: Number(target.amount_paid) + (collected ?? 0),
     due_date: target.due_date,
-    paid_date: target.paid_date,
+    paid_date: new Date().toISOString().slice(0, 10),
     method: "UPI / Cash",
+    received_now: collected ?? 0,
   };
 
+  function close() {
+    setAmount("");
+    setCollected(null);
+    onOpenChange(false);
+  }
+
+  async function sendReceipt() {
+    const { file, no } = receiptFile(receipt);
+    const text = `Receipt ${no} — ${inr(collected ?? 0)} received towards ${target!.student_name}'s fees. Thank you. — ${inst.name}`;
+    const nav = navigator as Navigator & {
+      canShare?: (d: { files?: File[] }) => boolean;
+      share?: (d: { files?: File[]; text?: string; title?: string }) => Promise<void>;
+    };
+    if (nav.canShare?.({ files: [file] }) && nav.share) {
+      try {
+        await nav.share({ files: [file], text, title: `Receipt ${no}` });
+        return;
+      } catch {
+        /* user cancelled — fall through to WhatsApp text */
+      }
+    }
+    downloadReceipt(receipt);
+    if (!openWhatsApp(target!.phone, `${text}\n\n(Receipt PDF attached from your downloads.)`))
+      toast.error("No phone number on file.");
+  }
+
+  // ---- phase 2: money is in, now the receipt ------------------------------
+  if (collected !== null) {
+    return (
+      <Dialog open onOpenChange={(v) => !v && close()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-success" /> {inr(collected)} received
+            </DialogTitle>
+            <DialogDescription>
+              {target.student_name} · {new Date().toLocaleDateString("en-IN")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Button
+              variant="secondary"
+              className="w-full gap-1.5"
+              onClick={() => {
+                const no = downloadReceipt(receipt);
+                toast.success(`Receipt ${no} downloaded`);
+              }}
+            >
+              <Download className="h-4 w-4" /> Download receipt (PDF)
+            </Button>
+            <Button className="w-full gap-1.5" onClick={sendReceipt}>
+              <MessageCircle className="h-4 w-4" /> Send receipt on WhatsApp
+            </Button>
+            <Button variant="ghost" className="w-full" onClick={close}>
+              Done
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={Boolean(target)} onOpenChange={onOpenChange}>
+    <Dialog open onOpenChange={(v) => !v && close()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -146,17 +210,6 @@ export function PaymentDialog({
           )}
 
           <Button
-            variant="secondary"
-            className="w-full gap-1.5"
-            onClick={() => {
-              const no = downloadReceipt(receipt);
-              toast.success(`Receipt ${no} downloaded`);
-            }}
-          >
-            <Download className="h-4 w-4" /> Download receipt (PDF)
-          </Button>
-
-          <Button
             className="w-full gap-1.5"
             disabled={collect.isPending || value <= 0}
             onClick={() => collect.mutate({ id: target.id, received: value })}
@@ -164,6 +217,9 @@ export function PaymentDialog({
             <Check className="h-4 w-4" />
             {collect.isPending ? "Saving…" : `Mark ${inr(value)} received`}
           </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            Receipt banega payment mark karne ke baad.
+          </p>
         </div>
       </DialogContent>
     </Dialog>

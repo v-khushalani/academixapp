@@ -21,6 +21,10 @@ import { batchesApi, type Batch, type BatchInsert } from "@/lib/api";
 import { CLASSES } from "@/lib/constants";
 import { Field as F } from "@/components/app/field";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
+import { InstallmentPlanEditor } from "@/components/app/installment-plan-editor";
+import { normalisePlan, type Installment } from "@/lib/installments";
+import { getInstitute } from "@/lib/academy-settings";
+import { Button as UIButton } from "@/components/ui/button";
 
 type Props = { open: boolean; onOpenChange: (v: boolean) => void; batch?: Batch | null };
 
@@ -34,9 +38,13 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
     default_fee: 0,
     class_level: null,
   });
+  const [customPlan, setCustomPlan] = useState<Installment[] | null>(null);
 
   useEffect(() => {
-    if (batch)
+    if (batch) {
+      setCustomPlan(
+        normalisePlan(batch.installment_plan).length ? normalisePlan(batch.installment_plan) : null,
+      );
       setF({
         name: batch.name,
         capacity: batch.capacity,
@@ -49,8 +57,10 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
         notes: batch.notes ?? "",
         default_fee: batch.default_fee ?? 0,
       });
-    else if (open)
+    } else if (open) {
+      setCustomPlan(null);
       setF({ name: "", capacity: 30, status: "active", default_fee: 0, class_level: null });
+    }
   }, [batch, open]);
 
   const mutation = useMutation({
@@ -73,7 +83,10 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
         <form
           onSubmit={(e: FormEvent) => {
             e.preventDefault();
-            mutation.mutate(f);
+            mutation.mutate({
+              ...f,
+              installment_plan: (customPlan ?? null) as unknown as never,
+            });
           }}
           className="grid gap-3 sm:grid-cols-2"
         >
@@ -131,6 +144,40 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
               Auto-applied to every student in this batch. Scholarship/discount per student adjusts
               it.
             </p>
+          </F>
+          <F label="Installments" cls="sm:col-span-2">
+            {customPlan ? (
+              <>
+                <InstallmentPlanEditor plan={customPlan} onChange={setCustomPlan} />
+                <UIButton
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="mt-1 self-start"
+                  onClick={() => setCustomPlan(null)}
+                >
+                  Use institute default instead
+                </UIButton>
+              </>
+            ) : (
+              <div className="rounded-md border border-dashed border-border p-3">
+                <p className="text-xs text-muted-foreground">
+                  Using the institute default:{" "}
+                  {getInstitute()
+                    .installment_plan.map((p) => `${p.share}% ${p.days}d`)
+                    .join(" · ")}
+                </p>
+                <UIButton
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="mt-2"
+                  onClick={() => setCustomPlan(getInstitute().installment_plan)}
+                >
+                  Customise for this batch
+                </UIButton>
+              </div>
+            )}
           </F>
           <F label="Status">
             <Select

@@ -3,6 +3,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { WA_TEMPLATES, type WhatsAppTemplateKey } from "./whatsapp";
+import { DEFAULT_PLAN, normalisePlan, type Installment } from "./installments";
 
 export type Shift = { start: string; end: string; period: number };
 export type Shifts = { morning: Shift; evening: Shift };
@@ -19,6 +20,7 @@ export type InstituteSettings = {
   upi_id: string; // e.g. institute@okhdfcbank — used for fee QR codes
   upi_name: string; // payee name shown in the UPI app
   shifts: Shifts; // timetable morning / evening windows
+  installment_plan: Installment[]; // default fee installment schedule
 };
 
 const KEY_INSTITUTE = "vk_institute";
@@ -41,6 +43,7 @@ const DEFAULT_INSTITUTE: InstituteSettings = {
   upi_id: "",
   upi_name: "",
   shifts: DEFAULT_SHIFTS,
+  installment_plan: DEFAULT_PLAN,
 };
 
 function safeRead<T>(key: string): Partial<T> {
@@ -61,6 +64,9 @@ export function getInstitute(): InstituteSettings {
       morning: { ...DEFAULT_SHIFTS.morning, ...(stored.shifts?.morning ?? {}) },
       evening: { ...DEFAULT_SHIFTS.evening, ...(stored.shifts?.evening ?? {}) },
     },
+    installment_plan: normalisePlan(stored.installment_plan).length
+      ? normalisePlan(stored.installment_plan)
+      : DEFAULT_PLAN,
   };
 }
 
@@ -88,6 +94,7 @@ export async function saveInstitute(s: InstituteSettings) {
       upi_id: s.upi_id || null,
       upi_name: s.upi_name || null,
       shifts: s.shifts ?? DEFAULT_SHIFTS,
+      installment_plan: (s.installment_plan?.length ? s.installment_plan : DEFAULT_PLAN) as unknown as never,
     })
     .eq("id", row.id);
   if (error) throw error;
@@ -98,7 +105,7 @@ export async function hydrateInstitute() {
   const { data } = await supabase
     .from("institutes")
     .select(
-      "name, slug, tagline, address, phone, email, academic_year, primary_color, upi_id, upi_name, shifts",
+      "name, slug, tagline, address, phone, email, academic_year, primary_color, upi_id, upi_name, shifts, installment_plan",
     )
     .maybeSingle();
   if (!data) return;
