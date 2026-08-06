@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getInstitute } from "./academy-settings";
-import { inr, receiptNo, upiLink } from "./payments";
+import { receiptNo } from "./payments";
 
 export type ReceiptInput = {
   receipt_no?: string | null;
