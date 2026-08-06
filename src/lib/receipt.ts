@@ -19,6 +19,12 @@ export type ReceiptInput = {
   received_now?: number | null;
 };
 
+/**
+ * jsPDF's built-in fonts are WinAnsi only — the ₹ glyph is missing there and comes
+ * out as a distorted box, so every printed amount uses the ASCII "Rs." form.
+ */
+const rs = (n: number) => "Rs. " + Math.round(Number(n) || 0).toLocaleString("en-IN");
+
 const ONES = [
   "",
   "One",
@@ -70,8 +76,8 @@ export function amountInWords(value: number): string {
   return `${parts.join(" ")} rupees only`;
 }
 
-/** Generates an A5 fee receipt PDF and triggers download. Returns the receipt number used. */
-export function downloadReceipt(f: ReceiptInput): string {
+/** Builds the A5 receipt. Only the amount received on this payment is shown. */
+export function buildReceipt(f: ReceiptInput): { doc: jsPDF; no: string } {
   const inst = getInstitute();
   const no = receiptNo(f.receipt_no);
   const doc = new jsPDF({ unit: "mm", format: "a5", orientation: "portrait" });
@@ -79,7 +85,6 @@ export function downloadReceipt(f: ReceiptInput): string {
   const H = doc.internal.pageSize.getHeight();
   const M = 10;
   const received = Number(f.received_now ?? f.amount_paid) || 0;
-  const balance = Math.max(0, Number(f.amount) - Number(f.amount_paid));
 
   // ---- header band -------------------------------------------------------
   doc.setFillColor(23, 37, 84);
@@ -129,7 +134,7 @@ export function downloadReceipt(f: ReceiptInput): string {
     ],
   });
 
-  // ---- particulars -------------------------------------------------------
+  // ---- amount received ---------------------------------------------------
   const afterStudent =
     ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 60) + 3;
   autoTable(doc, {
@@ -137,49 +142,32 @@ export function downloadReceipt(f: ReceiptInput): string {
     theme: "grid",
     headStyles: { fillColor: [238, 240, 246], textColor: 30, fontSize: 8.5 },
     styles: { fontSize: 8.5, cellPadding: 2 },
-    head: [["Particulars", "Billed", "Received", "Balance"]],
-    body: [
-      [
-        f.description ?? "Tuition fee",
-        inr(Number(f.amount)),
-        inr(received),
-        inr(balance),
-      ],
-    ],
+    head: [["Particulars", "Amount received"]],
+    body: [[f.description ?? "Tuition fee", rs(received)]],
     columnStyles: {
-      1: { halign: "right", cellWidth: 24 },
-      2: { halign: "right", cellWidth: 24 },
-      3: { halign: "right", cellWidth: 24 },
+      1: { halign: "right", cellWidth: 34, fontStyle: "bold" },
     },
   });
 
   let y =
     ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 80) + 6;
+
+  // big headline figure
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+  doc.text(rs(received), W - M, y + 4, { align: "right" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(110);
+  doc.text("AMOUNT RECEIVED", W - M, y + 9, { align: "right" });
+  doc.setTextColor(20);
+  y += 16;
+
   doc.setFontSize(8.5);
   doc.setFont("helvetica", "bold");
   doc.text(`Amount in words: `, M, y);
   doc.setFont("helvetica", "normal");
   doc.text(amountInWords(received), M + 26, y, { maxWidth: W - 2 * M - 26 });
-  y += 6;
-  if (balance > 0) {
-    doc.setTextColor(180, 60, 40);
-    doc.text(
-      `Balance ${inr(balance)}${f.due_date ? ` · due by ${f.due_date}` : ""}`,
-      M,
-      y,
-    );
-    doc.setTextColor(20);
-    y += 6;
-  }
-
-  // ---- UPI note ----------------------------------------------------------
-  const upi = upiLink({ amount: balance, note: `Fees ${f.student_name}`, refId: no });
-  if (upi && balance > 0) {
-    doc.setFontSize(7.5);
-    doc.setTextColor(110);
-    doc.text(`Pay the balance on UPI: ${inst.upi_id}`, M, y);
-    doc.setTextColor(20);
-  }
 
   // ---- footer ------------------------------------------------------------
   doc.setDrawColor(220);
@@ -188,6 +176,19 @@ export function downloadReceipt(f: ReceiptInput): string {
   doc.setTextColor(120);
   doc.text("This is a computer-generated receipt.", M, H - 14);
   doc.text("Authorised signatory", W - M, H - 14, { align: "right" });
+  return { doc, no };
+}
+
+/** Generates the receipt PDF and triggers download. Returns the receipt number used. */
+export function downloadReceipt(f: ReceiptInput): string {
+  const { doc, no } = buildReceipt(f);
   doc.save(`${no}.pdf`);
   return no;
+}
+
+/** Receipt as a File, for the native share sheet (WhatsApp attachment). */
+export function receiptFile(f: ReceiptInput): { file: File; no: string } {
+  const { doc, no } = buildReceipt(f);
+  const blob = doc.output("blob");
+  return { file: new File([blob], `${no}.pdf`, { type: "application/pdf" }), no };
 }
