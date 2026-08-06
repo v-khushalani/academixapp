@@ -37,6 +37,8 @@ import {
   type Shifts,
 } from "@/lib/academy-settings";
 import { WA_TEMPLATES, type WhatsAppTemplateKey } from "@/lib/whatsapp";
+import { InstallmentPlanEditor } from "@/components/app/installment-plan-editor";
+import { DEFAULT_PLAN, type Installment } from "@/lib/installments";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/app/settings")({
