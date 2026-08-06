@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { QRCodeSVG } from "qrcode.react";
+import { QRCodeCanvas } from "qrcode.react";
 import { toast } from "sonner";
 import { Check, Copy, Download, MessageCircle, QrCode } from "lucide-react";
 import {
@@ -13,9 +13,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { inr, upiLink } from "@/lib/payments";
 import { downloadReceipt, receiptFile, type ReceiptInput } from "@/lib/receipt";
 import { getInstitute } from "@/lib/academy-settings";
+import { formatDate } from "@/lib/dates";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { feesApi } from "@/lib/api";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
@@ -24,6 +32,7 @@ export type PaymentTarget = {
   id: string;
   student_name: string;
   admission_no?: string | null;
+  class_name?: string | null;
   batch_name?: string | null;
   description?: string | null;
   amount: number;
@@ -34,6 +43,8 @@ export type PaymentTarget = {
   phone?: string | null;
 };
 
+const MODES = ["Cash", "UPI", "Bank transfer", "Cheque", "Card"] as const;
+
 export function PaymentDialog({
   target,
   onOpenChange,
@@ -42,14 +53,24 @@ export function PaymentDialog({
   onOpenChange: (v: boolean) => void;
 }) {
   const dueDefault = target ? Math.max(Number(target.amount) - Number(target.amount_paid), 0) : 0;
-  const [amount, setAmount] = useState<string>("");
+  const [amount, setAmount] = useState<string>(dueDefault ? String(dueDefault) : "");
+  const [mode, setMode] = useState<string>("Cash");
   const [collected, setCollected] = useState<number | null>(null);
-  const value = amount === "" ? dueDefault : Number(amount);
+  const value = Number(amount) || 0;
   const inst = getInstitute();
   const refresh = useRefreshLinked();
+  const qrRef = useRef<HTMLDivElement>(null);
+
+  // Pre-fill the pending amount whenever a new fee row is opened; after that the
+  // field is fully the user's — they can clear it down to the last digit.
+  useEffect(() => {
+    setAmount(dueDefault ? String(dueDefault) : "");
+    setMode("Cash");
+    setCollected(null);
+  }, [target?.id, dueDefault]);
 
   const collect = useMutation({
-    mutationFn: (v: { id: string; received: number }) => feesApi.collect(v.id, v.received, "upi"),
+    mutationFn: (v: { id: string; received: number }) => feesApi.collect(v.id, v.received, mode),
     onSuccess: (_d, v) => {
       toast.success("Payment recorded");
       refresh();
@@ -76,24 +97,63 @@ export function PaymentDialog({
     receipt_no: target.receipt_no,
     student_name: target.student_name,
     admission_no: target.admission_no,
+    class_name: target.class_name,
     batch_name: target.batch_name,
     description: target.description,
     amount: Number(target.amount),
     amount_paid: Number(target.amount_paid) + (collected ?? 0),
     due_date: target.due_date,
     paid_date: new Date().toISOString().slice(0, 10),
-    method: "UPI / Cash",
+    method: mode,
     received_now: collected ?? 0,
   };
 
   function close() {
-    setAmount("");
+    setAmount(dueDefault ? String(dueDefault) : "");
     setCollected(null);
     onOpenChange(false);
   }
 
+  /** The rendered QR as a PNG File, so WhatsApp gets an image, not a raw link. */
+  async function qrImage(): Promise<File | null> {
+    const canvas = qrRef.current?.querySelector("canvas");
+    if (!canvas) return null;
+    const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
+    if (!blob) return null;
+    return new File([blob], `pay-${target!.student_name.replace(/\s+/g, "-")}.png`, {
+      type: "image/png",
+    });
+  }
+
+  async function sendPaymentQr() {
+    const caption = `Hello, please pay ${inr(value)} towards ${target!.student_name}'s fees.\n\nScan the attached QR with any UPI app.\nUPI ID: ${inst.upi_id}\n\n— ${inst.name}`;
+    const img = await qrImage();
+    const nav = navigator as Navigator & {
+      canShare?: (d: { files?: File[] }) => boolean;
+      share?: (d: { files?: File[]; text?: string; title?: string }) => Promise<void>;
+    };
+    if (img && nav.canShare?.({ files: [img] }) && nav.share) {
+      try {
+        await nav.share({ files: [img], text: caption, title: "Payment QR" });
+        return;
+      } catch {
+        /* cancelled — fall through */
+      }
+    }
+    if (img) {
+      const url = URL.createObjectURL(img);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = img.name;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("QR image saved — attach it in WhatsApp");
+    }
+    if (!openWhatsApp(target!.phone, caption)) toast.error("No phone number on file.");
+  }
+
   async function sendReceipt() {
-    const { file, no } = receiptFile(receipt);
+    const { file, no } = await receiptFile(receipt);
     const text = `Receipt ${no} — ${inr(collected ?? 0)} received towards ${target!.student_name}'s fees. Thank you. — ${inst.name}`;
     const nav = navigator as Navigator & {
       canShare?: (d: { files?: File[] }) => boolean;
@@ -107,7 +167,7 @@ export function PaymentDialog({
         /* user cancelled — fall through to WhatsApp text */
       }
     }
-    downloadReceipt(receipt);
+    await downloadReceipt(receipt);
     if (!openWhatsApp(target!.phone, `${text}\n\n(Receipt PDF attached from your downloads.)`))
       toast.error("No phone number on file.");
   }
@@ -122,15 +182,15 @@ export function PaymentDialog({
               <Check className="h-4 w-4 text-success" /> {inr(collected)} received
             </DialogTitle>
             <DialogDescription>
-              {target.student_name} · {new Date().toLocaleDateString("en-IN")}
+              {target.student_name} · {formatDate(new Date())} · {mode}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
             <Button
               variant="secondary"
               className="w-full gap-1.5"
-              onClick={() => {
-                const no = downloadReceipt(receipt);
+              onClick={async () => {
+                const no = await downloadReceipt(receipt);
                 toast.success(`Receipt ${no} downloaded`);
               }}
             >
@@ -161,19 +221,43 @@ export function PaymentDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label>Amount to collect</Label>
-            <Input
-              type="number"
-              min={1}
-              value={amount === "" ? String(dueDefault) : amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Amount to collect</Label>
+              <Input
+                type="text"
+                inputMode="numeric"
+                placeholder="0"
+                value={amount}
+                onFocus={(e) => {
+                  const el = e.currentTarget;
+                  requestAnimationFrame(() => el.setSelectionRange(el.value.length, el.value.length));
+                }}
+                onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ""))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Payment mode</Label>
+              <Select value={mode} onValueChange={setMode}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MODES.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {link ? (
             <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card p-4">
-              <QRCodeSVG value={link} size={168} includeMargin />
+              <div ref={qrRef}>
+                <QRCodeCanvas value={link} size={168} includeMargin />
+              </div>
               <p className="text-center text-xs text-muted-foreground">
                 Scan with any UPI app · pays {inst.upi_id}
               </p>
@@ -189,16 +273,8 @@ export function PaymentDialog({
                 >
                   <Copy className="h-3.5 w-3.5" /> Copy link
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 gap-1.5"
-                  onClick={() => {
-                    const msg = `Hello, please pay ${inr(value)} towards ${target.student_name}'s fees.\n\nUPI ID: ${inst.upi_id}\nPay link: ${link}\n\n— ${inst.name}`;
-                    if (!openWhatsApp(target.phone, msg)) toast.error("No phone number on file.");
-                  }}
-                >
-                  <MessageCircle className="h-3.5 w-3.5" /> Send on WhatsApp
+                <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={sendPaymentQr}>
+                  <MessageCircle className="h-3.5 w-3.5" /> Send QR on WhatsApp
                 </Button>
               </div>
             </div>
