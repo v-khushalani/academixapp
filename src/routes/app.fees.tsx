@@ -187,12 +187,13 @@ function FeesPage() {
   async function openCollect(r: Row) {
     const { data } = await supabase
       .from("students")
-      .select("full_name, admission_no, parent_phone, phone, preferred_contact, father_phone, mother_phone, batch:batches(name)")
+      .select("full_name, admission_no, class, parent_phone, phone, preferred_contact, father_phone, mother_phone, batch:batches(name)")
       .eq("id", r.student_id)
       .maybeSingle();
     const s = data as {
       full_name?: string;
       admission_no?: string | null;
+      class?: string | null;
       parent_phone?: string | null;
       phone?: string | null;
       preferred_contact?: string | null;
@@ -206,6 +207,7 @@ function FeesPage() {
       id: r.id,
       student_name: s?.full_name ?? r.student?.full_name ?? "Student",
       admission_no: s?.admission_no ?? r.student?.admission_no ?? null,
+      class_name: s?.class ?? null,
       batch_name: s?.batch?.name ?? null,
       description: r.description,
       amount: Number(r.amount),
