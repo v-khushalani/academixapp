@@ -397,6 +397,36 @@ export const attendanceApi = {
       .upsert(rows, { onConflict: "student_id,date" });
     if (error) throw error;
   },
+  /** Absentees for a day that the office has not messaged yet. */
+  async absentees(date: string) {
+    const { data, error } = await supabase
+      .from("attendance")
+      .select(
+        "id, date, notified_at, batch:batches(name), student:students(id, full_name, parent_name, parent_phone, phone)",
+      )
+      .eq("date", date)
+      .eq("status", "absent")
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return (data ?? []) as {
+      id: string;
+      date: string;
+      notified_at: string | null;
+      batch?: { name?: string } | null;
+      student?: {
+        id: string;
+        full_name: string;
+        parent_name: string | null;
+        parent_phone: string | null;
+        phone: string | null;
+      } | null;
+    }[];
+  },
+  async markNotified(ids: string[]) {
+    if (!ids.length) return;
+    const { error } = await supabase.rpc("mark_attendance_notified", { _ids: ids });
+    if (error) throw error;
+  },
 };
 
 // ---------- Dashboard ----------
