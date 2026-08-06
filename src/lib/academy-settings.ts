@@ -17,6 +17,7 @@ export type InstituteSettings = {
   email: string;
   academic_year: string;
   primary_color: string; // hex like #4f46e5
+  logo_url: string; // data URL of the institute logo (shown in app + receipts)
   upi_id: string; // e.g. institute@okhdfcbank — used for fee QR codes
   upi_name: string; // payee name shown in the UPI app
   shifts: Shifts; // timetable morning / evening windows
@@ -40,6 +41,7 @@ const DEFAULT_INSTITUTE: InstituteSettings = {
   email: "",
   academic_year: `${new Date().getFullYear()}-${String((new Date().getFullYear() + 1) % 100).padStart(2, "0")}`,
   primary_color: "",
+  logo_url: "",
   upi_id: "",
   upi_name: "",
   shifts: DEFAULT_SHIFTS,
@@ -91,6 +93,7 @@ export async function saveInstitute(s: InstituteSettings) {
       email: s.email || null,
       academic_year: s.academic_year || null,
       primary_color: s.primary_color || null,
+      logo_url: s.logo_url || null,
       upi_id: s.upi_id || null,
       upi_name: s.upi_name || null,
       shifts: s.shifts ?? DEFAULT_SHIFTS,
@@ -105,7 +108,7 @@ export async function hydrateInstitute() {
   const { data } = await supabase
     .from("institutes")
     .select(
-      "name, slug, tagline, address, phone, email, academic_year, primary_color, upi_id, upi_name, shifts, installment_plan",
+      "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan",
     )
     .maybeSingle();
   if (!data) return;
