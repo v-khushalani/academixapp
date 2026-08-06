@@ -9,6 +9,7 @@ import { canAccess } from "@/lib/rbac";
 import { getInstitute } from "@/lib/academy-settings";
 import { AbsentAlerts } from "@/components/app/absent-alerts";
 import { Panel, Bar, ActionRow, HeroStat, inr } from "@/components/app/dashboard/dashboard-cards";
+import { formatDate } from "@/lib/dates";
 
 export const Route = createFileRoute("/app/")({
   component: DashboardPage,
@@ -65,11 +66,7 @@ function DashboardPage() {
             {greeting()}, {name.split(" ")[0]}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {new Date().toLocaleDateString("en-IN", {
-              weekday: "short",
-              day: "numeric",
-              month: "short",
-            })}{" "}
+            {formatDate(new Date())}{" "}
             · {institute}
           </p>
         </header>
