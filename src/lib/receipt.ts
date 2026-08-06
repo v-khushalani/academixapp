@@ -2,6 +2,8 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getInstitute } from "./academy-settings";
 import { receiptNo } from "./payments";
+import { useSaira } from "./pdf-font";
+import { formatDate } from "./dates";
 
 export type ReceiptInput = {
   receipt_no?: string | null;
@@ -19,11 +21,8 @@ export type ReceiptInput = {
   received_now?: number | null;
 };
 
-/**
- * jsPDF's built-in fonts are WinAnsi only — the ₹ glyph is missing there and comes
- * out as a distorted box, so every printed amount uses the ASCII "Rs." form.
- */
-const rs = (n: number) => "Rs. " + Math.round(Number(n) || 0).toLocaleString("en-IN");
+/** Saira is embedded in the PDF, so the ₹ glyph renders correctly. */
+const rs = (n: number) => "₹" + Math.round(Number(n) || 0).toLocaleString("en-IN");
 
 const ONES = [
   "",
