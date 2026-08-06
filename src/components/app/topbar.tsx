@@ -11,13 +11,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { useNavigate } from "@tanstack/react-router";
+import { formatDate } from "@/lib/dates";
 
 function today() {
-  return new Date().toLocaleDateString("en-IN", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
+  const d = new Date();
+  return `${d.toLocaleDateString("en-IN", { weekday: "short" })}, ${formatDate(d)}`;
 }
 
 export function TopBar() {

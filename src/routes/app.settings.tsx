@@ -116,6 +116,29 @@ function InstitutePanel() {
   useEffect(() => {
     setS(getInstitute());
   }, []);
+
+  /** Logos are downscaled to a 256px PNG and stored inline, so they work offline and in PDFs. */
+  function pickLogo(file?: File | null) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const size = 256;
+        const scale = Math.min(size / img.width, size / img.height, 1);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setS((prev) => ({ ...prev, logo_url: canvas.toDataURL("image/png") }));
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
   async function submit(e: FormEvent) {
     e.preventDefault();
     try {
@@ -131,6 +154,39 @@ function InstitutePanel() {
       description="Used across receipts, WhatsApp messages, and printed reports."
     >
       <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
+        <div className="sm:col-span-2 flex items-center gap-4 rounded-lg border border-border p-3">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
+            {s.logo_url ? (
+              <img src={s.logo_url} alt="Institute logo" className="h-full w-full object-contain" />
+            ) : (
+              <span className="text-xs text-muted-foreground">No logo</span>
+            )}
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium">Institute logo</p>
+            <p className="text-xs text-muted-foreground">
+              Shown in the sidebar, receipts and shared reports. PNG or JPG, square works best.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="h-9 max-w-[220px] text-xs"
+                onChange={(e) => pickLogo(e.target.files?.[0])}
+              />
+              {s.logo_url && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setS({ ...s, logo_url: "" })}
+                >
+                  Remove
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
         <F label="Institute name">
           <Input value={s.name} onChange={(e) => setS({ ...s, name: e.target.value })} required />
         </F>

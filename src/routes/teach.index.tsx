@@ -4,6 +4,7 @@ import { BookOpen, CalendarCheck, ClipboardList, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { myFaculty, mySlots } from "@/lib/api/teach";
 import { formatTime12 } from "@/lib/time";
+import { formatDate } from "@/lib/dates";
 
 export const Route = createFileRoute("/teach/")({
   head: () => ({
@@ -39,11 +40,7 @@ function TeachHome() {
         {faculty ? `Hello, ${faculty.full_name.split(" ")[0]}` : "Hello"}
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        {new Date().toLocaleDateString("en-IN", {
-          weekday: "long",
-          day: "numeric",
-          month: "short",
-        })}
+        {new Date().toLocaleDateString("en-IN", { weekday: "long" })}, {formatDate(new Date())}
       </p>
 
       <div className="mt-4 grid grid-cols-2 gap-3">

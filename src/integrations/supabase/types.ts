@@ -562,6 +562,7 @@ export type Database = {
           email: string | null
           id: string
           installment_plan: Json
+          logo_url: string | null
           name: string
           phone: string | null
           plan: string
@@ -582,6 +583,7 @@ export type Database = {
           email?: string | null
           id?: string
           installment_plan?: Json
+          logo_url?: string | null
           name: string
           phone?: string | null
           plan?: string
@@ -602,6 +604,7 @@ export type Database = {
           email?: string | null
           id?: string
           installment_plan?: Json
+          logo_url?: string | null
           name?: string
           phone?: string | null
           plan?: string

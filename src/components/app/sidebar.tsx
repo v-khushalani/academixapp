@@ -67,8 +67,13 @@ export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { roles, signOut } = useAuth();
   const [instituteName, setInstituteName] = useState("Academix");
+  const [logo, setLogo] = useState("");
   useEffect(() => {
-    const sync = () => setInstituteName(getInstitute().name || "Academix");
+    const sync = () => {
+      const inst = getInstitute();
+      setInstituteName(inst.name || "Academix");
+      setLogo(inst.logo_url || "");
+    };
     sync();
     window.addEventListener("vk-institute-changed", sync);
     return () => window.removeEventListener("vk-institute-changed", sync);
@@ -86,9 +91,17 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
-            <span className="text-sm font-bold tracking-tight">{initials}</span>
-          </div>
+          {logo ? (
+            <img
+              src={logo}
+              alt={instituteName}
+              className="h-8 w-8 shrink-0 rounded-md object-contain"
+            />
+          ) : (
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
+              <span className="text-sm font-bold tracking-tight">{initials}</span>
+            </div>
+          )}
           {!collapsed && (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold leading-tight text-foreground">
