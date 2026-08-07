@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Link2, MessageCircle, Pencil, Plus, Trash2, Upload } from "lucide-react";
+import { KeyRound, Link2, MessageCircle, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +15,13 @@ import {
 } from "@/components/ui/select";
 import { DataTable, type DTColumn } from "@/components/app/data-table";
 import { StudentFormDialog } from "@/components/app/student-form-dialog";
+import { StudentInviteDialog } from "@/components/app/student-invite-dialog";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { BulkImportDialog } from "@/components/app/bulk-import-dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { studentsApi, type Student } from "@/lib/api";
+import { studentsApi, batchesApi, type Student } from "@/lib/api";
+import { studentInvitesApi, portalStatus } from "@/lib/api/invites";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import { openWhatsApp } from "@/lib/whatsapp";
@@ -42,10 +45,42 @@ function StudentsPage() {
 
   const [status, setStatus] = useState<string>("all");
   const [cls, setCls] = useState<string>("all");
+  const [batchId, setBatchId] = useState<string>("all");
+  const [approval, setApproval] = useState<string>("all");
+  const [dues, setDues] = useState<string>("all");
+  const [portal, setPortal] = useState<string>("all");
+  const [from, setFrom] = useState<string>("");
+  const [to, setTo] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [inviting, setInviting] = useState<Row | null>(null);
   const [editing, setEditing] = useState<Student | null>(null);
   const [deleting, setDeleting] = useState<Row | null>(null);
+
+  const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
+  const { data: invites = [] } = useQuery({
+    queryKey: ["student-invites"],
+    queryFn: () => studentInvitesApi.list(),
+  });
+  const { data: feeRows = [] } = useQuery({
+    queryKey: ["student-dues"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fees")
+        .select("student_id, amount, amount_paid, status");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const withDues = useMemo(() => {
+    const s = new Set<string>();
+    for (const f of feeRows) {
+      if (f.status === "waived" || f.status === "cancelled") continue;
+      if (Number(f.amount ?? 0) - Number(f.amount_paid ?? 0) > 0) s.add(f.student_id as string);
+    }
+    return s;
+  }, [feeRows]);
 
   const classes = useMemo(
     () => Array.from(new Set(data.map((s) => s.class).filter(Boolean))) as string[],
@@ -56,10 +91,41 @@ function StudentsPage() {
       data.filter((s) => {
         if (status !== "all" && s.status !== status) return false;
         if (cls !== "all" && s.class !== cls) return false;
+        if (batchId !== "all" && (s.batch_id ?? "none") !== batchId) return false;
+        if (approval !== "all" && s.approval_status !== approval) return false;
+        if (dues !== "all") {
+          const has = withDues.has(s.id);
+          if (dues === "dues" && !has) return false;
+          if (dues === "clear" && has) return false;
+        }
+        if (portal !== "all" && portalStatus(s, invites) !== portal) return false;
+        if (from && (s.admission_date ?? "") < from) return false;
+        if (to && (s.admission_date ?? "") > to) return false;
         return true;
       }),
-    [data, status, cls],
+    [data, status, cls, batchId, approval, dues, portal, from, to, withDues, invites],
   );
+
+  const activeFilters =
+    (status !== "all" ? 1 : 0) +
+    (cls !== "all" ? 1 : 0) +
+    (batchId !== "all" ? 1 : 0) +
+    (approval !== "all" ? 1 : 0) +
+    (dues !== "all" ? 1 : 0) +
+    (portal !== "all" ? 1 : 0) +
+    (from ? 1 : 0) +
+    (to ? 1 : 0);
+
+  function clearFilters() {
+    setStatus("all");
+    setCls("all");
+    setBatchId("all");
+    setApproval("all");
+    setDues("all");
+    setPortal("all");
+    setFrom("");
+    setTo("");
+  }
 
   const removeMut = useMutation({
     mutationFn: (id: string) => studentsApi.remove(id),
