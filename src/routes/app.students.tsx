@@ -403,7 +403,7 @@ function StudentsPage() {
               />
               <Input
                 type="date"
-                aria-label="Admitted до"
+                aria-label="Admitted to"
                 className="h-9 w-[150px]"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
