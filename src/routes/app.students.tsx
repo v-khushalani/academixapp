@@ -192,6 +192,14 @@ function StudentsPage() {
       cell: (r) =>
         canWrite ? (
           <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+            <Button
+              size="icon"
+              variant="ghost"
+              title="Portal access for student / parent"
+              onClick={() => setInviting(r)}
+            >
+              <KeyRound className="h-4 w-4" />
+            </Button>
             {r.onboarding_token && !r.onboarding_completed_at && (
               <>
                 <Button
