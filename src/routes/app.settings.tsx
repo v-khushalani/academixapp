@@ -21,10 +21,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   batchesApi,
-  coursesApi,
   instituteApi,
   roomsApi,
-  subjectsApi,
   userRolesApi,
   type AppRole,
 } from "@/lib/api";
@@ -58,7 +56,6 @@ function SettingsPage() {
         <Tabs defaultValue="institute" className="w-full">
           <TabsList className="mb-4 flex-wrap">
             <TabsTrigger value="institute">Institute</TabsTrigger>
-            <TabsTrigger value="courses">Courses & Subjects</TabsTrigger>
             <TabsTrigger value="rooms">Classrooms & timings</TabsTrigger>
             <TabsTrigger value="fees">Fee structures</TabsTrigger>
             <TabsTrigger value="users">Users & roles</TabsTrigger>
@@ -69,9 +66,6 @@ function SettingsPage() {
           </TabsList>
           <TabsContent value="institute">
             <InstitutePanel />
-          </TabsContent>
-          <TabsContent value="courses">
-            <CoursesPanel />
           </TabsContent>
           <TabsContent value="rooms">
             <div className="space-y-4">
@@ -253,164 +247,6 @@ function InstitutePanel() {
         </div>
       </form>
     </Card>
-  );
-}
-
-function CoursesPanel() {
-  const qc = useQueryClient();
-  const { data: courses = [] } = useQuery({
-    queryKey: ["courses"],
-    queryFn: () => coursesApi.list(),
-  });
-  const { data: subjects = [] } = useQuery({
-    queryKey: ["subjects"],
-    queryFn: () => subjectsApi.list(),
-  });
-  const [cName, setCName] = useState("");
-  const [cCode, setCCode] = useState("");
-  const [sName, setSName] = useState("");
-  const [sCourse, setSCourse] = useState<string>("");
-
-  const addCourse = useMutation({
-    mutationFn: () => coursesApi.create({ name: cName.trim(), code: cCode.trim() || null }),
-    onSuccess: () => {
-      toast.success("Course added");
-      setCName("");
-      setCCode("");
-      qc.invalidateQueries({ queryKey: ["courses"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  const delCourse = useMutation({
-    mutationFn: (id: string) => coursesApi.remove(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["courses"] }),
-    onError: (e: Error) => toast.error(e.message),
-  });
-  const addSubject = useMutation({
-    mutationFn: () => subjectsApi.create({ name: sName.trim(), course_id: sCourse || null }),
-    onSuccess: () => {
-      toast.success("Subject added");
-      setSName("");
-      qc.invalidateQueries({ queryKey: ["subjects"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-  const delSubject = useMutation({
-    mutationFn: (id: string) => subjectsApi.remove(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["subjects"] }),
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <Card title="Courses">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (cName.trim()) addCourse.mutate();
-          }}
-          className="flex flex-wrap gap-2"
-        >
-          <Input
-            placeholder="Course name (e.g. JEE Foundation)"
-            value={cName}
-            onChange={(e) => setCName(e.target.value)}
-            className="min-w-[160px] flex-1"
-          />
-          <Input
-            placeholder="Code"
-            value={cCode}
-            onChange={(e) => setCCode(e.target.value)}
-            className="w-24"
-          />
-          <Button type="submit" size="sm" className="gap-1">
-            <Plus className="h-4 w-4" />
-            Add
-          </Button>
-        </form>
-        <ul className="mt-3 divide-y divide-border">
-          {courses.length === 0 && (
-            <li className="py-3 text-xs text-muted-foreground">No courses yet.</li>
-          )}
-          {courses.map((c) => (
-            <li key={c.id} className="flex items-center justify-between py-2 text-sm">
-              <span>
-                {c.name}
-                {c.code ? (
-                  <span className="ml-2 text-xs text-muted-foreground">{c.code}</span>
-                ) : null}
-              </span>
-              <button
-                onClick={() => delCourse.mutate(c.id)}
-                className="text-destructive hover:opacity-80"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      </Card>
-      <Card title="Subjects">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (sName.trim()) addSubject.mutate();
-          }}
-          className="flex flex-wrap gap-2"
-        >
-          <Input
-            placeholder="Subject (e.g. Physics)"
-            value={sName}
-            onChange={(e) => setSName(e.target.value)}
-            className="min-w-[140px] flex-1"
-          />
-          <Select
-            value={sCourse || "none"}
-            onValueChange={(v) => setSCourse(v === "none" ? "" : v)}
-          >
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Course" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">— none —</SelectItem>
-              {courses.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button type="submit" size="sm" className="gap-1">
-            <Plus className="h-4 w-4" />
-            Add
-          </Button>
-        </form>
-        <ul className="mt-3 divide-y divide-border">
-          {subjects.length === 0 && (
-            <li className="py-3 text-xs text-muted-foreground">No subjects yet.</li>
-          )}
-          {subjects.map((s) => {
-            const courseName = (s as { course?: { name?: string } }).course?.name;
-            return (
-              <li key={s.id} className="flex items-center justify-between py-2 text-sm">
-                <span>
-                  {s.name}
-                  {courseName ? (
-                    <span className="ml-2 text-xs text-muted-foreground">· {courseName}</span>
-                  ) : null}
-                </span>
-                <button
-                  onClick={() => delSubject.mutate(s.id)}
-                  className="text-destructive hover:opacity-80"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </Card>
-    </div>
   );
 }
 

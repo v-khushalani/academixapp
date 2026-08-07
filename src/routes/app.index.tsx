@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Layers, UserPlus, CalendarCheck, Wallet } from "lucide-react";
-import { PageBody } from "@/components/app/page-header";
+import { PageBody, PageHeader } from "@/components/app/page-header";
 import { dashboardApi, batchesApi } from "@/lib/api";
 import { syllabusApi, overallPct } from "@/lib/api/syllabus";
 import { useAuth } from "@/hooks/use-auth";
@@ -59,20 +59,13 @@ function DashboardPage() {
   return (
     <>
       {showMoney ? <AbsentAlerts /> : null}
+      <PageHeader
+        title={`${greeting()}, ${name.split(" ")[0]}`}
+        description={`${institute} · ${formatDate(new Date())}`}
+      />
       <PageBody>
-        {/* Greeting */}
-        <header className="flex flex-wrap items-baseline justify-between gap-2 pt-2">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            {greeting()}, {name.split(" ")[0]}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {formatDate(new Date())}{" "}
-            · {institute}
-          </p>
-        </header>
-
         {/* Hero numbers */}
-        <section className="mt-8 grid grid-cols-2 gap-x-6 gap-y-8 border-b border-border pb-8 sm:grid-cols-4">
+        <section className="grid grid-cols-2 gap-x-6 gap-y-8 rounded-lg border border-border bg-card p-5 sm:grid-cols-4">
           {showMoney ? (
             <HeroStat
               label="Outstanding"

@@ -21,6 +21,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -55,7 +56,7 @@ const nav: NavItem[] = [
 ];
 
 const platformNav: NavItem = {
-  title: "Platform",
+  title: "Platform console",
   url: "/app/platform",
   icon: ShieldCheck,
   key: "platform",
@@ -84,8 +85,25 @@ export function AppSidebar() {
     exact ? pathname === url : pathname === url || pathname.startsWith(url + "/");
 
   const base = nav.filter((n) => roles.length === 0 || canAccess(n.key, roles));
-  // Platform console is only ever listed for Team Academix.
-  const items = isSuperAdmin(roles) ? [...base, platformNav] : base;
+  const superadmin = isSuperAdmin(roles);
+
+  const renderItem = (item: NavItem) => {
+    const active = isActive(item.url, item.exact);
+    return (
+      <SidebarMenuItem key={item.url}>
+        <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
+          <Link
+            to={item.url}
+            onClick={() => isMobile && setOpenMobile(false)}
+            className="flex items-center gap-2"
+          >
+            <item.icon className="h-4 w-4 shrink-0" />
+            {!collapsed && <span className="truncate">{item.title}</span>}
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -115,27 +133,19 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
+        {/* Team Academix work lives in its own section, above the institute it is viewing. */}
+        {superadmin && (
+          <SidebarGroup>
+            {!collapsed && <SidebarGroupLabel>Team Academix</SidebarGroupLabel>}
+            <SidebarGroupContent>
+              <SidebarMenu>{renderItem(platformNav)}</SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         <SidebarGroup>
+          {superadmin && !collapsed && <SidebarGroupLabel>Institute</SidebarGroupLabel>}
           <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => {
-                const active = isActive(item.url, item.exact);
-                return (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
-                      <Link
-                        to={item.url}
-                        onClick={() => isMobile && setOpenMobile(false)}
-                        className="flex items-center gap-2"
-                      >
-                        <item.icon className="h-4 w-4 shrink-0" />
-                        {!collapsed && <span className="truncate">{item.title}</span>}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
+            <SidebarMenu>{base.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

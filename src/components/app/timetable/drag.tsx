@@ -56,7 +56,7 @@ function resolve(x: number, y: number): { key: string; target: DropTarget } | nu
   return null;
 }
 
-const THRESHOLD = 6;
+const THRESHOLD = 3;
 
 /**
  * Pointer-events drag. Unlike HTML5 drag-and-drop it needs no long press on
@@ -85,8 +85,25 @@ export function TimetableDragProvider({
 
   const begin = useCallback((payload: DragPayload, e: ReactPointerEvent) => {
     if (e.button != null && e.button > 0) return;
+    // iPad: stop the browser from treating the gesture as a scroll/text-selection.
+    if (e.pointerType !== "mouse") e.preventDefault();
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+    } catch {
+      /* not captured */
+    }
     state.current = { payload, id: e.pointerId, x0: e.clientX, y0: e.clientY, started: false };
   }, []);
+
+  // Kill text selection + rubber-band scrolling for the duration of a drag.
+  useEffect(() => {
+    if (!active) return;
+    const prev = document.body.style.userSelect;
+    document.body.style.userSelect = "none";
+    return () => {
+      document.body.style.userSelect = prev;
+    };
+  }, [active]);
 
   useEffect(() => {
     function move(e: PointerEvent) {
