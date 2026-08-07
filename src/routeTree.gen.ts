@@ -22,6 +22,7 @@ import { Route as TeachIndexRouteImport } from './routes/teach.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as LoginIndexRouteImport } from './routes/login.index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as WelcomeTokenRouteImport } from './routes/welcome.$token'
 import { Route as TeachSyllabusRouteImport } from './routes/teach.syllabus'
 import { Route as TeachMarksRouteImport } from './routes/teach.marks'
 import { Route as TeachAttendanceRouteImport } from './routes/teach.attendance'
@@ -117,6 +118,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const WelcomeTokenRoute = WelcomeTokenRouteImport.update({
+  id: '/welcome/$token',
+  path: '/welcome/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const TeachSyllabusRoute = TeachSyllabusRouteImport.update({
   id: '/syllabus',
@@ -306,6 +312,7 @@ export interface FileRoutesByFullPath {
   '/teach/attendance': typeof TeachAttendanceRoute
   '/teach/marks': typeof TeachMarksRoute
   '/teach/syllabus': typeof TeachSyllabusRoute
+  '/welcome/$token': typeof WelcomeTokenRoute
   '/app/': typeof AppIndexRoute
   '/login/': typeof LoginIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -348,6 +355,7 @@ export interface FileRoutesByTo {
   '/teach/attendance': typeof TeachAttendanceRoute
   '/teach/marks': typeof TeachMarksRoute
   '/teach/syllabus': typeof TeachSyllabusRoute
+  '/welcome/$token': typeof WelcomeTokenRoute
   '/app': typeof AppIndexRoute
   '/login': typeof LoginIndexRoute
   '/portal': typeof PortalIndexRoute
@@ -394,6 +402,7 @@ export interface FileRoutesById {
   '/teach/attendance': typeof TeachAttendanceRoute
   '/teach/marks': typeof TeachMarksRoute
   '/teach/syllabus': typeof TeachSyllabusRoute
+  '/welcome/$token': typeof WelcomeTokenRoute
   '/app/': typeof AppIndexRoute
   '/login/': typeof LoginIndexRoute
   '/portal/': typeof PortalIndexRoute
@@ -441,6 +450,7 @@ export interface FileRouteTypes {
     | '/teach/attendance'
     | '/teach/marks'
     | '/teach/syllabus'
+    | '/welcome/$token'
     | '/app/'
     | '/login/'
     | '/portal/'
@@ -483,6 +493,7 @@ export interface FileRouteTypes {
     | '/teach/attendance'
     | '/teach/marks'
     | '/teach/syllabus'
+    | '/welcome/$token'
     | '/app'
     | '/login'
     | '/portal'
@@ -528,6 +539,7 @@ export interface FileRouteTypes {
     | '/teach/attendance'
     | '/teach/marks'
     | '/teach/syllabus'
+    | '/welcome/$token'
     | '/app/'
     | '/login/'
     | '/portal/'
@@ -554,6 +566,7 @@ export interface RootRouteChildren {
   LoginStudentRoute: typeof LoginStudentRoute
   LoginTeacherRoute: typeof LoginTeacherRoute
   OnboardTokenRoute: typeof OnboardTokenRoute
+  WelcomeTokenRoute: typeof WelcomeTokenRoute
   LoginIndexRoute: typeof LoginIndexRoute
 }
 
@@ -649,6 +662,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/welcome/$token': {
+      id: '/welcome/$token'
+      path: '/welcome/$token'
+      fullPath: '/welcome/$token'
+      preLoaderRoute: typeof WelcomeTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/teach/syllabus': {
       id: '/teach/syllabus'
@@ -987,18 +1007,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginStudentRoute: LoginStudentRoute,
   LoginTeacherRoute: LoginTeacherRoute,
   OnboardTokenRoute: OnboardTokenRoute,
+  WelcomeTokenRoute: WelcomeTokenRoute,
   LoginIndexRoute: LoginIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
