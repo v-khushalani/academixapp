@@ -34,6 +34,7 @@ import {
   type TimetableSlot,
 } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { syllabusApi } from "@/lib/api/syllabus";
 import { can } from "@/lib/rbac";
 import { getInstitute, DEFAULT_SHIFTS, type Shifts } from "@/lib/academy-settings";
 import { toMinutes, toHHMM } from "@/lib/time";
@@ -743,7 +744,9 @@ function PlanRail({
               </div>
             ))
           ) : (
-            <p className="text-[11px] text-muted-foreground">Add subjects in Settings → Courses.</p>
+            <p className="text-[11px] text-muted-foreground">
+              Subjects appear here once they are used in Syllabus.
+            </p>
           ))}
       </div>
       <p className="border-t border-border px-2.5 py-2 text-[10px] text-muted-foreground">
