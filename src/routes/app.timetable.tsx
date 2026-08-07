@@ -30,7 +30,6 @@ import {
   facultyApi,
   roomsApi,
   studentsApi,
-  subjectsApi,
   timetableApi,
   type TimetableSlot,
 } from "@/lib/api";
@@ -100,9 +99,10 @@ function TimetablePage() {
     queryKey: ["students"],
     queryFn: () => studentsApi.list(),
   });
-  const { data: subjectRows = [] } = useQuery({
-    queryKey: ["subjects"],
-    queryFn: () => subjectsApi.list(),
+  // Subjects are whatever teachers/office typed into the syllabus — no separate master list.
+  const { data: syllabusChapters = [] } = useQuery({
+    queryKey: ["syllabus"],
+    queryFn: () => syllabusApi.chapters(),
   });
 
   const strength = useMemo(() => {
@@ -113,10 +113,10 @@ function TimetablePage() {
 
   const subjectNames = useMemo(() => {
     const set = new Set<string>();
-    subjectRows.forEach((s) => s.name && set.add(s.name));
+    syllabusChapters.forEach((c) => c.subject && set.add(c.subject));
     slots.forEach((s) => s.subject && set.add(s.subject));
     return [...set].sort((a, b) => a.localeCompare(b));
-  }, [subjectRows, slots]);
+  }, [syllabusChapters, slots]);
 
   // shift windows come from Settings — the grid is fixed, only the content changes
   const shifts: Shifts = useMemo(() => getInstitute().shifts ?? DEFAULT_SHIFTS, []);
