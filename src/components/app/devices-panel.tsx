@@ -15,7 +15,7 @@ import {
 import { Field as F } from "@/components/app/field";
 import { supabase } from "@/integrations/supabase/client";
 import { studentsApi } from "@/lib/api";
-import { longDate } from "@/lib/dates";
+import { formatDateTime } from "@/lib/dates";
 
 type Device = {
   id: string;
@@ -191,7 +191,7 @@ export function DevicesPanel() {
                   <p className="truncate text-sm font-medium">{d.name}</p>
                   <p className="truncate text-xs text-muted-foreground">
                     {d.location || "—"} ·{" "}
-                    {d.last_seen_at ? `last seen ${longDate(d.last_seen_at)}` : "never seen"}
+                    {d.last_seen_at ? `last seen ${formatDateTime(d.last_seen_at)}` : "never seen"}
                   </p>
                 </div>
                 <Badge variant="secondary" className={d.is_active ? "bg-success/10 text-success" : ""}>
