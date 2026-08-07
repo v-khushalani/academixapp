@@ -63,7 +63,11 @@ export async function resolvePostAuthDestination(): Promise<{
   const token = takePendingInvite();
   if (token) {
     const { error } = await supabase.rpc("accept_faculty_invite", { _token: token });
-    if (error) console.warn("[invite]", error.message);
+    if (error) {
+      // Same link shape is used for student/parent portal invites.
+      const { error: sErr } = await supabase.rpc("accept_student_invite", { _token: token });
+      if (sErr) console.warn("[invite]", error.message, sErr.message);
+    }
   }
 
   const { data: roleRows } = await supabase.rpc("get_my_roles");
