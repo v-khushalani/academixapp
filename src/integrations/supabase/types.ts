@@ -24,6 +24,7 @@ export type Database = {
           marked_by: string | null
           notified_at: string | null
           remarks: string | null
+          source: string
           status: Database["public"]["Enums"]["attendance_status"]
           student_id: string
           updated_at: string
@@ -37,6 +38,7 @@ export type Database = {
           marked_by?: string | null
           notified_at?: string | null
           remarks?: string | null
+          source?: string
           status: Database["public"]["Enums"]["attendance_status"]
           student_id: string
           updated_at?: string
@@ -50,6 +52,7 @@ export type Database = {
           marked_by?: string | null
           notified_at?: string | null
           remarks?: string | null
+          source?: string
           status?: Database["public"]["Enums"]["attendance_status"]
           student_id?: string
           updated_at?: string
@@ -74,6 +77,50 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_devices: {
+        Row: {
+          created_at: string
+          id: string
+          institute_id: string
+          is_active: boolean
+          last_seen_at: string | null
+          location: string | null
+          name: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          institute_id: string
+          is_active?: boolean
+          last_seen_at?: string | null
+          location?: string | null
+          name: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          institute_id?: string
+          is_active?: boolean
+          last_seen_at?: string | null
+          location?: string | null
+          name?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_devices_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
             referencedColumns: ["id"]
           },
         ]
@@ -837,6 +884,7 @@ export type Database = {
       }
       plan_catalog: {
         Row: {
+          batch_limit: number
           contact_only: boolean
           created_at: string
           cta: string
@@ -847,12 +895,15 @@ export type Database = {
           price_yearly: number | null
           room_limit: number
           sort_order: number
+          staff_login_limit: number
           student_limit: number
           tagline: string
+          teacher_login_limit: number
           updated_at: string
           visible: boolean
         }
         Insert: {
+          batch_limit?: number
           contact_only?: boolean
           created_at?: string
           cta?: string
@@ -863,12 +914,15 @@ export type Database = {
           price_yearly?: number | null
           room_limit?: number
           sort_order?: number
+          staff_login_limit?: number
           student_limit?: number
           tagline?: string
+          teacher_login_limit?: number
           updated_at?: string
           visible?: boolean
         }
         Update: {
+          batch_limit?: number
           contact_only?: boolean
           created_at?: string
           cta?: string
@@ -879,8 +933,10 @@ export type Database = {
           price_yearly?: number | null
           room_limit?: number
           sort_order?: number
+          staff_login_limit?: number
           student_limit?: number
           tagline?: string
+          teacher_login_limit?: number
           updated_at?: string
           visible?: boolean
         }
@@ -1057,6 +1113,51 @@ export type Database = {
           },
         ]
       }
+      student_device_ids: {
+        Row: {
+          created_at: string
+          id: string
+          institute_id: string
+          label: string | null
+          student_id: string
+          uid: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          institute_id: string
+          label?: string | null
+          student_id: string
+          uid: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          institute_id?: string
+          label?: string | null
+          student_id?: string
+          uid?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_device_ids_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_device_ids_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_documents: {
         Row: {
           category: string
@@ -1120,6 +1221,66 @@ export type Database = {
           },
           {
             foreignKeyName: "student_documents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_invites: {
+        Row: {
+          claimed_by: string | null
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          institute_id: string
+          kind: string
+          relation: string | null
+          student_id: string
+          token: string
+          updated_at: string
+          used_at: string | null
+        }
+        Insert: {
+          claimed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          institute_id: string
+          kind?: string
+          relation?: string | null
+          student_id: string
+          token?: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Update: {
+          claimed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          institute_id?: string
+          kind?: string
+          relation?: string | null
+          student_id?: string
+          token?: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_invites_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_invites_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
@@ -1740,6 +1901,7 @@ export type Database = {
     }
     Functions: {
       accept_faculty_invite: { Args: { _token: string }; Returns: undefined }
+      accept_student_invite: { Args: { _token: string }; Returns: undefined }
       approve_admission: {
         Args: { _batch_id: string; _student_id: string; _token_amount?: number }
         Returns: undefined
@@ -1811,6 +1973,15 @@ export type Database = {
           program: string
           school: string
           stream: string
+        }[]
+      }
+      get_student_invite: {
+        Args: { _token: string }
+        Returns: {
+          institute_name: string
+          kind: string
+          student_name: string
+          valid: boolean
         }[]
       }
       has_any_role: {
