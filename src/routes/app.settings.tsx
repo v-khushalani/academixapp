@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
+import { PlanUsageCard, LoginsHelpCard } from "@/components/app/plan-usage";
+import { DevicesPanel } from "@/components/app/devices-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
