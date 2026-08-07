@@ -186,6 +186,28 @@ function StudentsPage() {
       ),
     },
     {
+      key: "portal",
+      header: "Portal",
+      value: (r) => portalStatus(r, invites),
+      cell: (r) => {
+        const st = portalStatus(r, invites);
+        return (
+          <Badge
+            variant="secondary"
+            className={
+              st === "active"
+                ? "bg-success/10 text-success"
+                : st === "invited"
+                  ? "bg-warning/10 text-warning"
+                  : ""
+            }
+          >
+            {st === "none" ? "Not invited" : st === "invited" ? "Invited" : "Active"}
+          </Badge>
+        );
+      },
+    },
+    {
       key: "actions",
       header: "",
       className: "text-right",
