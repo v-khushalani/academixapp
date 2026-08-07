@@ -18,27 +18,31 @@ A short "How logins work" card in Settings explains the three doors: staff sign 
 
 What the market charges today (verified Aug 2026):
 
-| Vendor | Model | Real cost |
-| --- | --- | --- |
-| Classplus | ₹2,000+/mo + setup ₹15–20k + revenue commission | ~₹40k+/yr for a small institute |
-| Teachmint | Free app, everything operational gated behind quote | quote-only |
-| MyClassCampus | ₹80–150/student/yr + ₹10–25k setup, biometric/RFID as paid add-on | ~₹45k/yr @300 students |
-| Fedena | ₹80–150/student/yr + ₹5–10k setup | ~₹40k/yr @300 |
-| Inforida | ₹78–182 per head per **month** | ₹936+/student/yr |
-| Fuzen | ₹35,000 one-time launch offer | one-time |
-| SchoolCare (budget) | ₹58/student/yr | cheapest incumbent |
+
+| Vendor              | Model                                                             | Real cost                       |
+| ------------------- | ----------------------------------------------------------------- | ------------------------------- |
+| Classplus           | ₹2,000+/mo + setup ₹15–20k + revenue commission                   | ~₹40k+/yr for a small institute |
+| Teachmint           | Free app, everything operational gated behind quote               | quote-only                      |
+| MyClassCampus       | ₹80–150/student/yr + ₹10–25k setup, biometric/RFID as paid add-on | ~₹45k/yr @300 students          |
+| Fedena              | ₹80–150/student/yr + ₹5–10k setup                                 | ~₹40k/yr @300                   |
+| Inforida            | ₹78–182 per head per **month**                                    | ₹936+/student/yr                |
+| Fuzen               | ₹35,000 one-time launch offer                                     | one-time                        |
+| SchoolCare (budget) | ₹58/student/yr                                                    | cheapest incumbent              |
+
 
 The market floor is roughly ₹58–150 per student per year plus setup. Academix undercuts that decisively while capping only what creates genuine upgrade pressure: scale and automation.
 
-| | Free forever | Growth | Campus | Chain |
-| --- | --- | --- | --- | --- |
-| Students | 100 | 500 | 1,500 | Unlimited |
-| Classrooms | 3 | 10 | 30 | Unlimited |
-| Staff logins (admin/reception/accounts) | 2 | 6 | 20 | Unlimited |
-| Teacher logins | 5 | 25 | Unlimited | Unlimited |
-| Parent/student portals | Unlimited | Unlimited | Unlimited | Unlimited |
-| Batches | 5 | Unlimited | Unlimited | Unlimited |
-| Price / year | ₹0 | ₹4,990 | ₹12,990 | Talk to us |
+
+| &nbsp;                                  | Free forever | Growth    | Campus    | Chain      |
+| --------------------------------------- | ------------ | --------- | --------- | ---------- |
+| Students                                | 100          | 500       | 1,500     | Unlimited  |
+| Classrooms                              | 3            | 10        | 30        | Unlimited  |
+| Staff logins (admin/reception/accounts) | 2            | 6         | 20        | Unlimited  |
+| Teacher logins                          | 5            | 25        | Unlimited | Unlimited  |
+| Parent/student portals                  | Unlimited    | Unlimited | Unlimited | Unlimited  |
+| Batches                                 | 5            | Unlimited | Unlimited | Unlimited  |
+| Price / year                            | ₹0           | ₹4,990    | ₹12,990   | Talk to us |
+
 
 At 500 students, Growth is **₹10 per student per year** against ₹58–150 elsewhere, with no setup fee and no commission. Prices stay hidden on the public site ("Talk to us") as they are today; the super-admin console keeps the numbers.
 
