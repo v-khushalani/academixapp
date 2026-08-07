@@ -60,6 +60,8 @@ function SettingsPage() {
             <TabsTrigger value="rooms">Classrooms & timings</TabsTrigger>
             <TabsTrigger value="fees">Fee structures</TabsTrigger>
             <TabsTrigger value="users">Users & roles</TabsTrigger>
+            <TabsTrigger value="access">Plan & logins</TabsTrigger>
+            <TabsTrigger value="devices">Attendance machines</TabsTrigger>
             <TabsTrigger value="branding">Branding</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp templates</TabsTrigger>
           </TabsList>
@@ -80,6 +82,15 @@ function SettingsPage() {
           </TabsContent>
           <TabsContent value="users">
             <UsersPanel />
+          </TabsContent>
+          <TabsContent value="access">
+            <div className="space-y-4">
+              <PlanUsageCard />
+              <LoginsHelpCard />
+            </div>
+          </TabsContent>
+          <TabsContent value="devices">
+            <DevicesPanel />
           </TabsContent>
           <TabsContent value="branding">
             <BrandingPanel />
