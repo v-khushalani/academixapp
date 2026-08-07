@@ -53,6 +53,7 @@ import { Route as AppAdmissionsRouteImport } from './routes/app.admissions'
 import { Route as AppTestsIdRouteImport } from './routes/app.tests.$id'
 import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
 import { Route as AppBatchesIdRouteImport } from './routes/app.batches.$id'
+import { Route as ApiPublicAttendancePunchRouteImport } from './routes/api/public/attendance.punch'
 
 const TeachRoute = TeachRouteImport.update({
   id: '/teach',
@@ -274,6 +275,12 @@ const AppBatchesIdRoute = AppBatchesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AppBatchesRoute,
 } as any)
+const ApiPublicAttendancePunchRoute =
+  ApiPublicAttendancePunchRouteImport.update({
+    id: '/api/public/attendance/punch',
+    path: '/api/public/attendance/punch',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -320,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
+  '/api/public/attendance/punch': typeof ApiPublicAttendancePunchRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -363,6 +371,7 @@ export interface FileRoutesByTo {
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
+  '/api/public/attendance/punch': typeof ApiPublicAttendancePunchRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -410,6 +419,7 @@ export interface FileRoutesById {
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
+  '/api/public/attendance/punch': typeof ApiPublicAttendancePunchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -458,6 +468,7 @@ export interface FileRouteTypes {
     | '/app/batches/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
+    | '/api/public/attendance/punch'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -501,6 +512,7 @@ export interface FileRouteTypes {
     | '/app/batches/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
+    | '/api/public/attendance/punch'
   id:
     | '__root__'
     | '/'
@@ -547,6 +559,7 @@ export interface FileRouteTypes {
     | '/app/batches/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
+    | '/api/public/attendance/punch'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -568,6 +581,7 @@ export interface RootRouteChildren {
   OnboardTokenRoute: typeof OnboardTokenRoute
   WelcomeTokenRoute: typeof WelcomeTokenRoute
   LoginIndexRoute: typeof LoginIndexRoute
+  ApiPublicAttendancePunchRoute: typeof ApiPublicAttendancePunchRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -880,6 +894,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBatchesIdRouteImport
       parentRoute: typeof AppBatchesRoute
     }
+    '/api/public/attendance/punch': {
+      id: '/api/public/attendance/punch'
+      path: '/api/public/attendance/punch'
+      fullPath: '/api/public/attendance/punch'
+      preLoaderRoute: typeof ApiPublicAttendancePunchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1009,6 +1030,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardTokenRoute: OnboardTokenRoute,
   WelcomeTokenRoute: WelcomeTokenRoute,
   LoginIndexRoute: LoginIndexRoute,
+  ApiPublicAttendancePunchRoute: ApiPublicAttendancePunchRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
