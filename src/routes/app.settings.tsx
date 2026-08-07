@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
+import { PlanUsageCard, LoginsHelpCard } from "@/components/app/plan-usage";
+import { DevicesPanel } from "@/components/app/devices-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +62,8 @@ function SettingsPage() {
             <TabsTrigger value="rooms">Classrooms & timings</TabsTrigger>
             <TabsTrigger value="fees">Fee structures</TabsTrigger>
             <TabsTrigger value="users">Users & roles</TabsTrigger>
+            <TabsTrigger value="access">Plan & logins</TabsTrigger>
+            <TabsTrigger value="devices">Attendance machines</TabsTrigger>
             <TabsTrigger value="branding">Branding</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp templates</TabsTrigger>
           </TabsList>
@@ -80,6 +84,15 @@ function SettingsPage() {
           </TabsContent>
           <TabsContent value="users">
             <UsersPanel />
+          </TabsContent>
+          <TabsContent value="access">
+            <div className="space-y-4">
+              <PlanUsageCard />
+              <LoginsHelpCard />
+            </div>
+          </TabsContent>
+          <TabsContent value="devices">
+            <DevicesPanel />
           </TabsContent>
           <TabsContent value="branding">
             <BrandingPanel />
