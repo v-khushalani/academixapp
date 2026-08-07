@@ -17,6 +17,12 @@ export type Plan = {
   rooms: number;
   /** student limit */
   students: number;
+  /** office/admin logins included (0 = unlimited) */
+  staffLogins: number;
+  /** teacher logins included (0 = unlimited) */
+  teacherLogins: number;
+  /** batches included (0 = unlimited) */
+  batches: number;
   /** price for one year, 0 for free, null for custom */
   priceYearly: number | null;
   /** yearly-only terms with multi-year discounts */
@@ -31,7 +37,8 @@ export type Plan = {
 const FREE_FEATURES = [
   "QR / link admissions with approval flow",
   "Enquiry pipeline & follow-ups",
-  "Students, batches & staff — unlimited logins",
+  "100 students · 3 classrooms · 5 batches",
+  "2 office logins · 5 teacher logins · unlimited parent & student portals",
   "Batch fee auto-assign with scholarships",
   "Attendance with instant parent message",
   "Fee collection, receipts, UPI QR, defaulters list",
@@ -44,8 +51,10 @@ const FREE_FEATURES = [
 ];
 
 const GROWTH_ADDS = [
-  "400 students · 10 classrooms",
+  "500 students · 10 classrooms · unlimited batches",
+  "6 office logins · 25 teacher logins",
   "Automated WhatsApp fee reminders & absentee alerts",
+  "RFID card & biometric attendance machines",
   "Defaulter follow-up sequences",
   "Full reports: revenue, collection, attendance %, batch & teacher load",
   "Student progress report cards (PDF)",
@@ -57,7 +66,8 @@ const GROWTH_ADDS = [
 ];
 
 const CAMPUS_ADDS = [
-  "1,200 students · 30 classrooms",
+  "1,500 students · 30 classrooms",
+  "20 office logins · unlimited teacher logins",
   "Granular role-based permissions per staff member",
   "Audit log of who changed what",
   "Teacher performance & syllabus-coverage dashboard",
