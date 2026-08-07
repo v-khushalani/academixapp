@@ -5,6 +5,7 @@ import { ShieldCheck } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { isSuperAdmin } from "@/lib/rbac";
@@ -131,8 +132,8 @@ function PlatformPage() {
   return (
     <>
       <PageHeader
-        title="Platform console"
-        description="Team Academix only — cross-institute oversight for support and product work."
+        title="Academix platform console"
+        description="Team Academix only — every institute on the network, support lookup and pricing control."
         actions={
           <Badge variant="secondary" className="gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5" />
@@ -141,6 +142,14 @@ function PlatformPage() {
         }
       />
       <PageBody>
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="mb-4 flex-wrap">
+            <TabsTrigger value="overview">Institutes</TabsTrigger>
+            <TabsTrigger value="support">Support lookup</TabsTrigger>
+            <TabsTrigger value="pricing">Plans &amp; pricing</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview">
         <div className="grid gap-3 sm:grid-cols-3">
           <Stat label="Institutes" value={institutes.length} />
           <Stat label="Students on platform" value={students.length} />
@@ -183,8 +192,10 @@ function PlatformPage() {
             </tbody>
           </table>
         </div>
+          </TabsContent>
 
-        <div className="mt-4 rounded-lg border border-border bg-card p-3">
+          <TabsContent value="support">
+        <div className="rounded-lg border border-border bg-card p-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Student lookup (all institutes)
           </p>
@@ -211,8 +222,10 @@ function PlatformPage() {
             )}
           </ul>
         </div>
+          </TabsContent>
 
-        <div className="mt-6">
+          <TabsContent value="pricing">
+        <div>
           <h2 className="text-sm font-semibold">Pricing control</h2>
           <p className="mb-3 mt-1 text-xs text-muted-foreground">
             Prices, limits and the tick/cross comparison table on the public pricing page. Changes
@@ -220,6 +233,8 @@ function PlatformPage() {
           </p>
           <PricingAdmin />
         </div>
+          </TabsContent>
+        </Tabs>
       </PageBody>
     </>
   );
