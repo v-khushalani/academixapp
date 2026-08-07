@@ -335,6 +335,20 @@ function StudentsPage() {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={batchId} onValueChange={setBatchId}>
+                <SelectTrigger className="h-9 w-[150px]">
+                  <SelectValue placeholder="Batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All batches</SelectItem>
+                  <SelectItem value="none">No batch</SelectItem>
+                  {batches.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger className="h-9 w-[140px]">
                   <SelectValue placeholder="Status" />
@@ -347,12 +361,70 @@ function StudentsPage() {
                   <SelectItem value="dropped">Dropped</SelectItem>
                 </SelectContent>
               </Select>
+              <Select value={approval} onValueChange={setApproval}>
+                <SelectTrigger className="h-9 w-[150px]">
+                  <SelectValue placeholder="Approval" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All approvals</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="enquiry">Enquiry</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={dues} onValueChange={setDues}>
+                <SelectTrigger className="h-9 w-[130px]">
+                  <SelectValue placeholder="Fees" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All fees</SelectItem>
+                  <SelectItem value="dues">Has dues</SelectItem>
+                  <SelectItem value="clear">Fully paid</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={portal} onValueChange={setPortal}>
+                <SelectTrigger className="h-9 w-[150px]">
+                  <SelectValue placeholder="Portal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All portal states</SelectItem>
+                  <SelectItem value="none">Not invited</SelectItem>
+                  <SelectItem value="invited">Invited</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input
+                type="date"
+                aria-label="Admitted from"
+                className="h-9 w-[150px]"
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+              />
+              <Input
+                type="date"
+                aria-label="Admitted до"
+                className="h-9 w-[150px]"
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+              />
+              {activeFilters > 0 ? (
+                <Button size="sm" variant="ghost" className="h-9 gap-1" onClick={clearFilters}>
+                  <X className="h-3.5 w-3.5" />
+                  Clear {activeFilters}
+                </Button>
+              ) : null}
             </>
           }
         />
       </PageBody>
 
       <StudentFormDialog open={dialogOpen} onOpenChange={setDialogOpen} student={editing} />
+      <StudentInviteDialog
+        open={Boolean(inviting)}
+        onOpenChange={(v) => !v && setInviting(null)}
+        student={inviting}
+      />
       <BulkImportDialog
         open={importOpen}
         onOpenChange={setImportOpen}
