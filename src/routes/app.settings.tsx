@@ -21,10 +21,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   batchesApi,
-  coursesApi,
   instituteApi,
   roomsApi,
-  subjectsApi,
   userRolesApi,
   type AppRole,
 } from "@/lib/api";
@@ -58,7 +56,6 @@ function SettingsPage() {
         <Tabs defaultValue="institute" className="w-full">
           <TabsList className="mb-4 flex-wrap">
             <TabsTrigger value="institute">Institute</TabsTrigger>
-            <TabsTrigger value="courses">Courses & Subjects</TabsTrigger>
             <TabsTrigger value="rooms">Classrooms & timings</TabsTrigger>
             <TabsTrigger value="fees">Fee structures</TabsTrigger>
             <TabsTrigger value="users">Users & roles</TabsTrigger>
@@ -69,9 +66,6 @@ function SettingsPage() {
           </TabsList>
           <TabsContent value="institute">
             <InstitutePanel />
-          </TabsContent>
-          <TabsContent value="courses">
-            <CoursesPanel />
           </TabsContent>
           <TabsContent value="rooms">
             <div className="space-y-4">
