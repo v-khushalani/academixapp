@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { planFor, type Plan } from "@/lib/plans";
+import type { InstituteLimits } from "@/lib/institute-controls";
 
 export type Usage = {
   students: number;
@@ -46,17 +46,13 @@ export async function fetchUsage(): Promise<Usage> {
 
 export type LimitRow = { label: string; used: number; limit: number };
 
-/** 0 in a plan limit means unlimited. */
-export function limitRows(plan: Plan, u: Usage): LimitRow[] {
+/** 0 means unlimited. Limits are set per institute by Team Academix. */
+export function limitRows(limits: InstituteLimits, u: Usage): LimitRow[] {
   return [
-    { label: "Students", used: u.students, limit: plan.students },
-    { label: "Classrooms", used: u.rooms, limit: plan.rooms },
-    { label: "Batches", used: u.batches, limit: plan.batches },
-    { label: "Office logins", used: u.staffLogins, limit: plan.staffLogins },
-    { label: "Teacher logins", used: u.teacherLogins, limit: plan.teacherLogins },
+    { label: "Students", used: u.students, limit: limits.students },
+    { label: "Classrooms", used: u.rooms, limit: limits.rooms },
+    { label: "Batches", used: u.batches, limit: limits.batches },
+    { label: "Office logins", used: u.staffLogins, limit: limits.staffLogins },
+    { label: "Teacher logins", used: u.teacherLogins, limit: limits.teacherLogins },
   ];
-}
-
-export function planOf(key: string | null | undefined) {
-  return planFor(key);
 }

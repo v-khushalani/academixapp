@@ -58,6 +58,19 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const accounts: ProvisionedAccount[] = [];
 
+    /** Paged lookup — only used when Auth reports the email already exists. */
+    async function findUserIdByEmail(email: string): Promise<string | null> {
+      const target = email.toLowerCase();
+      for (let page = 1; page <= 20; page++) {
+        const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+        const users = list?.users ?? [];
+        const hit = users.find((u) => (u.email ?? "").toLowerCase() === target);
+        if (hit) return hit.id;
+        if (users.length < 200) return null;
+      }
+      return null;
+    }
+
     async function ensureUser(opts: {
       kind: "student" | "parent";
       name: string;
@@ -71,14 +84,7 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
       let password: string | null = null;
 
       if (!userId) {
-        const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-        const found = list?.users?.find(
-          (u) => (u.email ?? "").toLowerCase() === opts.email.toLowerCase(),
-        );
-        userId = found?.id ?? null;
-      }
-
-      if (!userId) {
+        // Try to create first — cheap, and Auth tells us when the email already exists.
         password = tempPassword();
         const { data: createdUser, error } = await supabaseAdmin.auth.admin.createUser({
           email: opts.email,
@@ -86,10 +92,17 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
           email_confirm: true,
           user_metadata: { full_name: opts.name, portal: opts.role },
         });
-        if (error) throw new Error(error.message);
-        userId = createdUser.user!.id;
-        created = true;
-      } else if (data.reset) {
+        if (!error && createdUser.user) {
+          userId = createdUser.user.id;
+          created = true;
+        } else {
+          password = null;
+          userId = await findUserIdByEmail(opts.email);
+          if (!userId) throw new Error(error?.message ?? "Could not create the login");
+        }
+      }
+
+      if (!created && data.reset) {
         password = tempPassword();
         const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, { password });
         if (error) throw new Error(error.message);

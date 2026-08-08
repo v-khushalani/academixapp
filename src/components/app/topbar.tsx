@@ -12,6 +12,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useNavigate } from "@tanstack/react-router";
 import { formatDate } from "@/lib/dates";
+import { BranchSwitcher } from "@/components/app/branch-switcher";
 
 function today() {
   const d = new Date();
@@ -38,6 +39,8 @@ export function TopBar() {
       <SidebarTrigger className="shrink-0" />
 
       <div className="min-w-0 flex-1" />
+
+      <BranchSwitcher />
 
       <span className="hidden shrink-0 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground sm:block">
         {today()}
