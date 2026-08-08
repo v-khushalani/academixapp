@@ -284,7 +284,7 @@ function InstituteEditor({
         _teacher_login_limit: limits.teachers,
         _features: features as never,
         _installment_plan: installments as never,
-        _parent_institute_id: parent === "none" ? null : parent,
+        _parent_institute_id: parent === "none" ? undefined : parent,
         _clear_parent: parent === "none",
       });
       if (error) throw error;
