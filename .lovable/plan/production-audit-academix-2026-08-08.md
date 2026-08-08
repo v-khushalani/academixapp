@@ -46,3 +46,8 @@ Supabase auth setting; one toggle. Turn it on so known-compromised passwords are
 - Isolation fix is a migration replacing the `public.current_institute_id()` body with the `user_roles` lookup only; no policy rewrites needed since all policies call the function.
 - Plan enforcement belongs in `BEFORE INSERT` triggers reading `institutes.plan` against `plan_catalog` limits, so the browser cannot bypass it.
 - `src/lib/usage.ts` stays the display layer, reading the same numbers the triggers enforce.
+- &nbsp;
+
+ALSO, SUPER ADMIN KE PAAS INSTITUTES KO KITNI LIMIT DENI HAI (FOR CUSTOMIZED EXPERIENCE TO DIFFERENT INSTITUTES) YEH HONA CHAHIYE...KITNE STUDENTS, KITNE FACULTY, KITNE ROOMS(CLASSES), KITNA STAFF AND PROPER UTNE LOGINS PE HI RESTRICT KARNA...FEATURE FLAGS BHI CHAHIYE HAR INSTITUTE KE LIYE...KI KISKO KYA DENA HAI AND KYA NAHI...installments (fee structure bhi) different academies ki unke according karke dena hai...kisi specific institute ki branches ho toh uska bhi dekho...woh admin jab login kare toh branch 1, branch 2, etc. and overall bhi ho uske paas (combined, total data) ke liye...super admin ke paas sirf platform console hona chahiye, baki sab tabs waste hai...and kisi institute pe click kiya toh wahan ke students and batches ka data chahiye bas...baki fees, schedules, syllabus ka super admin se koi kaam nahi...super admin plans allocate karega...admin panel mein plans and pricing nahi hona chahiye...in case kisiko upgrade karna hai toh woh superadmin/hume contact kare..via phone call (70666 70222) and not email  
+  
+YEH SAB FIX KARAO, final production ready version do
