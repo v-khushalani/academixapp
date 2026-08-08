@@ -605,20 +605,27 @@ export type Database = {
         Row: {
           academic_year: string | null
           address: string | null
+          batch_limit: number
           created_at: string
           email: string | null
+          faculty_limit: number
+          features: Json
           id: string
           installment_plan: Json
           logo_url: string | null
           name: string
+          parent_institute_id: string | null
           phone: string | null
           plan: string
           primary_color: string | null
           room_limit: number
           shifts: Json
           slug: string
+          staff_login_limit: number
           status: string
+          student_limit: number
           tagline: string | null
+          teacher_login_limit: number
           updated_at: string
           upi_id: string | null
           upi_name: string | null
@@ -626,20 +633,27 @@ export type Database = {
         Insert: {
           academic_year?: string | null
           address?: string | null
+          batch_limit?: number
           created_at?: string
           email?: string | null
+          faculty_limit?: number
+          features?: Json
           id?: string
           installment_plan?: Json
           logo_url?: string | null
           name: string
+          parent_institute_id?: string | null
           phone?: string | null
           plan?: string
           primary_color?: string | null
           room_limit?: number
           shifts?: Json
           slug: string
+          staff_login_limit?: number
           status?: string
+          student_limit?: number
           tagline?: string | null
+          teacher_login_limit?: number
           updated_at?: string
           upi_id?: string | null
           upi_name?: string | null
@@ -647,25 +661,40 @@ export type Database = {
         Update: {
           academic_year?: string | null
           address?: string | null
+          batch_limit?: number
           created_at?: string
           email?: string | null
+          faculty_limit?: number
+          features?: Json
           id?: string
           installment_plan?: Json
           logo_url?: string | null
           name?: string
+          parent_institute_id?: string | null
           phone?: string | null
           plan?: string
           primary_color?: string | null
           room_limit?: number
           shifts?: Json
           slug?: string
+          staff_login_limit?: number
           status?: string
+          student_limit?: number
           tagline?: string | null
+          teacher_login_limit?: number
           updated_at?: string
           upi_id?: string | null
           upi_name?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "institutes_parent_institute_id_fkey"
+            columns: ["parent_institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       leads: {
         Row: {
@@ -2003,6 +2032,60 @@ export type Database = {
       mark_attendance_notified: { Args: { _ids: string[] }; Returns: undefined }
       my_batch_ids: { Args: never; Returns: string[] }
       my_faculty_batch_ids: { Args: never; Returns: string[] }
+      my_institute_ids: { Args: never; Returns: string[] }
+      platform_institute_detail: {
+        Args: { _institute_id: string }
+        Returns: {
+          extra: string
+          id: string
+          kind: string
+          subtitle: string
+          title: string
+        }[]
+      }
+      platform_institutes: {
+        Args: never
+        Returns: {
+          batch_limit: number
+          batches: number
+          faculty: number
+          faculty_limit: number
+          features: Json
+          id: string
+          installment_plan: Json
+          name: string
+          parent_institute_id: string
+          plan: string
+          room_limit: number
+          rooms: number
+          slug: string
+          staff_login_limit: number
+          staff_logins: number
+          status: string
+          student_limit: number
+          students: number
+          teacher_login_limit: number
+          teacher_logins: number
+        }[]
+      }
+      platform_update_institute: {
+        Args: {
+          _batch_limit?: number
+          _clear_parent?: boolean
+          _faculty_limit?: number
+          _features?: Json
+          _id: string
+          _installment_plan?: Json
+          _parent_institute_id?: string
+          _plan?: string
+          _room_limit?: number
+          _staff_login_limit?: number
+          _status?: string
+          _student_limit?: number
+          _teacher_login_limit?: number
+        }
+        Returns: undefined
+      }
       set_student_approval: {
         Args: { _decision: string; _student_id: string }
         Returns: undefined
