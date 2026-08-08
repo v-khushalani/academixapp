@@ -58,6 +58,19 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const accounts: ProvisionedAccount[] = [];
 
+    /** Paged lookup — only used when Auth reports the email already exists. */
+    async function findUserIdByEmail(email: string): Promise<string | null> {
+      const target = email.toLowerCase();
+      for (let page = 1; page <= 20; page++) {
+        const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+        const users = list?.users ?? [];
+        const hit = users.find((u) => (u.email ?? "").toLowerCase() === target);
+        if (hit) return hit.id;
+        if (users.length < 200) return null;
+      }
+      return null;
+    }
+
     async function ensureUser(opts: {
       kind: "student" | "parent";
       name: string;
