@@ -26,7 +26,7 @@ import {
   userRolesApi,
   type AppRole,
 } from "@/lib/api";
-import { PLANS, planFor } from "@/lib/plans";
+import { SUPPORT_PHONE } from "@/lib/institute-controls";
 import {
   getInstitute,
   saveInstitute,
@@ -263,10 +263,9 @@ function RoomsPanel() {
   const [name, setName] = useState("");
   const [capacity, setCapacity] = useState("30");
 
-  const plan = planFor(institute?.plan);
-  const limit = institute?.room_limit ?? plan.rooms;
+  const limit = institute?.room_limit ?? 0;
   const used = rooms.length;
-  const atLimit = used >= limit;
+  const atLimit = limit > 0 && used >= limit;
 
   function refresh() {
     qc.invalidateQueries({ queryKey: ["rooms-all"] });
@@ -274,23 +273,12 @@ function RoomsPanel() {
     qc.invalidateQueries({ queryKey: ["timetable"] });
   }
 
-  const changePlan = useMutation({
-    mutationFn: async (key: string) => {
-      if (!institute) throw new Error("Institute not loaded");
-      const p = planFor(key);
-      return instituteApi.setPlan(institute.id, p.key, p.rooms);
-    },
-    onSuccess: () => {
-      toast.success("Plan updated");
-      qc.invalidateQueries({ queryKey: ["institute"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   const add = useMutation({
     mutationFn: async () => {
       if (atLimit)
-        throw new Error(`Your ${plan.name} plan allows ${limit} classrooms. Upgrade to add more.`);
+        throw new Error(
+          `Your institute is set up for ${limit} classrooms. Call Academix on ${SUPPORT_PHONE} to raise this.`,
+        );
       return roomsApi.create({ name: name.trim(), capacity: Math.max(1, Number(capacity) || 30) });
     },
     onSuccess: () => {
@@ -328,31 +316,15 @@ function RoomsPanel() {
     >
       <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2">
         <div className="text-sm">
-          <span className="font-medium">{plan.name} plan</span>{" "}
+          <span className="font-medium">Classrooms</span>{" "}
           <span className="text-muted-foreground">
-            — {used} of {limit} classrooms used
+            — {used} {limit > 0 ? `of ${limit} used` : "in use"}
           </span>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-          <Label className="text-xs">Plan</Label>
-          <Select value={plan.key} onValueChange={(v) => changePlan.mutate(v)}>
-            <SelectTrigger className="h-8 w-52 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PLANS.map((p) => (
-                <SelectItem key={p.key} value={p.key}>
-                  {p.name} — {p.blurb}
-                  {p.priceYearly === 0 ? " · free" : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </div>
       {atLimit && (
         <p className="mb-2 text-xs text-destructive">
-          Classroom limit reached — upgrade the plan above to add more rooms.
+          Classroom limit reached — call Academix on {SUPPORT_PHONE} to add more.
         </p>
       )}
       <form
