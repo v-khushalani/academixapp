@@ -11,15 +11,13 @@ export type Usage = {
 
 const OFFICE = ["owner", "admin", "receptionist", "counsellor", "accountant"];
 
-/**
- * Usage against the limits of one institute. Pass the institute id so a
- * head-office account does not count its branches against the parent's limit.
- */
-export async function fetchUsage(instituteId?: string | null): Promise<Usage> {
-  const count = async (table: "students" | "rooms" | "batches") => {
-    let q = supabase.from(table).select("id", { count: "exact", head: true });
-    if (instituteId) q = q.eq("institute_id", instituteId);
-    const { count: c } = await q;
+export async function fetchUsage(): Promise<Usage> {
+  const count = async (
+    table: "students" | "rooms" | "batches",
+    filter?: (q: ReturnType<typeof supabase.from>) => unknown,
+  ) => {
+    void filter;
+    const { count: c } = await supabase.from(table).select("id", { count: "exact", head: true });
     return c ?? 0;
   };
 
@@ -29,9 +27,7 @@ export async function fetchUsage(instituteId?: string | null): Promise<Usage> {
     count("batches"),
   ]);
 
-  let roleQuery = supabase.from("user_roles").select("user_id, role");
-  if (instituteId) roleQuery = roleQuery.eq("institute_id", instituteId);
-  const { data: roleRows } = await roleQuery;
+  const { data: roleRows } = await supabase.from("user_roles").select("user_id, role");
   const office = new Set<string>();
   const teachers = new Set<string>();
   for (const r of roleRows ?? []) {

@@ -9,10 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TeachRouteImport } from './routes/teach'
 import { Route as SignupRouteImport } from './routes/signup'
-import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
@@ -57,11 +55,6 @@ import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
 import { Route as AppBatchesIdRouteImport } from './routes/app.batches.$id'
 import { Route as ApiPublicAttendancePunchRouteImport } from './routes/api/public/attendance.punch'
 
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TeachRoute = TeachRouteImport.update({
   id: '/teach',
   path: '/teach',
@@ -70,11 +63,6 @@ const TeachRoute = TeachRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -302,10 +290,8 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/portal': typeof PortalRouteWithChildren
   '/pricing': typeof PricingRoute
-  '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/teach': typeof TeachRouteWithChildren
-  '/terms': typeof TermsRoute
   '/app/admissions': typeof AppAdmissionsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
@@ -349,9 +335,7 @@ export interface FileRoutesByTo {
   '/for-institutes': typeof ForInstitutesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/pricing': typeof PricingRoute
-  '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
-  '/terms': typeof TermsRoute
   '/app/admissions': typeof AppAdmissionsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
@@ -398,10 +382,8 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/portal': typeof PortalRouteWithChildren
   '/pricing': typeof PricingRoute
-  '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/teach': typeof TeachRouteWithChildren
-  '/terms': typeof TermsRoute
   '/app/admissions': typeof AppAdmissionsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
@@ -449,10 +431,8 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/portal'
     | '/pricing'
-    | '/privacy'
     | '/signup'
     | '/teach'
-    | '/terms'
     | '/app/admissions'
     | '/app/attendance'
     | '/app/batches'
@@ -496,9 +476,7 @@ export interface FileRouteTypes {
     | '/for-institutes'
     | '/forgot-password'
     | '/pricing'
-    | '/privacy'
     | '/signup'
-    | '/terms'
     | '/app/admissions'
     | '/app/attendance'
     | '/app/batches'
@@ -544,10 +522,8 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/portal'
     | '/pricing'
-    | '/privacy'
     | '/signup'
     | '/teach'
-    | '/terms'
     | '/app/admissions'
     | '/app/attendance'
     | '/app/batches'
@@ -594,10 +570,8 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   PortalRoute: typeof PortalRouteWithChildren
   PricingRoute: typeof PricingRoute
-  PrivacyRoute: typeof PrivacyRoute
   SignupRoute: typeof SignupRoute
   TeachRoute: typeof TeachRouteWithChildren
-  TermsRoute: typeof TermsRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   JoinTokenRoute: typeof JoinTokenRoute
   LoginAdminRoute: typeof LoginAdminRoute
@@ -612,13 +586,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/teach': {
       id: '/teach'
       path: '/teach'
@@ -631,13 +598,6 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -1059,10 +1019,8 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   PortalRoute: PortalRouteWithChildren,
   PricingRoute: PricingRoute,
-  PrivacyRoute: PrivacyRoute,
   SignupRoute: SignupRoute,
   TeachRoute: TeachRouteWithChildren,
-  TermsRoute: TermsRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   JoinTokenRoute: JoinTokenRoute,
   LoginAdminRoute: LoginAdminRoute,
