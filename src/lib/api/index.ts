@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { getActiveBranch, ALL_BRANCHES } from "@/lib/branch";
 
 type Tables = Database["public"]["Tables"];
 export type Student = Tables["students"]["Row"];
@@ -34,6 +35,23 @@ export type Institute = Tables["institutes"]["Row"];
 function orThrow<T>({ data, error }: { data: T | null; error: unknown }): T {
   if (error) throw error;
   return data as T;
+}
+
+/**
+ * Scope a query to the branch the user is currently looking at. "All branches"
+ * leaves the query untouched — RLS already limits it to the institutes the
+ * signed-in user belongs to.
+ */
+function branchScoped<T extends { eq: (col: string, val: string) => T }>(q: T): T {
+  const active = getActiveBranch();
+  if (!active || active === ALL_BRANCHES) return q;
+  return q.eq("institute_id", active);
+}
+
+/** The branch currently selected, or null for the combined view. */
+export function activeBranchId(): string | null {
+  const active = getActiveBranch();
+  return !active || active === ALL_BRANCHES ? null : active;
 }
 
 /** Query keys that must refresh together whenever money / enrolment data changes. */
