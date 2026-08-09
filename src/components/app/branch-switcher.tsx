@@ -1,4 +1,5 @@
 import { Building2, Check, ChevronsUpDown } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +13,14 @@ import { ALL_BRANCHES, useBranches } from "@/lib/branch";
 /** Only rendered for accounts that can see more than one campus. */
 export function BranchSwitcher() {
   const { branches, activeId, select, multi } = useBranches();
+  const queryClient = useQueryClient();
   if (!multi) return null;
+
+  // Every list on screen is scoped to the active branch, so refetch on switch.
+  const pick = (id: string) => {
+    select(id);
+    void queryClient.invalidateQueries();
+  };
 
   const current = branches.find((b) => b.id === activeId);
   const label = current ? current.name : "All branches";
@@ -28,7 +36,7 @@ export function BranchSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="text-xs">Viewing</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => select(ALL_BRANCHES)} className="gap-2">
+        <DropdownMenuItem onClick={() => pick(ALL_BRANCHES)} className="gap-2">
           {activeId === ALL_BRANCHES ? (
             <Check className="h-3.5 w-3.5" />
           ) : (
@@ -38,7 +46,7 @@ export function BranchSwitcher() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {branches.map((b) => (
-          <DropdownMenuItem key={b.id} onClick={() => select(b.id)} className="gap-2">
+          <DropdownMenuItem key={b.id} onClick={() => pick(b.id)} className="gap-2">
             {activeId === b.id ? <Check className="h-3.5 w-3.5" /> : <span className="w-3.5" />}
             <span className="truncate">{b.name}</span>
           </DropdownMenuItem>

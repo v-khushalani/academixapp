@@ -14,7 +14,11 @@ export function PlanUsageCard() {
   });
   const current =
     controls.find((c) => c.id === activeId) ?? (activeId === ALL_BRANCHES ? controls[0] : undefined);
-  const { data } = useQuery({ queryKey: ["plan-usage"], queryFn: fetchUsage });
+  const { data } = useQuery({
+    queryKey: ["plan-usage", current?.id ?? null],
+    queryFn: () => fetchUsage(current?.id ?? null),
+    enabled: Boolean(current?.id),
+  });
 
   const rows = data && current ? limitRows(current.limits, data) : [];
 
