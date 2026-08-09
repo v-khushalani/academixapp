@@ -451,16 +451,15 @@ export const attendanceApi = {
 export const dashboardApi = {
   async summary() {
     const [studentsCount, activeBatches, pendingFees, monthAdmissions] = await Promise.all([
-      supabase
-        .from("students")
-        .select("id", { count: "exact", head: true })
+      branchScoped(supabase.from("students").select("id", { count: "exact", head: true }))
         .eq("status", "active")
         .eq("approval_status", "approved"),
-      supabase.from("batches").select("id", { count: "exact", head: true }).eq("status", "active"),
-      supabase.from("fees").select("amount, amount_paid, status"),
-      supabase
-        .from("students")
-        .select("id", { count: "exact", head: true })
+      branchScoped(supabase.from("batches").select("id", { count: "exact", head: true })).eq(
+        "status",
+        "active",
+      ),
+      branchScoped(supabase.from("fees").select("amount, amount_paid, status")),
+      branchScoped(supabase.from("students").select("id", { count: "exact", head: true }))
         .eq("approval_status", "approved")
         .gte(
           "admission_date",
@@ -500,33 +499,36 @@ export const dashboardApi = {
       attendanceToday,
       upcomingTests,
     ] = await Promise.all([
-      supabase
-        .from("students")
-        .select("id", { count: "exact", head: true })
+      branchScoped(supabase.from("students").select("id", { count: "exact", head: true }))
         .eq("status", "active")
         .eq("approval_status", "approved"),
-      supabase.from("batches").select("id", { count: "exact", head: true }).eq("status", "active"),
-      supabase
-        .from("fees")
-        .select(
+      branchScoped(supabase.from("batches").select("id", { count: "exact", head: true })).eq(
+        "status",
+        "active",
+      ),
+      branchScoped(
+        supabase
+          .from("fees")
+          .select(
           "id, amount, amount_paid, status, due_date, paid_date, student:students(id, full_name, parent_phone, phone)",
-        ),
-      supabase
-        .from("students")
-        .select("id", { count: "exact", head: true })
+          ),
+      ),
+      branchScoped(supabase.from("students").select("id", { count: "exact", head: true }))
         .eq("approval_status", "approved")
         .gte("admission_date", monthStart),
-      supabase.from("students").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
-      supabase
-        .from("students")
-        .select("id", { count: "exact", head: true })
+      branchScoped(supabase.from("students").select("id", { count: "exact", head: true })).eq(
+        "approval_status",
+        "pending",
+      ),
+      branchScoped(supabase.from("students").select("id", { count: "exact", head: true }))
         .eq("approval_status", "enquiry")
         .gte("created_at", monthStart),
-      supabase.from("timetable_slots").select("id, batch_id").eq("day_of_week", dow),
-      supabase.from("attendance").select("status, batch_id, student_id").eq("date", today),
-      supabase
-        .from("tests")
-        .select("id, title, date, batch:batches(name)")
+      branchScoped(supabase.from("timetable_slots").select("id, batch_id")).eq("day_of_week", dow),
+      branchScoped(supabase.from("attendance").select("status, batch_id, student_id")).eq(
+        "date",
+        today,
+      ),
+      branchScoped(supabase.from("tests").select("id, title, date, batch:batches(name)"))
         .gte("date", today)
         .order("date", { ascending: true })
         .limit(5),
@@ -705,9 +707,12 @@ export const roomsApi = {
 // ---------- Institute (plan / limits) ----------
 export const instituteApi = {
   async get(): Promise<Institute | null> {
-    const { data, error } = await supabase.from("institutes").select("*").maybeSingle();
+    const active = activeBranchId();
+    let q = supabase.from("institutes").select("*");
+    if (active) q = q.eq("id", active);
+    const { data, error } = await q.order("parent_institute_id", { nullsFirst: true }).limit(1);
     if (error) throw error;
-    return data;
+    return data?.[0] ?? null;
   },
   async setPlan(id: string, plan: string, roomLimit: number) {
     return orThrow(
