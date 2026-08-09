@@ -75,7 +75,7 @@ export const studentsApi = {
     approvals?: string[];
   }): Promise<(Student & { batch?: Batch | null })[]> {
     const approval = opts?.approval ?? "approved";
-    let q = supabase.from("students").select("*, batch:batches(*)");
+    let q = branchScoped(supabase.from("students").select("*, batch:batches(*)"));
     if (opts?.approvals?.length) q = q.in("approval_status", opts.approvals);
     else if (approval !== "all") q = q.eq("approval_status", approval);
     const { data, error } = await q.order("created_at", { ascending: false });
@@ -134,10 +134,10 @@ export const studentsApi = {
 // ---------- Batches ----------
 export const batchesApi = {
   async list() {
-    const { data, error } = await supabase
-      .from("batches")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await branchScoped(supabase.from("batches").select("*")).order(
+      "created_at",
+      { ascending: false },
+    );
     if (error) throw error;
     return data ?? [];
   },
@@ -170,10 +170,9 @@ export const batchesApi = {
 // ---------- Fees ----------
 export const feesApi = {
   async list() {
-    const { data, error } = await supabase
-      .from("fees")
-      .select("*, student:students(id,full_name,admission_no)")
-      .order("created_at", { ascending: false });
+    const { data, error } = await branchScoped(
+      supabase.from("fees").select("*, student:students(id,full_name,admission_no)"),
+    ).order("created_at", { ascending: false });
     if (error) throw error;
     return data ?? [];
   },
@@ -339,10 +338,9 @@ export function isLiveBill(f: { status?: string | null }) {
 // ---------- Tests ----------
 export const testsApi = {
   async list() {
-    const { data, error } = await supabase
-      .from("tests")
-      .select("*, batch:batches(id,name)")
-      .order("date", { ascending: false });
+    const { data, error } = await branchScoped(
+      supabase.from("tests").select("*, batch:batches(id,name)"),
+    ).order("date", { ascending: false });
     if (error) throw error;
     return data ?? [];
   },
@@ -376,10 +374,10 @@ export const testsApi = {
 // ---------- Leads ----------
 export const leadsApi = {
   async list() {
-    const { data, error } = await supabase
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await branchScoped(supabase.from("leads").select("*")).order(
+      "created_at",
+      { ascending: false },
+    );
     if (error) throw error;
     return data ?? [];
   },
@@ -417,11 +415,13 @@ export const attendanceApi = {
   },
   /** Absentees for a day that the office has not messaged yet. */
   async absentees(date: string) {
-    const { data, error } = await supabase
-      .from("attendance")
-      .select(
+    const { data, error } = await branchScoped(
+      supabase
+        .from("attendance")
+        .select(
         "id, date, notified_at, batch:batches(name), student:students(id, full_name, parent_name, parent_phone, phone)",
-      )
+        ),
+    )
       .eq("date", date)
       .eq("status", "absent")
       .order("created_at", { ascending: true });
@@ -634,7 +634,9 @@ export const rolesApi = {
 // ---------- Faculty ----------
 export const facultyApi = {
   async list() {
-    const { data, error } = await supabase.from("faculty").select("*").order("full_name");
+    const { data, error } = await branchScoped(supabase.from("faculty").select("*")).order(
+      "full_name",
+    );
     if (error) throw error;
     return data ?? [];
   },
@@ -653,11 +655,13 @@ export const facultyApi = {
 // ---------- Timetable ----------
 export const timetableApi = {
   async list() {
-    const { data, error } = await supabase
-      .from("timetable_slots")
-      .select(
+    const { data, error } = await branchScoped(
+      supabase
+        .from("timetable_slots")
+        .select(
         "*, batch:batches(id,name), faculty:faculty(id,full_name), room_ref:rooms(id,name,capacity)",
-      )
+        ),
+    )
       .order("day_of_week")
       .order("start_time");
     if (error) throw error;
@@ -680,7 +684,7 @@ export const timetableApi = {
 // ---------- Classrooms ----------
 export const roomsApi = {
   async list(opts?: { includeInactive?: boolean }): Promise<Room[]> {
-    let q = supabase.from("rooms").select("*");
+    let q = branchScoped(supabase.from("rooms").select("*"));
     if (!opts?.includeInactive) q = q.eq("is_active", true);
     const { data, error } = await q.order("name");
     if (error) throw error;
@@ -726,12 +730,13 @@ export type DayPlanRow = DayPlan & {
 
 export const dayPlanApi = {
   async listForDate(date: string): Promise<DayPlanRow[]> {
-    const { data, error } = await supabase
-      .from("timetable_day_plan")
-      .select(
+    const { data, error } = await branchScoped(
+      supabase
+        .from("timetable_day_plan")
+        .select(
         "*, batch:batches(id,name), faculty:faculty(id,full_name,phone), room_ref:rooms(id,name,capacity)",
-      )
-      .eq("date", date);
+        ),
+    ).eq("date", date);
     if (error) throw error;
     return (data ?? []) as DayPlanRow[];
   },
@@ -765,12 +770,13 @@ export const dayPlanApi = {
 // ---------- Attendance (extended) ----------
 export const attendanceListApi = {
   async listForDate(date: string) {
-    const { data, error } = await supabase
-      .from("attendance")
-      .select(
+    const { data, error } = await branchScoped(
+      supabase
+        .from("attendance")
+        .select(
         "*, student:students(id,full_name,admission_no,parent_name,parent_phone,phone), batch:batches(id,name)",
-      )
-      .eq("date", date);
+        ),
+    ).eq("date", date);
     if (error) throw error;
     return data ?? [];
   },
