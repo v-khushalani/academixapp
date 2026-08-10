@@ -54,6 +54,7 @@ import { Route as AppAdmissionsRouteImport } from './routes/app.admissions'
 import { Route as AppTestsIdRouteImport } from './routes/app.tests.$id'
 import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
 import { Route as AppBatchesIdRouteImport } from './routes/app.batches.$id'
+import { Route as AppPlatformRouteImport } from './routes/app.platform.'
 import { Route as ApiPublicAttendancePunchRouteImport } from './routes/api/public/attendance.punch'
 
 const TeachRoute = TeachRouteImport.update({
@@ -281,6 +282,11 @@ const AppBatchesIdRoute = AppBatchesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AppBatchesRoute,
 } as any)
+const AppPlatformRoute = AppPlatformRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppPlatformRoute,
+} as any)
 const ApiPublicAttendancePunchRoute =
   ApiPublicAttendancePunchRouteImport.update({
     id: '/api/public/attendance/punch',
@@ -304,7 +310,7 @@ export interface FileRoutesByFullPath {
   '/app/expenses': typeof AppExpensesRoute
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
-  '/app/platform': typeof AppPlatformRoute
+  '/app/platform': typeof AppPlatformRouteWithChildren
   '/app/reports': typeof AppReportsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
@@ -331,6 +337,7 @@ export interface FileRoutesByFullPath {
   '/login/': typeof LoginIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/teach/': typeof TeachIndexRoute
+  '/app/platform/': typeof AppPlatformRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
@@ -349,7 +356,6 @@ export interface FileRoutesByTo {
   '/app/expenses': typeof AppExpensesRoute
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
-  '/app/platform': typeof AppPlatformRoute
   '/app/reports': typeof AppReportsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
@@ -376,6 +382,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginIndexRoute
   '/portal': typeof PortalIndexRoute
   '/teach': typeof TeachIndexRoute
+  '/app/platform': typeof AppPlatformRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
@@ -398,7 +405,7 @@ export interface FileRoutesById {
   '/app/expenses': typeof AppExpensesRoute
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
-  '/app/platform': typeof AppPlatformRoute
+  '/app/platform': typeof AppPlatformRouteWithChildren
   '/app/reports': typeof AppReportsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
@@ -425,6 +432,7 @@ export interface FileRoutesById {
   '/login/': typeof LoginIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/teach/': typeof TeachIndexRoute
+  '/app/platform/': typeof AppPlatformRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
@@ -475,6 +483,7 @@ export interface FileRouteTypes {
     | '/login/'
     | '/portal/'
     | '/teach/'
+    | '/app/platform/'
     | '/app/batches/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
@@ -493,7 +502,6 @@ export interface FileRouteTypes {
     | '/app/expenses'
     | '/app/faculty'
     | '/app/fees'
-    | '/app/platform'
     | '/app/reports'
     | '/app/settings'
     | '/app/students'
@@ -520,6 +528,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/teach'
+    | '/app/platform'
     | '/app/batches/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
@@ -568,6 +577,7 @@ export interface FileRouteTypes {
     | '/login/'
     | '/portal/'
     | '/teach/'
+    | '/app/platform/'
     | '/app/batches/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
@@ -913,6 +923,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBatchesIdRouteImport
       parentRoute: typeof AppBatchesRoute
     }
+    '/app/platform/': {
+      id: '/app/platform/'
+      path: '/'
+      fullPath: '/app/platform/'
+      preLoaderRoute: typeof AppPlatformRouteImport
+      parentRoute: typeof AppPlatformRoute
+    }
     '/api/public/attendance/punch': {
       id: '/api/public/attendance/punch'
       path: '/api/public/attendance/punch'
@@ -933,6 +950,18 @@ const AppBatchesRouteChildren: AppBatchesRouteChildren = {
 
 const AppBatchesRouteWithChildren = AppBatchesRoute._addFileChildren(
   AppBatchesRouteChildren,
+)
+
+interface AppPlatformRouteChildren {
+  AppPlatformRoute: typeof AppPlatformRoute
+}
+
+const AppPlatformRouteChildren: AppPlatformRouteChildren = {
+  AppPlatformRoute: AppPlatformRoute,
+}
+
+const AppPlatformRouteWithChildren = AppPlatformRoute._addFileChildren(
+  AppPlatformRouteChildren,
 )
 
 interface AppStudentsRouteChildren {
@@ -966,7 +995,7 @@ interface AppRouteChildren {
   AppExpensesRoute: typeof AppExpensesRoute
   AppFacultyRoute: typeof AppFacultyRoute
   AppFeesRoute: typeof AppFeesRoute
-  AppPlatformRoute: typeof AppPlatformRoute
+  AppPlatformRoute: typeof AppPlatformRouteWithChildren
   AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStudentsRoute: typeof AppStudentsRouteWithChildren
@@ -983,7 +1012,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppExpensesRoute: AppExpensesRoute,
   AppFacultyRoute: AppFacultyRoute,
   AppFeesRoute: AppFeesRoute,
-  AppPlatformRoute: AppPlatformRoute,
+  AppPlatformRoute: AppPlatformRouteWithChildren,
   AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStudentsRoute: AppStudentsRouteWithChildren,

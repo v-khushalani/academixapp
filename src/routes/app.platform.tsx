@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, ArrowRight, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Input } from "@/components/ui/input";
@@ -155,68 +155,59 @@ function PlatformPage() {
               className="mt-4 h-9 max-w-sm"
             />
 
-            <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-              <div className="overflow-x-auto rounded-lg border border-border bg-card">
-                <table className="w-full min-w-[420px] text-sm">
-                  <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-                    <tr>
-                      <th className="px-3 py-2">Institute</th>
-                      <th className="px-3 py-2">Students</th>
-                      <th className="px-3 py-2">Batches</th>
+            <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-card">
+              <table className="w-full min-w-[420px] text-sm">
+                <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-2">Institute</th>
+                    <th className="px-3 py-2">Students</th>
+                    <th className="px-3 py-2">Batches</th>
+                    <th className="px-3 py-2"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((i) => (
+                    <tr
+                      key={i.id}
+                      className="border-t border-border hover:bg-muted/40 transition-colors group"
+                    >
+                      <td className="px-3 py-2">
+                        <p className="font-medium">
+                          {i.parent_institute_id ? "↳ " : ""}
+                          {i.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {i.plan ?? "no plan"} · {i.status ?? "active"}
+                        </p>
+                      </td>
+                      <td className="px-3 py-2 tabular-nums text-muted-foreground">
+                        {i.students}
+                        {i.student_limit > 0 ? ` / ${i.student_limit}` : ""}
+                      </td>
+                      <td className="px-3 py-2 tabular-nums text-muted-foreground">
+                        {i.batches}
+                        {i.batch_limit > 0 ? ` / ${i.batch_limit}` : ""}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <Link 
+                          to="/app/platform/\$id" 
+                          params={{ id: i.id }}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          Manage <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((i) => (
-                      <tr
-                        key={i.id}
-                        onClick={() => setSelected(i.id)}
-                        className={
-                          "cursor-pointer border-t border-border hover:bg-muted/40 " +
-                          (selected === i.id ? "bg-muted/60" : "")
-                        }
-                      >
-                        <td className="px-3 py-2">
-                          <p className="font-medium">
-                            {i.parent_institute_id ? "↳ " : ""}
-                            {i.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {i.plan ?? "no plan"} · {i.status ?? "active"}
-                          </p>
-                        </td>
-                        <td className="px-3 py-2 tabular-nums">
-                          {i.students}
-                          {i.student_limit > 0 ? ` / ${i.student_limit}` : ""}
-                        </td>
-                        <td className="px-3 py-2 tabular-nums">
-                          {i.batches}
-                          {i.batch_limit > 0 ? ` / ${i.batch_limit}` : ""}
-                        </td>
-                      </tr>
-                    ))}
-                    {filtered.length === 0 && (
-                      <tr>
-                        <td colSpan={3} className="px-3 py-6 text-center text-xs text-muted-foreground">
-                          No institutes match.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {current ? (
-                <InstituteEditor
-                  key={current.id}
-                  institute={current}
-                  all={institutes}
-                  planKeys={plans}
-                />
-              ) : (
-                <div className="grid place-items-center rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-                  Pick an institute to set its plan, limits, modules, fee structure and branch.
-                </div>
-              )}
+                  ))}
+                  {filtered.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-3 py-6 text-center text-xs text-muted-foreground">
+                        No institutes match.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </TabsContent>
 
