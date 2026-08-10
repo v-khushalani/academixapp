@@ -882,7 +882,7 @@ export const facultyAttendanceApi = {
     // Logic: Map faculty to their required batches, then check if they marked them
     const facultyWork = new Map<string, Set<string>>();
     slots.forEach(s => {
-      if (!s.faculty_id) return;
+      if (!s.faculty_id || !s.batch_id) return;
       const set = facultyWork.get(s.faculty_id) ?? new Set();
       set.add(s.batch_id);
       facultyWork.set(s.faculty_id, set);
@@ -890,7 +890,7 @@ export const facultyAttendanceApi = {
 
     const markedAtt = new Map<string, Set<string>>();
     attendance.forEach(a => {
-      if (!a.marked_by) return;
+      if (!a.marked_by || !a.batch_id) return;
       const set = markedAtt.get(a.marked_by) ?? new Set();
       set.add(a.batch_id);
       markedAtt.set(a.marked_by, set);
