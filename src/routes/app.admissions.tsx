@@ -27,7 +27,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { batchesApi, leadsApi, studentsApi, type Lead, type LeadInsert, type Student } from "@/lib/api";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { useAuth } from "@/hooks/use-auth";
-import { can } from "@/lib/rbac";
+import { can, isSuperAdmin } from "@/lib/rbac";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -58,7 +58,7 @@ export const Route = createFileRoute("/app/admissions")({
 
 function AdmissionsPage() {
   const { roles } = useAuth();
-  const canWrite = can("lead:write", roles);
+  const canWrite = isSuperAdmin(roles) || can("lead:write", roles);
   const [tab, setTab] = useState("applications");
 
   return (

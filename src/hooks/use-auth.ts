@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
@@ -24,7 +24,7 @@ function notify() {
 async function loadRoles(userId: string): Promise<AppRole[]> {
   const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
   if (error) {
-    console.error("[roles]", error);
+    
     return [];
   }
   return (data ?? []).map((r) => r.role);
@@ -67,7 +67,9 @@ export function useAuth() {
     await supabase.auth.signOut();
   }, []);
 
-  return { ...state, signOut };
+  const isSuperAdmin = useMemo(() => state.roles.includes("superadmin" as AppRole), [state.roles]);
+
+  return { ...state, signOut, isSuperAdmin };
 }
 
 export function hasAnyRole(roles: AppRole[], allowed: AppRole[]): boolean {

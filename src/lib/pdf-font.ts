@@ -23,7 +23,7 @@ function load() {
   cache ??= Promise.all([toBase64(sairaRegular.url), toBase64(sairaBold.url)])
     .then(([regular, bold]) => ({ regular, bold }))
     .catch((err) => {
-      console.error("Failed to load PDF fonts:", err);
+      
       return null;
     });
   return cache;
