@@ -8,20 +8,21 @@ import { PostAuthGate } from "@/components/auth/post-auth-gate";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Academix — Institute ERP for Coaching Centres" },
+      { title: "Academix — Best Coaching Institute ERP & School LMS Software" },
       {
         name: "description",
         content:
-          "Admissions by QR, attendance, fees with UPI, tests and timetable — plus separate portals for admin, teachers and parents. Built for coaching institutes.",
+          "The #1 Institute ERP for coaching centers & schools in India. QR admissions, UPI fees, syllabus tracking, & parent portals. Automate your academy management today.",
       },
-      { property: "og:title", content: "Academix — Institute ERP for Coaching Centres" },
+      { property: "og:title", content: "Academix — Best Coaching Institute ERP & School LMS Software" },
       {
         property: "og:description",
         content:
-          "Admissions by QR, attendance, fees with UPI, tests and timetable — plus separate portals for admin, teachers and parents. Built for coaching institutes.",
+          "Transform your coaching institute with Academix. Modern ERP featuring QR admissions, automated fee receipts, teacher syllabus tracking, and dedicated parent portals.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "keywords", content: "coaching institute erp, school lms, academy management software, education erp india, fee management system, student attendance app, syllabus tracking software, institute management system" },
     ],
   }),
   component: Index,
