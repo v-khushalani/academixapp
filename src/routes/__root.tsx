@@ -78,26 +78,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Academix — #1 Coaching Institute ERP & Academy Management Software" },
+      { title: "Academix — #1 Coaching Institute ERP & Academy Management Software India" },
       {
         name: "description",
         content:
-          "Academix is the ultimate Institute ERP and LMS for coaching centers. Manage admissions, fees, attendance, and syllabus with dedicated portals for admin, teachers, and parents.",
+          "Academix is India's most advanced Institute ERP and LMS for coaching centers. Manage admissions, fees, attendance, and syllabus with dedicated portals for admin, teachers, and parents.",
       },
-      { name: "author", content: "Academix" },
-      { property: "og:title", content: "Academix — Coaching Institute ERP & School LMS" },
+      { name: "author", content: "Academix Team" },
+      { property: "og:title", content: "Academix — Coaching Institute ERP & School LMS Software India" },
       {
         property: "og:description",
         content:
-          "Modernize your coaching center with Academix. The complete ERP featuring UPI fees, syllabus tracking, and multi-tenant support for growing academies.",
+          "Transform your academy with the leading multi-tenant ERP for coaching centers. QR admissions, automated WhatsApp fee receipts, and syllabus tracking.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Academix — Institute Management ERP" },
+      { name: "twitter:title", content: "Academix — Best Institute Management ERP India" },
       {
         name: "twitter:description",
         content:
-          "The best ERP software for coaching institutes. Features admissions, fee collection, syllabus tracking, and portals for all stakeholders.",
+          "India's best ERP for coaching institutes. Features admissions, fee collection, syllabus tracking, and portals for all stakeholders.",
       },
       {
         property: "og:image",
@@ -109,6 +109,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b0bd8a54-8248-4685-a7b0-f4b9a2993425/id-preview-c44f677a--16835a18-300a-469b-8bf2-6c7cc98982e8.lovable.app-1783651327037.png",
       },
+      { name: "keywords", content: "coaching institute management software, best school erp india, institute lms software, academy management erp, fee management software for coaching, student attendance management app, syllabus tracker for teachers, multi-tenant school software, coaching portal software" },
+      { name: "robots", content: "index, follow" },
     ],
     links: [
       {

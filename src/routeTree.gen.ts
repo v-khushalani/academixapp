@@ -53,8 +53,8 @@ import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
 import { Route as AppAdmissionsRouteImport } from './routes/app.admissions'
 import { Route as AppTestsIdRouteImport } from './routes/app.tests.$id'
 import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
+import { Route as AppPlatformIdRouteImport } from './routes/app.platform.$id'
 import { Route as AppBatchesIdRouteImport } from './routes/app.batches.$id'
-import { Route as AppPlatformRouteImport } from './routes/app.platform.'
 import { Route as ApiPublicAttendancePunchRouteImport } from './routes/api/public/attendance.punch'
 
 const TeachRoute = TeachRouteImport.update({
@@ -277,15 +277,15 @@ const AppStudentsIdRoute = AppStudentsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AppStudentsRoute,
 } as any)
+const AppPlatformIdRoute = AppPlatformIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppPlatformRoute,
+} as any)
 const AppBatchesIdRoute = AppBatchesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AppBatchesRoute,
-} as any)
-const AppPlatformRoute = AppPlatformRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppPlatformRoute,
 } as any)
 const ApiPublicAttendancePunchRoute =
   ApiPublicAttendancePunchRouteImport.update({
@@ -337,8 +337,8 @@ export interface FileRoutesByFullPath {
   '/login/': typeof LoginIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/teach/': typeof TeachIndexRoute
-  '/app/platform/': typeof AppPlatformRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
+  '/app/platform/$id': typeof AppPlatformIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
   '/api/public/attendance/punch': typeof ApiPublicAttendancePunchRoute
@@ -356,6 +356,7 @@ export interface FileRoutesByTo {
   '/app/expenses': typeof AppExpensesRoute
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
+  '/app/platform': typeof AppPlatformRouteWithChildren
   '/app/reports': typeof AppReportsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
@@ -382,8 +383,8 @@ export interface FileRoutesByTo {
   '/login': typeof LoginIndexRoute
   '/portal': typeof PortalIndexRoute
   '/teach': typeof TeachIndexRoute
-  '/app/platform': typeof AppPlatformRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
+  '/app/platform/$id': typeof AppPlatformIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
   '/api/public/attendance/punch': typeof ApiPublicAttendancePunchRoute
@@ -432,8 +433,8 @@ export interface FileRoutesById {
   '/login/': typeof LoginIndexRoute
   '/portal/': typeof PortalIndexRoute
   '/teach/': typeof TeachIndexRoute
-  '/app/platform/': typeof AppPlatformRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
+  '/app/platform/$id': typeof AppPlatformIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
   '/api/public/attendance/punch': typeof ApiPublicAttendancePunchRoute
@@ -483,8 +484,8 @@ export interface FileRouteTypes {
     | '/login/'
     | '/portal/'
     | '/teach/'
-    | '/app/platform/'
     | '/app/batches/$id'
+    | '/app/platform/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
     | '/api/public/attendance/punch'
@@ -502,6 +503,7 @@ export interface FileRouteTypes {
     | '/app/expenses'
     | '/app/faculty'
     | '/app/fees'
+    | '/app/platform'
     | '/app/reports'
     | '/app/settings'
     | '/app/students'
@@ -528,8 +530,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/teach'
-    | '/app/platform'
     | '/app/batches/$id'
+    | '/app/platform/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
     | '/api/public/attendance/punch'
@@ -577,8 +579,8 @@ export interface FileRouteTypes {
     | '/login/'
     | '/portal/'
     | '/teach/'
-    | '/app/platform/'
     | '/app/batches/$id'
+    | '/app/platform/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
     | '/api/public/attendance/punch'
@@ -916,19 +918,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStudentsIdRouteImport
       parentRoute: typeof AppStudentsRoute
     }
+    '/app/platform/$id': {
+      id: '/app/platform/$id'
+      path: '/$id'
+      fullPath: '/app/platform/$id'
+      preLoaderRoute: typeof AppPlatformIdRouteImport
+      parentRoute: typeof AppPlatformRoute
+    }
     '/app/batches/$id': {
       id: '/app/batches/$id'
       path: '/$id'
       fullPath: '/app/batches/$id'
       preLoaderRoute: typeof AppBatchesIdRouteImport
       parentRoute: typeof AppBatchesRoute
-    }
-    '/app/platform/': {
-      id: '/app/platform/'
-      path: '/'
-      fullPath: '/app/platform/'
-      preLoaderRoute: typeof AppPlatformRouteImport
-      parentRoute: typeof AppPlatformRoute
     }
     '/api/public/attendance/punch': {
       id: '/api/public/attendance/punch'
@@ -953,11 +955,11 @@ const AppBatchesRouteWithChildren = AppBatchesRoute._addFileChildren(
 )
 
 interface AppPlatformRouteChildren {
-  AppPlatformRoute: typeof AppPlatformRoute
+  AppPlatformIdRoute: typeof AppPlatformIdRoute
 }
 
 const AppPlatformRouteChildren: AppPlatformRouteChildren = {
-  AppPlatformRoute: AppPlatformRoute,
+  AppPlatformIdRoute: AppPlatformIdRoute,
 }
 
 const AppPlatformRouteWithChildren = AppPlatformRoute._addFileChildren(

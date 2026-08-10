@@ -40,6 +40,7 @@ export const Route = createFileRoute("/app/platform")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: PlatformPage,
@@ -190,7 +191,7 @@ function PlatformPage() {
                       </td>
                       <td className="px-3 py-2 text-right">
                         <Link 
-                          to="/app/platform/\$id" 
+                          to="/app/platform/$id" 
                           params={{ id: i.id }}
                           className="inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity"
                         >

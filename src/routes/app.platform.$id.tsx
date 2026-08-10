@@ -23,9 +23,12 @@ import { InstallmentPlanEditor } from "@/components/app/installment-plan-editor"
 import { normalisePlan, type Installment } from "@/lib/installments";
 import { FEATURE_KEYS, FEATURE_LABELS, type FeatureKey } from "@/lib/institute-controls";
 
-export const Route = createFileRoute("/app/platform/")({
+export const Route = createFileRoute("/app/platform/$id")({
   head: () => ({
-    meta: [{ title: "Institute Console — Academix" }],
+    meta: [
+      { title: "Institute Console — Academix" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
   }),
   component: InstituteDetailPage,
 });
