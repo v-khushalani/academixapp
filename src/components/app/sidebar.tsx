@@ -6,6 +6,7 @@ import {
   Layers,
   CalendarCheck,
   Wallet,
+  IndianRupee,
   FileText,
   Calendar,
   BookOpen,

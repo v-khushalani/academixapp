@@ -69,7 +69,12 @@ function ReportsPage() {
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="admissions">Admissions</TabsTrigger>
             <TabsTrigger value="defaulters">Defaulters</TabsTrigger>
+            <TabsTrigger value="pnl">Profit & Loss</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="pnl" className="mt-4">
+            <PnLReport from={from} to={to} />
+          </TabsContent>
 
           <TabsContent value="revenue" className="mt-4">
             <RevenueReport from={from} to={to} />
