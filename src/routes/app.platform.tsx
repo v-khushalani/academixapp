@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ShieldCheck, ArrowRight, ExternalLink } from "lucide-react";
@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { isSuperAdmin } from "@/lib/rbac";
 import { PricingAdmin } from "@/components/app/pricing-admin";
 import { type FeatureKey } from "@/lib/institute-controls";
+import { type Installment } from "@/lib/installments";
 
 export const Route = createFileRoute("/app/platform")({
   head: () => ({
