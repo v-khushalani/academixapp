@@ -1999,6 +1999,15 @@ export type Database = {
           id: string
         }[]
       }
+      collect_fee_payment: {
+        Args: {
+          _fee_id: string
+          _method?: string
+          _note?: string
+          _received: number
+        }
+        Returns: undefined
+      }
       complete_student_onboarding: {
         Args: {
           _address: string
@@ -2024,6 +2033,7 @@ export type Database = {
       }
       current_institute_id: { Args: never; Returns: string }
       default_institute_id: { Args: never; Returns: string }
+      get_dashboard_overview: { Args: never; Returns: Json }
       get_faculty_invite: {
         Args: { _token: string }
         Returns: {
