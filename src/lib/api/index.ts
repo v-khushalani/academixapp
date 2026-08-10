@@ -171,27 +171,12 @@ export const feesApi = {
   },
   /** Record money received against an existing fee row. */
   async collect(feeId: string, received: number, method?: string | null, note?: string | null) {
-    const { data: row, error: e1 } = await supabase
-      .from("fees")
-      .select("amount, amount_paid, receipt_no, description")
-      .eq("id", feeId)
-      .single();
-    if (e1) throw e1;
-    const amount = Number(row.amount);
-    const paid = Number(row.amount_paid ?? 0) + Number(received);
-    const status: Database["public"]["Enums"]["fee_status"] =
-      paid <= 0 ? "pending" : paid >= amount ? "paid" : "partial";
-    const { error } = await supabase
-      .from("fees")
-      .update({
-        amount_paid: paid,
-        status,
-        method: method || null,
-        paid_date: new Date().toISOString().slice(0, 10),
-        receipt_no: row.receipt_no || makeReceiptNo(),
-        description: note ? `${row.description ?? ""}${row.description ? " · " : ""}${note}` : row.description,
-      })
-      .eq("id", feeId);
+    const { data, error } = await supabase.rpc("collect_fee_payment", {
+      _fee_id: feeId,
+      _received: received,
+      _method: method || "Cash",
+      _note: note || null
+    });
     if (error) throw error;
   },
   async create(input: FeeInsert) {
