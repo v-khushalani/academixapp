@@ -725,6 +725,7 @@ export type Database = {
           phone: string | null
           plan: string
           primary_color: string | null
+          receipt_template: string | null
           room_limit: number
           shifts: Json
           slug: string
@@ -753,6 +754,7 @@ export type Database = {
           phone?: string | null
           plan?: string
           primary_color?: string | null
+          receipt_template?: string | null
           room_limit?: number
           shifts?: Json
           slug: string
@@ -781,6 +783,7 @@ export type Database = {
           phone?: string | null
           plan?: string
           primary_color?: string | null
+          receipt_template?: string | null
           room_limit?: number
           shifts?: Json
           slug?: string
@@ -2186,24 +2189,43 @@ export type Database = {
           teacher_logins: number
         }[]
       }
-      platform_update_institute: {
-        Args: {
-          _batch_limit?: number
-          _clear_parent?: boolean
-          _faculty_limit?: number
-          _features?: Json
-          _id: string
-          _installment_plan?: Json
-          _parent_institute_id?: string
-          _plan?: string
-          _room_limit?: number
-          _staff_login_limit?: number
-          _status?: string
-          _student_limit?: number
-          _teacher_login_limit?: number
-        }
-        Returns: undefined
-      }
+      platform_update_institute:
+        | {
+            Args: {
+              _batch_limit?: number
+              _clear_parent?: boolean
+              _faculty_limit?: number
+              _features?: Json
+              _id: string
+              _installment_plan?: Json
+              _parent_institute_id?: string
+              _plan?: string
+              _room_limit?: number
+              _staff_login_limit?: number
+              _status?: string
+              _student_limit?: number
+              _teacher_login_limit?: number
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _batch_limit: number
+              _clear_parent?: boolean
+              _faculty_limit: number
+              _features: Json
+              _id: string
+              _installment_plan: Json
+              _parent_institute_id?: string
+              _plan: string
+              _receipt_template?: string
+              _room_limit: number
+              _staff_login_limit: number
+              _student_limit: number
+              _teacher_login_limit: number
+            }
+            Returns: undefined
+          }
       reorder_syllabus_chapters: {
         Args: { _ids: string[] }
         Returns: undefined

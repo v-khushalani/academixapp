@@ -60,6 +60,7 @@ type PlatformInstitute = {
   teacher_login_limit: number;
   features: Partial<Record<FeatureKey, boolean>> | null;
   installment_plan: Installment[] | null;
+  receipt_template: string | null;
   students: number;
   batches: number;
   rooms: number;
@@ -284,6 +285,7 @@ function InstituteEditor({
         _teacher_login_limit: limits.teachers,
         _features: features as never,
         _installment_plan: installments as never,
+        _receipt_template: institute.receipt_template, // We'll add this to the update RPC logic if needed, or just set it via settings
         _parent_institute_id: parent === "none" ? undefined : parent,
         _clear_parent: parent === "none",
       });

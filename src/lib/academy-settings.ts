@@ -22,6 +22,7 @@ export type InstituteSettings = {
   upi_name: string; // payee name shown in the UPI app
   shifts: Shifts; // timetable morning / evening windows
   installment_plan: Installment[]; // default fee installment schedule
+  receipt_template?: string; // e.g. "classic", "modern", "minimal"
 };
 
 const KEY_INSTITUTE = "vk_institute";
@@ -98,6 +99,7 @@ export async function saveInstitute(s: InstituteSettings) {
       upi_name: s.upi_name || null,
       shifts: s.shifts ?? DEFAULT_SHIFTS,
       installment_plan: (s.installment_plan?.length ? s.installment_plan : DEFAULT_PLAN) as unknown as never,
+      receipt_template: s.receipt_template || null,
     })
     .eq("id", row.id);
   if (error) throw error;
@@ -108,7 +110,7 @@ export async function hydrateInstitute() {
   const { data } = await supabase
     .from("institutes")
     .select(
-      "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan",
+      "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan, receipt_template",
     )
     .maybeSingle();
   if (!data) return;
