@@ -92,7 +92,10 @@ function SettingsPage() {
             <DevicesPanel />
           </TabsContent>
           <TabsContent value="branding">
-            <BrandingPanel />
+            <div className="space-y-4">
+              <BrandingPanel />
+              <ReceiptTemplatePanel />
+            </div>
           </TabsContent>
           <TabsContent value="whatsapp">
             <TemplatesPanel />
