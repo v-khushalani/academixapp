@@ -570,6 +570,7 @@ export const dashboardApi = {
       newThisMonth: monthAdmissions.count ?? 0,
       pendingApprovals: pendingApps.count ?? 0,
       enquiriesThisMonth: enquiryCount.count ?? 0,
+      expensesThisMonth,
       money: {
         billed,
         outstanding,
