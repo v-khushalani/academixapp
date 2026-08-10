@@ -4,6 +4,7 @@ import { getInstitute } from "./academy-settings";
 import { receiptNo, inr } from "./payments";
 import { useSaira } from "./pdf-font";
 import { formatDate } from "./dates";
+import { buildModernReceipt, buildProfessionalReceipt } from "./receipt-templates";
 
 export type ReceiptInput = {
   receipt_no?: string | null;
