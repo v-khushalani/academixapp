@@ -128,7 +128,6 @@ function DashboardPage() {
                     count={data?.expensesThisMonth ?? 0}
                     to="/app/expenses"
                     tone="default"
-                    isCurrency
                   />
                 </>
               ) : null}
