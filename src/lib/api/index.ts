@@ -519,7 +519,9 @@ export const dashboardApi = {
         .lte("date", today),
     ]);
 
-
+    const expRows = arguments[7]?.data ?? [];
+    const expensesThisMonth = expRows.reduce((s: number, e: any) => s + Number(e.amount), 0);
+    
     const rows = feeRows.data ?? [];
     const live = rows.filter(isLiveBill);
     const billed = live.reduce((s, f) => s + Number(f.amount), 0);
