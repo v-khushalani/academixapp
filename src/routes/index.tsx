@@ -8,21 +8,24 @@ import { PostAuthGate } from "@/components/auth/post-auth-gate";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Academix — Best Coaching Institute ERP & School LMS Software" },
+      { title: "Academix — Best Coaching Institute ERP & School LMS Software India" },
       {
         name: "description",
         content:
-          "The #1 Institute ERP for coaching centers & schools in India. QR admissions, UPI fees, syllabus tracking, & parent portals. Automate your academy management today.",
+          "Academix is India's leading coaching institute ERP and school LMS. Manage admissions with QR, automate fee collections, track syllabus progress, and provide parent portals. All-in-one institute management software.",
       },
-      { property: "og:title", content: "Academix — Best Coaching Institute ERP & School LMS Software" },
+      { property: "og:title", content: "Academix — Best Coaching Institute ERP & School LMS Software India" },
       {
         property: "og:description",
         content:
-          "Transform your coaching institute with Academix. Modern ERP featuring QR admissions, automated fee receipts, teacher syllabus tracking, and dedicated parent portals.",
+          "Transform your academy with the most advanced ERP for coaching centers and schools. Featuring QR admissions, automated WhatsApp fee receipts, syllabus tracking, and dedicated portals for parents and teachers.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "keywords", content: "coaching institute erp, school lms, academy management software, education erp india, fee management system, student attendance app, syllabus tracking software, institute management system" },
+      { name: "keywords", content: "coaching institute management software, best school erp india, institute lms software, academy management erp, fee management software for coaching, student attendance management app, syllabus tracker for teachers, multi-tenant school software, coaching portal software" },
+      { name: "author", content: "Academix Team" },
+      { name: "robots", content: "index, follow" },
+      { property: "og:site_name", content: "Academix" },
     ],
   }),
   component: Index,
