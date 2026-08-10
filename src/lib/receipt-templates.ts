@@ -123,6 +123,7 @@ export function buildProfessionalReceipt(
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
   const M = 10;
+  const rs = (n: number) => pdfCurrency(n, FONT);
   const received = Number(f.received_now ?? f.amount_paid) || 0;
 
   // Border

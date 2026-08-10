@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { inr } from "@/lib/format";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { IndianRupee, Plus, Trash2 } from "lucide-react";

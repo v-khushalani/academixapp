@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { inr } from "@/lib/format";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, type FormEvent } from "react";
 import { QRCodeSVG } from "qrcode.react";
