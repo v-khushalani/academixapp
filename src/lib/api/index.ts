@@ -827,7 +827,6 @@ export const userRolesApi = {
       .eq("role", role);
     if (error) throw error;
   },
-  },
 };
 
 // ---------- Expenses ----------
