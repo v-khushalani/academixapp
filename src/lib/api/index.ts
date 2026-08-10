@@ -827,4 +827,87 @@ export const userRolesApi = {
       .eq("role", role);
     if (error) throw error;
   },
+},
 };
+
+// ---------- Expenses ----------
+export const expensesApi = {
+  async list(from?: string, to?: string) {
+    let q = supabase.from("expenses").select("*, faculty:faculty(full_name)").order("date", { ascending: false });
+    if (from) q = q.gte("date", from);
+    if (to) q = q.lte("date", to);
+    const { data, error } = await q;
+    if (error) throw error;
+    return data ?? [];
+  },
+  async create(input: Tables["expenses"]["Insert"]) {
+    return orThrow(await supabase.from("expenses").insert(input).select().single());
+  },
+  async update(id: string, input: Partial<Tables["expenses"]["Update"]>) {
+    return orThrow(await supabase.from("expenses").update(input).eq("id", id).select().single());
+  },
+  async remove(id: string) {
+    const { error } = await supabase.from("expenses").delete().eq("id", id);
+    if (error) throw error;
+  },
+};
+
+// ---------- Faculty Attendance & Performance ----------
+export const facultyAttendanceApi = {
+  /** 
+   * Faculty is "Present" if they have marked both attendance and syllabus for all their scheduled classes today.
+   */
+  async dailyStatus(date: string) {
+    const { data: slots, error: e1 } = await supabase
+      .from("timetable_slots")
+      .select("faculty_id, batch_id")
+      .not("faculty_id", "is", null);
+    
+    if (e1) throw e1;
+
+    const { data: attendance, error: e2 } = await supabase
+      .from("attendance")
+      .select("marked_by, batch_id")
+      .eq("date", date);
+    
+    if (e2) throw e2;
+
+    const { data: syllabus, error: e3 } = await supabase
+      .from("syllabus_logs")
+      .select("faculty_id, chapter_id")
+      .gte("created_at", date + "T00:00:00")
+      .lte("created_at", date + "T23:59:59");
+    
+    if (e3) throw e3;
+
+    // Logic: Map faculty to their required batches, then check if they marked them
+    const facultyWork = new Map<string, Set<string>>();
+    slots.forEach(s => {
+      if (!s.faculty_id) return;
+      const set = facultyWork.get(s.faculty_id) ?? new Set();
+      set.add(s.batch_id);
+      facultyWork.set(s.faculty_id, set);
+    });
+
+    const markedAtt = new Map<string, Set<string>>();
+    attendance.forEach(a => {
+      if (!a.marked_by) return;
+      const set = markedAtt.get(a.marked_by) ?? new Set();
+      set.add(a.batch_id);
+      markedAtt.set(a.marked_by, set);
+    });
+
+    const markedSyl = new Set(syllabus.map(s => s.faculty_id).filter(Boolean));
+
+    return Array.from(facultyWork.entries()).map(([facultyId, requiredBatches]) => {
+      const attDone = Array.from(requiredBatches).every(b => markedAtt.get(facultyId)?.has(b));
+      const sylDone = markedSyl.has(facultyId);
+      return {
+        facultyId,
+        isAbsent: !attDone || !sylDone,
+        reason: !attDone ? "Attendance not marked" : !sylDone ? "Syllabus not updated" : null
+      };
+    });
+  }
+};
+
