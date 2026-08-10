@@ -193,9 +193,14 @@ export async function buildReceipt(f: ReceiptInput): Promise<{ doc: jsPDF; no: s
 
 /** Generates the receipt PDF and triggers download. Returns the receipt number used. */
 export async function downloadReceipt(f: ReceiptInput): Promise<string> {
-  const { doc, no } = await buildReceipt(f);
-  doc.save(`${no}.pdf`);
-  return no;
+  try {
+    const { doc, no } = await buildReceipt(f);
+    doc.save(`${no}.pdf`);
+    return no;
+  } catch (err) {
+    console.error("Receipt download failed:", err);
+    throw new Error("Could not generate PDF. Please try again.");
+  }
 }
 
 /** Receipt as a File, for the native share sheet (WhatsApp attachment). */

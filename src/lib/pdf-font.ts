@@ -9,11 +9,12 @@ import sairaBold from "@/assets/fonts/saira-bold.ttf.asset.json";
 let cache: Promise<{ regular: string; bold: string } | null> | null = null;
 
 async function toBase64(url: string): Promise<string> {
-  const buf = await (await fetch(url)).arrayBuffer();
+  const res = await fetch(url);
+  const buf = await res.arrayBuffer();
   const bytes = new Uint8Array(buf);
   let binary = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
   }
   return btoa(binary);
 }
@@ -21,7 +22,10 @@ async function toBase64(url: string): Promise<string> {
 function load() {
   cache ??= Promise.all([toBase64(sairaRegular.url), toBase64(sairaBold.url)])
     .then(([regular, bold]) => ({ regular, bold }))
-    .catch(() => null);
+    .catch((err) => {
+      console.error("Failed to load PDF fonts:", err);
+      return null;
+    });
   return cache;
 }
 

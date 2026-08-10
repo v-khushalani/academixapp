@@ -188,7 +188,7 @@ export const feesApi = {
         status,
         method: method || null,
         paid_date: new Date().toISOString().slice(0, 10),
-        receipt_no: row.receipt_no ?? makeReceiptNo(),
+        receipt_no: row.receipt_no || makeReceiptNo(),
         description: note ? `${row.description ?? ""}${row.description ? " · " : ""}${note}` : row.description,
       })
       .eq("id", feeId);

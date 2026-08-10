@@ -191,7 +191,7 @@ export function PaymentDialog({
               className="w-full gap-1.5"
               onClick={async () => {
                 const no = await downloadReceipt(receipt);
-                toast.success(`Receipt ${no} downloaded`);
+                if (no) toast.success(`Receipt ${no} downloaded`);
               }}
             >
               <Download className="h-4 w-4" /> Download receipt (PDF)
