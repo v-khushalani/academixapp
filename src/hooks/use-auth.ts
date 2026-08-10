@@ -46,7 +46,7 @@ async function bootstrap() {
     const r = u ? await loadRoles(u.id) : [];
     cache = { session: s, user: u, roles: r, loading: false };
     notify();
-    if (u && (event === "SIGNED_IN" || event === "USER_UPDATED")) {
+    if (u && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
       void hydrateInstitute().catch(() => {});
     }
   });
