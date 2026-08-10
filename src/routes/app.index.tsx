@@ -118,7 +118,7 @@ function DashboardPage() {
                   <ActionRow
                     icon={Wallet}
                     label="Parents with dues"
-                    count={money?.defaulters.filter((d) => d.due > 0).length ?? 0}
+                    count={money?.defaulters?.filter((d: any) => d.due > 0).length ?? 0}
                     to="/app/fees"
                     tone={(money?.defaulters.length ?? 0) > 0 ? "warning" : "default"}
                   />
