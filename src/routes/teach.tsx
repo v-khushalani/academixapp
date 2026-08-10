@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BookOpen, CalendarCheck, ClipboardList, Home, LogOut } from "lucide-react";
+import { BookOpen, CalendarCheck, ClipboardList, Home, LogOut, NotebookPen } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { getInstitute } from "@/lib/academy-settings";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ const NAV = [
   { to: "/teach/attendance", label: "Attendance", icon: CalendarCheck },
   { to: "/teach/marks", label: "Marks", icon: ClipboardList },
   { to: "/teach/syllabus", label: "Syllabus", icon: BookOpen },
+  { to: "/teach/homework", label: "Homework", icon: NotebookPen },
 ];
 
 function TeachLayout() {

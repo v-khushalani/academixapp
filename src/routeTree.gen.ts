@@ -25,6 +25,7 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as WelcomeTokenRouteImport } from './routes/welcome.$token'
 import { Route as TeachSyllabusRouteImport } from './routes/teach.syllabus'
 import { Route as TeachMarksRouteImport } from './routes/teach.marks'
+import { Route as TeachHomeworkRouteImport } from './routes/teach.homework'
 import { Route as TeachAttendanceRouteImport } from './routes/teach.attendance'
 import { Route as PortalTimetableRouteImport } from './routes/portal.timetable'
 import { Route as PortalProgressRouteImport } from './routes/portal.progress'
@@ -135,6 +136,11 @@ const TeachSyllabusRoute = TeachSyllabusRouteImport.update({
 const TeachMarksRoute = TeachMarksRouteImport.update({
   id: '/marks',
   path: '/marks',
+  getParentRoute: () => TeachRoute,
+} as any)
+const TeachHomeworkRoute = TeachHomeworkRouteImport.update({
+  id: '/homework',
+  path: '/homework',
   getParentRoute: () => TeachRoute,
 } as any)
 const TeachAttendanceRoute = TeachAttendanceRouteImport.update({
@@ -330,6 +336,7 @@ export interface FileRoutesByFullPath {
   '/portal/progress': typeof PortalProgressRoute
   '/portal/timetable': typeof PortalTimetableRoute
   '/teach/attendance': typeof TeachAttendanceRoute
+  '/teach/homework': typeof TeachHomeworkRoute
   '/teach/marks': typeof TeachMarksRoute
   '/teach/syllabus': typeof TeachSyllabusRoute
   '/welcome/$token': typeof WelcomeTokenRoute
@@ -376,6 +383,7 @@ export interface FileRoutesByTo {
   '/portal/progress': typeof PortalProgressRoute
   '/portal/timetable': typeof PortalTimetableRoute
   '/teach/attendance': typeof TeachAttendanceRoute
+  '/teach/homework': typeof TeachHomeworkRoute
   '/teach/marks': typeof TeachMarksRoute
   '/teach/syllabus': typeof TeachSyllabusRoute
   '/welcome/$token': typeof WelcomeTokenRoute
@@ -426,6 +434,7 @@ export interface FileRoutesById {
   '/portal/progress': typeof PortalProgressRoute
   '/portal/timetable': typeof PortalTimetableRoute
   '/teach/attendance': typeof TeachAttendanceRoute
+  '/teach/homework': typeof TeachHomeworkRoute
   '/teach/marks': typeof TeachMarksRoute
   '/teach/syllabus': typeof TeachSyllabusRoute
   '/welcome/$token': typeof WelcomeTokenRoute
@@ -477,6 +486,7 @@ export interface FileRouteTypes {
     | '/portal/progress'
     | '/portal/timetable'
     | '/teach/attendance'
+    | '/teach/homework'
     | '/teach/marks'
     | '/teach/syllabus'
     | '/welcome/$token'
@@ -523,6 +533,7 @@ export interface FileRouteTypes {
     | '/portal/progress'
     | '/portal/timetable'
     | '/teach/attendance'
+    | '/teach/homework'
     | '/teach/marks'
     | '/teach/syllabus'
     | '/welcome/$token'
@@ -572,6 +583,7 @@ export interface FileRouteTypes {
     | '/portal/progress'
     | '/portal/timetable'
     | '/teach/attendance'
+    | '/teach/homework'
     | '/teach/marks'
     | '/teach/syllabus'
     | '/welcome/$token'
@@ -720,6 +732,13 @@ declare module '@tanstack/react-router' {
       path: '/marks'
       fullPath: '/teach/marks'
       preLoaderRoute: typeof TeachMarksRouteImport
+      parentRoute: typeof TeachRoute
+    }
+    '/teach/homework': {
+      id: '/teach/homework'
+      path: '/homework'
+      fullPath: '/teach/homework'
+      preLoaderRoute: typeof TeachHomeworkRouteImport
       parentRoute: typeof TeachRoute
     }
     '/teach/attendance': {
@@ -1049,6 +1068,7 @@ const PortalRouteWithChildren =
 
 interface TeachRouteChildren {
   TeachAttendanceRoute: typeof TeachAttendanceRoute
+  TeachHomeworkRoute: typeof TeachHomeworkRoute
   TeachMarksRoute: typeof TeachMarksRoute
   TeachSyllabusRoute: typeof TeachSyllabusRoute
   TeachIndexRoute: typeof TeachIndexRoute
@@ -1056,6 +1076,7 @@ interface TeachRouteChildren {
 
 const TeachRouteChildren: TeachRouteChildren = {
   TeachAttendanceRoute: TeachAttendanceRoute,
+  TeachHomeworkRoute: TeachHomeworkRoute,
   TeachMarksRoute: TeachMarksRoute,
   TeachSyllabusRoute: TeachSyllabusRoute,
   TeachIndexRoute: TeachIndexRoute,
