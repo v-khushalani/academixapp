@@ -151,7 +151,6 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {/* Team Academix only ever works in the platform console. */}
         {superadmin ? (
           <SidebarGroup>
             {!collapsed && <SidebarGroupLabel>Team Academix</SidebarGroupLabel>}
