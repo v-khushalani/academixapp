@@ -2043,6 +2043,7 @@ export type Database = {
           valid: boolean
         }[]
       }
+      get_institute_usage: { Args: { _institute_id?: string }; Returns: Json }
       get_my_roles: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]

@@ -20,10 +20,10 @@ function AppLayout() {
     "receptionist",
     "counsellor",
     "accountant",
-    "superadmin",
   ];
+  const isSuper = roles.includes("superadmin" as any);
   const isStaff = roles.some((r) => staffRoles.includes(r));
-  const isFamilyOnly = !isStaff && (roles.includes("student") || roles.includes("parent"));
+  const isFamilyOnly = !isStaff && !isSuper && (roles.includes("student") || roles.includes("parent"));
 
   useEffect(() => {
     if (loading) return;
@@ -35,6 +35,20 @@ function AppLayout() {
     return (
       <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">
         Loading…
+      </div>
+    );
+  }
+
+  // Safety gate: if a user is logged in but has no valid role for the app portal.
+  if (!isStaff && !isSuper) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background p-6 text-center">
+        <div className="max-w-sm">
+          <p className="text-sm font-semibold">Portal Access Denied</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Your account is not registered as a staff member for this institute.
+          </p>
+        </div>
       </div>
     );
   }
