@@ -39,13 +39,14 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
     z.object({ student_id: z.string().uuid(), reset: z.boolean().optional() }).parse(data),
   )
   .handler(async ({ data, context }): Promise<{ accounts: ProvisionedAccount[] }> => {
-    // Use the authenticated client from the middleware context to check roles.
-    // The RPC itself is SECURITY DEFINER and checks auth.uid().
+    // 1. Authenticated staff/admin check
     const { data: myRoles, error: roleError } = await context.supabase.rpc("get_my_roles");
     if (roleError) throw new Error(roleError.message);
-    
-    // Check if the user has one of the allowed roles for this operation.
-    if (!(myRoles ?? []).some((r: string) => ADMIN_ROLES.includes(r))) {
+    const roles = (myRoles ?? []) as string[];
+    const isSuper = roles.includes("superadmin");
+    const hasAdmin = roles.some((r) => ADMIN_ROLES.includes(r));
+
+    if (!isSuper && !hasAdmin) {
       throw new Error("Only owners, admins and reception staff can create portal logins.");
     }
 
