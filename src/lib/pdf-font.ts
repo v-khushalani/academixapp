@@ -19,9 +19,15 @@ async function toBase64(url: string): Promise<string> {
 }
 
 function load() {
-  cache ??= Promise.all([toBase64(sairaRegular.url), toBase64(sairaBold.url)])
+  cache ??= Promise.all([
+    fetch(sairaRegular.url).then((res) => res.arrayBuffer()).then((buf) => btoa(String.fromCharCode(...new Uint8Array(buf)))),
+    fetch(sairaBold.url).then((res) => res.arrayBuffer()).then((buf) => btoa(String.fromCharCode(...new Uint8Array(buf)))),
+  ])
     .then(([regular, bold]) => ({ regular, bold }))
-    .catch(() => null);
+    .catch((err) => {
+      console.error("Failed to load PDF fonts:", err);
+      return null;
+    });
   return cache;
 }
 
