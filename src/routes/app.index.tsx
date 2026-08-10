@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Layers, UserPlus, CalendarCheck, Wallet } from "lucide-react";
+import { Layers, UserPlus, CalendarCheck, Wallet, IndianRupee } from "lucide-react";
 import { PageBody, PageHeader } from "@/components/app/page-header";
 import { dashboardApi, batchesApi } from "@/lib/api";
 import { syllabusApi, overallPct } from "@/lib/api/syllabus";
@@ -114,13 +114,22 @@ function DashboardPage() {
                 tone={unmarked > 0 ? "danger" : "default"}
               />
               {showMoney ? (
-                <ActionRow
-                  icon={Wallet}
-                  label="Parents with dues"
-                  count={money?.defaulters.filter((d) => d.due > 0).length ?? 0}
-                  to="/app/fees"
-                  tone={(money?.defaulters.length ?? 0) > 0 ? "warning" : "default"}
-                />
+                <>
+                  <ActionRow
+                    icon={Wallet}
+                    label="Parents with dues"
+                    count={money?.defaulters.filter((d) => d.due > 0).length ?? 0}
+                    to="/app/fees"
+                    tone={(money?.defaulters.length ?? 0) > 0 ? "warning" : "default"}
+                  />
+                  <ActionRow
+                    icon={IndianRupee}
+                    label="Expenses this month"
+                    count={data?.expensesThisMonth ?? 0}
+                    to="/app/expenses"
+                    tone="default"
+                  />
+                </>
               ) : null}
               <ActionRow
                 icon={Layers}
