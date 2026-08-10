@@ -77,7 +77,7 @@ function ExpensesPage() {
       sortable: true, 
       className: "text-right",
       value: (r) => r.amount,
-      cell: (r) => <span className="font-semibold text-destructive">₹{Number(r.amount).toLocaleString("en-IN")}</span> 
+      cell: (r) => <span className="font-semibold text-destructive">{inr(r.amount)}</span> 
     },
     {
       key: "actions",

@@ -398,7 +398,7 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
               </td>
               <td className="px-4 py-3 text-sm">
                 {Number(s.token_amount ?? 0) > 0
-                  ? "₹" + Number(s.token_amount).toLocaleString("en-IN")
+                  ? inr(s.token_amount)
                   : "—"}
               </td>
               <td className="px-4 py-3 text-xs text-muted-foreground">

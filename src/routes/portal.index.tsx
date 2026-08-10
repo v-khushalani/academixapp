@@ -23,7 +23,7 @@ export const Route = createFileRoute("/portal/")({
   component: PortalHome,
 });
 
-const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
+import { inr } from "@/lib/format";
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 function PortalHome() {

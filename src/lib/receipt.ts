@@ -2,7 +2,8 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getInstitute } from "./academy-settings";
 import { receiptNo, inr } from "./payments";
-import { useSaira } from "./pdf-font";
+import { pdfCurrency } from "./format";
+import { embedSaira } from "./pdf-font";
 import { formatDate } from "./dates";
 import { buildModernReceipt, buildProfessionalReceipt } from "./receipt-templates";
 
@@ -21,9 +22,6 @@ export type ReceiptInput = {
   parent_name?: string | null;
   received_now?: number | null;
 };
-
-/** Saira is embedded in the PDF, so the ₹ glyph renders correctly. */
-const rs = (n: number) => "Rs. " + Math.round(Number(n) || 0).toLocaleString("en-IN");
 
 const ONES = [
   "",
@@ -82,7 +80,8 @@ export async function buildReceipt(f: ReceiptInput): Promise<{ doc: jsPDF; no: s
   const template = inst.receipt_template || "classic";
   const no = receiptNo(f.receipt_no);
   const doc = new jsPDF({ unit: "mm", format: "a5", orientation: "portrait" });
-  const FONT = await useSaira(doc);
+  const FONT = await embedSaira(doc);
+  const rs = (n: number) => pdfCurrency(n, FONT);
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
   const M = 10;

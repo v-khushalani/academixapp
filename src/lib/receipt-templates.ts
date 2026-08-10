@@ -4,7 +4,7 @@ import { type ReceiptInput, amountInWords } from "./receipt";
 import { formatDate } from "./dates";
 import { type InstituteSettings } from "./academy-settings";
 
-const rs = (n: number) => "Rs. " + Math.round(Number(n) || 0).toLocaleString("en-IN");
+import { pdfCurrency } from "./format";
 
 /** Clean, high-contrast modern receipt with a side-accent. */
 export function buildModernReceipt(
@@ -17,6 +17,7 @@ export function buildModernReceipt(
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
   const M = 12;
+  const rs = (n: number) => pdfCurrency(n, FONT);
   const received = Number(f.received_now ?? f.amount_paid) || 0;
 
   // Modern blue accent line
