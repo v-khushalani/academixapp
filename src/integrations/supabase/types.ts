@@ -1999,6 +1999,15 @@ export type Database = {
           id: string
         }[]
       }
+      collect_fee_payment: {
+        Args: {
+          _fee_id: string
+          _method?: string
+          _note?: string
+          _received: number
+        }
+        Returns: undefined
+      }
       complete_student_onboarding: {
         Args: {
           _address: string
