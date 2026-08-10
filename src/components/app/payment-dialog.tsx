@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { QRCodeCanvas } from "qrcode.react";
 import { toast } from "sonner";
 import { Check, Copy, Download, MessageCircle, QrCode } from "lucide-react";
+import { BrandedQR, type BrandedQRHandle } from "./branded-qr";
 import {
   Dialog,
   DialogContent,
@@ -59,7 +59,7 @@ export function PaymentDialog({
   const value = Number(amount) || 0;
   const inst = getInstitute();
   const refresh = useRefreshLinked();
-  const qrRef = useRef<HTMLDivElement>(null);
+  const qrRef = useRef<BrandedQRHandle>(null);
 
   // Pre-fill the pending amount whenever a new fee row is opened; after that the
   // field is fully the user's — they can clear it down to the last digit.
@@ -114,11 +114,10 @@ export function PaymentDialog({
     onOpenChange(false);
   }
 
-  /** The rendered QR as a PNG File, so WhatsApp gets an image, not a raw link. */
+  /** The rendered branded QR as a PNG File. */
   async function qrImage(): Promise<File | null> {
-    const canvas = qrRef.current?.querySelector("canvas");
-    if (!canvas) return null;
-    const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
+    if (!qrRef.current) return null;
+    const blob = await qrRef.current.toBlob();
     if (!blob) return null;
     return new File([blob], `pay-${target!.student_name.replace(/\s+/g, "-")}.png`, {
       type: "image/png",
@@ -254,13 +253,14 @@ export function PaymentDialog({
           </div>
 
           {link ? (
-            <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card p-4">
-              <div ref={qrRef}>
-                <QRCodeCanvas value={link} size={168} includeMargin />
-              </div>
-              <p className="text-center text-xs text-muted-foreground">
-                Scan with any UPI app · pays {inst.upi_id}
-              </p>
+            <div className="space-y-4">
+              <BrandedQR
+                ref={qrRef}
+                upiLink={link}
+                amount={value}
+                studentName={target.student_name}
+                description={target.description || "School Fees"}
+              />
               <div className="flex w-full flex-wrap gap-2">
                 <Button
                   variant="outline"
