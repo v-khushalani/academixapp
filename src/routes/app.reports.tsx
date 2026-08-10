@@ -615,3 +615,91 @@ function DefaultersReport() {
     </Section>
   );
 }
+
+function PnLReport({ from, to }: { from: string; to: string }) {
+  const { data: revenue = [] } = useQuery({
+    queryKey: ["report-revenue", from, to],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fees")
+        .select("amount_paid")
+        .gte("paid_date", from)
+        .lte("paid_date", to)
+        .gt("amount_paid", 0);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: expenses = [] } = useQuery({
+    queryKey: ["report-expenses", from, to],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expenses")
+        .select("amount, category")
+        .gte("date", from)
+        .lte("date", to);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const totalRev = revenue.reduce((s, r) => s + Number(r.amount_paid), 0);
+  const totalExp = expenses.reduce((s, r) => s + Number(r.amount), 0);
+  const profit = totalRev - totalExp;
+
+  const expByCategory = useMemo(() => {
+    const m: Record<string, number> = {};
+    expenses.forEach((e) => {
+      m[e.category] = (m[e.category] ?? 0) + Number(e.amount);
+    });
+    return Object.entries(m).sort((a, b) => b[1] - a[1]);
+  }, [expenses]);
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="rounded-lg border border-border bg-card p-4 text-center">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Revenue</p>
+          <p className="mt-1 text-2xl font-bold text-success">{inr(totalRev)}</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4 text-center">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Expenses</p>
+          <p className="mt-1 text-2xl font-bold text-destructive">{inr(totalExp)}</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4 text-center">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Net Profit</p>
+          <p className={`mt-1 text-2xl font-bold ${profit >= 0 ? "text-primary" : "text-destructive"}`}>
+            {inr(profit)}
+          </p>
+        </div>
+      </div>
+
+      <Section title="Expense breakdown">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
+            <tr>
+              <th className="px-4 py-3">Category</th>
+              <th className="px-4 py-3 text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {expByCategory.length === 0 && (
+              <tr>
+                <td colSpan={2} className="px-4 py-8 text-center text-muted-foreground">
+                  No expenses recorded in this period.
+                </td>
+              </tr>
+            )}
+            {expByCategory.map(([cat, amt]) => (
+              <tr key={cat}>
+                <td className="px-4 py-3">{cat}</td>
+                <td className="px-4 py-3 text-right font-medium">{inr(amt)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Section>
+    </div>
+  );
+}
