@@ -512,7 +512,13 @@ export const dashboardApi = {
         .gte("date", today)
         .order("date", { ascending: true })
         .limit(5),
+      supabase
+        .from("expenses")
+        .select("amount")
+        .gte("date", monthStart)
+        .lte("date", today),
     ]);
+
 
     const rows = feeRows.data ?? [];
     const live = rows.filter(isLiveBill);

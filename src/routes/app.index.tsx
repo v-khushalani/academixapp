@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Layers, UserPlus, CalendarCheck, Wallet } from "lucide-react";
+import { Layers, UserPlus, CalendarCheck, Wallet, IndianRupee } from "lucide-react";
 import { PageBody, PageHeader } from "@/components/app/page-header";
 import { dashboardApi, batchesApi } from "@/lib/api";
 import { syllabusApi, overallPct } from "@/lib/api/syllabus";
