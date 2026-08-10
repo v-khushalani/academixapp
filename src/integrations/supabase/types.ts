@@ -2226,6 +2226,10 @@ export type Database = {
             }
             Returns: undefined
           }
+      process_faculty_salaries: {
+        Args: { _date?: string; _institute_id: string }
+        Returns: undefined
+      }
       reorder_syllabus_chapters: {
         Args: { _ids: string[] }
         Returns: undefined
