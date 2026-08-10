@@ -127,6 +127,12 @@ export const syllabusApi = {
     if (error) throw error;
     return rows.length;
   },
+
+  async reorder(ids: string[]) {
+    const { error } = await supabase.rpc("reorder_syllabus_chapters", { _ids: ids });
+    if (error) throw error;
+    return ids;
+  },
 };
 
 export type SubjectProgress = {
