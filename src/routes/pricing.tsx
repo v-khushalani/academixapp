@@ -130,64 +130,59 @@ function PricingPage() {
           ))}
         </div>
 
-        <p className="mt-4 text-center text-xs text-muted-foreground">
-          No setup fee · No commission on your fees · Multi-branch or longer terms?{" "}
-          <a
-            href="mailto:hello@academix.website?subject=Academix%20plan%20enquiry"
-            className="text-primary hover:underline"
-          >
-            Talk to us
-          </a>
-        </p>
-
-        <div className="mt-12 overflow-x-auto rounded-xl border border-border bg-card">
-          <table className="w-full min-w-[560px] border-collapse text-sm">
-            <thead>
-              <tr className="bg-muted/60">
-                <th className="sticky left-0 z-10 w-[240px] bg-muted/60 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Compare
-                </th>
-                {visible.map((p) => (
-                  <th
-                    key={p.id}
-                    className={`px-3 py-3 text-center text-xs font-semibold ${
-                      p.highlight ? "bg-primary/10 text-primary" : "text-muted-foreground"
-                    }`}
-                  >
-                    {p.name}
-                  </th>
+        <section className="mt-20">
+          <div className="grid gap-12 lg:grid-cols-2">
+            <div className="flex flex-col justify-center">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Why choose Growth?</h2>
+              <p className="mt-4 text-muted-foreground">
+                As your institute scales beyond 100 students, the manual effort of tracking fees,
+                reminding parents, and marking attendance becomes a bottleneck. The Growth plan
+                introduces the **Automation Engine** — saving your staff hours every single day.
+              </p>
+              <ul className="mt-8 space-y-4">
+                {[
+                  "Automated WhatsApp fee reminders & absentee alerts",
+                  "RFID card & biometric attendance machine integration",
+                  "Full revenue, collection & teacher load reports",
+                  "Branded receipts & documents with your logo",
+                  "500 student capacity & 10 classrooms",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-sm">
+                    <div className="mt-1 rounded-full bg-primary/10 p-0.5 text-primary">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                    {item}
+                  </li>
                 ))}
-              </tr>
-            </thead>
-            <tbody>
-              {groups.map((g) => (
-                <Fragment key={g.group}>
-                  <tr className="border-t border-border">
-                    <td
-                      colSpan={visible.length + 1}
-                      className="bg-muted/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
-                    >
-                      {g.group}
-                    </td>
-                  </tr>
-                  {g.rows.map((r) => (
-                    <tr key={r.id} className="border-t border-border/70">
-                      <td className="sticky left-0 z-10 bg-card px-4 py-2.5 text-xs">{r.label}</td>
-                      {visible.map((p) => (
-                        <td
-                          key={p.id}
-                          className={`px-3 py-2.5 text-center ${p.highlight ? "bg-primary/5" : ""}`}
-                        >
-                          <Mark v={r.values?.[p.key]} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </ul>
+            </div>
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8">
+              <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/5" />
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">The Campus Standard</h2>
+              <p className="mt-4 text-muted-foreground">
+                For large-scale operations and multi-branch potential. Campus is about
+                **Accountability and Insight**.
+              </p>
+              <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                {[
+                  { title: "Governance", desc: "Granular roles & audit logs" },
+                  { title: "Insights", desc: "Trend forecasting & analytics" },
+                  { title: "Capacity", desc: "1,500 students & 30 rooms" },
+                  { title: "Support", desc: "Priority WhatsApp support line" },
+                ].map((item) => (
+                  <div key={item.title} className="rounded-xl border border-border bg-background p-4">
+                    <h3 className="text-sm font-semibold">{item.title}</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-8 text-sm font-medium italic text-primary">
+                "Campus gives us the bird's eye view we needed to manage 1,200 students across
+                multiple sessions without losing a single fee entry."
+              </p>
+            </div>
+          </div>
+        </section>
 
         <dl className="mt-12 grid gap-3 sm:grid-cols-2">
           {FAQ.map((f) => (
