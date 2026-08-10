@@ -39,6 +39,20 @@ function AppLayout() {
     );
   }
 
+  // Safety gate: if a user is logged in but has no valid role for the app portal.
+  if (!isStaff && !isSuper) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background p-6 text-center">
+        <div className="max-w-sm">
+          <p className="text-sm font-semibold">Portal Access Denied</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Your account is not registered as a staff member for this institute.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
