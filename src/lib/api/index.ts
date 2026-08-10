@@ -171,11 +171,11 @@ export const feesApi = {
   },
   /** Record money received against an existing fee row. */
   async collect(feeId: string, received: number, method?: string | null, note?: string | null) {
-    const { data, error } = await supabase.rpc("collect_fee_payment", {
+    const { error } = await supabase.rpc("collect_fee_payment", {
       _fee_id: feeId,
       _received: received,
-      _method: method || "Cash",
-      _note: note || null
+      _method: method ?? undefined,
+      _note: note ?? undefined
     });
     if (error) throw error;
   },
