@@ -451,112 +451,27 @@ export const dashboardApi = {
     const { data, error } = await supabase.rpc("get_dashboard_overview");
     if (error) throw error;
     
-    // Add compatibility for the today object if UI expects it (keeping it simple for now)
+    // Default structure for missing today/upcoming fields in the minimal consolidated RPC
     return {
       ...(data as any),
+      money: {
+        billed: 0,
+        outstanding: (data as any).money?.outstanding ?? 0,
+        collected: 0,
+        collectedThisMonth: (data as any).money?.collectedThisMonth ?? 0,
+        collectedLastMonth: (data as any).money?.collectedLastMonth ?? 0,
+        ageing: { current: 0, d30: 0, d60: 0 },
+        defaulters: [],
+        ...(data as any).money
+      },
       today: {
         classes: 0,
         batchesScheduled: 0,
         batchesMarked: 0,
+        present: 0,
         absent: 0
-      }
-    };
-  },
-      supabase.from("students").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
-      supabase
-        .from("students")
-        .select("id", { count: "exact", head: true })
-        .eq("approval_status", "enquiry")
-        .gte("created_at", monthStart),
-      supabase.from("timetable_slots").select("id, batch_id").eq("day_of_week", dow),
-      supabase.from("attendance").select("status, batch_id, student_id").eq("date", today),
-      supabase
-        .from("tests")
-        .select("id, title, date, batch:batches(name)")
-        .gte("date", today)
-        .order("date", { ascending: true })
-        .limit(5),
-      supabase
-        .from("expenses")
-        .select("amount")
-        .gte("date", monthStart)
-        .lte("date", today),
-    ]);
-
-    const expRows = arguments[7]?.data ?? [];
-    const expensesThisMonth = expRows.reduce((s: number, e: any) => s + Number(e.amount), 0);
-    
-    const rows = feeRows.data ?? [];
-    const live = rows.filter(isLiveBill);
-    const billed = live.reduce((s, f) => s + Number(f.amount), 0);
-    const outstanding = live.reduce((s, f) => s + outstandingOf(f), 0);
-    const collected = rows.reduce((s, f) => s + Number(f.amount_paid ?? 0), 0);
-    const collectedThisMonth = rows
-      .filter((f) => (f.paid_date ?? "") >= monthStart)
-      .reduce((s, f) => s + Number(f.amount_paid ?? 0), 0);
-    const collectedLastMonth = rows
-      .filter((f) => (f.paid_date ?? "") >= lastMonthStart && (f.paid_date ?? "") < monthStart)
-      .reduce((s, f) => s + Number(f.amount_paid ?? 0), 0);
-
-    const ageing = { current: 0, d30: 0, d60: 0 };
-    const defaulters: { id: string; name: string; phone: string | null; due: number }[] = [];
-    for (const f of live) {
-      const due = outstandingOf(f);
-      if (due <= 0) continue;
-      const days = f.due_date
-        ? Math.floor((now.getTime() - new Date(f.due_date).getTime()) / 86400000)
-        : 0;
-      if (days <= 30) ageing.current += due;
-      else if (days <= 60) ageing.d30 += due;
-      else ageing.d60 += due;
-      const s = f.student as { id?: string; full_name?: string; parent_phone?: string | null; phone?: string | null } | null;
-      if (s?.id) {
-        const found = defaulters.find((d) => d.id === s.id);
-        if (found) found.due += due;
-        else
-          defaulters.push({
-            id: s.id,
-            name: s.full_name ?? "Student",
-            phone: s.parent_phone ?? s.phone ?? null,
-            due,
-          });
-      }
-    }
-    defaulters.sort((a, b) => b.due - a.due);
-
-    const att = attendanceToday.data ?? [];
-    const batchesToday = new Set((slots.data ?? []).map((s) => s.batch_id).filter(Boolean));
-    const markedBatches = new Set(att.map((a) => a.batch_id).filter(Boolean));
-
-    return {
-      students: studentsCount.count ?? 0,
-      batches: activeBatches.count ?? 0,
-      newThisMonth: monthAdmissions.count ?? 0,
-      pendingApprovals: pendingApps.count ?? 0,
-      enquiriesThisMonth: enquiryCount.count ?? 0,
-      expensesThisMonth,
-      money: {
-        billed,
-        outstanding,
-        collected,
-        collectedThisMonth,
-        collectedLastMonth,
-        ageing,
-        defaulters: defaulters.slice(0, 5),
       },
-      today: {
-        classes: (slots.data ?? []).length,
-        batchesScheduled: batchesToday.size,
-        batchesMarked: [...markedBatches].filter((b) => batchesToday.has(b)).length,
-        present: att.filter((a) => a.status === "present").length,
-        absent: att.filter((a) => a.status === "absent").length,
-      },
-      upcomingTests: (upcomingTests.data ?? []) as {
-        id: string;
-        title: string;
-        date: string;
-        batch?: { name?: string } | null;
-      }[],
+      upcomingTests: []
     };
   },
 };
