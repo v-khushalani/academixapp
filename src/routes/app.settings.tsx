@@ -65,7 +65,10 @@ function SettingsPage() {
             <TabsTrigger value="whatsapp">WhatsApp templates</TabsTrigger>
           </TabsList>
           <TabsContent value="institute">
-            <InstitutePanel />
+            <div className="space-y-4">
+              <InstitutePanel />
+              <BrandingPanel />
+            </div>
           </TabsContent>
           <TabsContent value="rooms">
             <div className="space-y-4">
@@ -89,7 +92,10 @@ function SettingsPage() {
             <DevicesPanel />
           </TabsContent>
           <TabsContent value="branding">
-            <BrandingPanel />
+            <div className="space-y-4">
+              <BrandingPanel />
+              <ReceiptTemplatePanel />
+            </div>
           </TabsContent>
           <TabsContent value="whatsapp">
             <TemplatesPanel />
@@ -97,6 +103,127 @@ function SettingsPage() {
         </Tabs>
       </PageBody>
     </>
+  );
+}
+
+function ReceiptTemplatePanel() {
+  const [s, setS] = useState<InstituteSettings>(getInstitute());
+  const [saving, setSaving] = useState(false);
+  const { data: inst } = useQuery({
+    queryKey: ["institute"],
+    queryFn: () => instituteApi.get(),
+  });
+
+  const plan = inst?.plan ?? "free";
+  const isPaid = plan === "growth" || plan === "campus" || plan === "chain";
+
+  async function save(template: string) {
+    setSaving(true);
+    try {
+      const next = { ...s, receipt_template: template };
+      await saveInstitute(next);
+      setS(next);
+      toast.success("Receipt template updated");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card
+      title="Receipt Template"
+      description={
+        isPaid
+          ? "Choose how your fee receipts look. Changes apply to all new receipts."
+          : "Standardize your documents. Upgrade to Growth or Campus to unlock branded templates."
+      }
+    >
+      <div className="grid gap-4 sm:grid-cols-3">
+        <TemplateOption
+          name="Classic"
+          id="classic"
+          active={s.receipt_template === "classic" || !s.receipt_template}
+          onClick={() => save("classic")}
+          disabled={saving}
+          preview="Simple black & white layout. Great for standard printing."
+        />
+        <TemplateOption
+          name="Modern"
+          id="modern"
+          active={s.receipt_template === "modern"}
+          onClick={() => save("modern")}
+          disabled={saving || !isPaid}
+          locked={!isPaid}
+          preview="Clean, high-contrast layout with blue accents and clear sections."
+        />
+        <TemplateOption
+          name="Professional"
+          id="professional"
+          active={s.receipt_template === "professional"}
+          onClick={() => save("professional")}
+          disabled={saving || !isPaid}
+          locked={!isPaid}
+          preview="Elegant bordered frame with centered branding and official feel."
+        />
+      </div>
+      {!isPaid && (
+        <div className="mt-4 rounded-md bg-muted/50 p-3 text-center">
+          <p className="text-xs text-muted-foreground">
+            You are on the <span className="font-bold capitalize">{plan}</span> plan. 
+            Paid templates are available in <strong>Growth</strong> and <strong>Campus</strong>.
+          </p>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function TemplateOption({
+  name,
+  active,
+  onClick,
+  disabled,
+  locked,
+  preview,
+}: {
+  name: string;
+  id: string;
+  active: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+  locked?: boolean;
+  preview: string;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled || locked}
+      onClick={onClick}
+      className={
+        "relative flex flex-col gap-2 rounded-lg border p-4 text-left transition-all " +
+        (active
+          ? "border-primary bg-primary/5 ring-1 ring-primary"
+          : "border-border hover:border-primary/50 hover:bg-muted/50") +
+        (locked ? " opacity-60 grayscale cursor-not-allowed" : "")
+      }
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-bold">{name}</span>
+        {active && (
+          <Badge variant="default" className="h-4 px-1.5 text-[10px]">
+            Active
+          </Badge>
+        )}
+        {locked && (
+          <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
+            Locked
+          </Badge>
+        )}
+      </div>
+      <p className="text-[10px] leading-relaxed text-muted-foreground">{preview}</p>
+    </button>
   );
 }
 

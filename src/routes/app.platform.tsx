@@ -395,21 +395,7 @@ function InstituteEditor({
         </div>
       </div>
 
-      <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Receipt Template (Growth/Campus only)
-        </p>
-        <Select value={receiptTemplate} onValueChange={setReceiptTemplate}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="classic">Classic (Free)</SelectItem>
-            <SelectItem value="modern">Modern (Growth)</SelectItem>
-            <SelectItem value="professional">Professional (Campus)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Receipt Template removed from Platform Console as it is now managed by Institute Admin */}
 
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
