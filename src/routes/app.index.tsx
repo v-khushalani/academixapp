@@ -114,13 +114,23 @@ function DashboardPage() {
                 tone={unmarked > 0 ? "danger" : "default"}
               />
               {showMoney ? (
-                <ActionRow
-                  icon={Wallet}
-                  label="Parents with dues"
-                  count={money?.defaulters.filter((d) => d.due > 0).length ?? 0}
-                  to="/app/fees"
-                  tone={(money?.defaulters.length ?? 0) > 0 ? "warning" : "default"}
-                />
+                <>
+                  <ActionRow
+                    icon={Wallet}
+                    label="Parents with dues"
+                    count={money?.defaulters.filter((d) => d.due > 0).length ?? 0}
+                    to="/app/fees"
+                    tone={(money?.defaulters.length ?? 0) > 0 ? "warning" : "default"}
+                  />
+                  <ActionRow
+                    icon={IndianRupee}
+                    label="Expenses this month"
+                    count={data?.expensesThisMonth ?? 0}
+                    to="/app/expenses"
+                    tone="default"
+                    isCurrency
+                  />
+                </>
               ) : null}
               <ActionRow
                 icon={Layers}
