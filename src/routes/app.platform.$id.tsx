@@ -25,7 +25,10 @@ import { FEATURE_KEYS, FEATURE_LABELS, type FeatureKey } from "@/lib/institute-c
 
 export const Route = createFileRoute("/app/platform/$id")({
   head: () => ({
-    meta: [{ title: "Institute Console — Academix" }],
+    meta: [
+      { title: "Institute Console — Academix" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
   }),
   component: InstituteDetailPage,
 });
