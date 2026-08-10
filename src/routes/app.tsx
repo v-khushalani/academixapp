@@ -20,10 +20,10 @@ function AppLayout() {
     "receptionist",
     "counsellor",
     "accountant",
-    "superadmin",
   ];
+  const isSuper = roles.includes("superadmin" as any);
   const isStaff = roles.some((r) => staffRoles.includes(r));
-  const isFamilyOnly = !isStaff && (roles.includes("student") || roles.includes("parent"));
+  const isFamilyOnly = !isStaff && !isSuper && (roles.includes("student") || roles.includes("parent"));
 
   useEffect(() => {
     if (loading) return;
