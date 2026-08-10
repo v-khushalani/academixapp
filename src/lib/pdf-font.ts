@@ -20,7 +20,6 @@ async function toBase64(url: string): Promise<string> {
 }
 
 function load() {
-function load() {
   cache ??= Promise.all([toBase64(sairaRegular.url), toBase64(sairaBold.url)])
     .then(([regular, bold]) => ({ regular, bold }))
     .catch((err) => {
