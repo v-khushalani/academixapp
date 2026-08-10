@@ -50,6 +50,7 @@ const nav: NavItem[] = [
   { title: "Batches", url: "/app/batches", icon: Layers, key: "batches" },
   { title: "Attendance", url: "/app/attendance", icon: CalendarCheck, key: "attendance" },
   { title: "Fees", url: "/app/fees", icon: Wallet, key: "fees" },
+  { title: "Expenses", url: "/app/expenses", icon: IndianRupee, key: "fees" },
   { title: "Tests", url: "/app/tests", icon: FileText, key: "tests" },
   { title: "Syllabus", url: "/app/syllabus", icon: BookOpen, key: "syllabus" },
   { title: "Timetable", url: "/app/timetable", icon: Calendar, key: "timetable" },
