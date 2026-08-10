@@ -1,29 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ShieldCheck } from "lucide-react";
-import { toast } from "sonner";
+import { ShieldCheck, ArrowRight, ExternalLink } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { isSuperAdmin } from "@/lib/rbac";
 import { PricingAdmin } from "@/components/app/pricing-admin";
-import { InstallmentPlanEditor } from "@/components/app/installment-plan-editor";
-import { normalisePlan, type Installment } from "@/lib/installments";
-import { FEATURE_KEYS, FEATURE_LABELS, type FeatureKey } from "@/lib/institute-controls";
+import { type FeatureKey } from "@/lib/institute-controls";
 
 export const Route = createFileRoute("/app/platform")({
   head: () => ({
