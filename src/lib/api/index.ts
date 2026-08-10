@@ -795,6 +795,14 @@ export const facultyAttendanceApi = {
         reason: !attDone ? "Attendance not marked" : !sylDone ? "Syllabus not updated" : null
       };
     });
+  },
+  async processSalaries(date?: string) {
+    const { data: inst } = await supabase.rpc("current_institute_id");
+    const { error } = await supabase.rpc("process_faculty_salaries", {
+      _institute_id: inst as string,
+      _date: date ?? new Date().toISOString().slice(0, 10)
+    });
+    if (error) throw error;
   }
 };
 

@@ -97,9 +97,29 @@ function ExpensesPage() {
         title="Expenses"
         description="Track your academy overheads and faculty pay."
         actions={
-          <Button className="gap-1.5" onClick={() => { setEditing(null); setOpen(true); }}>
-            <Plus className="h-4 w-4" /> Add expense
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              className="gap-1.5"
+              onClick={async () => {
+                const ok = confirm("Process all active faculty salaries for this month as expenses?");
+                if (!ok) return;
+                try {
+                  const { facultyAttendanceApi } = await import("@/lib/api");
+                  await facultyAttendanceApi.processSalaries();
+                  toast.success("Faculty salaries processed");
+                  qc.invalidateQueries({ queryKey: ["expenses"] });
+                } catch (e: any) {
+                  toast.error(e.message);
+                }
+              }}
+            >
+              <IndianRupee className="h-4 w-4" /> Process Salaries
+            </Button>
+            <Button className="gap-1.5" onClick={() => { setEditing(null); setOpen(true); }}>
+              <Plus className="h-4 w-4" /> Add expense
+            </Button>
+          </div>
         }
       />
       <PageBody>
