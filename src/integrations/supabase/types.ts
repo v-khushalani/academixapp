@@ -291,8 +291,63 @@ export type Database = {
           },
         ]
       }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string | null
+          date: string
+          description: string | null
+          faculty_id: string | null
+          id: string
+          institute_id: string
+          payment_method: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          faculty_id?: string | null
+          id?: string
+          institute_id: string
+          payment_method?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          faculty_id?: string | null
+          id?: string
+          institute_id?: string
+          payment_method?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       faculty: {
         Row: {
+          base_salary: number | null
           created_at: string
           email: string | null
           full_name: string
@@ -308,6 +363,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          base_salary?: number | null
           created_at?: string
           email?: string | null
           full_name: string
@@ -323,6 +379,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          base_salary?: number | null
           created_at?: string
           email?: string | null
           full_name?: string
