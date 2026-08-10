@@ -122,7 +122,9 @@ function PlatformPage() {
     <>
       <PageHeader
         title="Academix platform console"
-        description="Team Academix only — allocate plans, limits, modules and branches for every institute on the network."
+        description={`'''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
+                                            
+                                            Be my co founder I am a non technical person I want you to be with the technical head and do complete audit of my startup and suggest me what to change what to add what to delete what to enhance what to improve everything make sure you are brutally honest with your work do not say just sweet sweet things to me I want this to be best in the country`}
         actions={
           <Badge variant="secondary" className="gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5" />
