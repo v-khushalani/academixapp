@@ -22,7 +22,7 @@ export type ReceiptInput = {
 };
 
 /** Saira is embedded in the PDF, so the ₹ glyph renders correctly. */
-const rs = (n: number) => "₹" + Math.round(Number(n) || 0).toLocaleString("en-IN");
+const rs = (n: number) => "Rs. " + Math.round(Number(n) || 0).toLocaleString("en-IN");
 
 const ONES = [
   "",

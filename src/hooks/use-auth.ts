@@ -24,7 +24,7 @@ function notify() {
 async function loadRoles(userId: string): Promise<AppRole[]> {
   const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
   if (error) {
-    console.error("[roles]", error);
+    
     return [];
   }
   return (data ?? []).map((r) => r.role);
