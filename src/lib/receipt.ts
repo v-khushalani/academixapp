@@ -1,9 +1,10 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getInstitute } from "./academy-settings";
-import { receiptNo } from "./payments";
+import { receiptNo, inr } from "./payments";
 import { useSaira } from "./pdf-font";
 import { formatDate } from "./dates";
+import { buildModernReceipt, buildProfessionalReceipt } from "./receipt-templates";
 
 export type ReceiptInput = {
   receipt_no?: string | null;
@@ -78,6 +79,7 @@ export function amountInWords(value: number): string {
 /** Builds the A5 receipt. Only the amount received on this payment is shown. */
 export async function buildReceipt(f: ReceiptInput): Promise<{ doc: jsPDF; no: string }> {
   const inst = getInstitute();
+  const template = inst.receipt_template || "classic";
   const no = receiptNo(f.receipt_no);
   const doc = new jsPDF({ unit: "mm", format: "a5", orientation: "portrait" });
   const FONT = await useSaira(doc);
@@ -86,7 +88,15 @@ export async function buildReceipt(f: ReceiptInput): Promise<{ doc: jsPDF; no: s
   const M = 10;
   const received = Number(f.received_now ?? f.amount_paid) || 0;
 
-  // ---- header band -------------------------------------------------------
+  // ---- template logic ---------------------------------------------------
+  if (template === "modern") {
+    return buildModernReceipt(doc, inst, f, no, FONT);
+  }
+  if (template === "professional") {
+    return buildProfessionalReceipt(doc, inst, f, no, FONT);
+  }
+
+  // ---- classic header band -----------------------------------------------
   doc.setFillColor(23, 37, 84);
   doc.rect(0, 0, W, 26, "F");
   doc.setTextColor(255);

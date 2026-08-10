@@ -60,6 +60,7 @@ type PlatformInstitute = {
   teacher_login_limit: number;
   features: Partial<Record<FeatureKey, boolean>> | null;
   installment_plan: Installment[] | null;
+  receipt_template: string | null;
   students: number;
   batches: number;
   rooms: number;
@@ -259,6 +260,7 @@ function InstituteEditor({
   const [installments, setInstallments] = useState<Installment[]>(
     normalisePlan(institute.installment_plan ?? []),
   );
+  const [receiptTemplate, setReceiptTemplate] = useState(institute.receipt_template || "classic");
 
   const { data: detail = [] } = useQuery({
     queryKey: ["platform-institute-detail", institute.id],
@@ -284,6 +286,7 @@ function InstituteEditor({
         _teacher_login_limit: limits.teachers,
         _features: features as never,
         _installment_plan: installments as never,
+        _receipt_template: receiptTemplate,
         _parent_institute_id: parent === "none" ? undefined : parent,
         _clear_parent: parent === "none",
       });
@@ -390,6 +393,22 @@ function InstituteEditor({
             </label>
           ))}
         </div>
+      </div>
+
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Receipt Template (Growth/Campus only)
+        </p>
+        <Select value={receiptTemplate} onValueChange={setReceiptTemplate}>
+          <SelectTrigger className="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="classic">Classic (Free)</SelectItem>
+            <SelectItem value="modern">Modern (Growth)</SelectItem>
+            <SelectItem value="professional">Professional (Campus)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
