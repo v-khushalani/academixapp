@@ -260,6 +260,7 @@ function InstituteEditor({
   const [installments, setInstallments] = useState<Installment[]>(
     normalisePlan(institute.installment_plan ?? []),
   );
+  const [receiptTemplate, setReceiptTemplate] = useState(institute.receipt_template || "classic");
 
   const { data: detail = [] } = useQuery({
     queryKey: ["platform-institute-detail", institute.id],
@@ -392,6 +393,22 @@ function InstituteEditor({
             </label>
           ))}
         </div>
+      </div>
+
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Receipt Template (Growth/Campus only)
+        </p>
+        <Select value={receiptTemplate} onValueChange={setReceiptTemplate}>
+          <SelectTrigger className="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="classic">Classic (Free)</SelectItem>
+            <SelectItem value="modern">Modern (Growth)</SelectItem>
+            <SelectItem value="professional">Professional (Campus)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
