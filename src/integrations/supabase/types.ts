@@ -2086,6 +2086,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      reorder_syllabus_chapters: {
+        Args: { _ids: string[] }
+        Returns: undefined
+      }
       set_student_approval: {
         Args: { _decision: string; _student_id: string }
         Returns: undefined
