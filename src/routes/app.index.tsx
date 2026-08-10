@@ -55,12 +55,7 @@ function DashboardPage() {
         )
       : null;
 
-  const behind = batches
-    .map((b) => {
-      const rows = chapters.filter((c) => c.batch_id === b.id);
-      return { id: b.id, name: b.name, count: rows.length, pct: rows.length ? overallPct(rows) : 0 };
-    })
-    .filter((b) => b.count > 0)
+  const behind = progress
     .filter((b) => b.pct < 60)
     .sort((a, b) => a.pct - b.pct)
     .slice(0, 4);
