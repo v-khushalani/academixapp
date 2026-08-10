@@ -29,7 +29,7 @@ function load() {
 }
 
 /** Registers Saira on the doc and returns the font family name to use. */
-export async function useSaira(doc: jsPDF): Promise<string> {
+export async function embedSaira(doc: jsPDF): Promise<string> {
   const fonts = await load();
   if (!fonts) return "helvetica";
   doc.addFileToVFS("Saira-Regular.ttf", fonts.regular);

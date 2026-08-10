@@ -3,7 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const inr = (n: number) => "₹" + Math.round(Number(n) || 0).toLocaleString("en-IN");
+export { inr } from "@/lib/format";
 
 /** Oversized headline figure. No card chrome — whitespace does the work. */
 export function HeroStat({

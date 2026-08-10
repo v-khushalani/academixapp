@@ -22,7 +22,7 @@ export const Route = createFileRoute("/portal/fees")({
   component: PortalFees,
 });
 
-const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
+import { inr } from "@/lib/format";
 
 function PortalFees() {
   const { student } = usePortalStudent();

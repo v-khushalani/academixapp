@@ -32,7 +32,7 @@ export const Route = createFileRoute("/app/fees")({
   component: FeesPage,
 });
 
-const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
+import { inr } from "@/lib/format";
 
 type Row = Awaited<ReturnType<typeof feesApi.list>>[number];
 

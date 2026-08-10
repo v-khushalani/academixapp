@@ -107,28 +107,19 @@ export const Route = createFileRoute("/api/public/attendance/punch")({
             if (when.getHours() * 60 + when.getMinutes() > cutoff) status = "late";
           }
 
-          const { data: existing } = await supabaseAdmin
-            .from("attendance")
-            .select("id")
-            .eq("student_id", studentId)
-            .eq("date", date)
-            .maybeSingle();
-
-          if (existing) {
-            await supabaseAdmin
-              .from("attendance")
-              .update({ status, source: "device" })
-              .eq("id", existing.id);
-          } else {
-            await supabaseAdmin.from("attendance").insert({
+          // One row per student per day, enforced by a unique index — two devices
+          // punching at the same instant must not create duplicates.
+          await supabaseAdmin.from("attendance").upsert(
+            {
               student_id: studentId,
               batch_id: batchId,
               date,
               status,
               source: "device",
               institute_id: device.institute_id,
-            });
-          }
+            },
+            { onConflict: "student_id,date" },
+          );
           matched++;
         }
 

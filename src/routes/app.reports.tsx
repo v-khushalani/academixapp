@@ -24,7 +24,7 @@ export const Route = createFileRoute("/app/reports")({
   component: ReportsPage,
 });
 
-const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
+import { inr } from "@/lib/format";
 
 function ReportsPage() {
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)

@@ -23,7 +23,7 @@ import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 
 type Props = { open: boolean; onOpenChange: (v: boolean) => void };
 
-const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
+import { inr } from "@/lib/format";
 
 /**
  * Collect money. The amount itself is owned by the batch fee, so it is read-only

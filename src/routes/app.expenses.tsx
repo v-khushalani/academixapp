@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { inr } from "@/lib/format";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { IndianRupee, Plus, Trash2 } from "lucide-react";
@@ -77,7 +78,7 @@ function ExpensesPage() {
       sortable: true, 
       className: "text-right",
       value: (r) => r.amount,
-      cell: (r) => <span className="font-semibold text-destructive">₹{Number(r.amount).toLocaleString("en-IN")}</span> 
+      cell: (r) => <span className="font-semibold text-destructive">{inr(r.amount)}</span> 
     },
     {
       key: "actions",

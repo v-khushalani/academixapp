@@ -1,0 +1,1 @@
+create unique index if not exists attendance_student_date_key on public.attendance (student_id, date);
