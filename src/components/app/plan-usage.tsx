@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { KeyRound, Phone } from "lucide-react";
-import { fetchUsage, limitRows } from "@/lib/usage";
+import { limitRows, useUsage } from "@/lib/usage";
 import { fetchInstituteControls, SUPPORT_PHONE, SUPPORT_PHONE_TEL } from "@/lib/institute-controls";
 import { useBranches, ALL_BRANCHES } from "@/lib/branch";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,7 @@ export function PlanUsageCard() {
   });
   const current =
     controls.find((c) => c.id === activeId) ?? (activeId === ALL_BRANCHES ? controls[0] : undefined);
-  const { data } = useQuery({ queryKey: ["plan-usage"], queryFn: fetchUsage });
+  const { data } = useUsage();
 
   const rows = data && current ? limitRows(current.limits, data) : [];
 
