@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { CheckCircle2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { submitAdmission } from "@/lib/onboarding.functions";
 import { AdmissionForm, type AdmissionFormValues } from "@/components/app/admission-form";
 import { getInstitute } from "@/lib/academy-settings";
 import { Button } from "@/components/ui/button";
