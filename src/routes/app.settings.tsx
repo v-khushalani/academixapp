@@ -757,8 +757,9 @@ const ALL_ROLES: AppRole[] = [
   "receptionist",
   "counsellor",
   "accountant",
-  "student",
-  "parent",
+  "receptionist",
+  "counsellor",
+  "accountant",
 ];
 
 function UsersPanel() {

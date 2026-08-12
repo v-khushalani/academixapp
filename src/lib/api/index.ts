@@ -689,30 +689,47 @@ export const subjectsApi = {
 // ---------- Users & roles ----------
 export const userRolesApi = {
   async listAll() {
+    const { data: inst } = await supabase.rpc("current_institute_id");
+    if (!inst) return [];
+
     const [{ data: profiles, error: e1 }, { data: roles, error: e2 }] = await Promise.all([
       supabase.from("profiles").select("*"),
-      supabase.from("user_roles").select("*"),
+      supabase.from("user_roles").select("*").eq("institute_id", inst),
     ]);
     if (e1) throw e1;
     if (e2) throw e2;
+    
+    // Only return profiles that actually have a role in this institute
+    const userIdsWithRoles = new Set((roles ?? []).map(r => r.user_id));
     const byUser = new Map<string, AppRole[]>();
     (roles ?? []).forEach((r) => {
       const arr = byUser.get(r.user_id) ?? [];
       arr.push(r.role);
       byUser.set(r.user_id, arr);
     });
-    return (profiles ?? []).map((p) => ({ ...p, roles: byUser.get(p.id) ?? [] }));
+
+    return (profiles ?? [])
+      .filter(p => userIdsWithRoles.has(p.id))
+      .map((p) => ({ ...p, roles: byUser.get(p.id) ?? [] }));
   },
   async addRole(user_id: string, role: AppRole) {
-    const { error } = await supabase.from("user_roles").insert({ user_id, role });
+    const { data: inst } = await supabase.rpc("current_institute_id");
+    if (!inst) throw new Error("No institute context");
+    const { error } = await supabase.from("user_roles").insert({ 
+      user_id, 
+      role, 
+      institute_id: inst 
+    });
     if (error) throw error;
   },
   async removeRole(user_id: string, role: AppRole) {
+    const { data: inst } = await supabase.rpc("current_institute_id");
     const { error } = await supabase
       .from("user_roles")
       .delete()
       .eq("user_id", user_id)
-      .eq("role", role);
+      .eq("role", role)
+      .eq("institute_id", inst);
     if (error) throw error;
   },
 };

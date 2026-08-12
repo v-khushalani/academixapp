@@ -50,12 +50,16 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
       throw new Error("Only owners, admins and reception staff can create portal logins.");
     }
 
+    // Explicitly verify the student belongs to an institute the caller can access
+    const { data: myInst } = await context.supabase.rpc("current_institute_id");
+    
     const { data: student, error: studentError } = await context.supabase
       .from("students")
       .select(
         "id, institute_id, full_name, admission_no, email, phone, user_id, preferred_contact, father_name, father_phone, mother_name, mother_phone",
       )
       .eq("id", data.student_id)
+      .eq("institute_id", myInst) // Scoped fetch
       .maybeSingle();
     if (studentError) throw new Error(studentError.message);
     if (!student) throw new Error("Student not found.");
