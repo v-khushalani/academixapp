@@ -73,7 +73,9 @@ function DashboardPage() {
       <PageHeader
         title={`${greetingText}, ${name.split(" ")[0]}`}
         description={`${institute} · ${formatDate(new Date())}`}
-      />
+      >
+        <DemoDataButton />
+      </PageHeader>
       <PageBody>
         {/* Hero numbers */}
         <section className="grid grid-cols-2 gap-x-6 gap-y-8 rounded-lg border border-border bg-card p-5 sm:grid-cols-4">
