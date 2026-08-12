@@ -10,6 +10,7 @@ import { getInstitute } from "@/lib/academy-settings";
 import { AbsentAlerts } from "@/components/app/absent-alerts";
 import { Panel, Bar, ActionRow, HeroStat, inr } from "@/components/app/dashboard/dashboard-cards";
 import { formatDate } from "@/lib/dates";
+import { DemoDataButton } from "@/components/app/demo-data-button";
 
 export const Route = createFileRoute("/app/")({
   component: DashboardPage,
