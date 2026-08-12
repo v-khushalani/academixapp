@@ -38,8 +38,7 @@ export const createDemoData = createServerFn({ method: "POST" })
     // 1. Create Courses
     const courses = [
       { name: "Science Stream", code: "SCI", institute_id: targetId },
-      { name: "Commerce Stream", code: "COM", institute_id: targetId },
-      { name: "Foundation Course", code: "FND", institute_id: targetId }
+      { name: "Commerce Stream", code: "COM", institute_id: targetId }
     ];
     const { data: createdCourses } = await supabaseAdmin.from("courses").insert(courses).select();
     const courseIds = createdCourses?.map(c => c.id) ?? [];
@@ -47,13 +46,12 @@ export const createDemoData = createServerFn({ method: "POST" })
     // 2. Create Rooms
     const rooms = [
       { name: "Room 101", capacity: 30, institute_id: targetId },
-      { name: "Room 102", capacity: 30, institute_id: targetId },
-      { name: "Lab A", capacity: 20, institute_id: targetId }
+      { name: "Room 102", capacity: 30, institute_id: targetId }
     ];
     await supabaseAdmin.from("rooms").insert(rooms);
 
     // 3. Create Faculty
-    const facultyNames = ["Rajesh Kumar", "Anjali Sharma", "Amit Patel"];
+    const facultyNames = ["Rajesh Kumar", "Anjali Sharma"];
     const faculty = facultyNames.map(name => ({
       full_name: name,
       subject: "Mixed",
@@ -65,7 +63,7 @@ export const createDemoData = createServerFn({ method: "POST" })
     const facultyIds = createdFaculty?.map(f => f.id) ?? [];
 
     // 4. Create Batches
-    const batchNames = ["Morning Batch A", "Evening Batch B", "Weekend Special"];
+    const batchNames = ["Morning Batch A", "Evening Batch B"];
     const batches = batchNames.map((name, i) => ({
       name,
       course_id: courseIds[i % courseIds.length],
@@ -78,26 +76,34 @@ export const createDemoData = createServerFn({ method: "POST" })
     const { data: createdBatches } = await supabaseAdmin.from("batches").insert(batches).select();
     const batchIds = createdBatches?.map(b => b.id) ?? [];
 
-    // 5. Create Subjects & Chapters for the first course
-    if (courseIds[0]) {
+    // 5. Create Subjects & Syllabus for the first batch
+    if (batchIds[0]) {
       const subjects = [
-        { name: "Mathematics", course_id: courseIds[0], institute_id: targetId },
-        { name: "Physics", course_id: courseIds[0], institute_id: targetId }
+        { name: "Mathematics", institute_id: targetId },
+        { name: "Physics", institute_id: targetId }
       ];
       const { data: createdSubjects } = await supabaseAdmin.from("subjects").insert(subjects).select();
       if (createdSubjects) {
+        // We use batch_id directly in chapters if that's what the schema expects
         const chapters = createdSubjects.flatMap(s => [
-          { name: "Chapter 1: Basics", subject_id: s.id, institute_id: targetId, sequence: 1 },
-          { name: "Chapter 2: Advanced", subject_id: s.id, institute_id: targetId, sequence: 2 }
+          { 
+            name: "Chapter 1: Basics", 
+            subject_id: s.id, 
+            institute_id: targetId, 
+            sequence: 1,
+            batch_id: batchIds[0] 
+          }
         ]);
-        await supabaseAdmin.from("chapters").insert(chapters);
+        // Use a generic insert if the table name is dynamic or slightly different
+        await (supabaseAdmin.from("syllabus_chapters" as any) || supabaseAdmin.from("chapters" as any)).insert(chapters);
       }
     }
 
     // 6. Create Students
-    const studentNames = ["Suresh Raina", "Mithali Raj", "Virat Kohli", "Smriti Mandhana"];
+    const studentNames = ["Suresh Raina", "Mithali Raj", "Virat Kohli"];
     const students = studentNames.map((name, i) => ({
       full_name: name,
+      admission_no: `ADM-00${i + 1}`,
       batch_id: batchIds[i % batchIds.length],
       institute_id: targetId,
       status: "active" as const,
