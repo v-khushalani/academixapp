@@ -59,10 +59,10 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
         "id, institute_id, full_name, admission_no, email, phone, user_id, preferred_contact, father_name, father_phone, mother_name, mother_phone",
       )
       .eq("id", data.student_id)
-      .eq("institute_id", myInst) // Scoped fetch
+      .eq("institute_id", myInst || "") // Hardened scoped fetch
       .maybeSingle();
     if (studentError) throw new Error(studentError.message);
-    if (!student) throw new Error("Student not found.");
+    if (!student) throw new Error("Student not found in your institute context.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const accounts: ProvisionedAccount[] = [];

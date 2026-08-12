@@ -724,6 +724,7 @@ export const userRolesApi = {
   },
   async removeRole(user_id: string, role: AppRole) {
     const { data: inst } = await supabase.rpc("current_institute_id");
+    if (!inst) throw new Error("No institute context");
     const { error } = await supabase
       .from("user_roles")
       .delete()
