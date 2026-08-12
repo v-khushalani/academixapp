@@ -2,6 +2,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { completeOnboarding } from "@/lib/onboarding.functions";
 import { AdmissionForm, type AdmissionFormValues } from "@/components/app/admission-form";
 import { CheckCircle2 } from "lucide-react";
 import { getInstitute } from "@/lib/academy-settings";
@@ -91,33 +92,36 @@ function OnboardPage() {
 
   async function onSubmit(v: AdmissionFormValues, photoPath: string | null) {
     setSaving(true);
-    const { error } = await supabase.rpc("complete_student_onboarding", {
-      _token: token,
-      _full_name: v.full_name,
-      _phone: v.phone,
-      _email: v.email,
-      _class: v.class,
-      _school: v.school,
-      _parent_name: v.preferred_contact === "mother" ? v.mother_name : v.father_name,
-      _parent_phone: v.preferred_contact === "mother" ? v.mother_phone : v.father_phone,
-      _address: v.address,
-      _dob: v.dob || undefined,
-      _father_name: v.father_name,
-      _father_phone: v.father_phone,
-      _mother_name: v.mother_name,
-      _mother_phone: v.mother_phone,
-      _program: v.program || undefined,
-      _stream: v.stream || undefined,
-      _photo_path: photoPath ?? undefined,
-      _preferred_contact: v.preferred_contact,
-    });
-    setSaving(false);
-    if (error) {
+    try {
+      await completeOnboarding({
+        data: {
+          _token: token,
+          _full_name: v.full_name,
+          _phone: v.phone,
+          _email: v.email,
+          _class: v.class,
+          _school: v.school,
+          _parent_name: v.preferred_contact === "mother" ? v.mother_name : v.father_name,
+          _parent_phone: v.preferred_contact === "mother" ? v.mother_phone : v.father_phone,
+          _address: v.address,
+          _dob: v.dob || null,
+          _father_name: v.father_name,
+          _father_phone: v.father_phone,
+          _mother_name: v.mother_name,
+          _mother_phone: v.mother_phone,
+          _program: v.program || undefined,
+          _stream: v.stream || undefined,
+          _photo_path: photoPath ?? undefined,
+          _preferred_contact: v.preferred_contact,
+        }
+      });
+      setStudentName(v.full_name);
+      setDone(true);
+    } catch (error: any) {
       toast.error(error.message);
-      return;
+    } finally {
+      setSaving(false);
     }
-    setStudentName(v.full_name);
-    setDone(true);
   }
 
   if (loading)
