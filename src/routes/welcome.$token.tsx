@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { acceptStudentInviteFn } from "@/lib/onboarding.functions";
 import { GoogleButton } from "@/components/auth/google-button";
 
 export const Route = createFileRoute("/welcome/$token")({
@@ -48,8 +49,9 @@ function WelcomePage() {
       const { data: s } = await supabase.auth.getSession();
       if (!s.session) return;
       claimed.current = true;
-      const { error } = await supabase.rpc("accept_student_invite", { _token: token });
-      if (error) {
+      try {
+        await acceptStudentInviteFn({ data: { _token: token } });
+      } catch (error: any) {
         toast.error(error.message);
         return;
       }
