@@ -2084,7 +2084,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      current_institute_id: { Args: never; Returns: string }
       default_institute_id: { Args: never; Returns: string }
       get_dashboard_overview: { Args: never; Returns: Json }
       get_faculty_invite: {
@@ -2134,26 +2133,10 @@ export type Database = {
           valid: boolean
         }[]
       }
-      has_any_role: {
-        Args: {
-          _roles: Database["public"]["Enums"]["app_role"][]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
       is_my_student: { Args: { _student_id: string }; Returns: boolean }
-      is_superadmin: { Args: never; Returns: boolean }
       mark_attendance_notified: { Args: { _ids: string[] }; Returns: undefined }
       my_batch_ids: { Args: never; Returns: string[] }
       my_faculty_batch_ids: { Args: never; Returns: string[] }
-      my_institute_ids: { Args: never; Returns: string[] }
       platform_institute_detail: {
         Args: { _institute_id: string }
         Returns: {
