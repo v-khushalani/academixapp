@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { BookOpen, Copy, Plus, Trash2, GripVertical, Undo2 } from "lucide-react";
+import { BookOpen, Copy, Plus, Trash2, GripVertical, Undo2, Calendar } from "lucide-react";
+import { formatDate } from "@/lib/dates";
 import {
   DndContext,
   closestCenter,
@@ -196,7 +197,7 @@ function SyllabusPage() {
     enabled: Boolean(batchId),
   });
 
-  const groups = useMemo(() => groupBySubject(chapters), [chapters]);
+  const groups = useMemo(() => groupBySubject(chapters, logs), [chapters, logs]);
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["syllabus"] });
     qc.invalidateQueries({ queryKey: ["syllabus-logs"] });
@@ -330,6 +331,12 @@ function SyllabusPage() {
                       <p className="text-xs text-muted-foreground">
                         {g.done} of {g.total} chapters done
                         {g.current ? ` · now: ${g.current.title}` : ""}
+                        {g.estimated_completion && (
+                          <span className="ml-2 inline-flex items-center gap-1 text-primary">
+                            <Calendar className="h-3 w-3" />
+                            Est. completion: {formatDate(g.estimated_completion)}
+                          </span>
+                        )}
                       </p>
                     </div>
                     <span className="shrink-0 text-sm font-semibold tabular-nums">{g.pct}%</span>
