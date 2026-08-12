@@ -55,8 +55,9 @@ function JoinPage() {
       const { data: s } = await supabase.auth.getSession();
       if (!s.session) return;
       claimed.current = true;
-      const { error } = await acceptFacultyInviteFn({ data: { _token: token } });
-      if (error) {
+      try {
+        await acceptFacultyInviteFn({ data: { _token: token } });
+      } catch (error: any) {
         toast.error(error.message);
         return;
       }
@@ -89,12 +90,14 @@ function JoinPage() {
         return;
       }
     }
-    const { error } = await acceptFacultyInviteFn({ data: { _token: token } }) as any;
-    setSaving(false);
-    if (error) {
+    try {
+      await acceptFacultyInviteFn({ data: { _token: token } });
+    } catch (error: any) {
+      setSaving(false);
       toast.error(error.message);
       return;
     }
+    setSaving(false);
     toast.success("You're in — welcome aboard!");
     void navigate({ to: "/teach" });
   }
