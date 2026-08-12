@@ -22,6 +22,14 @@ export type TemplateVars = {
   receipt_no?: string;
   date?: string;
   academy_name?: string;
+  details?: string;
+  chapter_title?: string;
+  subject?: string;
+  marks?: string | number;
+  max_marks?: string | number;
+  pct?: string | number;
+  reason?: string;
+  resume_date?: string;
 };
 
 export const WA_TEMPLATES: Record<WhatsAppTemplateKey, string> = {
