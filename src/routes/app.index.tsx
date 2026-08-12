@@ -64,6 +64,8 @@ function DashboardPage() {
   const dash = isLoading ? "—" : null;
   const nextTest = data?.upcomingTests?.[0];
 
+  const greetingText = greeting();
+
   return (
     <>
       {showMoney ? <AbsentAlerts /> : null}
@@ -229,5 +231,9 @@ function DashboardPage() {
 
 function greeting() {
   const h = new Date().getHours();
-  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  if (h < 5) return "Working late";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  if (h < 21) return "Good evening";
+  return "Burning the midnight oil";
 }
