@@ -1,15 +1,20 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Database, Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { createDemoData } from "@/lib/demo-data.functions";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 
 export function DemoDataButton() {
   const [loading, setLoading] = useState(false);
+  const { roles, isSuperAdmin } = useAuth();
   const seed = useServerFn(createDemoData);
   const queryClient = useQueryClient();
+
+  const isOwner = roles.includes("owner" as any);
+  if (!isSuperAdmin && !isOwner) return null;
 
   const handleSeed = async () => {
     if (!confirm("This will add sample students, batches, and faculty to your institute. Continue?")) return;
