@@ -35,8 +35,8 @@ import {
   provisionPortalAccounts,
   type ProvisionedAccount,
 } from "@/lib/provisioning.functions";
-import { openWhatsApp } from "@/lib/whatsapp";
-import { getInstitute } from "@/lib/academy-settings";
+import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
+import { getInstitute, getTemplates } from "@/lib/academy-settings";
 import { ApplicantPreview } from "@/components/app/applicant-preview";
 import { EnquiryRecords } from "@/components/app/enquiry-records";
 import type { Database } from "@/integrations/supabase/types";
@@ -502,7 +502,12 @@ function CredentialsDialog({
   const institute = getInstitute().name || "our institute";
 
   const message = (a: ProvisionedAccount) =>
-    `Namaste ${a.name},\n\nYour ${institute} portal login is ready.\n\nLogin page: ${typeof window !== "undefined" ? window.location.origin : ""}/login/student\nLogin ID: ${a.loginId}\n${a.password ? `Temporary password: ${a.password}\n\nPlease sign in and change your password.` : "Use your existing password."}`;
+    renderTemplate(getTemplates().homework_assigned, {
+      student_name: a.name,
+      parent_name: "Parent",
+      academy_name: institute,
+      details: `${typeof window !== "undefined" ? window.location.origin : ""}/login/student\nLogin ID: ${a.loginId}\n${a.password ? `Temporary password: ${a.password}` : "Use your existing password."}`
+    }).replace("New homework has been assigned for", "Your portal login is ready for");
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
