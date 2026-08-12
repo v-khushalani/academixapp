@@ -176,21 +176,51 @@ function DashboardPage() {
           ) : null}
         </div>
 
-        {/* Slim strips */}
-        {behind.length > 0 ? (
-          <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <span className="font-medium uppercase tracking-[0.14em]">Behind on syllabus</span>
-            {behind.map((b) => (
-              <span key={b.id} className="tabular-nums">
-                {b.name} {b.pct}%
-              </span>
-            ))}
-          </p>
-        ) : null}
+        {/* Enhanced Syllabus & Pulse */}
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <Panel title="Syllabus Pulse" className="lg:col-span-2">
+            <div className="space-y-4">
+              {progress.length === 0 && !isLoading && (
+                <p className="py-4 text-center text-xs text-muted-foreground">No syllabus tracking data yet.</p>
+              )}
+              {progress.map((b) => (
+                <div key={b.id} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium">{b.name}</span>
+                    <span className="tabular-nums text-muted-foreground">{b.pct}% complete</span>
+                  </div>
+                  <Bar pct={b.pct} tone={b.pct < 40 ? "danger" : b.pct < 70 ? "warning" : "success"} />
+                </div>
+              ))}
+            </div>
+          </Panel>
+
+          <Panel title="Quick Links">
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: "New Admission", to: "/app/admissions", icon: UserPlus },
+                { label: "Mark Attendance", to: "/app/attendance", icon: CalendarCheck },
+                { label: "Collect Fee", to: "/app/fees", icon: IndianRupee },
+                { label: "View Reports", to: "/app/reports", icon: Layers },
+              ].map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="flex flex-col items-center justify-center gap-2 rounded-lg border border-border bg-muted/30 p-4 text-center transition-colors hover:border-primary/50 hover:bg-primary/5"
+                >
+                  <link.icon className="h-5 w-5 text-primary" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">{link.label}</span>
+                </Link>
+              ))}
+            </div>
+          </Panel>
+        </div>
+
         {nextTest ? (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Next test: {nextTest.title} · {nextTest.batch?.name ?? "—"} · {nextTest.date}
-          </p>
+          <div className="mt-6 flex items-center gap-2 rounded-full bg-primary/5 px-4 py-2 text-[11px] font-medium text-primary">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-primary" />
+            <span>UPCOMING TEST: {nextTest.title} · {nextTest.batch?.name} · {nextTest.date}</span>
+          </div>
         ) : null}
       </PageBody>
     </>

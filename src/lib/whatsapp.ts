@@ -1,7 +1,14 @@
 // WhatsApp deep-link helpers. No API integration — opens wa.me link with a prefilled
 // message so the sender can review before hitting send. Zero-cost by design.
 
-export type WhatsAppTemplateKey = "fee_pending" | "fee_received" | "attendance_absent";
+export type WhatsAppTemplateKey =
+  | "fee_pending"
+  | "fee_received"
+  | "attendance_absent"
+  | "homework_assigned"
+  | "test_result"
+  | "syllabus_update"
+  | "holiday_announcement";
 
 export type TemplateVars = {
   student_name?: string;
@@ -24,6 +31,14 @@ export const WA_TEMPLATES: Record<WhatsAppTemplateKey, string> = {
     "Hello {{parent_name}},\n\nWe've received ₹{{amount_paid}} towards {{student_name}}'s fees on {{paid_date}}. Receipt #{{receipt_no}}.\n\nThank you,\n{{academy_name}}",
   attendance_absent:
     "Hello {{parent_name}},\n\n{{student_name}} was marked ABSENT for {{batch_name}} on {{date}}. Please share the reason at your earliest.\n\nRegards,\n{{academy_name}}",
+  homework_assigned:
+    "Hello {{parent_name}},\n\nNew homework has been assigned for {{student_name}} in {{batch_name}}.\nSubject: {{subject}}\nDue date: {{due_date}}\n\nDetails: {{details}}\n\nRegards,\n{{academy_name}}",
+  test_result:
+    "Hello {{parent_name}},\n\nTest results for {{student_name}} are out.\nBatch: {{batch_name}}\nSubject: {{subject}}\nMarks: {{marks}} / {{max_marks}}\n\nRegards,\n{{academy_name}}",
+  syllabus_update:
+    "Hello {{parent_name}},\n\nWe are pleased to share that {{student_name}} has completed the chapter '{{chapter_title}}' in {{subject}} ({{batch_name}}).\nOverall Syllabus Progress: {{pct}}%\n\nRegards,\n{{academy_name}}",
+  holiday_announcement:
+    "Dear Parents,\n\nPlease note that {{academy_name}} will remain closed on {{date}} on account of {{reason}}. Classes will resume from {{resume_date}}.\n\nRegards,\n{{academy_name}}",
 };
 
 export function renderTemplate(tpl: string, vars: TemplateVars): string {
