@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import { openWhatsApp } from "@/lib/whatsapp";
+import { getInstitute } from "@/lib/academy-settings";
 
 export const Route = createFileRoute("/app/students")({
   component: StudentsPage,

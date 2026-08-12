@@ -70,7 +70,7 @@ function DashboardPage() {
     <>
       {showMoney ? <AbsentAlerts /> : null}
       <PageHeader
-        title={`${greeting()}, ${name.split(" ")[0]}`}
+        title={`${greetingText}, ${name.split(" ")[0]}`}
         description={`${institute} · ${formatDate(new Date())}`}
       />
       <PageBody>
