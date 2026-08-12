@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "@/hooks/use-auth";
+import { acceptFacultyInviteFn, acceptStudentInviteFn } from "@/lib/onboarding.functions";
 
 export const PENDING_INVITE_KEY = "academix.pendingInvite";
 
@@ -64,11 +65,15 @@ export async function resolvePostAuthDestination(): Promise<{
 }> {
   const token = takePendingInvite();
   if (token) {
-    const { error } = await supabase.rpc("accept_faculty_invite", { _token: token });
-    if (error) {
+    try {
+      await acceptFacultyInviteFn({ data: { _token: token } });
+    } catch (error: any) {
       // Same link shape is used for student/parent portal invites.
-      const { error: sErr } = await supabase.rpc("accept_student_invite", { _token: token });
-      if (sErr) console.warn("[invite]", error.message, sErr.message);
+      try {
+        await acceptStudentInviteFn({ data: { _token: token } });
+      } catch (sErr: any) {
+        console.warn("[invite]", error.message, sErr.message);
+      }
     }
   }
 
