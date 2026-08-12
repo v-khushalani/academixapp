@@ -20,12 +20,14 @@ import { feesApi, studentsApi, attendanceApi, batchesApi, syllabusApi } from "@/
 import { groupBySubject } from "@/lib/api/syllabus";
 import { exportCSV, exportPDF, type Column } from "@/lib/exporters";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDate } from "@/lib/dates";
+import { inr } from "@/lib/format";
+
 
 export const Route = createFileRoute("/app/reports")({
   component: ReportsPage,
 });
 
-import { inr } from "@/lib/format";
 
 function ReportsPage() {
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
@@ -721,15 +723,15 @@ function SyllabusReport() {
   });
 
   const rows = useMemo(() => {
-    return batches.map(b => {
-      const chapters = allChapters.filter(c => c.batch_id === b.id);
-      const logs = allLogs.filter(l => l.batch_id === b.id);
+    return batches.map((b) => {
+      const chapters = allChapters.filter((c: any) => c.batch_id === b.id);
+      const logs = allLogs.filter((l: any) => l.batch_id === b.id);
       const progress = groupBySubject(chapters, logs as any);
       const avgPct = progress.length ? Math.round(progress.reduce((s, p) => s + p.pct, 0) / progress.length) : 0;
       
       // Get the earliest forecasted date across subjects
       const forecast = progress
-        .map(p => p.estimated_completion)
+        .map((p) => p.estimated_completion)
         .filter(Boolean)
         .sort((a, b) => b!.localeCompare(a!))[0]; // furthest date
 
@@ -737,7 +739,7 @@ function SyllabusReport() {
         id: b.id,
         batch: b.name,
         total: chapters.length,
-        done: chapters.filter(c => c.status === "done").length,
+        done: chapters.filter((c: any) => c.status === "done").length,
         pct: avgPct,
         forecast: forecast ?? "N/A"
       };
@@ -772,7 +774,7 @@ function SyllabusReport() {
               <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No data found.</td>
             </tr>
           )}
-          {rows.map(r => (
+          {rows.map((r) => (
             <tr key={r.id}>
               <td className="px-4 py-3 font-medium">{r.batch}</td>
               <td className="px-4 py-3 text-muted-foreground">{r.done} / {r.total}</td>

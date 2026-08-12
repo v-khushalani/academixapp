@@ -824,3 +824,6 @@ export const facultyAttendanceApi = {
   }
 };
 
+export { syllabusApi } from "./syllabus";
+
+
