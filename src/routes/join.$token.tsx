@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { acceptFacultyInviteFn } from "@/lib/onboarding.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field as F } from "@/components/app/field";
@@ -54,7 +55,7 @@ function JoinPage() {
       const { data: s } = await supabase.auth.getSession();
       if (!s.session) return;
       claimed.current = true;
-      const { error } = await supabase.rpc("accept_faculty_invite", { _token: token });
+      const { error } = await acceptFacultyInviteFn({ data: { _token: token } });
       if (error) {
         toast.error(error.message);
         return;
@@ -88,7 +89,7 @@ function JoinPage() {
         return;
       }
     }
-    const { error } = await supabase.rpc("accept_faculty_invite", { _token: token });
+    const { error } = await acceptFacultyInviteFn({ data: { _token: token } }) as any;
     setSaving(false);
     if (error) {
       toast.error(error.message);
