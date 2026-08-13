@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { GoogleButton } from "@/components/auth/google-button";
+import { createInstituteFn, getMyInstituteStatusFn } from "@/lib/signup.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
