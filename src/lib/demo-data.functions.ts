@@ -215,9 +215,20 @@ export const resetDemoData = createServerFn({ method: "POST" })
     }
 
     if (!targetId) {
-      const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
-      if (allInstitutes && allInstitutes.length > 0) {
-        targetId = allInstitutes[0].id;
+      const { data: userInstitutes } = await supabaseAdmin
+        .from("user_roles")
+        .select("institute_id")
+        .eq("user_id", context.userId)
+        .in("role", ["owner", "admin"])
+        .not("institute_id", "is", null);
+
+      if (userInstitutes && userInstitutes.length > 0) {
+        targetId = userInstitutes[0].institute_id!;
+      } else if (isSuper) {
+        const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
+        if (allInstitutes && allInstitutes.length > 0) {
+          targetId = allInstitutes[0].id;
+        }
       }
     }
 
