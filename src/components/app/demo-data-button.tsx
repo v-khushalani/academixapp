@@ -28,11 +28,9 @@ export function DemoDataButton() {
   const handleSeed = async () => {
     setLoading(true);
     try {
-      // Corrected call to createDemoData with proper input structure for server function
       const result = await createDemoData({ data: { force: true } });
       toast.success(result.message);
       
-      // After data is seeded, provision accounts
       const { data: instId } = await (window as any).supabase.rpc("current_institute_id");
       if (instId) {
         const accResult = await provisionDemoAccounts({ data: { institute_id: instId } });
@@ -54,7 +52,6 @@ export function DemoDataButton() {
       const result = await resetDemoData({ data: {} });
       toast.success(result.message);
       setShowConfirmReset(false);
-      // Re-seed after reset
       await handleSeed();
     } catch (error: any) {
       toast.error(error.message || "Failed to reset demo data");
@@ -146,6 +143,6 @@ export function DemoDataButton() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

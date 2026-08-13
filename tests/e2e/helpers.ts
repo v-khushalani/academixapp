@@ -1,6 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 
-export const DEMO_PASSWORD = process.env.E2E_PASSWORD ?? "Test@1234";
+export const DEMO_PASSWORD = process.env.E2E_PASSWORD ?? "Password123!";
 export const DEMO = {
   admin: { email: "owner@academix.website", loginPath: "/login/admin", home: "/app" },
   teacher: { email: "faculty@academix.website", loginPath: "/login/teacher", home: "/teach" },
