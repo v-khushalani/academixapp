@@ -37,6 +37,7 @@ async function bootstrap() {
   const session = data.session;
   const user = session?.user ?? null;
   const roles = user ? await loadRoles(user.id) : [];
+  console.log("Auth Bootstrap Roles:", roles);
   cache = { session, user, roles, loading: false };
   notify();
   if (user) void hydrateInstitute().catch(() => {});
@@ -44,6 +45,7 @@ async function bootstrap() {
   supabase.auth.onAuthStateChange(async (event, s) => {
     const u = s?.user ?? null;
     const r = u ? await loadRoles(u.id) : [];
+    console.log("Auth State Change Roles:", r);
     cache = { session: s, user: u, roles: r, loading: false };
     notify();
     if (u && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
