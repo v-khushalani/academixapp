@@ -65,7 +65,7 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
     console.log("Starting database wipe...");
 
     for (const table of tables) {
-      const { error } = await supabaseAdmin.from(table).delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      const { error } = await supabaseAdmin.from(table as any).delete().neq("id" as any, "00000000-0000-0000-0000-000000000000");
       if (error) {
         console.error(`Error wiping table ${table}:`, error.message);
         // We continue anyway to wipe as much as possible
