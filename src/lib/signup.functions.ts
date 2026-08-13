@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 /**
  * Creates a new institute and assigns the caller as the 'owner'.
@@ -16,49 +15,16 @@ export const createInstituteFn = createServerFn({ method: "POST" })
     }).parse(data)
   )
   .handler(async ({ data, context }) => {
-    // 1. Check if user already owns an institute (optional safety)
-    const { data: existingRoles } = await supabaseAdmin
-      .from("user_roles")
-      .select("id")
-      .eq("user_id", context.userId)
-      .eq("role", "owner")
-      .maybeSingle();
+    const { data: instituteId, error } = await context.supabase.rpc(
+      "create_institute_with_owner",
+      { _name: data.name, _tagline: data.tagline ?? null },
+    );
 
-    if (existingRoles) {
-      throw new Error("You already own an institute workspace.");
+    if (error) {
+      throw new Error(`Failed to create institute: ${error.message}`);
     }
 
-    // 2. Create the institute
-    const { data: institute, error: instError } = await supabaseAdmin
-      .from("institutes")
-      .insert({
-        name: data.name,
-        tagline: data.tagline || null,
-        slug: data.name.toLowerCase().replace(/[^a-z0-9]/g, "-"),
-      })
-      .select("id")
-      .single();
-
-    if (instError) {
-      throw new Error(`Failed to create institute: ${instError.message}`);
-    }
-
-    // 3. Assign the 'owner' role to the creating user
-    const { error: roleError } = await supabaseAdmin
-      .from("user_roles")
-      .insert({
-        user_id: context.userId,
-        institute_id: institute.id,
-        role: "owner",
-      });
-
-    if (roleError) {
-      // Cleanup institute if role assignment fails
-      await supabaseAdmin.from("institutes").delete().eq("id", institute.id);
-      throw new Error(`Failed to assign owner role: ${roleError.message}`);
-    }
-
-    return { success: true, instituteId: institute.id };
+    return { success: true, instituteId: instituteId as string };
   });
 
 
@@ -76,8 +42,8 @@ export const updateInstituteBrandingFn = createServerFn({ method: "POST" })
       phone: z.string().optional().nullable(),
     }).parse(data)
   )
-  .handler(async ({ data }) => {
-    const { error } = await supabaseAdmin
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
       .from("institutes")
       .update({
         logo_url: data.logo_url,
@@ -104,9 +70,9 @@ export const setupFirstBatchFn = createServerFn({ method: "POST" })
       subject: z.string().optional(),
     }).parse(data)
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     // 1. Create Faculty
-    const { data: faculty, error: facError } = await supabaseAdmin
+    const { data: faculty, error: facError } = await context.supabase
       .from("faculty")
       .insert({
         full_name: data.faculty_name,
@@ -120,7 +86,7 @@ export const setupFirstBatchFn = createServerFn({ method: "POST" })
     if (facError) throw new Error(`Failed to create faculty: ${facError.message}`);
 
     // 2. Create Batch
-    const { error: batchError } = await supabaseAdmin
+    const { error: batchError } = await context.supabase
       .from("batches")
       .insert({
         name: data.batch_name,
@@ -141,7 +107,7 @@ export const setupFirstBatchFn = createServerFn({ method: "POST" })
 export const getMyInstituteStatusFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: role } = await supabaseAdmin
+    const { data: role } = await context.supabase
       .from("user_roles")
       .select("institute_id, role")
       .eq("user_id", context.userId)
