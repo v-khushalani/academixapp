@@ -175,6 +175,7 @@ export const resetDemoData = createServerFn({ method: "POST" })
     ];
 
     for (const table of tables) {
+      // @ts-ignore - dynamic table name vs specific table types
       await supabaseAdmin.from(table).delete().eq("institute_id", targetId);
     }
 
