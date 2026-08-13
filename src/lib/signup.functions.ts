@@ -17,7 +17,7 @@ export const createInstituteFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: instituteId, error } = await context.supabase.rpc(
       "create_institute_with_owner",
-      { _name: data.name, _tagline: data.tagline ?? null },
+      { _name: data.name, _tagline: data.tagline },
     );
 
     if (error) {
