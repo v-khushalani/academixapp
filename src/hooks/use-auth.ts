@@ -21,12 +21,13 @@ function notify() {
   for (const l of listeners) l(cache);
 }
 
-async function loadRoles(userId: string): Promise<AppRole[]> {
-  const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+async function loadRoles(_userId: string): Promise<AppRole[]> {
+  const { data, error } = await supabase.rpc("get_my_roles");
   if (error) {
+    console.error("Error loading roles via RPC:", error);
     return [];
   }
-  return (data ?? []).map((r) => r.role);
+  return (data ?? []) as AppRole[];
 }
 
 async function bootstrap() {
