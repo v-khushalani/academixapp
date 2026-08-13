@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Database, Loader2, Key } from "lucide-react";
-import { createDemoData } from "@/lib/demo-data.functions";
+import { Database, Loader2, Key, RefreshCw, AlertTriangle } from "lucide-react";
+import { createDemoData, resetDemoData } from "@/lib/demo-data.functions";
 import { provisionDemoAccounts } from "@/lib/demo-accounts.functions";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
@@ -16,7 +16,9 @@ import {
 
 export function DemoDataButton() {
   const [loading, setLoading] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [showCreds, setShowCreds] = useState(false);
+  const [showConfirmReset, setShowConfirmReset] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
   const { isSuperAdmin, roles } = useAuth();
   
@@ -46,18 +48,64 @@ export function DemoDataButton() {
     }
   };
 
+  const handleReset = async () => {
+    setResetting(true);
+    try {
+      const result = await resetDemoData({ data: {} });
+      toast.success(result.message);
+      setShowConfirmReset(false);
+      // Re-seed after reset
+      await handleSeed();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to reset demo data");
+    } finally {
+      setResetting(false);
+    }
+  };
+
   return (
-    <>
+    <div className="flex gap-2">
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={() => setShowConfirmReset(true)} 
+        disabled={loading || resetting}
+        className="gap-2 text-muted-foreground hover:text-destructive"
+      >
+        {resetting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+        Reset
+      </Button>
+
       <Button 
         variant="outline" 
         size="sm" 
         onClick={handleSeed} 
-        disabled={loading}
+        disabled={loading || resetting}
         className="gap-2"
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
         Fill Mock Data
       </Button>
+
+      <Dialog open={showConfirmReset} onOpenChange={setShowConfirmReset}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Reset Demo Data?
+            </DialogTitle>
+            <DialogDescription>
+              This will delete ALL data (Students, Batches, Fees, etc.) for this institute and re-seed it with fresh mock data. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowConfirmReset(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleReset} disabled={resetting}>
+              {resetting ? "Resetting..." : "Yes, Reset Everything"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showCreds} onOpenChange={setShowCreds}>
         <DialogContent>
