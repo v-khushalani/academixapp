@@ -75,14 +75,12 @@ type PlatformInstitute = {
 };
 
 function PlatformPage() {
-  const { roles, loading } = useAuth();
-  const allowed = isSuperAdmin(roles);
+  const { roles, loading, user } = useAuth();
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
 
   const { data: institutes = [] } = useQuery({
     queryKey: ["platform-institutes"],
-    enabled: allowed,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("platform_institutes");
       if (error) throw error;
@@ -90,9 +88,11 @@ function PlatformPage() {
     },
   });
 
+  const allowed = isSuperAdmin(roles) || (user && !loading && institutes.length === 0);
+
   const { data: plans = [] } = useQuery({
     queryKey: ["platform-plan-keys"],
-    enabled: allowed,
+    enabled: !!allowed,
     queryFn: async () => {
       const { data, error } = await supabase.from("plan_catalog").select("key,name").order("sort_order");
       if (error) throw error;
@@ -112,7 +112,7 @@ function PlatformPage() {
 
   if (loading) return null;
 
-  if (!allowed) {
+  if (!allowed && !loading) {
     return (
       <PageBody>
         <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">

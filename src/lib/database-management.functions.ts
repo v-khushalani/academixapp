@@ -73,11 +73,15 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
     }
 
     // Now delete all users except the caller
-    const { data: users, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-    if (!listError && users) {
-      for (const user of users.users) {
+    const { data: usersData, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    if (!listError && usersData?.users) {
+      for (const user of usersData.users) {
         if (user.id !== userId) {
-          await supabaseAdmin.auth.admin.deleteUser(user.id);
+          try {
+            await supabaseAdmin.auth.admin.deleteUser(user.id);
+          } catch (e) {
+            console.error(`Failed to delete user ${user.id}:`, e);
+          }
         }
       }
     }
@@ -85,16 +89,17 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
     // Re-create profile and superadmin role for the caller
     const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
     
-    if (userData.user) {
-      await supabaseAdmin.from("profiles").insert({
+    if (userData?.user) {
+      await supabaseAdmin.from("profiles").upsert({
         id: userId,
         full_name: userData.user.user_metadata?.full_name || userData.user.email,
+        updated_at: new Date().toISOString()
       });
 
-      await supabaseAdmin.from("user_roles").insert({
+      await supabaseAdmin.from("user_roles").upsert({
         user_id: userId,
         role: "superadmin" as any
-      });
+      }, { onConflict: 'user_id,role' });
     }
 
     return { success: true };
