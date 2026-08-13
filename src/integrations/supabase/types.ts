@@ -2084,6 +2084,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      create_institute_with_owner: {
+        Args: { _name: string; _tagline?: string }
+        Returns: string
+      }
       current_institute_id: { Args: never; Returns: string }
       default_institute_id: { Args: never; Returns: string }
       get_dashboard_overview: { Args: never; Returns: Json }
