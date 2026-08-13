@@ -10,7 +10,6 @@ SCREENSHOTS.mkdir(parents=True, exist_ok=True)
 async def main():
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(headless=True)
-        # Use a realistic User-Agent to avoid potential bot detection
         context = await browser.new_context(
             viewport={"width": 1280, "height": 1800},
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
@@ -20,70 +19,58 @@ async def main():
         session_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_SESSION_JSON")
         cookies_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_COOKIES_JSON")
         
-        # Scope cookies to localhost
         if cookies_json:
             cookies = json.loads(cookies_json)
             for c in cookies:
                 c["url"] = "http://localhost:8080"
             await context.add_cookies(cookies)
-            print("Cookies injected")
 
         page = await context.new_page()
-        
-        # Navigate to establish origin
-        print("Opening localhost...")
         await page.goto("http://localhost:8080", wait_until="domcontentloaded")
         
-        # Inject LocalStorage
         if storage_key and session_json:
             await page.evaluate(
                 f"window.localStorage.setItem({json.dumps(storage_key)}, {json.dumps(session_json)})"
             )
-            print("LocalStorage session injected")
+            # Pre-set active branch to avoid the branch selection gate
+            await page.evaluate("window.localStorage.setItem('acx_active_branch', 'all')")
         
-        # Navigate to Dashboard
         print("Navigating to /app...")
-        # Use networkidle to ensure auth check/hydration finishes
         await page.goto("http://localhost:8080/app", wait_until="networkidle")
         
-        # Debugging: check URL and content if redirected
-        print(f"URL after navigation: {page.url}")
-        await page.screenshot(path=str(SCREENSHOTS / "dashboard_initial.png"))
-        
-        # Handle potential redirections or auth delays
-        if "/login" in page.url:
-            print("Auth failed - redirecting back to /login. Attempting force reload...")
-            await page.reload(wait_until="networkidle")
-            print(f"URL after reload: {page.url}")
+        # Check for branch selection gate if still redirected/blocked
+        gate_h1 = page.locator("h1:has-text('Select a branch')")
+        if await gate_h1.is_visible():
+            print("Branch gate visible, selecting 'Continue to Combined View'...")
+            await page.get_by_role("button", name="Continue to Combined View").click()
+            await page.wait_for_load_state("networkidle")
 
-        # Final check for the button
+        print(f"Final URL: {page.url}")
+        await page.screenshot(path=str(SCREENSHOTS / "final_check.png"))
+        
         btn = page.get_by_role("button", name="Fill Mock Data")
         if await btn.is_visible():
             print("SUCCESS: Demo button found")
             await btn.click()
-            
-            # Look for the credentials dialog
             try:
-                # Wait for Dialog Title or specific text
-                await page.wait_for_selector("text=Demo Portal Accounts", timeout=10000)
-                await page.screenshot(path=str(SCREENSHOTS / "success_dialog.png"))
+                # The button calls createDemoData then provisionDemoAccounts
+                # We wait for the "Demo Portal Accounts" dialog
+                await page.wait_for_selector("text=Demo Portal Accounts", timeout=30000)
+                await page.screenshot(path=str(SCREENSHOTS / "demo_success.png"))
                 
-                # Verify specific accounts exist in dialog
+                # Check for account details
                 content = await page.content()
                 if "@academix.demo" in content:
-                    print("SUCCESS: Demo accounts detected in dialog")
+                    print("SUCCESS: Demo flow complete and verified")
                 else:
-                    print("WARNING: Dialog opened but credentials not found in HTML")
+                    print("WARNING: Success dialog shown but no demo emails found")
             except Exception as e:
-                print(f"Dialog failed to appear: {e}")
-                await page.screenshot(path=str(SCREENSHOTS / "dialog_timeout.png"))
+                print(f"Failed to complete demo seeding: {e}")
         else:
-            print("FAILURE: Demo button not visible")
-            # Dump button text for debugging
-            btns = await page.get_by_role("button").all()
-            for b in btns:
-                t = await b.inner_text()
-                if t: print(f"Found button: '{t}'")
+            print("FAILURE: Demo button not found")
+            # Log auth state from browser console
+            auth_state = await page.evaluate("() => JSON.parse(window.localStorage.getItem('sb-yymwngozkaxvixovsflw-auth-token') || '{}')")
+            print(f"LocalStorage Session User: {auth_state.get('user', {}).get('email', 'None')}")
 
         await browser.close()
 
