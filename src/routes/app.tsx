@@ -33,14 +33,25 @@ function AppLayout() {
 
   useEffect(() => {
     if (loading) return;
-    if (!session) navigate({ to: "/login" });
-    else if (isFamilyOnly) navigate({ to: "/portal" });
-    else if (multi && activeId === ALL_BRANCHES && pathname === "/app") {
+    if (!session) {
+      navigate({ to: "/login" });
+      return;
+    }
+    
+    const hasAnyInstitute = roles.length > 0;
+    if (!hasAnyInstitute) {
+      navigate({ to: "/signup" });
+      return;
+    }
+
+    if (isFamilyOnly) {
+      navigate({ to: "/portal" });
+    } else if (multi && activeId === ALL_BRANCHES && pathname === "/app") {
       setShowGate(true);
     } else {
       setShowGate(false);
     }
-  }, [loading, session, isFamilyOnly, navigate, multi, activeId, pathname]);
+  }, [loading, session, isFamilyOnly, navigate, multi, activeId, pathname, roles]);
 
   if (loading || !session || isFamilyOnly) {
     return (

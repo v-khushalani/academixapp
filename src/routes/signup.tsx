@@ -34,19 +34,31 @@ export const Route = createFileRoute("/signup")({
 function SignupPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
-  const [institute, setInstitute] = useState("");
+  const [tagline, setTagline] = useState("");
   const [busy, setBusy] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  
+  const createInstitute = useServerFn(createInstituteFn);
+  const getStatus = useServerFn(getMyInstituteStatusFn);
 
-  // Check if user is already logged in via Google
-  useState(() => {
+  useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         setUser(data.user);
-        setName(data.user.user_metadata.full_name || "");
+        // Check if they already have an institute
+        getStatus().then((status) => {
+          if (status.hasInstitute) {
+            navigate({ to: "/app" });
+          } else {
+            setLoading(false);
+          }
+        }).catch(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
     });
-  });
+  }, [navigate, getStatus]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -56,23 +68,25 @@ function SignupPage() {
     }
     
     setBusy(true);
-    // Update user metadata with institute info
-    const { error } = await supabase.auth.updateUser({
-      data: { 
-        full_name: name, 
-        institute_name: institute.trim(),
-        is_onboarding: true 
-      },
-    });
-
-    if (error) {
+    try {
+      await createInstitute({ data: { name, tagline } });
+      toast.success("Institute created successfully!");
+      navigate({ to: "/app" });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create institute");
+    } finally {
       setBusy(false);
-      toast.error(error.message);
-      return;
     }
+  }
 
-    toast.success("Institute details saved");
-    navigate({ to: "/app" });
+  if (loading) {
+    return (
+      <MarketingShell>
+        <div className="mx-auto w-full max-w-sm px-5 py-20 text-center">
+          <p className="text-sm text-muted-foreground animate-pulse">Checking your status...</p>
+        </div>
+      </MarketingShell>
+    );
   }
 
   if (!user) {
@@ -110,14 +124,19 @@ function SignupPage() {
             <Input
               id="institute"
               placeholder="e.g. Sharma Classes"
-              value={institute}
-              onChange={(e) => setInstitute(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="name">Your full name</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+            <Label htmlFor="tagline">Tagline (optional)</Label>
+            <Input 
+              id="tagline" 
+              placeholder="Best in Coaching"
+              value={tagline} 
+              onChange={(e) => setTagline(e.target.value)} 
+            />
           </div>
           <div className="space-y-1.5 opacity-60">
             <Label htmlFor="email">Email address</Label>
@@ -130,7 +149,7 @@ function SignupPage() {
             />
           </div>
           <Button type="submit" className="w-full" disabled={busy}>
-            {busy ? "Finalizing…" : "Complete Setup"}
+            {busy ? "Creating Institute…" : "Complete Setup"}
           </Button>
         </form>
         <p className="mt-8 text-center text-xs text-muted-foreground">

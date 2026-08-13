@@ -96,9 +96,11 @@ export async function resolvePostAuthDestination(): Promise<{
 
   const to = homeForRoles(roles);
   if (to) return { to };
+  
+  // No roles found. If it's a first-time Google login, send to signup/onboarding.
+  // Otherwise, it might be an uninvited user.
   return {
-    to: null,
-    error:
-      "This Google account isn't linked to any institute yet. Open the invite link your institute sent you on WhatsApp.",
+    to: "/signup",
+    error: null,
   };
 }
