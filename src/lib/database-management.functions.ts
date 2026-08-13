@@ -17,7 +17,7 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
     const { data: existingSuper } = await supabaseAdmin
       .from("user_roles")
       .select("user_id")
-      .eq("role", "superadmin")
+      .eq("role", "superadmin" as any)
       .limit(1);
 
     if (existingSuper && existingSuper.length > 0) {
