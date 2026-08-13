@@ -27,27 +27,35 @@ async def main():
             )
             print("Session injected")
         
-        await page.goto("http://localhost:8080/app")
-        await page.wait_for_load_state("domcontentloaded")
+        # Explicitly wait for navigation and rendering
+        await page.goto("http://localhost:8080/app", wait_until="networkidle")
+        
+        # Log roles from localStorage if they exist there (based on use-auth logic)
+        # Actually roles are fetched via RPC in loadRoles.
         
         # Take screenshot of dashboard
         await page.screenshot(path=str(SCREENSHOTS / "dashboard.png"))
         print("Dashboard loaded")
         
         # Check if Demo button exists
+        # It's in the actions prop of PageHeader
         btn = page.get_by_role("button", name="Fill Mock Data")
         if await btn.is_visible():
             print("Demo button found")
             await btn.click()
-            # Wait for dialog or success
-            await page.wait_for_timeout(10000) 
+            # Wait for dialog
+            await page.wait_for_selector("text=Demo Portal Accounts", timeout=20000)
             await page.screenshot(path=str(SCREENSHOTS / "after_seed.png"))
+            print("Demo seeding and provisioning successful")
         else:
-            print("Demo button not found - checking roles")
-            text = await page.content()
-            with open("/tmp/browser/demo_tests/page_content.html", "w") as f:
-                f.write(text)
-            print(f"Page content length: {len(text)}")
+            print("Demo button not found - checking visibility factors")
+            content = await page.content()
+            with open("/tmp/browser/demo_tests/debug_dashboard.html", "w") as f:
+                f.write(content)
+            
+            # Check for PageHeader title to confirm we are logged in
+            title = await page.locator("h1").first.inner_text()
+            print(f"Page Title: {title}")
 
         await browser.close()
 
