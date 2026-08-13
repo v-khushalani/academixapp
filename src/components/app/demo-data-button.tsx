@@ -20,6 +20,8 @@ export function DemoDataButton() {
   const [showCreds, setShowCreds] = useState(false);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
+  const [summary, setSummary] = useState<Record<string, number> | null>(null);
+  const [showSummary, setShowSummary] = useState(false);
   const { isSuperAdmin, roles } = useAuth();
   
   const isOwner = roles.includes("owner");
@@ -29,6 +31,10 @@ export function DemoDataButton() {
     setLoading(true);
     try {
       const result = await createDemoData({ data: { force: true } });
+      if (result.success && result.summary) {
+        setSummary(result.summary);
+        setShowSummary(true);
+      }
       toast.success(result.message);
       
       const { data: instId } = await (window as any).supabase.rpc("current_institute_id");
@@ -100,6 +106,33 @@ export function DemoDataButton() {
             <Button variant="destructive" onClick={handleReset} disabled={resetting}>
               {resetting ? "Resetting..." : "Yes, Reset Everything"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showSummary} onOpenChange={setShowSummary}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-primary">
+              <Database className="h-5 w-5" />
+              Mock Data Summary
+            </DialogTitle>
+            <DialogDescription>
+              The following records were successfully populated for your institute.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 py-4">
+            {summary && Object.entries(summary).map(([key, count]) => (
+              <div key={key} className="flex flex-col p-3 border rounded-lg bg-muted/50">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  {key.replace(/_/g, " ")}
+                </span>
+                <span className="text-2xl font-bold text-foreground">{count}</span>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowSummary(false)}>Continue</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
