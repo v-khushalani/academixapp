@@ -109,10 +109,25 @@ export const createDemoData = createServerFn({ method: "POST" })
       institute_id: targetId,
       status: "active" as const,
       approval_status: "approved" as const,
-      admission_date: new Date().toISOString().split('T')[0],
-      phone: `990000000${i}`
-    }));
-    await supabaseAdmin.from("students").insert(students);
+      const studentIds = createdStudents?.map(s => s.id) ?? [];
+      
+      // 7. Create Attendance logs (linking faculty to productive work)
+      if (facultyIds[0]) {
+        const dates = [
+          new Date().toISOString().slice(0, 10),
+          new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+        ];
+        const attendance = studentIds.slice(0, 5).flatMap(sid => dates.map(d => ({
+          student_id: sid,
+          batch_id: batchIds[0],
+          date: d,
+          status: "present" as any,
+          marked_by: facultyIds[0],
+          institute_id: targetId
+        })));
+        await supabaseAdmin.from("attendance").insert(attendance);
+      }
+    }
 
     return { success: true, message: "Demo data created successfully." };
   });
@@ -152,7 +167,8 @@ export const resetDemoData = createServerFn({ method: "POST" })
       "rooms",
       "leads",
       "tests",
-      "expenses"
+      "expenses",
+      "institute_branding"
     ];
 
     for (const table of tables) {
