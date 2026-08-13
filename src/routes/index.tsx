@@ -56,12 +56,12 @@ function Index() {
             </p>
 
             <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button asChild size="xl" className="h-14 px-8 text-base shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+              <Button asChild size="lg" className="h-14 px-8 text-base shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                 <Link to="/signup">
                   Get Started for Free <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button asChild size="xl" variant="outline" className="h-14 px-8 text-base bg-background/50 backdrop-blur-sm">
+              <Button asChild size="lg" variant="outline" className="h-14 px-8 text-base bg-background/50 backdrop-blur-sm">
                 <Link to="/login">Sign in to Portal</Link>
               </Button>
             </div>
@@ -101,7 +101,7 @@ function Index() {
             <p className="mt-6 text-lg text-primary-foreground/80">
               Join the future of education management. Zero setup cost, unlimited possibilities.
             </p>
-            <Button asChild size="xl" variant="secondary" className="mt-10 h-14 px-10 text-base shadow-xl">
+            <Button asChild size="lg" variant="secondary" className="mt-10 h-14 px-10 text-base shadow-xl">
               <Link to="/signup">Create Your Institute Now</Link>
             </Button>
           </div>
