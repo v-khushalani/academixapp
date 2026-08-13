@@ -102,31 +102,34 @@ export const createDemoData = createServerFn({ method: "POST" })
 
     // 6. Create Students
     const studentNames = ["Suresh Raina", "Mithali Raj", "Virat Kohli"];
-    const students = studentNames.map((name, i) => ({
+    const studentsInsert = studentNames.map((name, i) => ({
       full_name: name,
       admission_no: `ADM-00${i + 1}`,
       batch_id: batchIds[i % batchIds.length],
       institute_id: targetId,
       status: "active" as const,
       approval_status: "approved" as const,
-      const studentIds = createdStudents?.map(s => s.id) ?? [];
-      
-      // 7. Create Attendance logs (linking faculty to productive work)
-      if (facultyIds[0]) {
-        const dates = [
-          new Date().toISOString().slice(0, 10),
-          new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-        ];
-        const attendance = studentIds.slice(0, 5).flatMap(sid => dates.map(d => ({
-          student_id: sid,
-          batch_id: batchIds[0],
-          date: d,
-          status: "present" as any,
-          marked_by: facultyIds[0],
-          institute_id: targetId
-        })));
-        await supabaseAdmin.from("attendance").insert(attendance);
-      }
+      admission_date: new Date().toISOString().split('T')[0],
+      phone: `990000000${i}`
+    }));
+    const { data: createdStudents } = await supabaseAdmin.from("students").insert(studentsInsert).select();
+    const studentIds = createdStudents?.map(s => s.id) ?? [];
+    
+    // 7. Create Attendance logs (linking faculty to productive work)
+    if (batchIds[0] && facultyIds[0]) {
+      const dates = [
+        new Date().toISOString().slice(0, 10),
+        new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+      ];
+      const attendance = studentIds.slice(0, 5).flatMap(sid => dates.map(d => ({
+        student_id: sid,
+        batch_id: batchIds[0],
+        date: d,
+        status: "present" as any,
+        marked_by: facultyIds[0],
+        institute_id: targetId
+      })));
+      await supabaseAdmin.from("attendance").insert(attendance);
     }
 
     return { success: true, message: "Demo data created successfully." };
@@ -172,16 +175,8 @@ export const resetDemoData = createServerFn({ method: "POST" })
     ];
 
     for (const table of tables) {
-      const { error } = await (supabaseAdmin.from(table as any) as any)
-        .delete()
-        .neq("id", "00000000-0000-0000-0000-000000000000") // Dummy neq to avoid broad delete error
-        .eq("institute_id", targetId);
-      
-      if (error) {
-        console.error(`Error deleting from ${table}:`, error);
-      }
+      await supabaseAdmin.from(table).delete().eq("institute_id", targetId);
     }
 
     return { success: true, message: "Demo data reset successfully." };
   });
-
