@@ -112,7 +112,7 @@ function PlatformPage() {
 
   if (loading) return null;
 
-  if (!allowed) {
+  if (!allowed && !loading) {
     return (
       <PageBody>
         <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
