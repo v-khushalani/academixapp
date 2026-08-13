@@ -22,32 +22,21 @@ export const createDemoData = createServerFn({ method: "POST" })
     }
 
     // We prefer targetId from input, then from the current session context.
-    // However, since current_institute_id() often fails during initial seeding 
-    // when the user has just signed up and hasn't hydrated their session yet,
-    // we use a more aggressive fallback using supabaseAdmin to ensure we find THE institute.
     let targetId = data.institute_id;
     
     if (!targetId) {
       const { data: instId } = await context.supabase.rpc("current_institute_id");
-      targetId = instId;
+      targetId = instId || undefined;
     }
 
     if (!targetId) {
-      // Fallback: Find the institute owned by the current user
-      const { data: userInstitute } = await supabaseAdmin
-        .from("institutes")
-        .select("id")
-        .eq("owner_id", context.userId)
-        .limit(1)
-        .maybeSingle();
-      
-      if (userInstitute) {
-        targetId = userInstitute.id;
-      }
+      // Fallback: Use the helper to get the first institute
+      const { data: fallbackId } = await context.supabase.rpc("default_institute_id");
+      targetId = fallbackId || undefined;
     }
 
     if (!targetId) {
-      // Last resort: find the very first institute in the system (safe for single-owner devs)
+      // Last resort: query directly via admin
       const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
       if (allInstitutes && allInstitutes.length > 0) {
         targetId = allInstitutes[0].id;
@@ -62,7 +51,7 @@ export const createDemoData = createServerFn({ method: "POST" })
       .select("id", { count: "exact", head: true })
       .eq("institute_id", targetId);
 
-    if (existingBatches && existingBatches > 0 && !data.force) {
+    if (existingBatches !== null && existingBatches > 0 && !data.force) {
       return { 
         success: true,
         message: "Demo data already exists for this institute.",
@@ -202,20 +191,12 @@ export const resetDemoData = createServerFn({ method: "POST" })
     
     if (!targetId) {
       const { data: instId } = await context.supabase.rpc("current_institute_id");
-      targetId = instId;
+      targetId = instId || undefined;
     }
 
     if (!targetId) {
-      const { data: userInstitute } = await supabaseAdmin
-        .from("institutes")
-        .select("id")
-        .eq("owner_id", context.userId)
-        .limit(1)
-        .maybeSingle();
-      
-      if (userInstitute) {
-        targetId = userInstitute.id;
-      }
+      const { data: fallbackId } = await context.supabase.rpc("default_institute_id");
+      targetId = fallbackId || undefined;
     }
 
     if (!targetId) {
