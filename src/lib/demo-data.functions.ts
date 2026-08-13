@@ -21,14 +21,25 @@ export const createDemoData = createServerFn({ method: "POST" })
       throw new Error("Only owners or superadmins can seed demo data.");
     }
 
-    const { data: instId } = await context.supabase.rpc("current_institute_id");
-    let targetId = data.institute_id || instId;
+    // We prefer targetId from input, then from the current session context.
+    let targetId = data.institute_id;
+    
+    if (!targetId) {
+      const { data: instId } = await context.supabase.rpc("current_institute_id");
+      targetId = instId || undefined;
+    }
 
     if (!targetId) {
-      // Direct query fallback for the first institute
-      const { data: institutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
-      if (institutes && institutes.length > 0) {
-        targetId = institutes[0].id;
+      // Fallback: Use the helper to get the first institute
+      const { data: fallbackId } = await context.supabase.rpc("default_institute_id");
+      targetId = fallbackId || undefined;
+    }
+
+    if (!targetId) {
+      // Last resort: query directly via admin
+      const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
+      if (allInstitutes && allInstitutes.length > 0) {
+        targetId = allInstitutes[0].id;
       }
     }
 
@@ -40,7 +51,7 @@ export const createDemoData = createServerFn({ method: "POST" })
       .select("id", { count: "exact", head: true })
       .eq("institute_id", targetId);
 
-    if (existingBatches && existingBatches > 0 && !data.force) {
+    if (existingBatches !== null && existingBatches > 0 && !data.force) {
       return { 
         success: true,
         message: "Demo data already exists for this institute.",
@@ -176,13 +187,22 @@ export const resetDemoData = createServerFn({ method: "POST" })
       throw new Error("Only owners or superadmins can reset demo data.");
     }
 
-    const { data: instId } = await context.supabase.rpc("current_institute_id");
-    let targetId = data.institute_id || instId;
+    let targetId = data.institute_id;
+    
+    if (!targetId) {
+      const { data: instId } = await context.supabase.rpc("current_institute_id");
+      targetId = instId || undefined;
+    }
 
     if (!targetId) {
-      const { data: institutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
-      if (institutes && institutes.length > 0) {
-        targetId = institutes[0].id;
+      const { data: fallbackId } = await context.supabase.rpc("default_institute_id");
+      targetId = fallbackId || undefined;
+    }
+
+    if (!targetId) {
+      const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
+      if (allInstitutes && allInstitutes.length > 0) {
+        targetId = allInstitutes[0].id;
       }
     }
 
