@@ -93,7 +93,7 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
 
       await supabaseAdmin.from("user_roles").insert({
         user_id: userId,
-        role: "superadmin"
+        role: "superadmin" as any
       });
     }
 
