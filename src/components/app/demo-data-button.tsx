@@ -50,8 +50,9 @@ export function DemoDataButton() {
       setProgress(prev => prev.map(p => p.step === "Seeding Entities" ? { ...p, status: 'success' } : p.step === "Provisioning Accounts" ? { ...p, status: 'loading' } : p));
       
       const { data: instId } = await (window as any).supabase.rpc("current_institute_id");
-      if (instId) {
-        const accResult = await provisionDemoAccounts({ data: { institute_id: instId } });
+      const finalId = instId || localStorage.getItem("academix_institute_id");
+      if (finalId) {
+        const accResult = await provisionDemoAccounts({ data: { institute_id: finalId } });
         if (accResult.accounts && accResult.accounts.length > 0) {
           setAccounts(accResult.accounts);
           setShowCreds(true);
