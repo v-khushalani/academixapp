@@ -33,17 +33,11 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 
 export const requireSupabaseAuth = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+    const SUPABASE_URL = process.env.SUPABASE_URL || "https://jjqdcdwvcxmeplmuhvha.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqcWRjZHd2Y3htZXBsbXVodmhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzOTI5ODQsImV4cCI6MjA5ODk2ODk4NH0.GDBwt-qRw_TxU3Z1Siaw_Xs54YhZzhniBsgNkcXJS1o";
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-      const missing = [
-        ...(!SUPABASE_URL ? ["SUPABASE_URL"] : []),
-        ...(!SUPABASE_PUBLISHABLE_KEY ? ["SUPABASE_PUBLISHABLE_KEY"] : []),
-      ];
-      const message = `Missing Supabase environment variable(s): ${missing.join(", ")}. Connect Supabase in Lovable Cloud.`;
-      console.error(`[Supabase] ${message}`);
-      throw new Error(message);
+      throw new Error("Unauthorized: Supabase connection not configured");
     }
 
     const request = getRequest();
