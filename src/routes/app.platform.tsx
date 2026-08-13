@@ -92,7 +92,7 @@ function PlatformPage() {
 
   const { data: plans = [] } = useQuery({
     queryKey: ["platform-plan-keys"],
-    enabled: allowed,
+    enabled: !!allowed,
     queryFn: async () => {
       const { data, error } = await supabase.from("plan_catalog").select("key,name").order("sort_order");
       if (error) throw error;
