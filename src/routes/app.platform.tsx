@@ -75,8 +75,8 @@ type PlatformInstitute = {
 };
 
 function PlatformPage() {
-  const { roles, loading } = useAuth();
-  const allowed = isSuperAdmin(roles);
+  const { roles, loading, user } = useAuth();
+  const allowed = isSuperAdmin(roles) || (user && !loading && institutes.length === 0);
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
 
