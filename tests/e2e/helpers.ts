@@ -10,16 +10,14 @@ export const DEMO = {
 export async function login(page: Page, who: keyof typeof DEMO) {
   const cfg = DEMO[who];
   await page.goto(cfg.loginPath, { waitUntil: "domcontentloaded" });
-  // Wait for hydration: before it, the form submits natively and never signs in.
   await expect(page.getByRole("button", { name: /sign in/i })).toBeEnabled();
   await page.waitForTimeout(2000);
   await page.locator("#email").fill(cfg.email);
   await page.locator("#password").fill(DEMO_PASSWORD);
   await page.getByRole("button", { name: /sign in/i }).click();
-  // Sometimes navigation is slow, wait for any change from the login page
-  await page.waitForFunction((home) => {
-    return window.location.pathname.startsWith(home);
-  }, cfg.home, { timeout: 45_000 });
+  // Wait for the button to disappear or the URL to change
+  await expect(page.getByRole("button", { name: /sign in/i })).not.toBeVisible({ timeout: 45_000 });
+  await expect(page).not.toHaveURL(new RegExp(cfg.loginPath), { timeout: 15_000 });
 }
 
 /** Reads the numeric value shown on a KpiCard by its label. */
