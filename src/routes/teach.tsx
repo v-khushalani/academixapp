@@ -36,9 +36,18 @@ function TeachLayout() {
 
   useEffect(() => {
     if (loading) return;
-    if (!session) navigate({ to: "/login" });
-    else if (isFamily) navigate({ to: "/portal" });
-  }, [loading, session, isFamily, navigate]);
+    if (!session) {
+      navigate({ to: "/login" });
+      return;
+    }
+
+    if (roles.length === 0) {
+      navigate({ to: "/signup" });
+      return;
+    }
+
+    if (isFamily) navigate({ to: "/portal" });
+  }, [loading, session, isFamily, navigate, roles]);
 
   if (loading || !session || isFamily) {
     return (
