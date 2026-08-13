@@ -26,13 +26,14 @@ export function DemoDataButton() {
   const handleSeed = async () => {
     setLoading(true);
     try {
-      const result = await createDemoData({});
+      // Corrected call to createDemoData with proper input structure for server function
+      const result = await createDemoData({ data: { force: true } });
       toast.success(result.message);
       
       // After data is seeded, provision accounts
       const { data: instId } = await (window as any).supabase.rpc("current_institute_id");
       if (instId) {
-        const accResult = await provisionDemoAccounts({ institute_id: instId });
+        const accResult = await provisionDemoAccounts({ data: { institute_id: instId } });
         if (accResult.accounts && accResult.accounts.length > 0) {
           setAccounts(accResult.accounts);
           setShowCreds(true);

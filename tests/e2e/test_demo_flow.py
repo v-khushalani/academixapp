@@ -28,7 +28,7 @@ async def main():
             print("Session injected")
         
         await page.goto("http://localhost:8080/app")
-        await page.wait_until_dom_content_loaded()
+        await page.wait_for_load_state("domcontentloaded")
         
         # Take screenshot of dashboard
         await page.screenshot(path=str(SCREENSHOTS / "dashboard.png"))
@@ -40,12 +40,15 @@ async def main():
             print("Demo button found")
             await btn.click()
             # Wait for dialog or success
-            await page.wait_for_timeout(5000)
+            await page.wait_for_timeout(10000) # Give more time for seeding and provisioning
             await page.screenshot(path=str(SCREENSHOTS / "after_seed.png"))
         else:
             print("Demo button not found - checking roles")
-            roles = await page.evaluate("window.localStorage.getItem('sb-roles')") # Just a guess for debug
-            print(f"Roles: {roles}")
+            # Log current page text to see if we are even on the dashboard
+            text = await page.content()
+            with open("/tmp/browser/demo_tests/page_content.html", "w") as f:
+                f.write(text)
+            print(f"Page content length: {len(text)}")
 
         await browser.close()
 
