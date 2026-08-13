@@ -142,6 +142,7 @@ function PlatformPage() {
             <TabsTrigger value="institutes">Institutes</TabsTrigger>
             <TabsTrigger value="users">Trial Users</TabsTrigger>
             <TabsTrigger value="pricing">Plans &amp; pricing</TabsTrigger>
+            <TabsTrigger value="danger">Danger Zone</TabsTrigger>
           </TabsList>
 
           <TabsContent value="institutes">
