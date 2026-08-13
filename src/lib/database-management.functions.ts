@@ -41,6 +41,8 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
       "attendance",
       "attendance_devices",
       "audit_logs",
+      "expenses",
+      "fee_adjustments",
       "fees",
       "homework",
       "parent_students",
@@ -52,6 +54,7 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
       "syllabus_chapters",
       "leads",
       "faculty_invites",
+      "timetable_day_plan",
       "students",
       "batches",
       "subjects",
@@ -64,11 +67,17 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
 
     console.log("Starting database wipe...");
 
+    // Disable triggers temporarily if possible, or just delete in order.
+    // We use a single query for each table to be efficient.
     for (const table of tables) {
+      console.log(`Wiping ${table}...`);
       // @ts-ignore
       const { error } = await supabaseAdmin.from(table).delete().neq("id", "00000000-0000-0000-0000-000000000000");
       if (error) {
         console.error(`Error wiping table ${table}:`, error.message);
+        // Fallback for tables that might not have "id" (though most in this schema do)
+        // @ts-ignore
+        await supabaseAdmin.from(table).delete().or("id.neq.00000000-0000-0000-0000-000000000000,user_id.neq.00000000-0000-0000-0000-000000000000");
       }
     }
 
@@ -90,16 +99,22 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
     const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
     
     if (userData?.user) {
-      await supabaseAdmin.from("profiles").upsert({
+      const fullName = userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || "Super Admin";
+      
+      const { error: profileError } = await supabaseAdmin.from("profiles").upsert({
         id: userId,
-        full_name: userData.user.user_metadata?.full_name || userData.user.email,
+        full_name: fullName,
         updated_at: new Date().toISOString()
       });
+      
+      if (profileError) console.error("Error recreating profile:", profileError.message);
 
-      await supabaseAdmin.from("user_roles").upsert({
+      const { error: roleError } = await supabaseAdmin.from("user_roles").upsert({
         user_id: userId,
         role: "superadmin" as any
       }, { onConflict: 'user_id,role' });
+
+      if (roleError) console.error("Error recreating superadmin role:", roleError.message);
     }
 
     return { success: true };
