@@ -161,6 +161,7 @@ export const resetDemoData = createServerFn({ method: "POST" })
     for (const table of tables) {
       const { error } = await (supabaseAdmin.from(table as any) as any)
         .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000") // Dummy neq to avoid broad delete error
         .eq("institute_id", targetId);
       
       if (error) {
