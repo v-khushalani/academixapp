@@ -25,6 +25,7 @@ import { InstallmentPlanEditor } from "@/components/app/installment-plan-editor"
 import { normalisePlan, type Installment } from "@/lib/installments";
 import { FEATURE_KEYS, FEATURE_LABELS, type FeatureKey } from "@/lib/institute-controls";
 import { listOrphanedUsersFn, deleteUserFn } from "@/lib/platform.functions";
+import { wipeDatabaseFn } from "@/lib/database-management.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
 
