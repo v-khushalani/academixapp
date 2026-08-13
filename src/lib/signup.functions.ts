@@ -78,14 +78,14 @@ export const updateInstituteBrandingFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { error } = await supabaseAdmin
-      .from("institute_branding")
-      .upsert({
-        institute_id: data.institute_id,
+      .from("institutes")
+      .update({
         logo_url: data.logo_url,
         primary_color: data.primary_color,
         address: data.address,
         phone: data.phone,
-      });
+      })
+      .eq("id", data.institute_id);
 
     if (error) throw new Error(`Failed to update branding: ${error.message}`);
     return { success: true };
