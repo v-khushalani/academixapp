@@ -22,7 +22,17 @@ export const createDemoData = createServerFn({ method: "POST" })
     }
 
     const { data: instId } = await context.supabase.rpc("current_institute_id");
-    const targetId = data.institute_id || instId;
+    let targetId = data.institute_id || instId;
+
+    if (!targetId) {
+      // Fallback: If no institute context is found via RPC (e.g. session not fully hydrated in DB context),
+      // try to fetch the first institute the user has access to.
+      const { data: institutes } = await context.supabase.from("institutes").select("id").limit(1);
+      if (institutes && institutes.length > 0) {
+        targetId = institutes[0].id;
+      }
+    }
+
     if (!targetId) throw new Error("No institute context found.");
 
     // Check if data already exists
@@ -151,7 +161,15 @@ export const resetDemoData = createServerFn({ method: "POST" })
     }
 
     const { data: instId } = await context.supabase.rpc("current_institute_id");
-    const targetId = data.institute_id || instId;
+    let targetId = data.institute_id || instId;
+
+    if (!targetId) {
+      const { data: institutes } = await context.supabase.from("institutes").select("id").limit(1);
+      if (institutes && institutes.length > 0) {
+        targetId = institutes[0].id;
+      }
+    }
+
     if (!targetId) throw new Error("No institute context found.");
 
     // Delete all related data for this institute
