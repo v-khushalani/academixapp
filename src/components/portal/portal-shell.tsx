@@ -75,7 +75,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
     await qc.cancelQueries();
     qc.clear();
     await signOut();
-    navigate({ to: "/login/student", replace: true });
+    navigate({ to: "/login", replace: true });
   }
 
   const value: Ctx = {

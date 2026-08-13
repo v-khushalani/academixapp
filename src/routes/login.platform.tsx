@@ -44,8 +44,8 @@ function PlatformLogin() {
       footer={
         <p>
           Institute staff?{" "}
-          <Link to="/login/admin" className="text-primary hover:underline">
-            Use the institute console
+          <Link to="/login" className="text-primary hover:underline">
+            Use the standard login
           </Link>
         </p>
       }
