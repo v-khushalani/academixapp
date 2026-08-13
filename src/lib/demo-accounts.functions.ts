@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-const DEMO_PASSWORD = "Password123!";
+const DEMO_PASSWORD = "Test@1234";
 
 /**
  * Creates portal accounts for demo students and faculty.
