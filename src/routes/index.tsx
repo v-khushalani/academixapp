@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PortalPicker } from "@/components/marketing/portal-picker";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PostAuthGate } from "@/components/auth/post-auth-gate";
 
