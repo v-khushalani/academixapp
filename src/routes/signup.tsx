@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { GoogleButton } from "@/components/auth/google-button";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -32,48 +33,63 @@ function SignupPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [institute, setInstitute] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  // Check if user is already logged in via Google
+  useState(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setUser(data.user);
+        setName(data.user.user_metadata.full_name || "");
+      }
+    });
+  });
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!user) {
+      toast.error("Please login with Google first");
+      return;
+    }
+    
     setBusy(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/app`,
-        data: { full_name: name, institute_name: institute.trim() },
+    // Update user metadata with institute info
+    const { error } = await supabase.auth.updateUser({
+      data: { 
+        full_name: name, 
+        institute_name: institute.trim(),
+        is_onboarding: true 
       },
     });
-    setBusy(false);
+
     if (error) {
+      setBusy(false);
       toast.error(error.message);
       return;
     }
-    if (!data.session) {
-      // email confirmation is on — say so instead of bouncing to /login silently
-      setSent(true);
-      return;
-    }
-    toast.success("Account created");
+
+    toast.success("Institute details saved");
     navigate({ to: "/app" });
   }
 
-  if (sent) {
+  if (!user) {
     return (
       <MarketingShell>
         <div className="mx-auto w-full max-w-sm px-5 py-20 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Confirm your email</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            We sent a confirmation link to <span className="font-medium">{email}</span>. Open it to
-            activate your institute workspace, then sign in.
+          <h1 className="text-2xl font-semibold tracking-tight">Create your institute</h1>
+          <p className="mt-2 text-sm text-muted-foreground mb-8">
+            To ensure security and verify ownership, please sign in with your Google account first.
           </p>
-          <Button className="mt-6 w-full" onClick={() => navigate({ to: "/login" })}>
-            Go to sign in
-          </Button>
+          <GoogleButton label="Login with Google to continue" />
+          <p className="mt-6 text-xs text-muted-foreground">
+            After login, you can set up your institute workspace.
+          </p>
+          <p className="mt-8 text-xs text-muted-foreground">
+            <Link to="/login" className="hover:text-foreground underline">
+              Already have an account? Sign in
+            </Link>
+          </p>
         </div>
       </MarketingShell>
     );
@@ -98,43 +114,31 @@ function SignupPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="name">Full name</Label>
+            <Label htmlFor="name">Your full name</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="email">Email</Label>
+          <div className="space-y-1.5 opacity-60">
+            <Label htmlFor="email">Email address</Label>
             <Input
               id="email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              value={user.email}
+              disabled
+              className="bg-muted"
             />
           </div>
           <Button type="submit" className="w-full" disabled={busy}>
-            {busy ? "Creating…" : "Create account"}
+            {busy ? "Finalizing…" : "Complete Setup"}
           </Button>
         </form>
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          Already have an account?{" "}
-          <Link to="/login" className="text-primary hover:underline">
-            Sign in
-          </Link>
-        </p>
-        <p className="mt-2 text-center text-xs text-muted-foreground">
-          Teachers, students and parents don&apos;t sign up here — your institute sends you a login
-          link.
+        <p className="mt-8 text-center text-xs text-muted-foreground">
+          Logged in as <span className="font-medium">{user.email}</span>.{" "}
+          <button 
+            onClick={() => supabase.auth.signOut().then(() => setUser(null))}
+            className="text-primary hover:underline"
+          >
+            Not you? Switch account
+          </button>
         </p>
       </div>
     </MarketingShell>
