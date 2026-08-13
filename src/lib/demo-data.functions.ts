@@ -21,14 +21,36 @@ export const createDemoData = createServerFn({ method: "POST" })
       throw new Error("Only owners or superadmins can seed demo data.");
     }
 
-    const { data: instId } = await context.supabase.rpc("current_institute_id");
-    let targetId = data.institute_id || instId;
+    // We prefer targetId from input, then from the current session context.
+    // However, since current_institute_id() often fails during initial seeding 
+    // when the user has just signed up and hasn't hydrated their session yet,
+    // we use a more aggressive fallback using supabaseAdmin to ensure we find THE institute.
+    let targetId = data.institute_id;
+    
+    if (!targetId) {
+      const { data: instId } = await context.supabase.rpc("current_institute_id");
+      targetId = instId;
+    }
 
     if (!targetId) {
-      // Direct query fallback for the first institute
-      const { data: institutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
-      if (institutes && institutes.length > 0) {
-        targetId = institutes[0].id;
+      // Fallback: Find the institute owned by the current user
+      const { data: userInstitute } = await supabaseAdmin
+        .from("institutes")
+        .select("id")
+        .eq("owner_id", context.userId)
+        .limit(1)
+        .maybeSingle();
+      
+      if (userInstitute) {
+        targetId = userInstitute.id;
+      }
+    }
+
+    if (!targetId) {
+      // Last resort: find the very first institute in the system (safe for single-owner devs)
+      const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
+      if (allInstitutes && allInstitutes.length > 0) {
+        targetId = allInstitutes[0].id;
       }
     }
 
@@ -176,13 +198,30 @@ export const resetDemoData = createServerFn({ method: "POST" })
       throw new Error("Only owners or superadmins can reset demo data.");
     }
 
-    const { data: instId } = await context.supabase.rpc("current_institute_id");
-    let targetId = data.institute_id || instId;
+    let targetId = data.institute_id;
+    
+    if (!targetId) {
+      const { data: instId } = await context.supabase.rpc("current_institute_id");
+      targetId = instId;
+    }
 
     if (!targetId) {
-      const { data: institutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
-      if (institutes && institutes.length > 0) {
-        targetId = institutes[0].id;
+      const { data: userInstitute } = await supabaseAdmin
+        .from("institutes")
+        .select("id")
+        .eq("owner_id", context.userId)
+        .limit(1)
+        .maybeSingle();
+      
+      if (userInstitute) {
+        targetId = userInstitute.id;
+      }
+    }
+
+    if (!targetId) {
+      const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
+      if (allInstitutes && allInstitutes.length > 0) {
+        targetId = allInstitutes[0].id;
       }
     }
 
