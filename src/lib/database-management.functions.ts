@@ -99,16 +99,22 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
     const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
     
     if (userData?.user) {
-      await supabaseAdmin.from("profiles").upsert({
+      const fullName = userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || "Super Admin";
+      
+      const { error: profileError } = await supabaseAdmin.from("profiles").upsert({
         id: userId,
-        full_name: userData.user.user_metadata?.full_name || userData.user.email,
+        full_name: fullName,
         updated_at: new Date().toISOString()
       });
+      
+      if (profileError) console.error("Error recreating profile:", profileError.message);
 
-      await supabaseAdmin.from("user_roles").upsert({
+      const { error: roleError } = await supabaseAdmin.from("user_roles").upsert({
         user_id: userId,
         role: "superadmin" as any
       }, { onConflict: 'user_id,role' });
+
+      if (roleError) console.error("Error recreating superadmin role:", roleError.message);
     }
 
     return { success: true };
