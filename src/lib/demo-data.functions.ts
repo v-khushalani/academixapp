@@ -37,9 +37,24 @@ export const createDemoData = createServerFn({ method: "POST" })
 
     if (!targetId) {
       // Last resort: query directly via admin
-      const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
-      if (allInstitutes && allInstitutes.length > 0) {
-        targetId = allInstitutes[0].id;
+      // We check for institutes where the user has an 'owner' or 'admin' role
+      const { data: userInstitutes } = await supabaseAdmin
+        .from("user_roles")
+        .select("institute_id")
+        .eq("user_id", context.userId)
+        .in("role", ["owner", "admin"])
+        .not("institute_id", "is", null);
+
+      if (userInstitutes && userInstitutes.length > 0) {
+        targetId = userInstitutes[0].institute_id!;
+      } else {
+        // Absolute last resort: just take any institute if they are superadmin
+        if (isSuper) {
+          const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
+          if (allInstitutes && allInstitutes.length > 0) {
+            targetId = allInstitutes[0].id;
+          }
+        }
       }
     }
 
