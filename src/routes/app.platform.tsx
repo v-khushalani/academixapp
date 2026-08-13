@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ShieldCheck, ArrowRight, ExternalLink } from "lucide-react";
+import { ShieldCheck, ArrowRight, ExternalLink, UserMinus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,9 @@ import { PricingAdmin } from "@/components/app/pricing-admin";
 import { InstallmentPlanEditor } from "@/components/app/installment-plan-editor";
 import { normalisePlan, type Installment } from "@/lib/installments";
 import { FEATURE_KEYS, FEATURE_LABELS, type FeatureKey } from "@/lib/institute-controls";
+import { listOrphanedUsersFn, deleteUserFn } from "@/lib/platform.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { format } from "date-fns";
 
 export const Route = createFileRoute("/app/platform")({
   head: () => ({
@@ -136,6 +139,7 @@ function PlatformPage() {
         <Tabs defaultValue="institutes" className="w-full">
           <TabsList className="mb-4 flex-wrap">
             <TabsTrigger value="institutes">Institutes</TabsTrigger>
+            <TabsTrigger value="users">Trial Users</TabsTrigger>
             <TabsTrigger value="pricing">Plans &amp; pricing</TabsTrigger>
           </TabsList>
 
@@ -210,6 +214,10 @@ function PlatformPage() {
                 </tbody>
               </table>
             </div>
+          </TabsContent>
+
+          <TabsContent value="users">
+            <OrphanedUsersManager />
           </TabsContent>
 
           <TabsContent value="pricing">
@@ -440,6 +448,84 @@ function ListCard({
         ))}
         {rows.length === 0 && <li className="px-3 py-3 text-xs text-muted-foreground">None yet.</li>}
       </ul>
+    </div>
+  );
+}
+
+function OrphanedUsersManager() {
+  const qc = useQueryClient();
+  const listOrphaned = useServerFn(listOrphanedUsersFn);
+  const deleteUser = useServerFn(deleteUserFn);
+
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ["orphaned-users"],
+    queryFn: () => listOrphaned(),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (userId: string) => deleteUser({ data: { user_id: userId } }),
+    onSuccess: () => {
+      toast.success("User deleted successfully");
+      qc.invalidateQueries({ queryKey: ["orphaned-users"] });
+    },
+    onError: (err: any) => toast.error(err.message || "Failed to delete user"),
+  });
+
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary" /></div>;
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h2 className="text-sm font-semibold">Trial & Orphaned Users</h2>
+        <p className="text-xs text-muted-foreground mt-1">
+          These users have logged in via Google but have not created an institute or been added to one. 
+          Use this list to clean up trial signups.
+        </p>
+      </div>
+
+      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2">Name</th>
+              <th className="px-3 py-2">Signed Up</th>
+              <th className="px-3 py-2 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {users.map((user) => (
+              <tr key={user.id} className="hover:bg-muted/30 transition-colors">
+                <td className="px-3 py-3 font-medium">{user.full_name || "Anonymous"}</td>
+                <td className="px-3 py-3 text-muted-foreground tabular-nums">
+                  {user.created_at ? format(new Date(user.created_at), "dd MMM yyyy") : "—"}
+                </td>
+                <td className="px-3 py-3 text-right">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:bg-destructive/10"
+                    onClick={() => {
+                      if (confirm("Are you sure you want to delete this user? This cannot be undone.")) {
+                        deleteMutation.mutate(user.id);
+                      }
+                    }}
+                    disabled={deleteMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+            {users.length === 0 && (
+              <tr>
+                <td colSpan={3} className="px-3 py-6 text-center text-muted-foreground">
+                  No orphaned users found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
