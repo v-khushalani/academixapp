@@ -101,6 +101,6 @@ export async function resolvePostAuthDestination(): Promise<{
   // Otherwise, it might be an uninvited user.
   return {
     to: "/signup",
-    error: null,
+    error: undefined,
   };
 }
