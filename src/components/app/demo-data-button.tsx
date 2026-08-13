@@ -20,6 +20,8 @@ export function DemoDataButton() {
   const [showCreds, setShowCreds] = useState(false);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
+  const [summary, setSummary] = useState<Record<string, number> | null>(null);
+  const [showSummary, setShowSummary] = useState(false);
   const { isSuperAdmin, roles } = useAuth();
   
   const isOwner = roles.includes("owner");
