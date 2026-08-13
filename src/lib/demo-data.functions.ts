@@ -180,13 +180,13 @@ export const resetDemoData = createServerFn({ method: "POST" })
     let targetId = data.institute_id || instId;
 
     if (!targetId) {
-      const { data: institutes } = await context.supabase.from("institutes").select("id").limit(1);
+      const { data: institutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
       if (institutes && institutes.length > 0) {
         targetId = institutes[0].id;
       }
     }
 
-    if (!targetId) throw new Error("No institute context found.");
+    if (!targetId) throw new Error("No institute context found. Please ensure an institute is created first.");
 
     // Delete all related data for this institute
     const tables = [
