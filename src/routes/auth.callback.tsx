@@ -41,9 +41,13 @@ function AuthCallback() {
         void navigate({ to });
         return;
       }
-      await supabase.auth.signOut();
-      toast.error(error!);
-      void navigate({ to: "/login" });
+      if (error) {
+        await supabase.auth.signOut();
+        toast.error(error);
+        void navigate({ to: "/login" });
+        return;
+      }
+      void navigate({ to: "/signup" });
     })();
   }, [navigate]);
 
