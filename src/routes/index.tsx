@@ -61,28 +61,23 @@ function Index() {
         </div>
       </section>
 
-      {/* Portal picker — the thing users get lost in */}
+      {/* Unified Login Call to Action */}
       <section>
-        <div className="mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-16">
-          <div className="flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                Already using Academix? Start here.
-              </h2>
-              <p className="mt-1.5 text-sm text-muted-foreground">
-                Three portals, one platform. Pick the one that describes you.
-              </p>
-            </div>
-            <Link to="/login" className="text-sm font-medium text-primary hover:underline">
-              Not sure which one?
-            </Link>
-          </div>
-          <div className="mt-7">
-            <PortalPicker />
+        <div className="mx-auto max-w-6xl px-5 py-14 sm:px-6 sm:py-16 text-center">
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            Already using Academix?
+          </h2>
+          <p className="mt-2 text-base text-muted-foreground">
+            Sign in to your portal to manage your classes, students, or academy.
+          </p>
+          <div className="mt-8">
+            <Button asChild size="lg" variant="outline">
+              <Link to="/login">Sign in to your portal</Link>
+            </Button>
           </div>
           <p className="mt-5 text-xs text-muted-foreground">
             Students and teachers do not create their own accounts — your institute sends the login
-            link.
+            details.
           </p>
         </div>
       </section>

@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "@/hooks/use-auth";
 import { GoogleButton, OrDivider } from "@/components/auth/google-button";
 
-export type PortalKind = "admin" | "teacher" | "family" | "platform";
+export type PortalKind = "admin" | "teacher" | "family" | "platform" | "unified";
 
 const STAFF_ROLES: AppRole[] = [
   "owner",
@@ -18,45 +18,6 @@ const STAFF_ROLES: AppRole[] = [
   "accountant",
   "superadmin" as AppRole,
 ];
-const CONFIG = {
-  admin: {
-    roles: STAFF_ROLES,
-    destination: "/app",
-    label: "staff & admin",
-    elsewhere: "Teacher or student? Use the right portal",
-    elsewhereTo: "/login/teacher",
-  },
-  teacher: {
-    roles: ["faculty"],
-    destination: "/teach",
-    label: "teacher",
-    elsewhere: "Not a teacher? Pick your portal",
-    elsewhereTo: "/login/student",
-  },
-  family: {
-    roles: ["student", "parent"],
-    destination: "/portal",
-    label: "student & parent",
-    elsewhere: "Staff member? Sign in here",
-    elsewhereTo: "/login/admin",
-  },
-  platform: {
-    roles: ["superadmin" as AppRole],
-    destination: "/app/platform",
-    label: "Academix platform",
-    elsewhere: "Institute staff? Sign in here",
-    elsewhereTo: "/login/admin",
-  },
-} as const;
-
-function portalHomeFor(roles: AppRole[]) {
-  if (roles.some((r) => STAFF_ROLES.includes(r)))
-    return { to: "/login/admin", name: "staff" } as const;
-  if (roles.includes("faculty")) return { to: "/login/teacher", name: "teacher" } as const;
-  if (roles.includes("student") || roles.includes("parent"))
-    return { to: "/login/student", name: "student & parent" } as const;
-  return null;
-}
 
 export function LoginCard({
   kind,
@@ -74,16 +35,13 @@ export function LoginCard({
   footer?: ReactNode;
 }) {
   const navigate = useNavigate();
-  const cfg = CONFIG[kind];
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [wrongPortal, setWrongPortal] = useState<ReturnType<typeof portalHomeFor>>(null);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setWrongPortal(null);
     const { error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
@@ -94,7 +52,6 @@ export function LoginCard({
       return;
     }
 
-    // Added explicit error logging for debugging
     const { data: roleRows, error: roleError } = await supabase.rpc("get_my_roles");
     
     if (roleError) {
@@ -105,24 +62,21 @@ export function LoginCard({
     }
 
     const roles = (roleRows ?? []) as AppRole[];
-    const allowed = roles.some((r) => (cfg.roles as readonly AppRole[]).includes(r));
+    
+    // Use the unified home helper
+    const { homeForRoles } = await import("@/lib/post-auth");
+    const to = homeForRoles(roles);
 
-    if (!allowed) {
-      const target = portalHomeFor(roles);
+    if (!to) {
       await supabase.auth.signOut();
       setBusy(false);
-      setWrongPortal(target);
-      toast.error(
-        target
-          ? `This is the ${cfg.label} login. Your account belongs to the ${target.name} portal.`
-          : "No role has been assigned to this account yet. Ask your institute to enable access.",
-      );
+      toast.error("No role has been assigned to this account yet. Ask your institute to enable access.");
       return;
     }
 
     setBusy(false);
     toast.success("Welcome back");
-    navigate({ to: cfg.destination });
+    navigate({ to });
   }
 
   return (
@@ -145,14 +99,13 @@ export function LoginCard({
 
           <form className="mt-3 space-y-4" onSubmit={onSubmit}>
             <div className="space-y-1.5">
-              <Label htmlFor="email">Login ID</Label>
+              <Label htmlFor="email">Login ID or Email</Label>
               <Input
                 id="email"
                 type="text"
-                inputMode="email"
                 autoCapitalize="none"
                 autoComplete="username"
-                placeholder={kind === "family" ? "as printed on your login slip" : "you@institute.in"}
+                placeholder="you@institute.in or Login ID"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -162,11 +115,9 @@ export function LoginCard({
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                {kind !== "family" && (
-                  <Link to="/forgot-password" className="text-xs text-primary hover:underline">
-                    Forgot?
-                  </Link>
-                )}
+                <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                  Forgot?
+                </Link>
               </div>
               <Input
                 id="password"
@@ -182,33 +133,10 @@ export function LoginCard({
             </Button>
           </form>
 
-          {wrongPortal && (
-            <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
-              <p className="font-medium text-destructive">Wrong portal</p>
-              <p className="mt-1 text-muted-foreground">
-                Your account belongs to the {wrongPortal.name} portal.
-              </p>
-              <Link
-                to={wrongPortal.to}
-                className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
-              >
-                Go to the {wrongPortal.name} login →
-              </Link>
-            </div>
-          )}
-
           <div className="mt-6 space-y-2 text-center text-xs text-muted-foreground">
             {footer}
-            {kind !== "admin" && (
-              <p>
-                No account yet? Your institute creates it and sends you the login link — there is no
-                self-signup here.
-              </p>
-            )}
             <p>
-              <Link to={cfg.elsewhereTo} className="text-primary hover:underline">
-                {cfg.elsewhere}
-              </Link>
+              Students and faculty: your institute creates your account. Owners: sign up to start.
             </p>
             <p>
               <Link to="/" className="hover:text-foreground">
