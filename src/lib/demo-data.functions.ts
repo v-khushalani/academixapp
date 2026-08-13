@@ -76,39 +76,33 @@ export const createDemoData = createServerFn({ method: "POST" })
     const { data: createdBatches } = await supabaseAdmin.from("batches").insert(batches).select();
     const batchIds = createdBatches?.map(b => b.id) ?? [];
 
-    // 5. Create Subjects & Syllabus for the first batch
+    // 5. Create Syllabus for the first batch
     if (batchIds[0]) {
-      const subjects = [
-        { name: "Mathematics", institute_id: targetId },
-        { name: "Physics", institute_id: targetId }
-      ];
-      const { data: createdSubjects } = await supabaseAdmin.from("subjects").insert(subjects).select();
-      if (createdSubjects) {
-        const chapters = createdSubjects.flatMap(s => [
-          { 
-            title: "Chapter 1: Basics", 
-            subject: s.name,
-            institute_id: targetId, 
-            position: 1,
-            batch_id: batchIds[0],
-            status: "pending" as any
-          },
-          { 
-            title: "Chapter 2: Intermediate", 
-            subject: s.name,
-            institute_id: targetId, 
-            position: 2,
-            batch_id: batchIds[0],
-            status: "pending" as any
-          }
-        ]);
-        await supabaseAdmin.from("syllabus_chapters").insert(chapters);
-      }
+      const subjects = ["Mathematics", "Physics"];
+      const chapters = subjects.flatMap(s => [
+        { 
+          title: "Chapter 1: Basics", 
+          subject: s,
+          institute_id: targetId, 
+          position: 1,
+          batch_id: batchIds[0],
+          status: "pending" as any
+        },
+        { 
+          title: "Chapter 2: Intermediate", 
+          subject: s,
+          institute_id: targetId, 
+          position: 2,
+          batch_id: batchIds[0],
+          status: "pending" as any
+        }
+      ]);
+      await supabaseAdmin.from("syllabus_chapters").insert(chapters);
     }
 
     // 6. Create Students
     const studentNames = ["Suresh Raina", "Mithali Raj", "Virat Kohli"];
-    const students = studentNames.map((name, i) => ({
+    const studentsInsert = studentNames.map((name, i) => ({
       full_name: name,
       admission_no: `ADM-00${i + 1}`,
       batch_id: batchIds[i % batchIds.length],
@@ -118,7 +112,25 @@ export const createDemoData = createServerFn({ method: "POST" })
       admission_date: new Date().toISOString().split('T')[0],
       phone: `990000000${i}`
     }));
-    await supabaseAdmin.from("students").insert(students);
+    const { data: createdStudents } = await supabaseAdmin.from("students").insert(studentsInsert).select();
+    const studentIds = createdStudents?.map(s => s.id) ?? [];
+    
+    // 7. Create Attendance logs (linking faculty to productive work)
+    if (batchIds[0] && facultyIds[0]) {
+      const dates = [
+        new Date().toISOString().slice(0, 10),
+        new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+      ];
+      const attendance = studentIds.slice(0, 5).flatMap(sid => dates.map(d => ({
+        student_id: sid,
+        batch_id: batchIds[0],
+        date: d,
+        status: "present" as any,
+        marked_by: facultyIds[0],
+        institute_id: targetId
+      })));
+      await supabaseAdmin.from("attendance").insert(attendance);
+    }
 
     return { success: true, message: "Demo data created successfully." };
   });
@@ -145,9 +157,11 @@ export const resetDemoData = createServerFn({ method: "POST" })
     // Delete all related data for this institute
     const tables = [
       "attendance",
+      "syllabus_logs",
       "syllabus_chapters",
       "fee_payments",
       "fee_installments",
+      "fees",
       "students",
       "batches",
       "faculty",
@@ -155,20 +169,16 @@ export const resetDemoData = createServerFn({ method: "POST" })
       "courses",
       "rooms",
       "leads",
-      "tests"
+      "tests",
+      "expenses",
+      "institute_branding",
+      "attendance_devices"
     ];
 
     for (const table of tables) {
-      const { error } = await (supabaseAdmin.from(table as any) as any)
-        .delete()
-        .neq("id", "00000000-0000-0000-0000-000000000000") // Dummy neq to avoid broad delete error
-        .eq("institute_id", targetId);
-      
-      if (error) {
-        console.error(`Error deleting from ${table}:`, error);
-      }
+      // @ts-ignore - dynamic table name vs specific table types
+      await supabaseAdmin.from(table).delete().eq("institute_id", targetId);
     }
 
     return { success: true, message: "Demo data reset successfully." };
   });
-
