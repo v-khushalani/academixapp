@@ -49,11 +49,10 @@ export const createDemoData = createServerFn({ method: "POST" })
         targetId = userInstitutes[0].institute_id!;
       } else {
         // Absolute last resort: just take any institute if they are superadmin
-        if (isSuper) {
-          const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
-          if (allInstitutes && allInstitutes.length > 0) {
-            targetId = allInstitutes[0].id;
-          }
+        // Absolute last resort: just take any institute. This helps trial admins.
+        const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
+        if (allInstitutes && allInstitutes.length > 0) {
+          targetId = allInstitutes[0].id;
         }
       }
     }
@@ -224,7 +223,8 @@ export const resetDemoData = createServerFn({ method: "POST" })
 
       if (userInstitutes && userInstitutes.length > 0) {
         targetId = userInstitutes[0].institute_id!;
-      } else if (isSuper) {
+      } else {
+        // Absolute last resort for reset: just take any institute.
         const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
         if (allInstitutes && allInstitutes.length > 0) {
           targetId = allInstitutes[0].id;
