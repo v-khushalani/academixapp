@@ -67,11 +67,17 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
 
     console.log("Starting database wipe...");
 
+    // Disable triggers temporarily if possible, or just delete in order.
+    // We use a single query for each table to be efficient.
     for (const table of tables) {
+      console.log(`Wiping ${table}...`);
       // @ts-ignore
       const { error } = await supabaseAdmin.from(table).delete().neq("id", "00000000-0000-0000-0000-000000000000");
       if (error) {
         console.error(`Error wiping table ${table}:`, error.message);
+        // Fallback for tables that might not have "id" (though most in this schema do)
+        // @ts-ignore
+        await supabaseAdmin.from(table).delete().or("id.neq.00000000-0000-0000-0000-000000000000,user_id.neq.00000000-0000-0000-0000-000000000000");
       }
     }
 
