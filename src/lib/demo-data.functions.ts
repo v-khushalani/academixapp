@@ -25,8 +25,6 @@ export const createDemoData = createServerFn({ method: "POST" })
     let targetId = data.institute_id || instId;
 
     if (!targetId) {
-      // Fallback: If no institute context is found via RPC (e.g. session not fully hydrated in DB context),
-      // try to fetch the first institute the user has access to.
       const { data: institutes } = await context.supabase.from("institutes").select("id").limit(1);
       if (institutes && institutes.length > 0) {
         targetId = institutes[0].id;
@@ -36,14 +34,20 @@ export const createDemoData = createServerFn({ method: "POST" })
     if (!targetId) throw new Error("No institute context found.");
 
     // Check if data already exists
-    const { count } = await supabaseAdmin
+    const { count: existingBatches } = await supabaseAdmin
       .from("batches")
       .select("id", { count: "exact", head: true })
       .eq("institute_id", targetId);
 
-    if (count && count > 0 && !data.force) {
-      return { message: "Demo data already exists for this institute.", count };
+    if (existingBatches && existingBatches > 0 && !data.force) {
+      return { 
+        success: true,
+        message: "Demo data already exists for this institute.",
+        summary: { batches: existingBatches }
+      };
     }
+
+    const summary: Record<string, number> = {};
 
     // 1. Create Courses
     const courses = [
@@ -51,6 +55,7 @@ export const createDemoData = createServerFn({ method: "POST" })
       { name: "Commerce Stream", code: "COM", institute_id: targetId }
     ];
     const { data: createdCourses } = await supabaseAdmin.from("courses").insert(courses).select();
+    summary.courses = createdCourses?.length || 0;
     const courseIds = createdCourses?.map(c => c.id) ?? [];
 
     // 2. Create Rooms
@@ -58,7 +63,8 @@ export const createDemoData = createServerFn({ method: "POST" })
       { name: "Room 101", capacity: 30, institute_id: targetId },
       { name: "Room 102", capacity: 30, institute_id: targetId }
     ];
-    await supabaseAdmin.from("rooms").insert(rooms);
+    const { data: createdRooms } = await supabaseAdmin.from("rooms").insert(rooms).select();
+    summary.rooms = createdRooms?.length || 0;
 
     // 3. Create Faculty
     const facultyNames = ["Rajesh Kumar", "Anjali Sharma"];
@@ -70,6 +76,7 @@ export const createDemoData = createServerFn({ method: "POST" })
       joining_date: new Date().toISOString().split('T')[0]
     }));
     const { data: createdFaculty } = await supabaseAdmin.from("faculty").insert(faculty).select();
+    summary.faculty = createdFaculty?.length || 0;
     const facultyIds = createdFaculty?.map(f => f.id) ?? [];
 
     // 4. Create Batches
@@ -84,6 +91,7 @@ export const createDemoData = createServerFn({ method: "POST" })
       capacity: 30
     }));
     const { data: createdBatches } = await supabaseAdmin.from("batches").insert(batches).select();
+    summary.batches = createdBatches?.length || 0;
     const batchIds = createdBatches?.map(b => b.id) ?? [];
 
     // 5. Create Syllabus for the first batch
@@ -107,7 +115,8 @@ export const createDemoData = createServerFn({ method: "POST" })
           status: "pending" as any
         }
       ]);
-      await supabaseAdmin.from("syllabus_chapters").insert(chapters);
+      const { data: createdChapters } = await supabaseAdmin.from("syllabus_chapters").insert(chapters).select();
+      summary.syllabus_chapters = createdChapters?.length || 0;
     }
 
     // 6. Create Students
@@ -123,9 +132,10 @@ export const createDemoData = createServerFn({ method: "POST" })
       phone: `990000000${i}`
     }));
     const { data: createdStudents } = await supabaseAdmin.from("students").insert(studentsInsert).select();
+    summary.students = createdStudents?.length || 0;
     const studentIds = createdStudents?.map(s => s.id) ?? [];
     
-    // 7. Create Attendance logs (linking faculty to productive work)
+    // 7. Create Attendance logs
     if (batchIds[0] && facultyIds[0]) {
       const dates = [
         new Date().toISOString().slice(0, 10),
@@ -139,10 +149,15 @@ export const createDemoData = createServerFn({ method: "POST" })
         marked_by: facultyIds[0],
         institute_id: targetId
       })));
-      await supabaseAdmin.from("attendance").insert(attendance);
+      const { data: createdAttendance } = await supabaseAdmin.from("attendance").insert(attendance).select();
+      summary.attendance_records = createdAttendance?.length || 0;
     }
 
-    return { success: true, message: "Demo data created successfully." };
+    return { 
+      success: true, 
+      message: "Demo data created successfully.",
+      summary
+    };
   });
 
 export const resetDemoData = createServerFn({ method: "POST" })
