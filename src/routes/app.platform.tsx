@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ShieldCheck, ArrowRight, ExternalLink, UserMinus, Loader2, Trash2 } from "lucide-react";
+import { ShieldCheck, ArrowRight, ExternalLink, UserMinus, Loader2, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import { InstallmentPlanEditor } from "@/components/app/installment-plan-editor"
 import { normalisePlan, type Installment } from "@/lib/installments";
 import { FEATURE_KEYS, FEATURE_LABELS, type FeatureKey } from "@/lib/institute-controls";
 import { listOrphanedUsersFn, deleteUserFn } from "@/lib/platform.functions";
+import { wipeDatabaseFn } from "@/lib/database-management.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
 
@@ -141,6 +142,7 @@ function PlatformPage() {
             <TabsTrigger value="institutes">Institutes</TabsTrigger>
             <TabsTrigger value="users">Trial Users</TabsTrigger>
             <TabsTrigger value="pricing">Plans &amp; pricing</TabsTrigger>
+            <TabsTrigger value="danger">Danger Zone</TabsTrigger>
           </TabsList>
 
           <TabsContent value="institutes">
@@ -227,6 +229,10 @@ function PlatformPage() {
               live immediately.
             </p>
             <PricingAdmin />
+          </TabsContent>
+
+          <TabsContent value="danger">
+            <DangerZone />
           </TabsContent>
         </Tabs>
       </PageBody>
@@ -448,6 +454,62 @@ function ListCard({
         ))}
         {rows.length === 0 && <li className="px-3 py-3 text-xs text-muted-foreground">None yet.</li>}
       </ul>
+    </div>
+  );
+}
+
+function DangerZone() {
+  const wipeDatabase = useServerFn(wipeDatabaseFn);
+  const [confirming, setConfirming] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleWipe = async () => {
+    if (!confirm("CRITICAL: This will delete ALL data (institutes, students, batches, etc.) and ALL users except you. This cannot be undone. Are you absolutely sure?")) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await wipeDatabase();
+      toast.success("Database wiped successfully. You are now the only superadmin.");
+      window.location.href = "/";
+    } catch (err: any) {
+      toast.error(err.message || "Failed to wipe database");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-6">
+        <div className="flex items-center gap-3 text-destructive">
+          <AlertTriangle className="h-6 w-6" />
+          <h2 className="text-lg font-bold">Danger Zone</h2>
+        </div>
+        <p className="mt-2 text-sm text-muted-foreground">
+          These actions are irreversible. Please be extremely careful.
+        </p>
+
+        <div className="mt-8 space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-md border border-destructive/20 p-4 bg-background">
+            <div>
+              <p className="font-semibold text-sm">Wipe Database & Reset Platform</p>
+              <p className="text-xs text-muted-foreground max-w-md">
+                Deletes all data, all institutes, and all users except you. You will be assigned as the single Super Admin.
+              </p>
+            </div>
+            <Button 
+              variant="destructive" 
+              onClick={handleWipe} 
+              disabled={loading}
+              className="gap-2"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              Wipe Everything
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
