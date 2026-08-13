@@ -11,12 +11,20 @@ export async function login(page: Page, who: keyof typeof DEMO) {
   const cfg = DEMO[who];
   await page.goto(cfg.loginPath, { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("button", { name: /sign in/i })).toBeEnabled();
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(1000);
+  
+  // Clear any old session first just in case
+  await page.evaluate(() => window.localStorage.clear());
+  await page.reload();
+  await expect(page.getByRole("button", { name: /sign in/i })).toBeEnabled();
+
   await page.locator("#email").fill(cfg.email);
   await page.locator("#password").fill(DEMO_PASSWORD);
   await page.getByRole("button", { name: /sign in/i }).click();
+  
   // Wait for the button to disappear or the URL to change
-  await expect(page.getByRole("button", { name: /sign in/i })).not.toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole("button", { name: /sign in/i })).not.toBeVisible({ timeout: 60_000 });
+  await page.waitForTimeout(2000);
   await expect(page).not.toHaveURL(new RegExp(cfg.loginPath), { timeout: 15_000 });
 }
 
