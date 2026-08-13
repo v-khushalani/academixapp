@@ -22,6 +22,7 @@ export function DemoDataButton() {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [summary, setSummary] = useState<Record<string, number> | null>(null);
   const [showSummary, setShowSummary] = useState(false);
+  const [progress, setProgress] = useState<{ step: string; status: 'pending' | 'loading' | 'success' | 'error'; error?: string }[]>([]);
   const { isSuperAdmin, roles } = useAuth();
   
   const isOwner = roles.includes("owner");
@@ -29,13 +30,24 @@ export function DemoDataButton() {
 
   const handleSeed = async () => {
     setLoading(true);
+    setProgress([
+      { step: "Initializing", status: 'loading' },
+      { step: "Seeding Entities", status: 'pending' },
+      { step: "Provisioning Accounts", status: 'pending' }
+    ]);
+    
     try {
+      setProgress(prev => prev.map(p => p.step === "Initializing" ? { ...p, status: 'success' } : p.step === "Seeding Entities" ? { ...p, status: 'loading' } : p));
+      
       const result = await createDemoData({ data: { force: true } });
-      if (result.success && result.summary) {
+      
+      if (!result.success) throw new Error(result.message);
+      
+      if (result.summary) {
         setSummary(result.summary);
-        setShowSummary(true);
       }
-      toast.success(result.message);
+      
+      setProgress(prev => prev.map(p => p.step === "Seeding Entities" ? { ...p, status: 'success' } : p.step === "Provisioning Accounts" ? { ...p, status: 'loading' } : p));
       
       const { data: instId } = await (window as any).supabase.rpc("current_institute_id");
       if (instId) {
@@ -45,7 +57,12 @@ export function DemoDataButton() {
           setShowCreds(true);
         }
       }
+      
+      setProgress(prev => prev.map(p => p.step === "Provisioning Accounts" ? { ...p, status: 'success' } : p));
+      setShowSummary(true);
+      toast.success(result.message);
     } catch (error: any) {
+      setProgress(prev => prev.map(p => p.status === 'loading' ? { ...p, status: 'error', error: error.message } : p));
       toast.error(error.message || "Failed to seed demo data");
     } finally {
       setLoading(false);
@@ -54,12 +71,20 @@ export function DemoDataButton() {
 
   const handleReset = async () => {
     setResetting(true);
+    setShowConfirmReset(false);
+    setProgress([{ step: "Clearing existing data", status: 'loading' }]);
+    
     try {
       const result = await resetDemoData({ data: {} });
+      if (!result.success) throw new Error(result.message);
+      
+      setProgress([{ step: "Data cleared", status: 'success' }]);
       toast.success(result.message);
-      setShowConfirmReset(false);
+      
+      // Chain to seeding
       await handleSeed();
     } catch (error: any) {
+      setProgress(prev => prev.map(p => p.status === 'loading' ? { ...p, status: 'error', error: error.message } : p));
       toast.error(error.message || "Failed to reset demo data");
     } finally {
       setResetting(false);
@@ -110,29 +135,65 @@ export function DemoDataButton() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showSummary} onOpenChange={setShowSummary}>
+      <Dialog open={showSummary || loading || resetting} onOpenChange={(open) => {
+        if (!loading && !resetting) setShowSummary(open);
+      }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-primary">
               <Database className="h-5 w-5" />
-              Mock Data Summary
+              {loading || resetting ? "Mock Data Progress" : "Mock Data Summary"}
             </DialogTitle>
             <DialogDescription>
-              The following records were successfully populated for your institute.
+              {loading || resetting 
+                ? "Processing mock data operations for your institute..." 
+                : "The following records were successfully populated."}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-3 py-4">
-            {summary && Object.entries(summary).map(([key, count]) => (
-              <div key={key} className="flex flex-col p-3 border rounded-lg bg-muted/50">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  {key.replace(/_/g, " ")}
-                </span>
-                <span className="text-2xl font-bold text-foreground">{count}</span>
-              </div>
-            ))}
-          </div>
+
+          {(loading || resetting) && (
+            <div className="space-y-4 py-4">
+              {progress.map((p, i) => (
+                <div key={i} className="flex items-center gap-3 text-sm">
+                  {p.status === 'loading' && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+                  {p.status === 'success' && <Database className="h-4 w-4 text-green-500" />}
+                  {p.status === 'error' && <AlertTriangle className="h-4 w-4 text-destructive" />}
+                  {p.status === 'pending' && <div className="h-4 w-4 rounded-full border-2 border-muted" />}
+                  
+                  <span className={p.status === 'error' ? 'text-destructive font-medium' : ''}>
+                    {p.step}
+                  </span>
+                  
+                  {p.error && (
+                    <div className="text-xs text-destructive mt-1 block w-full bg-destructive/10 p-2 rounded">
+                      {p.error}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loading && !resetting && summary && (
+            <div className="grid grid-cols-2 gap-3 py-4">
+              {Object.entries(summary).map(([key, count]) => (
+                <div key={key} className="flex flex-col p-3 border rounded-lg bg-muted/50">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {key.replace(/_/g, " ")}
+                  </span>
+                  <span className="text-2xl font-bold text-foreground">{count}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           <DialogFooter>
-            <Button onClick={() => setShowSummary(false)}>Continue</Button>
+            <Button 
+              disabled={loading || resetting} 
+              onClick={() => setShowSummary(false)}
+            >
+              {progress.some(p => p.status === 'error') ? "Close & Retry" : "Continue"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
