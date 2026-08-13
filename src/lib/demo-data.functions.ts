@@ -171,7 +171,8 @@ export const resetDemoData = createServerFn({ method: "POST" })
       "leads",
       "tests",
       "expenses",
-      "institute_branding"
+      "institute_branding",
+      "attendance_devices"
     ];
 
     for (const table of tables) {
