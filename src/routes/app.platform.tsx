@@ -76,19 +76,19 @@ type PlatformInstitute = {
 
 function PlatformPage() {
   const { roles, loading, user } = useAuth();
-  const allowed = isSuperAdmin(roles) || (user && !loading && institutes.length === 0);
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
 
   const { data: institutes = [] } = useQuery({
     queryKey: ["platform-institutes"],
-    enabled: allowed,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("platform_institutes");
       if (error) throw error;
       return (data ?? []) as unknown as PlatformInstitute[];
     },
   });
+
+  const allowed = isSuperAdmin(roles) || (user && !loading && institutes.length === 0);
 
   const { data: plans = [] } = useQuery({
     queryKey: ["platform-plan-keys"],
