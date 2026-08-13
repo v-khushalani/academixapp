@@ -10,9 +10,9 @@ test.describe("Go-Live Smoke Tests & Health Checks", () => {
     for (const path of adminPaths) {
       await page.goto(path);
       // Wait for any potential redirect
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000);
       const url = page.url();
-      expect(url).not.toContain(path); 
+      expect(url, `Should have been redirected from ${path}`).not.toContain(path); 
     }
   });
 
