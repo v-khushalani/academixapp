@@ -10,64 +10,80 @@ SCREENSHOTS.mkdir(parents=True, exist_ok=True)
 async def main():
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(headless=True)
-        context = await browser.new_context(viewport={"width": 1280, "height": 1800})
+        # Use a realistic User-Agent to avoid potential bot detection
+        context = await browser.new_context(
+            viewport={"width": 1280, "height": 1800},
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+        )
         
-        # Injected session handle
         storage_key = os.environ.get("LOVABLE_BROWSER_SUPABASE_STORAGE_KEY")
         session_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_SESSION_JSON")
+        cookies_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_COOKIES_JSON")
         
+        # Scope cookies to localhost
+        if cookies_json:
+            cookies = json.loads(cookies_json)
+            for c in cookies:
+                c["url"] = "http://localhost:8080"
+            await context.add_cookies(cookies)
+            print("Cookies injected")
+
         page = await context.new_page()
         
-        # Establish origin first
-        await page.goto("http://localhost:8080")
+        # Navigate to establish origin
+        print("Opening localhost...")
+        await page.goto("http://localhost:8080", wait_until="domcontentloaded")
         
+        # Inject LocalStorage
         if storage_key and session_json:
             await page.evaluate(
                 f"window.localStorage.setItem({json.dumps(storage_key)}, {json.dumps(session_json)})"
             )
-            print("Session injected")
+            print("LocalStorage session injected")
         
-        # Navigate to dashboard and wait for data
+        # Navigate to Dashboard
         print("Navigating to /app...")
+        # Use networkidle to ensure auth check/hydration finishes
         await page.goto("http://localhost:8080/app", wait_until="networkidle")
         
-        # Check if we are redirected to login
+        # Debugging: check URL and content if redirected
+        print(f"URL after navigation: {page.url}")
+        await page.screenshot(path=str(SCREENSHOTS / "dashboard_initial.png"))
+        
+        # Handle potential redirections or auth delays
         if "/login" in page.url:
-            print(f"Redirected to {page.url} - Auth session failed or insufficient roles")
-            await page.screenshot(path=str(SCREENSHOTS / "login_redirect.png"))
-            
-            # Try to see if we can force a reload of the auth state
-            await page.evaluate("window.location.reload()")
-            await page.wait_for_load_state("networkidle")
+            print("Auth failed - redirecting back to /login. Attempting force reload...")
+            await page.reload(wait_until="networkidle")
             print(f"URL after reload: {page.url}")
-        
-        # Take screenshot of whatever is there
-        await page.screenshot(path=str(SCREENSHOTS / "final_state.png"))
-        print(f"Current URL: {page.url}")
-        
-        # Check for button
+
+        # Final check for the button
         btn = page.get_by_role("button", name="Fill Mock Data")
         if await btn.is_visible():
             print("SUCCESS: Demo button found")
             await btn.click()
-            # Wait for dialog
+            
+            # Look for the credentials dialog
             try:
-                await page.wait_for_selector("text=Demo Portal Accounts", timeout=15000)
+                # Wait for Dialog Title or specific text
+                await page.wait_for_selector("text=Demo Portal Accounts", timeout=10000)
                 await page.screenshot(path=str(SCREENSHOTS / "success_dialog.png"))
-                print("SUCCESS: Demo accounts provisioned and dialog shown")
+                
+                # Verify specific accounts exist in dialog
+                content = await page.content()
+                if "@academix.demo" in content:
+                    print("SUCCESS: Demo accounts detected in dialog")
+                else:
+                    print("WARNING: Dialog opened but credentials not found in HTML")
             except Exception as e:
-                print(f"Timeout waiting for success dialog: {e}")
+                print(f"Dialog failed to appear: {e}")
+                await page.screenshot(path=str(SCREENSHOTS / "dialog_timeout.png"))
         else:
-            print("FAILURE: Demo button NOT found")
-            # Log specific elements for debugging
-            buttons = await page.get_by_role("button").all()
-            print(f"Found {len(buttons)} buttons on page")
-            for i, b in enumerate(buttons[:10]):
-                try:
-                    text = await b.inner_text()
-                    print(f"Button {i}: {text}")
-                except:
-                    pass
+            print("FAILURE: Demo button not visible")
+            # Dump button text for debugging
+            btns = await page.get_by_role("button").all()
+            for b in btns:
+                t = await b.inner_text()
+                if t: print(f"Found button: '{t}'")
 
         await browser.close()
 
