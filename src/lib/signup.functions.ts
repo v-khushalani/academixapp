@@ -61,6 +61,79 @@ export const createInstituteFn = createServerFn({ method: "POST" })
     return { success: true, instituteId: institute.id };
   });
 
+
+/**
+ * Updates branding details for an institute.
+ */
+export const updateInstituteBrandingFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z.object({
+      institute_id: z.string().uuid(),
+      logo_url: z.string().optional().nullable(),
+      primary_color: z.string().optional().nullable(),
+      address: z.string().optional().nullable(),
+      phone: z.string().optional().nullable(),
+    }).parse(data)
+  )
+  .handler(async ({ data }) => {
+    const { error } = await supabaseAdmin
+      .from("institute_branding")
+      .upsert({
+        institute_id: data.institute_id,
+        logo_url: data.logo_url,
+        primary_color: data.primary_color,
+        address: data.address,
+        phone: data.phone,
+      });
+
+    if (error) throw new Error(`Failed to update branding: ${error.message}`);
+    return { success: true };
+  });
+
+/**
+ * Sets up the first batch and faculty for a new institute.
+ */
+export const setupFirstBatchFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z.object({
+      institute_id: z.string().uuid(),
+      faculty_name: z.string().min(2),
+      batch_name: z.string().min(2),
+      subject: z.string().optional(),
+    }).parse(data)
+  )
+  .handler(async ({ data }) => {
+    // 1. Create Faculty
+    const { data: faculty, error: facError } = await supabaseAdmin
+      .from("faculty")
+      .insert({
+        full_name: data.faculty_name,
+        subject: data.subject || "General",
+        institute_id: data.institute_id,
+        status: "active",
+      })
+      .select("id")
+      .single();
+
+    if (facError) throw new Error(`Failed to create faculty: ${facError.message}`);
+
+    // 2. Create Batch
+    const { error: batchError } = await supabaseAdmin
+      .from("batches")
+      .insert({
+        name: data.batch_name,
+        faculty_id: faculty.id,
+        institute_id: data.institute_id,
+        status: "active",
+      });
+
+    if (batchError) throw new Error(`Failed to create batch: ${batchError.message}`);
+
+    return { success: true };
+  });
+
 /**
  * Checks if the current user has an assigned institute role.
  * Used for onboarding redirection.
