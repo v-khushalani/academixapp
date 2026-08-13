@@ -34,7 +34,7 @@ export const provisionDemoAccounts = createServerFn({ method: "POST" })
       .from("faculty")
       .select("id, full_name, user_id")
       .eq("institute_id", data.institute_id)
-      .limit(1);
+      .limit(2);
 
     const results = [];
 
