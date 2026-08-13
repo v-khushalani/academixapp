@@ -86,23 +86,24 @@ export const createDemoData = createServerFn({ method: "POST" })
       if (createdSubjects) {
         const chapters = createdSubjects.flatMap(s => [
           { 
-            name: "Chapter 1: Basics", 
+            title: "Chapter 1: Basics", 
             subject: s.name,
             institute_id: targetId, 
             position: 1,
             batch_id: batchIds[0],
-            status: "pending"
+            status: "pending" as any
           },
           { 
-            name: "Chapter 2: Intermediate", 
+            title: "Chapter 2: Intermediate", 
             subject: s.name,
             institute_id: targetId, 
             position: 2,
             batch_id: batchIds[0],
-            status: "pending"
+            status: "pending" as any
           }
         ]);
         await supabaseAdmin.from("syllabus_chapters").insert(chapters);
+
       }
     }
 
