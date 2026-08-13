@@ -84,18 +84,26 @@ export const createDemoData = createServerFn({ method: "POST" })
       ];
       const { data: createdSubjects } = await supabaseAdmin.from("subjects").insert(subjects).select();
       if (createdSubjects) {
-        // We use batch_id directly in chapters if that's what the schema expects
         const chapters = createdSubjects.flatMap(s => [
           { 
-            name: "Chapter 1: Basics", 
-            subject_id: s.id, 
+            title: "Chapter 1: Basics", 
+            subject: s.name,
             institute_id: targetId, 
-            sequence: 1,
-            batch_id: batchIds[0] 
+            position: 1,
+            batch_id: batchIds[0],
+            status: "pending" as any
+          },
+          { 
+            title: "Chapter 2: Intermediate", 
+            subject: s.name,
+            institute_id: targetId, 
+            position: 2,
+            batch_id: batchIds[0],
+            status: "pending" as any
           }
         ]);
-        // Use a generic insert if the table name is dynamic or slightly different
-        await (supabaseAdmin.from("syllabus_chapters" as any) || supabaseAdmin.from("chapters" as any)).insert(chapters);
+        await supabaseAdmin.from("syllabus_chapters").insert(chapters);
+
       }
     }
 
@@ -115,3 +123,4 @@ export const createDemoData = createServerFn({ method: "POST" })
 
     return { success: true, message: "Demo data created successfully." };
   });
+

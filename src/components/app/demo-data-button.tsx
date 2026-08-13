@@ -1,41 +1,103 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
+import { Database, Loader2, Key } from "lucide-react";
 import { createDemoData } from "@/lib/demo-data.functions";
+import { provisionDemoAccounts } from "@/lib/demo-accounts.functions";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
 
 export function DemoDataButton() {
   const [loading, setLoading] = useState(false);
-  const seed = useServerFn(createDemoData);
-  const queryClient = useQueryClient();
+  const [showCreds, setShowCreds] = useState(false);
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const { isSuperAdmin, roles } = useAuth();
+  
+  const isOwner = roles.includes("owner");
+  if (!isSuperAdmin && !isOwner) return null;
 
   const handleSeed = async () => {
-    if (!confirm("This will add sample students, batches, and faculty to your institute. Continue?")) return;
-    
     setLoading(true);
     try {
-      const res = await seed({ data: { force: true } });
-      toast.success(res.message);
-      queryClient.invalidateQueries();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create demo data");
+      // Corrected call to createDemoData with proper input structure for server function
+      const result = await createDemoData({ data: { force: true } });
+      toast.success(result.message);
+      
+      // After data is seeded, provision accounts
+      const { data: instId } = await (window as any).supabase.rpc("current_institute_id");
+      if (instId) {
+        const accResult = await provisionDemoAccounts({ data: { institute_id: instId } });
+        if (accResult.accounts && accResult.accounts.length > 0) {
+          setAccounts(accResult.accounts);
+          setShowCreds(true);
+        }
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to seed demo data");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Button 
-      variant="outline" 
-      size="sm" 
-      onClick={handleSeed} 
-      disabled={loading}
-      className="gap-2 border-dashed border-primary/50 bg-primary/5 text-primary hover:bg-primary/10"
-    >
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-      {loading ? "Creating..." : "Fill Mock Data"}
-    </Button>
+    <>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={handleSeed} 
+        disabled={loading}
+        className="gap-2"
+      >
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
+        Fill Mock Data
+      </Button>
+
+      <Dialog open={showCreds} onOpenChange={setShowCreds}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5 text-primary" />
+              Demo Portal Accounts
+            </DialogTitle>
+            <DialogDescription>
+              Use these credentials to test Student and Faculty portal views.
+              Password for all: <strong>Password123!</strong>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3 py-4">
+            {accounts.map((acc, i) => (
+              <div key={i} className="p-3 bg-muted rounded-lg text-sm border">
+                <div className="font-semibold capitalize text-primary mb-1">{acc.role} Account</div>
+                <div className="flex justify-between items-center">
+                  <code className="bg-background px-2 py-1 rounded">{acc.email}</code>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      navigator.clipboard.writeText(acc.email);
+                      toast.success("Email copied");
+                    }}
+                  >
+                    Copy
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => setShowCreds(false)}>Got it</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
