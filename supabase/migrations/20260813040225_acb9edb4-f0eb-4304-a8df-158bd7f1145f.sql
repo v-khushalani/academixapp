@@ -1,0 +1,1 @@
+ALTER FUNCTION public.get_my_roles() SECURITY DEFINER;
