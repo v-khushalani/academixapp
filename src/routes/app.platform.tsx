@@ -230,6 +230,10 @@ function PlatformPage() {
             </p>
             <PricingAdmin />
           </TabsContent>
+
+          <TabsContent value="danger">
+            <DangerZone />
+          </TabsContent>
         </Tabs>
       </PageBody>
     </>
