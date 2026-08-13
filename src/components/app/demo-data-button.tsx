@@ -56,7 +56,10 @@ export function DemoDataButton() {
         className="gap-2"
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
-        Fill Mock Data
+        '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
+                                        
+                                            
+                                            credentials toh do
       </Button>
 
       <Dialog open={showCreds} onOpenChange={setShowCreds}>
