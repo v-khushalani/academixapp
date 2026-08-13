@@ -94,7 +94,16 @@ export function LoginCard({
       return;
     }
 
-    const { data: roleRows } = await supabase.rpc("get_my_roles");
+    // Added explicit error logging for debugging
+    const { data: roleRows, error: roleError } = await supabase.rpc("get_my_roles");
+    
+    if (roleError) {
+      console.error("Role fetch error:", roleError);
+      setBusy(false);
+      toast.error("Failed to verify account permissions. Please try again.");
+      return;
+    }
+
     const roles = (roleRows ?? []) as AppRole[];
     const allowed = roles.some((r) => (cfg.roles as readonly AppRole[]).includes(r));
 
