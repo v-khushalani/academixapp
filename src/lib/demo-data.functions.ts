@@ -103,7 +103,6 @@ export const createDemoData = createServerFn({ method: "POST" })
           }
         ]);
         await supabaseAdmin.from("syllabus_chapters").insert(chapters);
-
       }
     }
 
@@ -122,5 +121,54 @@ export const createDemoData = createServerFn({ method: "POST" })
     await supabaseAdmin.from("students").insert(students);
 
     return { success: true, message: "Demo data created successfully." };
+  });
+
+export const resetDemoData = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => 
+    z.object({ institute_id: z.string().uuid().optional() }).parse(data)
+  )
+  .handler(async ({ data, context }) => {
+    const { data: myRoles } = await context.supabase.rpc("get_my_roles");
+    const roles = (myRoles ?? []) as string[];
+    const isSuper = roles.includes("superadmin");
+    const isOwner = roles.includes("owner");
+
+    if (!isSuper && !isOwner) {
+      throw new Error("Only owners or superadmins can reset demo data.");
+    }
+
+    const { data: instId } = await context.supabase.rpc("current_institute_id");
+    const targetId = data.institute_id || instId;
+    if (!targetId) throw new Error("No institute context found.");
+
+    // Delete all related data for this institute
+    const tables = [
+      "attendance",
+      "syllabus_chapters",
+      "fee_payments",
+      "fee_installments",
+      "students",
+      "batches",
+      "faculty",
+      "subjects",
+      "courses",
+      "rooms",
+      "leads",
+      "tests"
+    ];
+
+    for (const table of tables) {
+      const { error } = await (supabaseAdmin.from(table as any) as any)
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000") // Dummy neq to avoid broad delete error
+        .eq("institute_id", targetId);
+      
+      if (error) {
+        console.error(`Error deleting from ${table}:`, error);
+      }
+    }
+
+    return { success: true, message: "Demo data reset successfully." };
   });
 

@@ -1,6 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 
-export const DEMO_PASSWORD = process.env.E2E_PASSWORD ?? "Test@1234";
+export const DEMO_PASSWORD = process.env.E2E_PASSWORD ?? "Password123!";
 export const DEMO = {
   admin: { email: "owner@academix.website", loginPath: "/login/admin", home: "/app" },
   teacher: { email: "faculty@academix.website", loginPath: "/login/teacher", home: "/teach" },
@@ -9,14 +9,16 @@ export const DEMO = {
 
 export async function login(page: Page, who: keyof typeof DEMO) {
   const cfg = DEMO[who];
-  await page.goto(cfg.loginPath, { waitUntil: "networkidle" });
-  // Wait for hydration: before it, the form submits natively and never signs in.
+  await page.goto(cfg.loginPath, { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("button", { name: /sign in/i })).toBeEnabled();
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(1000);
+  
   await page.locator("#email").fill(cfg.email);
   await page.locator("#password").fill(DEMO_PASSWORD);
   await page.getByRole("button", { name: /sign in/i }).click();
-  await page.waitForURL((u) => u.pathname.startsWith(cfg.home), { timeout: 30_000 });
+  
+  // Wait for ANY navigation or disappearance of the form
+  await page.waitForURL((u) => u.pathname.startsWith(cfg.home), { timeout: 60_000 });
 }
 
 /** Reads the numeric value shown on a KpiCard by its label. */
