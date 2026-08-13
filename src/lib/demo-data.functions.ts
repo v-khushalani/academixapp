@@ -76,34 +76,28 @@ export const createDemoData = createServerFn({ method: "POST" })
     const { data: createdBatches } = await supabaseAdmin.from("batches").insert(batches).select();
     const batchIds = createdBatches?.map(b => b.id) ?? [];
 
-    // 5. Create Subjects & Syllabus for the first batch
+    // 5. Create Syllabus for the first batch
     if (batchIds[0]) {
-      const subjects = [
-        { name: "Mathematics", institute_id: targetId },
-        { name: "Physics", institute_id: targetId }
-      ];
-      const { data: createdSubjects } = await supabaseAdmin.from("subjects").insert(subjects).select();
-      if (createdSubjects) {
-        const chapters = createdSubjects.flatMap(s => [
-          { 
-            title: "Chapter 1: Basics", 
-            subject: s.name,
-            institute_id: targetId, 
-            position: 1,
-            batch_id: batchIds[0],
-            status: "pending" as any
-          },
-          { 
-            title: "Chapter 2: Intermediate", 
-            subject: s.name,
-            institute_id: targetId, 
-            position: 2,
-            batch_id: batchIds[0],
-            status: "pending" as any
-          }
-        ]);
-        await supabaseAdmin.from("syllabus_chapters").insert(chapters);
-      }
+      const subjects = ["Mathematics", "Physics"];
+      const chapters = subjects.flatMap(s => [
+        { 
+          title: "Chapter 1: Basics", 
+          subject: s,
+          institute_id: targetId, 
+          position: 1,
+          batch_id: batchIds[0],
+          status: "pending" as any
+        },
+        { 
+          title: "Chapter 2: Intermediate", 
+          subject: s,
+          institute_id: targetId, 
+          position: 2,
+          batch_id: batchIds[0],
+          status: "pending" as any
+        }
+      ]);
+      await supabaseAdmin.from("syllabus_chapters").insert(chapters);
     }
 
     // 6. Create Students
@@ -145,9 +139,11 @@ export const resetDemoData = createServerFn({ method: "POST" })
     // Delete all related data for this institute
     const tables = [
       "attendance",
+      "syllabus_logs",
       "syllabus_chapters",
       "fee_payments",
       "fee_installments",
+      "fees",
       "students",
       "batches",
       "faculty",
@@ -155,7 +151,8 @@ export const resetDemoData = createServerFn({ method: "POST" })
       "courses",
       "rooms",
       "leads",
-      "tests"
+      "tests",
+      "expenses"
     ];
 
     for (const table of tables) {
