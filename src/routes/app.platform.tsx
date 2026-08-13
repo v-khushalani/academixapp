@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ShieldCheck, ArrowRight, ExternalLink } from "lucide-react";
+import { ShieldCheck, ArrowRight, ExternalLink, UserMinus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,9 @@ import { PricingAdmin } from "@/components/app/pricing-admin";
 import { InstallmentPlanEditor } from "@/components/app/installment-plan-editor";
 import { normalisePlan, type Installment } from "@/lib/installments";
 import { FEATURE_KEYS, FEATURE_LABELS, type FeatureKey } from "@/lib/institute-controls";
+import { listOrphanedUsersFn, deleteUserFn } from "@/lib/platform.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { format } from "date-fns";
 
 export const Route = createFileRoute("/app/platform")({
   head: () => ({
