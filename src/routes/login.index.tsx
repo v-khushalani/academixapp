@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PortalPicker } from "@/components/marketing/portal-picker";
-import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { LoginCard } from "@/components/auth/login-card";
 
 export const Route = createFileRoute("/login/")({
   head: () => ({
@@ -8,41 +7,44 @@ export const Route = createFileRoute("/login/")({
       { title: "Sign in — Academix" },
       {
         name: "description",
-        content:
-          "Pick your Academix portal: student & parent, teacher, or institute admin, then sign in.",
+        content: "Sign in to your Academix workspace.",
       },
       { property: "og:title", content: "Sign in — Academix" },
-      {
-        property: "og:description",
-        content: "Three portals, one platform. Choose yours and sign in.",
-      },
+      { property: "og:description", content: "Sign in to Academix to manage your institute." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: LoginChooser,
+  component: UnifiedLogin,
 });
 
-function LoginChooser() {
+function UnifiedLogin() {
   return (
-    <MarketingShell>
-      <div className="mx-auto w-full max-w-5xl px-5 py-12 sm:px-6 sm:py-16">
-        <h1 className="text-3xl font-semibold tracking-tight">Which login do you need?</h1>
-        <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-          Three portals, one platform. Pick yours — if you land on the wrong one, we point you to
-          the right door.
-        </p>
-        <div className="mt-8">
-          <PortalPicker />
-        </div>
-        <p className="mt-8 text-center text-xs text-muted-foreground">
-          Students and teachers get their login from their institute. Running an institute and new
-          here?{" "}
+    <LoginCard
+      kind="unified"
+      title="Sign in to Academix"
+      subtitle="Enter your credentials to access your portal."
+      aside={
+        <>
+          <p className="text-sm font-medium uppercase tracking-widest opacity-70">
+            Academix · One Platform
+          </p>
+          <h2 className="mt-4 text-3xl font-semibold leading-tight">
+            Your entire institute, in one place.
+          </h2>
+          <p className="mt-3 text-sm opacity-80">
+            Whether you are an owner, a teacher, or a student — sign in here to get to your dashboard.
+          </p>
+        </>
+      }
+      footer={
+        <p>
+          Running an institute and new here?{" "}
           <Link to="/signup" className="text-primary hover:underline">
-            Create your institute workspace
+            Create your institute
           </Link>
         </p>
-      </div>
-    </MarketingShell>
+      }
+    />
   );
 }

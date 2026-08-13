@@ -49,9 +49,16 @@ export async function waitForSession(tries = 25) {
 export function homeForRoles(roles: AppRole[]): string | null {
   // Team Academix lands straight in the platform console, not an institute dashboard.
   if (roles.includes("superadmin" as AppRole)) return "/app/platform";
+  
+  // Staff/Owner roles
   if (roles.some((r) => STAFF.includes(r))) return "/app";
+  
+  // Faculty
   if (roles.includes("faculty")) return "/teach";
+  
+  // Student/Parent
   if (roles.includes("student") || roles.includes("parent")) return "/portal";
+  
   return null;
 }
 
