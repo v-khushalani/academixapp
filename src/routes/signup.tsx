@@ -192,7 +192,7 @@ function SignupPage() {
           <div className="text-center">
             <h1 className="text-3xl font-semibold tracking-tight">Welcome to Academix</h1>
             <p className="mt-3 text-muted-foreground">
-              To start building your institute portal, please verify your identity via Google.
+              jaise hi google login kiya, account was already created with proper logo as in the past
             </p>
             <div className="mt-10">
               <GoogleButton label="Continue with Google" />
