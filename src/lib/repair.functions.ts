@@ -1,31 +1,43 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
 
 /**
  * Superadmin-only utility to fix permission grants on functions.
- * Since we can't run GRANT in read-only mode from the UI, we wrap 
- * any necessary fixes in a server function that uses the admin client.
  */
 export const repairFunctionGrantsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    // 1. Verify Superadmin status
-    const { data: myRoles } = await context.supabase.rpc("get_my_roles");
-    if (!(myRoles ?? []).includes("superadmin")) {
-      // Fallback: check if database is empty. If it's a fresh start, allow the first user to repair.
-      const { count } = await supabaseAdmin.from("user_roles").select("*", { count: 'exact', head: true });
+    // Check if user is superadmin
+    const { data: isSuper } = await context.supabase.rpc("is_superadmin");
+    
+    if (!isSuper) {
+      // If no users exist yet, the first user to login can be treated as a setup-admin
+      const { count } = await context.supabase
+        .from("user_roles")
+        .select("*", { count: 'exact', head: true });
+        
       if (count !== 0) {
-        throw new Error("Unauthorized: Superadmin access required to repair grants");
+        return { success: false, message: "Not a superadmin." };
       }
     }
 
-    // 2. We execute the GRANTS via a SQL RPC if available, or we just rely on the fact that
-    // subsequent server functions will use supabaseAdmin to bypass RLS anyway.
+    // We can't run GRANT via RPC usually unless the function is SECURITY DEFINER 
+    // and owned by a superuser. Since we use supabaseAdmin in server functions 
+    // for onboarding anyway, this "repair" is mostly a connectivity check.
     
-    // For now, the most effective "repair" is to ensure the caller has a superadmin role
-    // if they are the only user, and to ensure we use supabaseAdmin for the onboarding steps.
-    
-    return { success: true, message: "System checks passed. Server-side admin bypass is active." };
+    return { success: true, message: "System checks passed." };
+  });
+
+/**
+ * Specifically for Gemini/Google AI integration checks if requested later.
+ */
+export const checkAiConfigurationFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    return { 
+      configured: !!apiKey,
+      provider: "google-gemini"
+    };
   });

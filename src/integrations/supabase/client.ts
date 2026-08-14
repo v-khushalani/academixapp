@@ -35,21 +35,9 @@ function createSupabaseClient() {
     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    return createClient<Database>(
-      "https://jjqdcdwvcxmeplmuhvha.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqcWRjZHd2Y3htZXBsbXVodmhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzOTI5ODQsImV4cCI6MjA5ODk2ODk4NH0.GDBwt-qRw_TxU3Z1Siaw_Xs54YhZzhniBsgNkcXJS1o",
-      {
-        global: {
-          fetch: createSupabaseFetch(
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqcWRjZHd2Y3htZXBsbXVodmhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzOTI5ODQsImV4cCI6MjA5ODk2ODk4NH0.GDBwt-qRw_TxU3Z1Siaw_Xs54YhZzhniBsgNkcXJS1o",
-          ),
-        },
-        auth: {
-          storage: typeof window !== "undefined" ? localStorage : undefined,
-          persistSession: true,
-          autoRefreshToken: true,
-        },
-      },
+    throw new Error(
+      "CRITICAL: VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY is missing. " +
+      "Please ensure environment variables are configured."
     );
   }
 
