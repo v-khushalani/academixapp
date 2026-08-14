@@ -113,11 +113,17 @@ export const setupFirstBatchFn = createServerFn({ method: "POST" })
 export const getMyInstituteStatusFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: role } = await context.supabase
+    // Use maybeSingle and handle potential RLS/Permission errors gracefully
+    const { data: role, error } = await context.supabase
       .from("user_roles")
       .select("institute_id, role")
       .eq("user_id", context.userId)
       .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching institute status:", error);
+      return { hasInstitute: false, role: null, instituteId: null, error: error.message };
+    }
 
     return { 
       hasInstitute: !!role?.institute_id, 

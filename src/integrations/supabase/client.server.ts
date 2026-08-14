@@ -37,13 +37,13 @@ function createSupabaseAdminClient() {
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    // During local development or if environment variables are missing,
-    // fallback to values that allow the server to start/build.
-    // In production, these should be provided via environment variables.
-    const fallbackUrl = "https://jjqdcdwvcxmeplmuhvha.supabase.co";
-    const fallbackKey = SUPABASE_SERVICE_ROLE_KEY || "fallback-key-for-build";
-
-    return createClient<Database>(SUPABASE_URL || fallbackUrl, fallbackKey, {
+    // In Lovable environment, these should be available.
+    // If missing, we fail fast to avoid confusing "Invalid API key" errors.
+    throw new Error(
+      "CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing. " +
+      "Please ensure 'Lovable Cloud' is enabled and secrets are synced."
+    );
+  }
       global: {
         fetch: createSupabaseFetch(fallbackKey),
       },
