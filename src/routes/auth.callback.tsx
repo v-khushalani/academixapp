@@ -58,7 +58,7 @@ function AuthCallback() {
         '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
                                         
                                             
-                                            Create a new demo account and verify the complete signup/onboarding chain from landing page through role-based portal access.
+                                            i do not want to connect lovable cloud...without lovable cloud karo, supabase ko hi backend banao
       */}
     </div>
   );
