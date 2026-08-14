@@ -44,10 +44,8 @@ export const updateInstituteBrandingFn = createServerFn({ method: "POST" })
       phone: z.string().optional().nullable(),
     }).parse(data)
   )
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    
-    const { error } = await supabaseAdmin
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
       .from("institutes")
       .update({
         logo_url: data.logo_url,
@@ -57,7 +55,10 @@ export const updateInstituteBrandingFn = createServerFn({ method: "POST" })
       })
       .eq("id", data.institute_id);
 
-    if (error) throw new Error(`Failed to update branding: ${error.message}`);
+    if (error) {
+      console.error("Branding update error:", error);
+      throw new Error(`Failed to update branding: ${error.message}`);
+    }
     return { success: true };
   });
 
@@ -74,11 +75,9 @@ export const setupFirstBatchFn = createServerFn({ method: "POST" })
       subject: z.string().optional(),
     }).parse(data)
   )
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
+  .handler(async ({ data, context }) => {
     // 1. Create Faculty
-    const { data: faculty, error: facError } = await supabaseAdmin
+    const { data: faculty, error: facError } = await context.supabase
       .from("faculty")
       .insert({
         full_name: data.faculty_name,
@@ -89,10 +88,13 @@ export const setupFirstBatchFn = createServerFn({ method: "POST" })
       .select("id")
       .single();
 
-    if (facError) throw new Error(`Failed to create faculty: ${facError.message}`);
+    if (facError) {
+      console.error("Faculty creation error:", facError);
+      throw new Error(`Failed to create faculty: ${facError.message}`);
+    }
 
     // 2. Create Batch
-    const { error: batchError } = await supabaseAdmin
+    const { error: batchError } = await context.supabase
       .from("batches")
       .insert({
         name: data.batch_name,
@@ -101,7 +103,10 @@ export const setupFirstBatchFn = createServerFn({ method: "POST" })
         status: "active",
       });
 
-    if (batchError) throw new Error(`Failed to create batch: ${batchError.message}`);
+    if (batchError) {
+      console.error("Batch creation error:", batchError);
+      throw new Error(`Failed to create batch: ${batchError.message}`);
+    }
 
     return { success: true };
   });
