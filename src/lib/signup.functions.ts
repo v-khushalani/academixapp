@@ -96,7 +96,7 @@ export const setupFirstBatchFn = createServerFn({ method: "POST" })
     }
 
     // 2. Create Batch
-    const { error: batchError } = await context.supabase
+    const { error: batchError } = await supabaseAdmin
       .from("batches")
       .insert({
         name: data.batch_name,
