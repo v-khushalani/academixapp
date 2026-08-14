@@ -37,11 +37,10 @@ function createSupabaseAdminClient() {
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.EXTERNAL_SUPABASE_SERVICE_ROLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    // In Lovable environment, these should be available.
-    // If missing, we fail fast to avoid confusing "Invalid API key" errors.
     throw new Error(
       "CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing. " +
-      "Please ensure 'Lovable Cloud' is enabled and secrets are synced."
+      "Please provide EXTERNAL_SUPABASE_SERVICE_ROLE_KEY in your project secrets " +
+      "to use your own Supabase instance without Lovable Cloud."
     );
   }
 
