@@ -11,8 +11,7 @@ import {
   createInstituteFn, 
   getMyInstituteStatusFn,
   updateInstituteBrandingFn,
-  setupFirstBatchFn,
-  getMyInstituteStatusFn
+  setupFirstBatchFn
 } from "@/lib/signup.functions";
 import { repairFunctionGrantsFn } from "@/lib/repair.functions";
 import { useServerFn } from "@tanstack/react-start";
