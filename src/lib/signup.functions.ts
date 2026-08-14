@@ -44,8 +44,9 @@ export const updateInstituteBrandingFn = createServerFn({ method: "POST" })
       phone: z.string().optional().nullable(),
     }).parse(data)
   )
-  .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
       .from("institutes")
       .update({
         logo_url: data.logo_url,
@@ -75,9 +76,10 @@ export const setupFirstBatchFn = createServerFn({ method: "POST" })
       subject: z.string().optional(),
     }).parse(data)
   )
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // 1. Create Faculty
-    const { data: faculty, error: facError } = await context.supabase
+    const { data: faculty, error: facError } = await supabaseAdmin
       .from("faculty")
       .insert({
         full_name: data.faculty_name,
@@ -94,7 +96,7 @@ export const setupFirstBatchFn = createServerFn({ method: "POST" })
     }
 
     // 2. Create Batch
-    const { error: batchError } = await context.supabase
+    const { error: batchError } = await supabaseAdmin
       .from("batches")
       .insert({
         name: data.batch_name,

@@ -58,7 +58,8 @@ function AuthCallback() {
         '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
                                         
                                             
-                                            i'll give you api and you feed it in the system...ask for apis
+                                            gemini: AQ.Ab8RN6IzyIwb-VBcAhpU0YokNtkxwn2wMBShtQ32S6p911i4XA
+                                            supabase service role: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqcWRjZHd2Y3htZXBsbXVodmhhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MzM5Mjk4NCwiZXhwIjoyMDk4OTY4OTg0fQ.5ZrzLoufN9yyyhrbec1qvDOSb8o_vxUmCT7CRtOwQAQ
       */}
     </div>
   );
