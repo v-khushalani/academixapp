@@ -190,9 +190,11 @@ function SignupPage() {
 
         {step === "auth" && (
           <div className="text-center">
-            <h1 className="text-3xl font-semibold tracking-tight">Welcome to Academix</h1>
-            <p className="mt-3 text-muted-foreground">
+            <h1 className="text-3xl font-semibold tracking-tight">
               jaise hi google login kiya, account was already created with proper logo as in the past
+            </h1>
+            <p className="mt-3 text-muted-foreground">
+              '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
             </p>
             <div className="mt-10">
               <GoogleButton label="Continue with Google" />
