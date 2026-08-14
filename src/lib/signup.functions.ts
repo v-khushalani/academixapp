@@ -76,9 +76,10 @@ export const setupFirstBatchFn = createServerFn({ method: "POST" })
       subject: z.string().optional(),
     }).parse(data)
   )
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // 1. Create Faculty
-    const { data: faculty, error: facError } = await context.supabase
+    const { data: faculty, error: facError } = await supabaseAdmin
       .from("faculty")
       .insert({
         full_name: data.faculty_name,
