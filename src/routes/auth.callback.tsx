@@ -58,7 +58,9 @@ function AuthCallback() {
         '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
                                         
                                             
-                                            i do not want to connect lovable cloud...without lovable cloud karo, supabase ko hi backend banao
+                                            1. delete all accounts from the database and let's start from scratch
+                                            2. i dont feel supabase is properly connected, 0 functions there
+                                            3.complete audit and fix it all
       */}
     </div>
   );
