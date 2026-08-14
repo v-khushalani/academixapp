@@ -44,16 +44,6 @@ function createSupabaseAdminClient() {
       "Please ensure 'Lovable Cloud' is enabled and secrets are synced."
     );
   }
-      global: {
-        fetch: createSupabaseFetch(fallbackKey),
-      },
-      auth: {
-        storage: undefined,
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    });
-  }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     global: {
