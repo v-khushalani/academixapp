@@ -11,8 +11,10 @@ import {
   createInstituteFn, 
   getMyInstituteStatusFn,
   updateInstituteBrandingFn,
-  setupFirstBatchFn
+  setupFirstBatchFn,
+  getMyInstituteStatusFn
 } from "@/lib/signup.functions";
+import { repairFunctionGrantsFn } from "@/lib/repair.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, User, School, Palette, Rocket, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -61,6 +63,7 @@ function SignupPage() {
   const getStatus = useServerFn(getMyInstituteStatusFn);
   const updateBranding = useServerFn(updateInstituteBrandingFn);
   const setupBatch = useServerFn(setupFirstBatchFn);
+  const repairGrants = useServerFn(repairFunctionGrantsFn);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -70,6 +73,8 @@ function SignupPage() {
           if (status.hasInstitute) {
             navigate({ to: "/app" });
           } else {
+            // Run a quick grant repair check to ensure server-side access is ready
+            repairGrants().catch(console.error);
             setStep("details");
             setLoading(false);
           }
