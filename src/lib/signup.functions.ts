@@ -44,8 +44,9 @@ export const updateInstituteBrandingFn = createServerFn({ method: "POST" })
       phone: z.string().optional().nullable(),
     }).parse(data)
   )
-  .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
       .from("institutes")
       .update({
         logo_url: data.logo_url,
