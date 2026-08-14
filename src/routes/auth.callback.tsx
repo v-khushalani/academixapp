@@ -54,6 +54,12 @@ function AuthCallback() {
   return (
     <div className="grid min-h-screen place-items-center bg-background px-4">
       <p className="text-sm text-muted-foreground">{message}</p>
+      {/* 
+        '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
+                                        
+                                            
+                                            i'll give you api and you feed it in the system...ask for apis
+      */}
     </div>
   );
 }
