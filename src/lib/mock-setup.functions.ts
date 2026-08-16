@@ -7,7 +7,7 @@ export const createMockAccountsFn = createServerFn({ method: "POST" })
   .handler(async () => {
     const email = "xyz@academix.website";
     const password = "Test@1234";
-    const roles = ["admin", "faculty", "parent", "student"];
+    const roles = ["admin", "teacher", "parent", "student"];
     const results = [];
 
     // 1. Create a base institute for mock data if none exists
@@ -75,48 +75,5 @@ export const createMockAccountsFn = createServerFn({ method: "POST" })
       results.push({ role, email: roleEmail, status: roleErr ? "error" : "success" });
     }
 
-    // 2. Seed actual mock ERP data (Students, Batches, Fees, etc.)
-    // Note: We bypass createDemoData and do it manually here to avoid middleware/context issues in server-to-server calls
-    const summary: Record<string, number> = {};
-    
-    // Create Course
-    const { data: course } = await supabaseAdmin.from("courses").insert({ 
-      name: "Mock Course", 
-      code: "MOCK", 
-      institute_id: finalInstId 
-    }).select().single();
-    
-    // Create Faculty
-    const { data: faculty } = await supabaseAdmin.from("faculty").insert({
-      full_name: "Mock Teacher",
-      institute_id: finalInstId,
-      status: "active"
-    }).select().single();
-    
-    // Create Batch
-    const { data: batch } = await supabaseAdmin.from("batches").insert({
-      name: "Mock Batch",
-      course_id: course?.id,
-      faculty_id: faculty?.id,
-      institute_id: finalInstId,
-      status: "active"
-    }).select().single();
-    
-    // Create Students
-    const { data: students } = await supabaseAdmin.from("students").insert([
-      { full_name: "Mock Student A", admission_no: "M-001", batch_id: batch?.id, institute_id: finalInstId, approval_status: "approved" },
-      { full_name: "Mock Student B", admission_no: "M-002", batch_id: batch?.id, institute_id: finalInstId, approval_status: "approved" }
-    ]).select();
-
-    return { 
-      success: true, 
-      results, 
-      instituteId: finalInstId,
-      summary: {
-        courses: 1,
-        faculty: 1,
-        batches: 1,
-        students: students?.length ?? 0
-      }
-    };
+    return { success: true, results, instituteId: finalInstId };
   });
