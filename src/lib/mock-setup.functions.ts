@@ -7,7 +7,7 @@ export const createMockAccountsFn = createServerFn({ method: "POST" })
   .handler(async () => {
     const email = "xyz@academix.website";
     const password = "Test@1234";
-    const roles = ["admin", "teacher", "parent", "student"];
+    const roles = ["admin", "faculty", "parent", "student"];
     const results = [];
 
     // 1. Create a base institute for mock data if none exists
