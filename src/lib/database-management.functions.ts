@@ -41,6 +41,10 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
       "attendance",
       "attendance_devices",
       "audit_logs",
+      "notification_logs",
+      "automation_rules",
+      "student_activities",
+      "student_documents",
       "expenses",
       "fee_adjustments",
       "fees",
@@ -65,19 +69,29 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
       "institutes"
     ];
 
-    console.log("Starting database wipe...");
+    const failures: { table: string; message: string }[] = [];
 
     // Disable triggers temporarily if possible, or just delete in order.
     // We use a single query for each table to be efficient.
     for (const table of tables) {
-      console.log(`Wiping ${table}...`);
       // @ts-ignore
       const { error } = await supabaseAdmin.from(table).delete().neq("id", "00000000-0000-0000-0000-000000000000");
       if (error) {
-        console.error(`Error wiping table ${table}:`, error.message);
         // Fallback for tables that might not have "id" (though most in this schema do)
         // @ts-ignore
-        await supabaseAdmin.from(table).delete().or("id.neq.00000000-0000-0000-0000-000000000000,user_id.neq.00000000-0000-0000-0000-000000000000");
+        const { error: retry } = await supabaseAdmin
+          .from(table)
+          .delete()
+          .or("id.neq.00000000-0000-0000-0000-000000000000,user_id.neq.00000000-0000-0000-0000-000000000000");
+        if (retry) failures.push({ table, message: retry.message });
+      }
+      // Verify the table is actually empty before calling the wipe a success.
+      // @ts-ignore
+      const { count, error: countError } = await supabaseAdmin
+        .from(table)
+        .select("*", { count: "exact", head: true });
+      if (!countError && (count ?? 0) > 0 && table !== "user_roles" && table !== "profiles") {
+        failures.push({ table, message: `${count} row(s) remain after delete` });
       }
     }
 
