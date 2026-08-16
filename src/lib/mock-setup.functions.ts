@@ -75,5 +75,14 @@ export const createMockAccountsFn = createServerFn({ method: "POST" })
       results.push({ role, email: roleEmail, status: roleErr ? "error" : "success" });
     }
 
-    return { success: true, results, instituteId: finalInstId };
+    // 2. Seed actual mock ERP data (Students, Batches, Fees, etc.)
+    const { createDemoData } = await import("./demo-data.functions");
+    const demoRes = await createDemoData({ data: { institute_id: finalInstId, force: true }, context });
+
+    return { 
+      success: true, 
+      results, 
+      instituteId: finalInstId,
+      demoSummary: demoRes.summary
+    };
   });
