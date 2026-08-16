@@ -695,8 +695,20 @@ export const expensesApi = {
     if (error) throw error;
     return data ?? [];
   },
-  async create(input: Tables["expenses"]["Insert"]) {
-    return orThrow(await supabase.from("expenses").insert(input).select().single());
+  async create(input: Omit<Tables["expenses"]["Insert"], "institute_id"> & { institute_id?: string }) {
+    let instituteId = input.institute_id;
+    if (!instituteId) {
+      const { data: inst } = await supabase.rpc("current_institute_id");
+      instituteId = (inst as string | null) ?? undefined;
+    }
+    if (!instituteId) throw new Error("No institute linked to your account.");
+    return orThrow(
+      await supabase
+        .from("expenses")
+        .insert({ ...input, institute_id: instituteId })
+        .select()
+        .single(),
+    );
   },
   async update(id: string, input: Partial<Tables["expenses"]["Update"]>) {
     return orThrow(await supabase.from("expenses").update(input).eq("id", id).select().single());
