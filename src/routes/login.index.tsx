@@ -33,7 +33,8 @@ function UnifiedLogin() {
             Your entire institute, in one place.
           </h2>
           <p className="mt-3 text-sm opacity-80">
-            Whether you are an owner, a teacher, or a student — sign in here to get to your dashboard.
+            Whether you are an owner, a teacher, or a student — sign in here to get to your
+            dashboard.
           </p>
         </>
       }

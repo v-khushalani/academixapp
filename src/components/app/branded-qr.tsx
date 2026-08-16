@@ -44,7 +44,7 @@ export const BrandedQR = forwardRef<BrandedQRHandle, BrandedQRProps>(
         ctx.font = "bold 52px Saira, sans-serif";
         ctx.textAlign = "center";
         ctx.fillText(inst.name.toUpperCase(), width / 2, 90);
-        
+
         ctx.font = "28px Saira, sans-serif";
         ctx.fillText(inst.tagline || "Institute Excellence", width / 2, 135);
 
@@ -52,7 +52,7 @@ export const BrandedQR = forwardRef<BrandedQRHandle, BrandedQRProps>(
         ctx.fillStyle = "#1e293b";
         ctx.font = "bold 36px Saira, sans-serif";
         ctx.fillText(`PAYMENT FOR ${studentName.toUpperCase()}`, width / 2, 260);
-        
+
         ctx.font = "32px Saira, sans-serif";
         ctx.fillText(description || "Course Fees", width / 2, 310);
 
@@ -66,11 +66,11 @@ export const BrandedQR = forwardRef<BrandedQRHandle, BrandedQRProps>(
           const qrSize = 400;
           const qrX = (width - qrSize) / 2;
           const qrY = 480;
-          
+
           ctx.strokeStyle = "#e2e8f0";
           ctx.lineWidth = 2;
           ctx.strokeRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20);
-          
+
           ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
         }
 
@@ -78,7 +78,7 @@ export const BrandedQR = forwardRef<BrandedQRHandle, BrandedQRProps>(
         ctx.fillStyle = "#64748b";
         ctx.font = "24px Saira, sans-serif";
         ctx.fillText("Scan with any UPI app", width / 2, 920);
-        
+
         ctx.fillStyle = "#94a3b8";
         ctx.font = "bold 22px Saira, sans-serif";
         ctx.fillText("POWERED BY ACADEMIX", width / 2, 960);
@@ -90,13 +90,15 @@ export const BrandedQR = forwardRef<BrandedQRHandle, BrandedQRProps>(
     return (
       <div className="flex flex-col items-center gap-4 bg-white p-6 rounded-xl border shadow-sm">
         <div className="text-center space-y-1">
-           <h3 className="font-bold text-xl text-slate-900">{inst.name}</h3>
-           <p className="text-sm text-muted-foreground">{inst.tagline}</p>
+          <h3 className="font-bold text-xl text-slate-900">{inst.name}</h3>
+          <p className="text-sm text-muted-foreground">{inst.tagline}</p>
         </div>
-        
+
         <div className="bg-slate-50 p-4 rounded-lg w-full text-center border border-slate-100">
-            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Payment Amount</p>
-            <p className="text-3xl font-bold text-primary">{inr(amount)}</p>
+          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">
+            Payment Amount
+          </p>
+          <p className="text-3xl font-bold text-primary">{inr(amount)}</p>
         </div>
 
         <div ref={containerRef} className="bg-white p-2 rounded-lg border shadow-sm">
@@ -104,16 +106,18 @@ export const BrandedQR = forwardRef<BrandedQRHandle, BrandedQRProps>(
         </div>
 
         <div className="text-center">
-           <p className="text-sm font-bold text-slate-800 uppercase tracking-tight">{studentName}</p>
-           <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="text-sm font-bold text-slate-800 uppercase tracking-tight">{studentName}</p>
+          <p className="text-xs text-muted-foreground">{description}</p>
         </div>
 
         <div className="pt-4 mt-2 border-t w-full text-center">
-           <span className="text-[10px] font-bold text-slate-300 tracking-[0.3em]">POWERED BY ACADEMIX</span>
+          <span className="text-[10px] font-bold text-slate-300 tracking-[0.3em]">
+            POWERED BY ACADEMIX
+          </span>
         </div>
       </div>
     );
-  }
+  },
 );
 
 BrandedQR.displayName = "BrandedQR";

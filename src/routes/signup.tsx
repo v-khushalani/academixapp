@@ -7,11 +7,11 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { GoogleButton } from "@/components/auth/google-button";
-import { 
-  createInstituteFn, 
+import {
+  createInstituteFn,
   getMyInstituteStatusFn,
   updateInstituteBrandingFn,
-  setupFirstBatchFn
+  setupFirstBatchFn,
 } from "@/lib/signup.functions";
 import { repairFunctionGrantsFn } from "@/lib/repair.functions";
 import { useServerFn } from "@tanstack/react-start";
@@ -68,16 +68,18 @@ function SignupPage() {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         setUser(data.user);
-        getStatus().then((status) => {
-          if (status.hasInstitute) {
-            navigate({ to: "/app" });
-          } else {
-            // Run a quick grant repair check to ensure server-side access is ready
-            repairGrants().catch(console.error);
-            setStep("details");
-            setLoading(false);
-          }
-        }).catch(() => setLoading(false));
+        getStatus()
+          .then((status) => {
+            if (status.hasInstitute) {
+              navigate({ to: "/app" });
+            } else {
+              // Run a quick grant repair check to ensure server-side access is ready
+              repairGrants().catch(console.error);
+              setStep("details");
+              setLoading(false);
+            }
+          })
+          .catch(() => setLoading(false));
       } else {
         setStep("auth");
         setLoading(false);
@@ -105,13 +107,13 @@ function SignupPage() {
     if (!instituteId) return;
     setBusy(true);
     try {
-      await updateBranding({ 
-        data: { 
-          institute_id: instituteId, 
+      await updateBranding({
+        data: {
+          institute_id: instituteId,
           primary_color: primaryColor,
           address,
-          phone 
-        } 
+          phone,
+        },
       });
       setStep("first-batch");
       toast.success("Branding preferences saved!");
@@ -127,12 +129,12 @@ function SignupPage() {
     if (!instituteId) return;
     setBusy(true);
     try {
-      await setupBatch({ 
-        data: { 
-          institute_id: instituteId, 
-          faculty_name: facultyName, 
-          batch_name: batchName 
-        } 
+      await setupBatch({
+        data: {
+          institute_id: instituteId,
+          faculty_name: facultyName,
+          batch_name: batchName,
+        },
       });
       toast.success("Setup complete! Welcome to Academix.");
       navigate({ to: "/app" });
@@ -159,42 +161,45 @@ function SignupPage() {
       <div className="mx-auto w-full max-w-xl px-5 py-12 sm:py-20">
         {/* Progress Indicator */}
         <div className="mb-10 flex items-center justify-between">
-          <ProgressStep 
-            icon={<User className="h-4 w-4" />} 
-            label="Auth" 
-            active={step === "auth"} 
-            completed={!!user} 
+          <ProgressStep
+            icon={<User className="h-4 w-4" />}
+            label="Auth"
+            active={step === "auth"}
+            completed={!!user}
           />
           <ProgressDivider />
-          <ProgressStep 
-            icon={<School className="h-4 w-4" />} 
-            label="Institute" 
-            active={step === "details"} 
-            completed={!!instituteId} 
+          <ProgressStep
+            icon={<School className="h-4 w-4" />}
+            label="Institute"
+            active={step === "details"}
+            completed={!!instituteId}
           />
           <ProgressDivider />
-          <ProgressStep 
-            icon={<Palette className="h-4 w-4" />} 
-            label="Branding" 
-            active={step === "branding"} 
-            completed={step === "first-batch"} 
+          <ProgressStep
+            icon={<Palette className="h-4 w-4" />}
+            label="Branding"
+            active={step === "branding"}
+            completed={step === "first-batch"}
           />
           <ProgressDivider />
-          <ProgressStep 
-            icon={<Rocket className="h-4 w-4" />} 
-            label="Launch" 
-            active={step === "first-batch"} 
-            completed={false} 
+          <ProgressStep
+            icon={<Rocket className="h-4 w-4" />}
+            label="Launch"
+            active={step === "first-batch"}
+            completed={false}
           />
         </div>
 
         {step === "auth" && (
           <div className="text-center">
             <h1 className="text-3xl font-semibold tracking-tight">
-              '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
+              '''Do not make any visual modifications. The phrases I write are commands to
+              understand what I want, not to be written down. Understand their content well, then
+              execute what is required.'''
             </h1>
             <p className="mt-3 text-muted-foreground">
-              jaise hi google login kiya, account was already created with proper logo as in the past
+              jaise hi google login kiya, account was already created with proper logo as in the
+              past
             </p>
             <div className="mt-10">
               <GoogleButton label="Continue with Google" />
@@ -225,11 +230,11 @@ function SignupPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tagline">Tagline (optional)</Label>
-                <Input 
-                  id="tagline" 
+                <Input
+                  id="tagline"
                   placeholder="e.g. Empowering Students for Excellence"
-                  value={tagline} 
-                  onChange={(e) => setTagline(e.target.value)} 
+                  value={tagline}
+                  onChange={(e) => setTagline(e.target.value)}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={busy}>
@@ -257,37 +262,37 @@ function SignupPage() {
                       onClick={() => setPrimaryColor(color)}
                       className={cn(
                         "h-10 w-10 rounded-full border-2 transition-transform hover:scale-110",
-                        primaryColor === color ? "border-primary scale-110" : "border-transparent"
+                        primaryColor === color ? "border-primary scale-110" : "border-transparent",
                       )}
                       style={{ backgroundColor: color }}
                     />
                   ))}
                   <div className="relative">
-                    <input 
-                      type="color" 
-                      value={primaryColor} 
+                    <input
+                      type="color"
+                      value={primaryColor}
                       onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="h-10 w-10 cursor-pointer rounded-full border-none p-0 overflow-hidden" 
+                      className="h-10 w-10 cursor-pointer rounded-full border-none p-0 overflow-hidden"
                     />
                   </div>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">Institute Address</Label>
-                <Input 
-                  id="address" 
+                <Input
+                  id="address"
                   placeholder="Full physical address"
-                  value={address} 
-                  onChange={(e) => setAddress(e.target.value)} 
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Contact Phone</Label>
-                <Input 
-                  id="phone" 
+                <Input
+                  id="phone"
                   placeholder="Official contact number"
-                  value={phone} 
-                  onChange={(e) => setPhone(e.target.value)} 
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={busy}>
@@ -307,20 +312,20 @@ function SignupPage() {
             <form className="mt-8 space-y-5" onSubmit={onBatchSubmit}>
               <div className="space-y-2">
                 <Label htmlFor="faculty">First Faculty Member</Label>
-                <Input 
-                  id="faculty" 
+                <Input
+                  id="faculty"
                   placeholder="e.g. Rajesh Kumar"
-                  value={facultyName} 
+                  value={facultyName}
                   onChange={(e) => setFacultyName(e.target.value)}
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="batch">First Batch Name</Label>
-                <Input 
-                  id="batch" 
+                <Input
+                  id="batch"
                   placeholder="e.g. Grade 10 - Morning"
-                  value={batchName} 
+                  value={batchName}
                   onChange={(e) => setBatchName(e.target.value)}
                   required
                 />
@@ -337,20 +342,37 @@ function SignupPage() {
   );
 }
 
-function ProgressStep({ icon, label, active, completed }: { icon: React.ReactNode, label: string, active: boolean, completed: boolean }) {
+function ProgressStep({
+  icon,
+  label,
+  active,
+  completed,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  active: boolean;
+  completed: boolean;
+}) {
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className={cn(
-        "flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm transition-colors",
-        completed ? "border-primary bg-primary text-primary-foreground" : 
-        active ? "border-primary text-primary" : "border-muted text-muted-foreground"
-      )}>
+      <div
+        className={cn(
+          "flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm transition-colors",
+          completed
+            ? "border-primary bg-primary text-primary-foreground"
+            : active
+              ? "border-primary text-primary"
+              : "border-muted text-muted-foreground",
+        )}
+      >
         {completed ? <Check className="h-4 w-4" /> : icon}
       </div>
-      <span className={cn(
-        "text-[10px] font-medium uppercase tracking-wider",
-        active ? "text-primary" : "text-muted-foreground"
-      )}>
+      <span
+        className={cn(
+          "text-[10px] font-medium uppercase tracking-wider",
+          active ? "text-primary" : "text-muted-foreground",
+        )}
+      >
         {label}
       </span>
     </div>

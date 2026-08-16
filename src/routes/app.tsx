@@ -19,17 +19,11 @@ function AppLayout() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { branches, activeId, select, multi } = useBranches();
   const [showGate, setShowGate] = useState(false);
-  const staffRoles = [
-    "owner",
-    "admin",
-    "faculty",
-    "receptionist",
-    "counsellor",
-    "accountant",
-  ];
+  const staffRoles = ["owner", "admin", "faculty", "receptionist", "counsellor", "accountant"];
   const isSuper = roles.includes("superadmin" as any);
   const isStaff = roles.some((r) => staffRoles.includes(r));
-  const isFamilyOnly = !isStaff && !isSuper && (roles.includes("student") || roles.includes("parent"));
+  const isFamilyOnly =
+    !isStaff && !isSuper && (roles.includes("student") || roles.includes("parent"));
 
   useEffect(() => {
     if (loading) return;
@@ -37,7 +31,7 @@ function AppLayout() {
       navigate({ to: "/login" });
       return;
     }
-    
+
     const hasAnyInstitute = roles.length > 0;
     if (!hasAnyInstitute) {
       navigate({ to: "/signup" });
@@ -97,14 +91,12 @@ function AppLayout() {
                 onClick={() => select(b.id)}
               >
                 <span className="font-semibold">{b.name}</span>
-                <span className="text-xs text-muted-foreground italic">Switch to branch console</span>
+                <span className="text-xs text-muted-foreground italic">
+                  Switch to branch console
+                </span>
               </Button>
             ))}
-            <Button
-              variant="secondary"
-              className="mt-2 h-10"
-              onClick={() => select(ALL_BRANCHES)}
-            >
+            <Button variant="secondary" className="mt-2 h-10" onClick={() => select(ALL_BRANCHES)}>
               Continue to Combined View
             </Button>
           </div>

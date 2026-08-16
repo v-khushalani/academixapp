@@ -100,7 +100,8 @@ export function AppSidebar() {
     enabled: !superadmin,
   });
   const current =
-    controls.find((c) => c.id === activeId) ?? (activeId === ALL_BRANCHES ? controls[0] : undefined);
+    controls.find((c) => c.id === activeId) ??
+    (activeId === ALL_BRANCHES ? controls[0] : undefined);
   const visible = superadmin
     ? base
     : base.filter((n) => featureOn(current?.features, n.key as FeatureKey) || !current);

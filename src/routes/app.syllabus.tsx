@@ -58,7 +58,8 @@ export const Route = createFileRoute("/app/syllabus")({
       { title: "Syllabus Tracker — Academix" },
       {
         name: "description",
-        content: "See how much syllabus each batch has covered, chapter by chapter, before the next exam.",
+        content:
+          "See how much syllabus each batch has covered, chapter by chapter, before the next exam.",
       },
       { property: "og:title", content: "Syllabus Tracker — Academix" },
       {
@@ -113,11 +114,7 @@ function SortableItem({
   };
 
   return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className="flex items-center gap-3 bg-card px-4 py-2.5"
-    >
+    <li ref={setNodeRef} style={style} className="flex items-center gap-3 bg-card px-4 py-2.5">
       <button
         {...attributes}
         {...listeners}
@@ -131,9 +128,7 @@ function SortableItem({
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm">{chapter.title}</p>
         {chapter.completed_on ? (
-          <p className="text-xs text-muted-foreground">
-            Completed {chapter.completed_on}
-          </p>
+          <p className="text-xs text-muted-foreground">Completed {chapter.completed_on}</p>
         ) : null}
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
@@ -177,7 +172,7 @@ function SyllabusPage() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: batchesApi.list });

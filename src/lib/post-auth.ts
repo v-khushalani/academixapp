@@ -49,16 +49,16 @@ export async function waitForSession(tries = 25) {
 export function homeForRoles(roles: AppRole[]): string | null {
   // Team Academix lands straight in the platform console, not an institute dashboard.
   if (roles.includes("superadmin" as AppRole)) return "/app/platform";
-  
+
   // Staff/Owner roles
   if (roles.some((r) => STAFF.includes(r))) return "/app";
-  
+
   // Faculty
   if (roles.includes("faculty")) return "/teach";
-  
+
   // Student/Parent
   if (roles.includes("student") || roles.includes("parent")) return "/portal";
-  
+
   return null;
 }
 
@@ -96,7 +96,7 @@ export async function resolvePostAuthDestination(): Promise<{
 
   const to = homeForRoles(roles);
   if (to) return { to };
-  
+
   // No roles found. If it's a first-time Google login, send to signup/onboarding.
   // Otherwise, it might be an uninvited user.
   return {

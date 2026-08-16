@@ -37,7 +37,7 @@ function createSupabaseClient() {
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     throw new Error(
       "CRITICAL: VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY is missing. " +
-      "Please ensure environment variables are configured."
+        "Please ensure environment variables are configured.",
     );
   }
 

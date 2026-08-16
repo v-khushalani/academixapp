@@ -58,7 +58,10 @@ function StudentsPage() {
   const [editing, setEditing] = useState<Student | null>(null);
   const [deleting, setDeleting] = useState<Row | null>(null);
 
-  const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
+  const { data: batches = [] } = useQuery({
+    queryKey: ["batches"],
+    queryFn: () => batchesApi.list(),
+  });
   const { data: invites = [] } = useQuery({
     queryKey: ["student-invites"],
     queryFn: () => studentInvitesApi.list(),

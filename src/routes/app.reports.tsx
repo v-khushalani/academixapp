@@ -23,11 +23,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDate } from "@/lib/dates";
 import { inr } from "@/lib/format";
 
-
 export const Route = createFileRoute("/app/reports")({
   component: ReportsPage,
 });
-
 
 function ReportsPage() {
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
@@ -75,7 +73,7 @@ function ReportsPage() {
             <TabsTrigger value="syllabus">Syllabus Coverage</TabsTrigger>
             <TabsTrigger value="admissions">Admissions</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="pnl" className="mt-4">
             <PnLReport from={from} to={to} />
           </TabsContent>
@@ -452,7 +450,6 @@ function AdmissionsReport({ from, to }: { from: string; to: string }) {
   );
 }
 
-
 type DefaulterRow = {
   id: string;
   student: string;
@@ -667,16 +664,24 @@ function PnLReport({ from, to }: { from: string; to: string }) {
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-border bg-card p-4 text-center">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Revenue</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Revenue
+          </p>
           <p className="mt-1 text-2xl font-bold text-success">{inr(totalRev)}</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-4 text-center">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Expenses</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Expenses
+          </p>
           <p className="mt-1 text-2xl font-bold text-destructive">{inr(totalExp)}</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-4 text-center">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Net Profit</p>
-          <p className={`mt-1 text-2xl font-bold ${profit >= 0 ? "text-primary" : "text-destructive"}`}>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Net Profit
+          </p>
+          <p
+            className={`mt-1 text-2xl font-bold ${profit >= 0 ? "text-primary" : "text-destructive"}`}
+          >
             {inr(profit)}
           </p>
         </div>
@@ -712,41 +717,48 @@ function PnLReport({ from, to }: { from: string; to: string }) {
 }
 
 function SyllabusReport() {
-  const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
-  const { data: allChapters = [] } = useQuery({ 
-    queryKey: ["all-chapters"], 
-    queryFn: () => syllabusApi.chapters() 
+  const { data: batches = [] } = useQuery({
+    queryKey: ["batches"],
+    queryFn: () => batchesApi.list(),
+  });
+  const { data: allChapters = [] } = useQuery({
+    queryKey: ["all-chapters"],
+    queryFn: () => syllabusApi.chapters(),
   });
   const { data: allLogs = [] } = useQuery({
     queryKey: ["all-logs"],
-    queryFn: () => syllabusApi.logs({ limit: 500 })
+    queryFn: () => syllabusApi.logs({ limit: 500 }),
   });
 
   const rows = useMemo(() => {
-    return batches.map((b) => {
-      const chapters = allChapters.filter((c: any) => c.batch_id === b.id);
-      const logs = allLogs.filter((l: any) => l.batch_id === b.id);
-      const progress = groupBySubject(chapters, logs as any);
-      const avgPct = progress.length ? Math.round(progress.reduce((s, p) => s + p.pct, 0) / progress.length) : 0;
-      
-      // Get the earliest forecasted date across subjects
-      const forecast = progress
-        .map((p) => p.estimated_completion)
-        .filter(Boolean)
-        .sort((a, b) => b!.localeCompare(a!))[0]; // furthest date
+    return batches
+      .map((b) => {
+        const chapters = allChapters.filter((c: any) => c.batch_id === b.id);
+        const logs = allLogs.filter((l: any) => l.batch_id === b.id);
+        const progress = groupBySubject(chapters, logs as any);
+        const avgPct = progress.length
+          ? Math.round(progress.reduce((s, p) => s + p.pct, 0) / progress.length)
+          : 0;
 
-      return {
-        id: b.id,
-        batch: b.name,
-        total: chapters.length,
-        done: chapters.filter((c: any) => c.status === "done").length,
-        pct: avgPct,
-        forecast: forecast ?? "N/A"
-      };
-    }).sort((a, b) => a.pct - b.pct);
+        // Get the earliest forecasted date across subjects
+        const forecast = progress
+          .map((p) => p.estimated_completion)
+          .filter(Boolean)
+          .sort((a, b) => b!.localeCompare(a!))[0]; // furthest date
+
+        return {
+          id: b.id,
+          batch: b.name,
+          total: chapters.length,
+          done: chapters.filter((c: any) => c.status === "done").length,
+          pct: avgPct,
+          forecast: forecast ?? "N/A",
+        };
+      })
+      .sort((a, b) => a.pct - b.pct);
   }, [batches, allChapters, allLogs]);
 
-  const cols: Column<typeof rows[0]>[] = [
+  const cols: Column<(typeof rows)[0]>[] = [
     { key: "batch", label: "Batch" },
     { key: "total", label: "Total Chapters" },
     { key: "done", label: "Done" },
@@ -755,9 +767,11 @@ function SyllabusReport() {
   ];
 
   return (
-    <Section 
+    <Section
       title="Syllabus coverage across all batches"
-      actions={<ExportButtons rows={rows} cols={cols} name="syllabus-report" title="Syllabus Report" />}
+      actions={
+        <ExportButtons rows={rows} cols={cols} name="syllabus-report" title="Syllabus Report" />
+      }
     >
       <table className="w-full text-sm">
         <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
@@ -771,19 +785,23 @@ function SyllabusReport() {
         <tbody className="divide-y divide-border">
           {rows.length === 0 && (
             <tr>
-              <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No data found.</td>
+              <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                No data found.
+              </td>
             </tr>
           )}
           {rows.map((r) => (
             <tr key={r.id}>
               <td className="px-4 py-3 font-medium">{r.batch}</td>
-              <td className="px-4 py-3 text-muted-foreground">{r.done} / {r.total}</td>
+              <td className="px-4 py-3 text-muted-foreground">
+                {r.done} / {r.total}
+              </td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
-                    <div 
+                    <div
                       className={`h-full rounded-full ${r.pct < 40 ? "bg-destructive" : r.pct < 70 ? "bg-warning" : "bg-success"}`}
-                      style={{ width: `${r.pct}%` }} 
+                      style={{ width: `${r.pct}%` }}
                     />
                   </div>
                   <span>{r.pct}%</span>

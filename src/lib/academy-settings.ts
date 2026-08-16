@@ -98,7 +98,9 @@ export async function saveInstitute(s: InstituteSettings) {
       upi_id: s.upi_id || null,
       upi_name: s.upi_name || null,
       shifts: s.shifts ?? DEFAULT_SHIFTS,
-      installment_plan: (s.installment_plan?.length ? s.installment_plan : DEFAULT_PLAN) as unknown as never,
+      installment_plan: (s.installment_plan?.length
+        ? s.installment_plan
+        : DEFAULT_PLAN) as unknown as never,
       receipt_template: s.receipt_template || null,
     })
     .eq("id", row.id);

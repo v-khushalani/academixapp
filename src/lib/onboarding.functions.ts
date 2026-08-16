@@ -10,26 +10,28 @@ import { z } from "zod";
 
 export const submitAdmission = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z.object({
-      _full_name: z.string(),
-      _phone: z.string(),
-      _email: z.string().optional(),
-      _class: z.string(),
-      _dob: z.string().nullable(),
-      _school: z.string().optional(),
-      _father_name: z.string().optional(),
-      _father_phone: z.string().optional(),
-      _mother_name: z.string().optional(),
-      _mother_phone: z.string().optional(),
-      _address: z.string().optional(),
-      _program: z.string().optional(),
-      _stream: z.string().optional(),
-      _photo_path: z.string().optional(),
-      _preferred_contact: z.string().optional(),
-      _intent: z.string().optional(),
-      _token_amount: z.number().optional(),
-      _institute_slug: z.string(),
-    }).parse(data)
+    z
+      .object({
+        _full_name: z.string(),
+        _phone: z.string(),
+        _email: z.string().optional(),
+        _class: z.string(),
+        _dob: z.string().nullable(),
+        _school: z.string().optional(),
+        _father_name: z.string().optional(),
+        _father_phone: z.string().optional(),
+        _mother_name: z.string().optional(),
+        _mother_phone: z.string().optional(),
+        _address: z.string().optional(),
+        _program: z.string().optional(),
+        _stream: z.string().optional(),
+        _photo_path: z.string().optional(),
+        _preferred_contact: z.string().optional(),
+        _intent: z.string().optional(),
+        _token_amount: z.number().optional(),
+        _institute_slug: z.string(),
+      })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -40,26 +42,28 @@ export const submitAdmission = createServerFn({ method: "POST" })
 
 export const completeOnboarding = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z.object({
-      _token: z.string(),
-      _full_name: z.string(),
-      _phone: z.string(),
-      _email: z.string(),
-      _class: z.string(),
-      _school: z.string().optional(),
-      _parent_name: z.string().optional(),
-      _parent_phone: z.string().optional(),
-      _address: z.string().optional(),
-      _dob: z.string().nullable(),
-      _father_name: z.string().optional(),
-      _father_phone: z.string().optional(),
-      _mother_name: z.string().optional(),
-      _mother_phone: z.string().optional(),
-      _program: z.string().optional(),
-      _stream: z.string().optional(),
-      _photo_path: z.string().optional(),
-      _preferred_contact: z.string().optional(),
-    }).parse(data)
+    z
+      .object({
+        _token: z.string(),
+        _full_name: z.string(),
+        _phone: z.string(),
+        _email: z.string(),
+        _class: z.string(),
+        _school: z.string().optional(),
+        _parent_name: z.string().optional(),
+        _parent_phone: z.string().optional(),
+        _address: z.string().optional(),
+        _dob: z.string().nullable(),
+        _father_name: z.string().optional(),
+        _father_phone: z.string().optional(),
+        _mother_name: z.string().optional(),
+        _mother_phone: z.string().optional(),
+        _program: z.string().optional(),
+        _stream: z.string().optional(),
+        _photo_path: z.string().optional(),
+        _preferred_contact: z.string().optional(),
+      })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

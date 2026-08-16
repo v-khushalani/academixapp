@@ -188,7 +188,9 @@ function FeesPage() {
   async function openCollect(r: Row) {
     const { data } = await supabase
       .from("students")
-      .select("full_name, admission_no, class, parent_phone, phone, preferred_contact, father_phone, mother_phone, batch:batches(name)")
+      .select(
+        "full_name, admission_no, class, parent_phone, phone, preferred_contact, father_phone, mother_phone, batch:batches(name)",
+      )
       .eq("id", r.student_id)
       .maybeSingle();
     const s = data as {

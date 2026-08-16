@@ -11,7 +11,7 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const userId = context.userId;
-    
+
     // We check if there are ANY superadmins. If not, the first person to call this becomes superadmin.
     // If there ARE superadmins, only they can call this.
     const { data: existingSuper } = await supabaseAdmin
@@ -22,15 +22,15 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
 
     if (existingSuper && existingSuper.length > 0) {
       // Check if current user is one of them
-      const isSuper = existingSuper.some(s => s.user_id === userId);
+      const isSuper = existingSuper.some((s) => s.user_id === userId);
       // Wait, let's do a direct check for the caller's role to be safe
       const { data: myRoles } = await supabaseAdmin
         .from("user_roles")
         .select("role")
         .eq("user_id", userId);
-        
-      const callerIsSuper = myRoles?.some(r => r.role === 'superadmin');
-      
+
+      const callerIsSuper = myRoles?.some((r) => r.role === "superadmin");
+
       if (!callerIsSuper) {
         throw new Error("Unauthorized: Only an existing superadmin can wipe the database.");
       }
@@ -66,7 +66,7 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
       "courses",
       "user_roles",
       "profiles",
-      "institutes"
+      "institutes",
     ];
 
     const failures: { table: string; message: string }[] = [];
@@ -80,7 +80,9 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
         // Fallback for tables that might not have "id" (though most in this schema do)
         const { error: retry } = await tbl()
           .delete()
-          .or("id.neq.00000000-0000-0000-0000-000000000000,user_id.neq.00000000-0000-0000-0000-000000000000");
+          .or(
+            "id.neq.00000000-0000-0000-0000-000000000000,user_id.neq.00000000-0000-0000-0000-000000000000",
+          );
         if (retry) failures.push({ table, message: retry.message });
       }
       // Verify the table is actually empty before calling the wipe a success.
@@ -106,22 +108,28 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
 
     // Re-create profile and superadmin role for the caller
     const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
-    
+
     if (userData?.user) {
-      const fullName = userData.user.user_metadata?.full_name || userData.user.email?.split('@')[0] || "Super Admin";
-      
+      const fullName =
+        userData.user.user_metadata?.full_name ||
+        userData.user.email?.split("@")[0] ||
+        "Super Admin";
+
       const { error: profileError } = await supabaseAdmin.from("profiles").upsert({
         id: userId,
         full_name: fullName,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       });
-      
+
       if (profileError) failures.push({ table: "profiles", message: profileError.message });
 
-      const { error: roleError } = await supabaseAdmin.from("user_roles").upsert({
-        user_id: userId,
-        role: "superadmin" as any
-      }, { onConflict: 'user_id,role' });
+      const { error: roleError } = await supabaseAdmin.from("user_roles").upsert(
+        {
+          user_id: userId,
+          role: "superadmin" as any,
+        },
+        { onConflict: "user_id,role" },
+      );
 
       if (roleError) failures.push({ table: "user_roles", message: roleError.message });
     }

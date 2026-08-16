@@ -62,7 +62,9 @@ export const Route = createFileRoute("/api/public/attendance/punch")({
           .from("students")
           .select("id, batch_id")
           .in("id", studentIds.length ? studentIds : ["00000000-0000-0000-0000-000000000000"]);
-        const batchOf = new Map((students ?? []).map((s) => [s.id as string, s.batch_id as string | null]));
+        const batchOf = new Map(
+          (students ?? []).map((s) => [s.id as string, s.batch_id as string | null]),
+        );
 
         const { data: slots } = await supabaseAdmin
           .from("timetable_slots")

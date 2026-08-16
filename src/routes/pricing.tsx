@@ -3,12 +3,7 @@ import { Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  fetchFeatures,
-  fetchPlans,
-  groupFeatures,
-  type FeatureValue,
-} from "@/lib/pricing-catalog";
+import { fetchFeatures, fetchPlans, groupFeatures, type FeatureValue } from "@/lib/pricing-catalog";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 
 export const Route = createFileRoute("/pricing")({
@@ -23,8 +18,7 @@ export const Route = createFileRoute("/pricing")({
       { property: "og:title", content: "Academix plans — start free, scale simple" },
       {
         property: "og:description",
-        content:
-          "Free forever tier plus two paid plans. Compare every feature at a glance.",
+        content: "Free forever tier plus two paid plans. Compare every feature at a glance.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -80,8 +74,8 @@ function PricingPage() {
             Simple plans. Start free.
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-base text-muted-foreground">
-            Run your whole institute free. Need more scale or automation? We'll take you through
-            the paid plans on a quick call.
+            Run your whole institute free. Need more scale or automation? We'll take you through the
+            paid plans on a quick call.
           </p>
         </div>
 
@@ -113,11 +107,7 @@ function PricingPage() {
               <p className="mt-1 text-xs text-muted-foreground">
                 {p.student_limit.toLocaleString("en-IN")} students · {p.room_limit} classrooms
               </p>
-              <Button
-                asChild
-                className="mt-6 w-full"
-                variant={p.highlight ? "default" : "outline"}
-              >
+              <Button asChild className="mt-6 w-full" variant={p.highlight ? "default" : "outline"}>
                 {p.price_yearly === 0 && !p.contact_only ? (
                   <Link to="/signup">{p.cta}</Link>
                 ) : (
@@ -170,7 +160,10 @@ function PricingPage() {
                   { title: "Capacity", desc: "1,500 students & 30 rooms" },
                   { title: "Support", desc: "Priority WhatsApp support line" },
                 ].map((item) => (
-                  <div key={item.title} className="rounded-xl border border-border bg-background p-4">
+                  <div
+                    key={item.title}
+                    className="rounded-xl border border-border bg-background p-4"
+                  >
                     <h3 className="text-sm font-semibold">{item.title}</h3>
                     <p className="mt-1 text-xs text-muted-foreground">{item.desc}</p>
                   </div>
