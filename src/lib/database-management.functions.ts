@@ -116,15 +116,21 @@ export const wipeDatabaseFn = createServerFn({ method: "POST" })
         updated_at: new Date().toISOString()
       });
       
-      if (profileError) console.error("Error recreating profile:", profileError.message);
+      if (profileError) failures.push({ table: "profiles", message: profileError.message });
 
       const { error: roleError } = await supabaseAdmin.from("user_roles").upsert({
         user_id: userId,
         role: "superadmin" as any
       }, { onConflict: 'user_id,role' });
 
-      if (roleError) console.error("Error recreating superadmin role:", roleError.message);
+      if (roleError) failures.push({ table: "user_roles", message: roleError.message });
     }
 
-    return { success: true };
+    if (failures.length > 0) {
+      throw new Error(
+        `Wipe incomplete: ${failures.map((f) => `${f.table} (${f.message})`).join("; ")}`,
+      );
+    }
+
+    return { success: true, tablesWiped: tables.length };
   });
