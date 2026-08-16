@@ -36,14 +36,46 @@ export const Route = createFileRoute("/for-institutes")({
 });
 
 const modules = [
-  { icon: UserPlus, title: "Admissions", desc: "Leads pipeline, quick admit, QR self-onboarding and admin approvals." },
-  { icon: Users, title: "Students", desc: "Full profiles, parent contacts, photos and one-click communication." },
-  { icon: CalendarCheck, title: "Attendance", desc: "Batch-wise, one-click marking with WhatsApp reminders." },
-  { icon: Wallet, title: "Fees", desc: "Batch-linked auto-fetch, outstanding tracking and payment logs." },
-  { icon: FileText, title: "Tests & Marks", desc: "Create tests, enter marks, publish results to parents." },
-  { icon: Calendar, title: "Timetable", desc: "Drag-and-drop weekly grid with room/teacher/batch conflict checks." },
-  { icon: MessageCircle, title: "WhatsApp", desc: "Native deep-links — no paid API required. Templated messages, sent manually." },
-  { icon: BarChart3, title: "Reports", desc: "See what's happening across the institute at a glance." },
+  {
+    icon: UserPlus,
+    title: "Admissions",
+    desc: "Leads pipeline, quick admit, QR self-onboarding and admin approvals.",
+  },
+  {
+    icon: Users,
+    title: "Students",
+    desc: "Full profiles, parent contacts, photos and one-click communication.",
+  },
+  {
+    icon: CalendarCheck,
+    title: "Attendance",
+    desc: "Batch-wise, one-click marking with WhatsApp reminders.",
+  },
+  {
+    icon: Wallet,
+    title: "Fees",
+    desc: "Batch-linked auto-fetch, outstanding tracking and payment logs.",
+  },
+  {
+    icon: FileText,
+    title: "Tests & Marks",
+    desc: "Create tests, enter marks, publish results to parents.",
+  },
+  {
+    icon: Calendar,
+    title: "Timetable",
+    desc: "Drag-and-drop weekly grid with room/teacher/batch conflict checks.",
+  },
+  {
+    icon: MessageCircle,
+    title: "WhatsApp",
+    desc: "Native deep-links — no paid API required. Templated messages, sent manually.",
+  },
+  {
+    icon: BarChart3,
+    title: "Reports",
+    desc: "See what's happening across the institute at a glance.",
+  },
 ];
 
 function ForInstitutesPage() {

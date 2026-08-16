@@ -85,7 +85,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Academix is India's most advanced Institute ERP and LMS for coaching centers. Manage admissions, fees, attendance, and syllabus with dedicated portals for admin, teachers, and parents.",
       },
       { name: "author", content: "Academix Team" },
-      { property: "og:title", content: "Academix — Coaching Institute ERP & School LMS Software India" },
+      {
+        property: "og:title",
+        content: "Academix — Coaching Institute ERP & School LMS Software India",
+      },
       {
         property: "og:description",
         content:
@@ -109,7 +112,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b0bd8a54-8248-4685-a7b0-f4b9a2993425/id-preview-c44f677a--16835a18-300a-469b-8bf2-6c7cc98982e8.lovable.app-1783651327037.png",
       },
-      { name: "keywords", content: "coaching institute management software, best school erp india, institute lms software, academy management erp, fee management software for coaching, student attendance management app, syllabus tracker for teachers, multi-tenant school software, coaching portal software" },
+      {
+        name: "keywords",
+        content:
+          "coaching institute management software, best school erp india, institute lms software, academy management erp, fee management software for coaching, student attendance management app, syllabus tracker for teachers, multi-tenant school software, coaching portal software",
+      },
       { name: "robots", content: "index, follow" },
     ],
     links: [

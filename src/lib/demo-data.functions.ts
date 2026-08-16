@@ -5,11 +5,13 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const createDemoData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => 
-    z.object({ 
-      institute_id: z.string().uuid().optional(),
-      force: z.boolean().optional()
-    }).parse(data)
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        institute_id: z.string().uuid().optional(),
+        force: z.boolean().optional(),
+      })
+      .parse(data),
   )
   .handler(async ({ data, context }) => {
     const { data: myRoles } = await context.supabase.rpc("get_my_roles");
@@ -23,7 +25,7 @@ export const createDemoData = createServerFn({ method: "POST" })
 
     // We prefer targetId from input, then from the current session context.
     let targetId = data.institute_id;
-    
+
     if (!targetId) {
       const { data: instId } = await context.supabase.rpc("current_institute_id");
       targetId = instId || undefined;
@@ -50,14 +52,18 @@ export const createDemoData = createServerFn({ method: "POST" })
       } else {
         // Absolute last resort: just take any institute if they are superadmin
         // Absolute last resort: just take any institute. This helps trial admins.
-        const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
+        const { data: allInstitutes } = await supabaseAdmin
+          .from("institutes")
+          .select("id")
+          .limit(1);
         if (allInstitutes && allInstitutes.length > 0) {
           targetId = allInstitutes[0].id;
         }
       }
     }
 
-    if (!targetId) throw new Error("No institute context found. Please ensure an institute is created first.");
+    if (!targetId)
+      throw new Error("No institute context found. Please ensure an institute is created first.");
 
     // Check if data already exists
     const { count: existingBatches } = await supabaseAdmin
@@ -66,10 +72,10 @@ export const createDemoData = createServerFn({ method: "POST" })
       .eq("institute_id", targetId);
 
     if (existingBatches !== null && existingBatches > 0 && !data.force) {
-      return { 
+      return {
         success: true,
         message: "Demo data already exists for this institute.",
-        summary: { batches: existingBatches }
+        summary: { batches: existingBatches },
       };
     }
 
@@ -78,32 +84,32 @@ export const createDemoData = createServerFn({ method: "POST" })
     // 1. Create Courses
     const courses = [
       { name: "Science Stream", code: "SCI", institute_id: targetId },
-      { name: "Commerce Stream", code: "COM", institute_id: targetId }
+      { name: "Commerce Stream", code: "COM", institute_id: targetId },
     ];
     const { data: createdCourses } = await supabaseAdmin.from("courses").insert(courses).select();
     summary.courses = createdCourses?.length || 0;
-    const courseIds = createdCourses?.map(c => c.id) ?? [];
+    const courseIds = createdCourses?.map((c) => c.id) ?? [];
 
     // 2. Create Rooms
     const rooms = [
       { name: "Room 101", capacity: 30, institute_id: targetId },
-      { name: "Room 102", capacity: 30, institute_id: targetId }
+      { name: "Room 102", capacity: 30, institute_id: targetId },
     ];
     const { data: createdRooms } = await supabaseAdmin.from("rooms").insert(rooms).select();
     summary.rooms = createdRooms?.length || 0;
 
     // 3. Create Faculty
     const facultyNames = ["Rajesh Kumar", "Anjali Sharma"];
-    const faculty = facultyNames.map(name => ({
+    const faculty = facultyNames.map((name) => ({
       full_name: name,
       subject: "Mixed",
       status: "active",
       institute_id: targetId,
-      joining_date: new Date().toISOString().split('T')[0]
+      joining_date: new Date().toISOString().split("T")[0],
     }));
     const { data: createdFaculty } = await supabaseAdmin.from("faculty").insert(faculty).select();
     summary.faculty = createdFaculty?.length || 0;
-    const facultyIds = createdFaculty?.map(f => f.id) ?? [];
+    const facultyIds = createdFaculty?.map((f) => f.id) ?? [];
 
     // 4. Create Batches
     const batchNames = ["Morning Batch A", "Evening Batch B"];
@@ -113,35 +119,38 @@ export const createDemoData = createServerFn({ method: "POST" })
       faculty_id: facultyIds[i % facultyIds.length],
       institute_id: targetId,
       status: "active" as const,
-      default_fee: 5000 + (i * 1000),
-      capacity: 30
+      default_fee: 5000 + i * 1000,
+      capacity: 30,
     }));
     const { data: createdBatches } = await supabaseAdmin.from("batches").insert(batches).select();
     summary.batches = createdBatches?.length || 0;
-    const batchIds = createdBatches?.map(b => b.id) ?? [];
+    const batchIds = createdBatches?.map((b) => b.id) ?? [];
 
     // 5. Create Syllabus for the first batch
     if (batchIds[0]) {
       const subjects = ["Mathematics", "Physics"];
-      const chapters = subjects.flatMap(s => [
-        { 
-          title: "Chapter 1: Basics", 
+      const chapters = subjects.flatMap((s) => [
+        {
+          title: "Chapter 1: Basics",
           subject: s,
-          institute_id: targetId, 
+          institute_id: targetId,
           position: 1,
           batch_id: batchIds[0],
-          status: "pending" as any
+          status: "pending" as any,
         },
-        { 
-          title: "Chapter 2: Intermediate", 
+        {
+          title: "Chapter 2: Intermediate",
           subject: s,
-          institute_id: targetId, 
+          institute_id: targetId,
           position: 2,
           batch_id: batchIds[0],
-          status: "pending" as any
-        }
+          status: "pending" as any,
+        },
       ]);
-      const { data: createdChapters } = await supabaseAdmin.from("syllabus_chapters").insert(chapters).select();
+      const { data: createdChapters } = await supabaseAdmin
+        .from("syllabus_chapters")
+        .insert(chapters)
+        .select();
       summary.syllabus_chapters = createdChapters?.length || 0;
     }
 
@@ -154,42 +163,50 @@ export const createDemoData = createServerFn({ method: "POST" })
       institute_id: targetId,
       status: "active" as const,
       approval_status: "approved" as const,
-      admission_date: new Date().toISOString().split('T')[0],
-      phone: `990000000${i}`
+      admission_date: new Date().toISOString().split("T")[0],
+      phone: `990000000${i}`,
     }));
-    const { data: createdStudents } = await supabaseAdmin.from("students").insert(studentsInsert).select();
+    const { data: createdStudents } = await supabaseAdmin
+      .from("students")
+      .insert(studentsInsert)
+      .select();
     summary.students = createdStudents?.length || 0;
-    const studentIds = createdStudents?.map(s => s.id) ?? [];
-    
+    const studentIds = createdStudents?.map((s) => s.id) ?? [];
+
     // 7. Create Attendance logs
     if (batchIds[0] && facultyIds[0]) {
       const dates = [
         new Date().toISOString().slice(0, 10),
-        new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+        new Date(Date.now() - 86400000).toISOString().slice(0, 10),
       ];
-      const attendance = studentIds.slice(0, 5).flatMap(sid => dates.map(d => ({
-        student_id: sid,
-        batch_id: batchIds[0],
-        date: d,
-        status: "present" as any,
-        marked_by: facultyIds[0],
-        institute_id: targetId
-      })));
-      const { data: createdAttendance } = await supabaseAdmin.from("attendance").insert(attendance).select();
+      const attendance = studentIds.slice(0, 5).flatMap((sid) =>
+        dates.map((d) => ({
+          student_id: sid,
+          batch_id: batchIds[0],
+          date: d,
+          status: "present" as any,
+          marked_by: facultyIds[0],
+          institute_id: targetId,
+        })),
+      );
+      const { data: createdAttendance } = await supabaseAdmin
+        .from("attendance")
+        .insert(attendance)
+        .select();
       summary.attendance_records = createdAttendance?.length || 0;
     }
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: "Demo data created successfully.",
-      summary
+      summary,
     };
   });
 
 export const resetDemoData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => 
-    z.object({ institute_id: z.string().uuid().optional() }).parse(data)
+  .inputValidator((data: unknown) =>
+    z.object({ institute_id: z.string().uuid().optional() }).parse(data),
   )
   .handler(async ({ data, context }) => {
     const { data: myRoles } = await context.supabase.rpc("get_my_roles");
@@ -202,7 +219,7 @@ export const resetDemoData = createServerFn({ method: "POST" })
     }
 
     let targetId = data.institute_id;
-    
+
     if (!targetId) {
       const { data: instId } = await context.supabase.rpc("current_institute_id");
       targetId = instId || undefined;
@@ -225,14 +242,18 @@ export const resetDemoData = createServerFn({ method: "POST" })
         targetId = userInstitutes[0].institute_id!;
       } else {
         // Absolute last resort for reset: just take any institute.
-        const { data: allInstitutes } = await supabaseAdmin.from("institutes").select("id").limit(1);
+        const { data: allInstitutes } = await supabaseAdmin
+          .from("institutes")
+          .select("id")
+          .limit(1);
         if (allInstitutes && allInstitutes.length > 0) {
           targetId = allInstitutes[0].id;
         }
       }
     }
 
-    if (!targetId) throw new Error("No institute context found. Please ensure an institute is created first.");
+    if (!targetId)
+      throw new Error("No institute context found. Please ensure an institute is created first.");
 
     // Delete all related data for this institute
     const tables = [
@@ -252,7 +273,7 @@ export const resetDemoData = createServerFn({ method: "POST" })
       "tests",
       "expenses",
       "institute_branding",
-      "attendance_devices"
+      "attendance_devices",
     ];
 
     for (const table of tables) {

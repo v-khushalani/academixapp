@@ -30,7 +30,18 @@ export const Route = createFileRoute("/app/expenses")({
   component: ExpensesPage,
 });
 
-const CATEGORIES = ["Salary", "Rent", "Electricity", "Marketing", "Stationery", "Internet", "Water", "Taxes", "Maintenance", "Others"];
+const CATEGORIES = [
+  "Salary",
+  "Rent",
+  "Electricity",
+  "Marketing",
+  "Stationery",
+  "Internet",
+  "Water",
+  "Taxes",
+  "Maintenance",
+  "Others",
+];
 const METHODS = ["Cash", "UPI", "Bank Transfer", "Cheque"];
 
 function ExpensesPage() {
@@ -60,36 +71,43 @@ function ExpensesPage() {
   const columns: DTColumn<any>[] = [
     { key: "date", header: "Date", sortable: true, value: (r) => r.date },
     { key: "category", header: "Category", sortable: true, value: (r) => r.category },
-    { 
-      key: "description", 
-      header: "Description", 
+    {
+      key: "description",
+      header: "Description",
       value: (r) => r.description ?? "",
       cell: (r) => (
         <div>
           <p className="font-medium">{r.description || r.category}</p>
-          {r.faculty && <p className="text-xs text-muted-foreground">Paid to: {r.faculty.full_name}</p>}
+          {r.faculty && (
+            <p className="text-xs text-muted-foreground">Paid to: {r.faculty.full_name}</p>
+          )}
         </div>
-      )
+      ),
     },
     { key: "payment_method", header: "Method", value: (r) => r.payment_method ?? "" },
-    { 
-      key: "amount", 
-      header: "Amount", 
-      sortable: true, 
+    {
+      key: "amount",
+      header: "Amount",
+      sortable: true,
       className: "text-right",
       value: (r) => r.amount,
-      cell: (r) => <span className="font-semibold text-destructive">{inr(r.amount)}</span> 
+      cell: (r) => <span className="font-semibold text-destructive">{inr(r.amount)}</span>,
     },
     {
       key: "actions",
       header: "",
       className: "w-10",
       cell: (r) => (
-        <Button size="icon" variant="ghost" className="text-destructive" onClick={() => deleteMut.mutate(r.id)}>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="text-destructive"
+          onClick={() => deleteMut.mutate(r.id)}
+        >
           <Trash2 className="h-4 w-4" />
         </Button>
-      )
-    }
+      ),
+    },
   ];
 
   return (
@@ -99,11 +117,13 @@ function ExpensesPage() {
         description="Track your academy overheads and faculty pay."
         actions={
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="gap-1.5"
               onClick={async () => {
-                const ok = confirm("Process all active faculty salaries for this month as expenses?");
+                const ok = confirm(
+                  "Process all active faculty salaries for this month as expenses?",
+                );
                 if (!ok) return;
                 try {
                   const { facultyAttendanceApi } = await import("@/lib/api");
@@ -117,7 +137,13 @@ function ExpensesPage() {
             >
               <IndianRupee className="h-4 w-4" /> Process Salaries
             </Button>
-            <Button className="gap-1.5" onClick={() => { setEditing(null); setOpen(true); }}>
+            <Button
+              className="gap-1.5"
+              onClick={() => {
+                setEditing(null);
+                setOpen(true);
+              }}
+            >
               <Plus className="h-4 w-4" /> Add expense
             </Button>
           </div>
@@ -139,10 +165,13 @@ function ExpensesPage() {
           <DialogHeader>
             <DialogTitle>{editing ? "Edit expense" : "Add expense"}</DialogTitle>
           </DialogHeader>
-          <ExpenseForm 
-            initial={editing} 
+          <ExpenseForm
+            initial={editing}
             faculty={faculty}
-            onSuccess={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["expenses"] }); }} 
+            onSuccess={() => {
+              setOpen(false);
+              qc.invalidateQueries({ queryKey: ["expenses"] });
+            }}
           />
         </DialogContent>
       </Dialog>
@@ -150,7 +179,15 @@ function ExpensesPage() {
   );
 }
 
-function ExpenseForm({ initial, faculty, onSuccess }: { initial?: any; faculty: any[]; onSuccess: () => void }) {
+function ExpenseForm({
+  initial,
+  faculty,
+  onSuccess,
+}: {
+  initial?: any;
+  faculty: any[];
+  onSuccess: () => void;
+}) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().slice(0, 10),
@@ -169,7 +206,6 @@ function ExpenseForm({ initial, faculty, onSuccess }: { initial?: any; faculty: 
         ...formData,
         amount: Number(formData.amount),
         faculty_id: formData.faculty_id || null,
-        institute_id: (await facultyApi.list())[0]?.institute_id, // This is a hack, better to get current_institute_id from hook
       } as any);
       toast.success("Expense added");
       onSuccess();
@@ -185,34 +221,59 @@ function ExpenseForm({ initial, faculty, onSuccess }: { initial?: any; faculty: 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Date</Label>
-          <Input type="date" value={formData.date} onChange={e => setFormData(d => ({ ...d, date: e.target.value }))} required />
+          <Input
+            type="date"
+            value={formData.date}
+            onChange={(e) => setFormData((d) => ({ ...d, date: e.target.value }))}
+            required
+          />
         </div>
         <div className="space-y-2">
           <Label>Amount (₹)</Label>
-          <Input type="number" placeholder="0.00" value={formData.amount} onChange={e => setFormData(d => ({ ...d, amount: e.target.value }))} required />
+          <Input
+            type="number"
+            placeholder="0.00"
+            value={formData.amount}
+            onChange={(e) => setFormData((d) => ({ ...d, amount: e.target.value }))}
+            required
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Category</Label>
-          <Select value={formData.category} onValueChange={v => setFormData(d => ({ ...d, category: v }))}>
+          <Select
+            value={formData.category}
+            onValueChange={(v) => setFormData((d) => ({ ...d, category: v }))}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {CATEGORIES.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-2">
           <Label>Payment Method</Label>
-          <Select value={formData.payment_method} onValueChange={v => setFormData(d => ({ ...d, payment_method: v }))}>
+          <Select
+            value={formData.payment_method}
+            onValueChange={(v) => setFormData((d) => ({ ...d, payment_method: v }))}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {METHODS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              {METHODS.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {m}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -221,12 +282,19 @@ function ExpenseForm({ initial, faculty, onSuccess }: { initial?: any; faculty: 
       {formData.category === "Salary" && (
         <div className="space-y-2">
           <Label>Paid to Faculty</Label>
-          <Select value={formData.faculty_id} onValueChange={v => setFormData(d => ({ ...d, faculty_id: v }))}>
+          <Select
+            value={formData.faculty_id}
+            onValueChange={(v) => setFormData((d) => ({ ...d, faculty_id: v }))}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select faculty" />
             </SelectTrigger>
             <SelectContent>
-              {faculty.map(f => <SelectItem key={f.id} value={f.id}>{f.full_name}</SelectItem>)}
+              {faculty.map((f) => (
+                <SelectItem key={f.id} value={f.id}>
+                  {f.full_name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -234,10 +302,10 @@ function ExpenseForm({ initial, faculty, onSuccess }: { initial?: any; faculty: 
 
       <div className="space-y-2">
         <Label>Description</Label>
-        <Textarea 
-          placeholder="Notes, bill number, etc." 
-          value={formData.description} 
-          onChange={e => setFormData(d => ({ ...d, description: e.target.value }))} 
+        <Textarea
+          placeholder="Notes, bill number, etc."
+          value={formData.description}
+          onChange={(e) => setFormData((d) => ({ ...d, description: e.target.value }))}
         />
       </div>
 

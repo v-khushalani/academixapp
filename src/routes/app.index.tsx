@@ -32,15 +32,17 @@ function DashboardPage() {
     queryKey: ["syllabus-overview"],
     queryFn: async () => {
       const all = await syllabusApi.chapters();
-      return batches.map((b) => {
-        const rows = all.filter((c) => c.batch_id === b.id);
-        return { 
-          id: b.id, 
-          name: b.name, 
-          count: rows.length, 
-          pct: rows.length ? overallPct(rows) : 0 
-        };
-      }).filter(b => b.count > 0);
+      return batches
+        .map((b) => {
+          const rows = all.filter((c) => c.batch_id === b.id);
+          return {
+            id: b.id,
+            name: b.name,
+            count: rows.length,
+            pct: rows.length ? overallPct(rows) : 0,
+          };
+        })
+        .filter((b) => b.count > 0);
     },
     enabled: batches.length > 0,
   });
@@ -185,7 +187,9 @@ function DashboardPage() {
           <Panel title="Syllabus Pulse" className="lg:col-span-2">
             <div className="space-y-4">
               {progress.length === 0 && !isLoading && (
-                <p className="py-4 text-center text-xs text-muted-foreground">No syllabus tracking data yet.</p>
+                <p className="py-4 text-center text-xs text-muted-foreground">
+                  No syllabus tracking data yet.
+                </p>
               )}
               {progress.map((b) => (
                 <div key={b.id} className="space-y-1.5">
@@ -193,7 +197,10 @@ function DashboardPage() {
                     <span className="font-medium">{b.name}</span>
                     <span className="tabular-nums text-muted-foreground">{b.pct}% complete</span>
                   </div>
-                  <Bar pct={b.pct} tone={b.pct < 40 ? "danger" : b.pct < 70 ? "warning" : "success"} />
+                  <Bar
+                    pct={b.pct}
+                    tone={b.pct < 40 ? "danger" : b.pct < 70 ? "warning" : "success"}
+                  />
                 </div>
               ))}
             </div>
@@ -213,7 +220,9 @@ function DashboardPage() {
                   className="flex flex-col items-center justify-center gap-2 rounded-lg border border-border bg-muted/30 p-4 text-center transition-colors hover:border-primary/50 hover:bg-primary/5"
                 >
                   <link.icon className="h-5 w-5 text-primary" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">{link.label}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                    {link.label}
+                  </span>
                 </Link>
               ))}
             </div>
@@ -223,7 +232,9 @@ function DashboardPage() {
         {nextTest ? (
           <div className="mt-6 flex items-center gap-2 rounded-full bg-primary/5 px-4 py-2 text-[11px] font-medium text-primary">
             <div className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-            <span>UPCOMING TEST: {nextTest.title} · {nextTest.batch?.name} · {nextTest.date}</span>
+            <span>
+              UPCOMING TEST: {nextTest.title} · {nextTest.batch?.name} · {nextTest.date}
+            </span>
           </div>
         ) : null}
       </PageBody>

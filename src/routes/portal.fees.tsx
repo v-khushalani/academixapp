@@ -44,11 +44,7 @@ function PortalFees() {
       <div className="grid grid-cols-3 gap-3">
         <StatTile label="Billed" value={inr(stats.billed)} />
         <StatTile label="Paid" value={inr(stats.paid)} tone="success" />
-        <StatTile
-          label="Due"
-          value={inr(stats.due)}
-          tone={stats.due > 0 ? "warning" : "success"}
-        />
+        <StatTile label="Due" value={inr(stats.due)} tone={stats.due > 0 ? "warning" : "success"} />
       </div>
 
       <PortalCard title="Instalments">

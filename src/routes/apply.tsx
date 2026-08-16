@@ -73,7 +73,7 @@ function ApplyPage() {
           _intent: "admission",
           _token_amount: 0,
           _institute_slug: instituteSlug ?? "",
-        }
+        },
       });
       setName(v.full_name);
       setDone(true);
@@ -113,7 +113,7 @@ function ApplyPage() {
           _intent: "enquiry",
           _token_amount: 0,
           _institute_slug: instituteSlug ?? "",
-        }
+        },
       });
       setName(v.full_name);
       setDone(true);

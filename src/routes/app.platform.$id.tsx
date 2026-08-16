@@ -90,7 +90,10 @@ function InstituteDetailPage() {
     queryKey: ["platform-plan-keys"],
     enabled: allowed,
     queryFn: async () => {
-      const { data, error } = await supabase.from("plan_catalog").select("key,name").order("sort_order");
+      const { data, error } = await supabase
+        .from("plan_catalog")
+        .select("key,name")
+        .order("sort_order");
       if (error) throw error;
       return data ?? [];
     },
@@ -221,7 +224,9 @@ function InstituteEditorDetail({
             <h3 className="text-sm font-semibold border-b pb-2">Plan & Branch Configuration</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label className="text-[10px] uppercase text-muted-foreground">Subscription Plan</Label>
+                <Label className="text-[10px] uppercase text-muted-foreground">
+                  Subscription Plan
+                </Label>
                 <Select value={plan} onValueChange={setPlan}>
                   <SelectTrigger className="h-9">
                     <SelectValue />
@@ -236,7 +241,9 @@ function InstituteEditorDetail({
                 </Select>
               </div>
               <div>
-                <Label className="text-[10px] uppercase text-muted-foreground">Branch Assignment</Label>
+                <Label className="text-[10px] uppercase text-muted-foreground">
+                  Branch Assignment
+                </Label>
                 <Select value={parent} onValueChange={setParent}>
                   <SelectTrigger className="h-9">
                     <SelectValue />
@@ -304,7 +311,12 @@ function InstituteEditorDetail({
       </div>
 
       <div className="flex justify-end pt-4 border-t sticky bottom-0 bg-background/80 backdrop-blur pb-4">
-        <Button onClick={() => save.mutate()} disabled={save.isPending} size="lg" className="w-full sm:w-auto">
+        <Button
+          onClick={() => save.mutate()}
+          disabled={save.isPending}
+          size="lg"
+          className="w-full sm:w-auto"
+        >
           {save.isPending ? "Saving..." : "Save Institute Settings"}
         </Button>
       </div>
@@ -342,7 +354,9 @@ function ListCard({
             </span>
           </li>
         ))}
-        {rows.length === 0 && <li className="px-3 py-3 text-xs text-muted-foreground text-center">None yet.</li>}
+        {rows.length === 0 && (
+          <li className="px-3 py-3 text-xs text-muted-foreground text-center">None yet.</li>
+        )}
       </ul>
     </div>
   );

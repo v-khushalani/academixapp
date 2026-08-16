@@ -4,6 +4,10 @@ import { formatDate } from "@/lib/dates";
 import type { Database } from "@/integrations/supabase/types";
 
 type Tables = Database["public"]["Tables"];
+
+/** PostgREST caps unbounded reads at 1000 rows; ask for a larger explicit window. */
+const MAX_ROWS = 5000;
+
 export type Student = Tables["students"]["Row"];
 export type StudentInsert = Tables["students"]["Insert"];
 export type StudentUpdate = Tables["students"]["Update"];
@@ -60,7 +64,9 @@ export const studentsApi = {
     let q = supabase.from("students").select("*, batch:batches(*)");
     if (opts?.approvals?.length) q = q.in("approval_status", opts.approvals);
     else if (approval !== "all") q = q.eq("approval_status", approval);
-    const { data, error } = await q.order("created_at", { ascending: false });
+    const { data, error } = await q
+      .order("created_at", { ascending: false })
+      .range(0, MAX_ROWS - 1);
     if (error) throw error;
     return (data ?? []) as (Student & { batch?: Batch | null })[];
   },
@@ -155,7 +161,8 @@ export const feesApi = {
     const { data, error } = await supabase
       .from("fees")
       .select("*, student:students(id,full_name,admission_no)")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(0, MAX_ROWS - 1);
     if (error) throw error;
     return data ?? [];
   },
@@ -175,7 +182,7 @@ export const feesApi = {
       _fee_id: feeId,
       _received: received,
       _method: method ?? undefined,
-      _note: note ?? undefined
+      _note: note ?? undefined,
     });
     if (error) throw error;
   },
@@ -293,7 +300,11 @@ export function makeReceiptNo() {
 }
 
 /** Single source of truth for "how much is still owed" on one fee row. */
-export function outstandingOf(f: { amount: number | string; amount_paid?: number | string | null; status?: string | null }) {
+export function outstandingOf(f: {
+  amount: number | string;
+  amount_paid?: number | string | null;
+  status?: string | null;
+}) {
   if (f.status === "waived" || f.status === "paid" || f.status === "cancelled") return 0;
   return Math.max(0, Number(f.amount) - Number(f.amount_paid ?? 0));
 }
@@ -346,7 +357,8 @@ export const leadsApi = {
     const { data, error } = await supabase
       .from("leads")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(0, MAX_ROWS - 1);
     if (error) throw error;
     return data ?? [];
   },
@@ -420,7 +432,7 @@ export const dashboardApi = {
   async overview() {
     const { data, error } = await supabase.rpc("get_dashboard_overview");
     if (error) throw error;
-    
+
     // Default structure for missing today/upcoming fields in the minimal consolidated RPC
     return {
       ...(data as any),
@@ -432,16 +444,16 @@ export const dashboardApi = {
         collectedLastMonth: (data as any).money?.collectedLastMonth ?? 0,
         ageing: { current: 0, d30: 0, d60: 0 },
         defaulters: [],
-        ...(data as any).money
+        ...(data as any).money,
       },
       today: {
         classes: 0,
         batchesScheduled: 0,
         batchesMarked: 0,
         present: 0,
-        absent: 0
+        absent: 0,
       },
-      upcomingTests: []
+      upcomingTests: [],
     };
   },
 };
@@ -635,7 +647,6 @@ export const coursesApi = {
   },
 };
 
-
 // ---------- Users & roles ----------
 export const userRolesApi = {
   async listAll() {
@@ -648,9 +659,9 @@ export const userRolesApi = {
     ]);
     if (e1) throw e1;
     if (e2) throw e2;
-    
+
     // Only return profiles that actually have a role in this institute
-    const userIdsWithRoles = new Set((roles ?? []).map(r => r.user_id));
+    const userIdsWithRoles = new Set((roles ?? []).map((r) => r.user_id));
     const byUser = new Map<string, AppRole[]>();
     (roles ?? []).forEach((r) => {
       const arr = byUser.get(r.user_id) ?? [];
@@ -659,16 +670,16 @@ export const userRolesApi = {
     });
 
     return (profiles ?? [])
-      .filter(p => userIdsWithRoles.has(p.id))
+      .filter((p) => userIdsWithRoles.has(p.id))
       .map((p) => ({ ...p, roles: byUser.get(p.id) ?? [] }));
   },
   async addRole(user_id: string, role: AppRole) {
     const { data: inst } = await supabase.rpc("current_institute_id");
     if (!inst) throw new Error("No institute context");
-    const { error } = await supabase.from("user_roles").insert({ 
-      user_id, 
-      role, 
-      institute_id: inst 
+    const { error } = await supabase.from("user_roles").insert({
+      user_id,
+      role,
+      institute_id: inst,
     });
     if (error) throw error;
   },
@@ -688,15 +699,32 @@ export const userRolesApi = {
 // ---------- Expenses ----------
 export const expensesApi = {
   async list(from?: string, to?: string) {
-    let q = supabase.from("expenses").select("*, faculty:faculty(full_name)").order("date", { ascending: false });
+    let q = supabase
+      .from("expenses")
+      .select("*, faculty:faculty(full_name)")
+      .order("date", { ascending: false });
     if (from) q = q.gte("date", from);
     if (to) q = q.lte("date", to);
     const { data, error } = await q;
     if (error) throw error;
     return data ?? [];
   },
-  async create(input: Tables["expenses"]["Insert"]) {
-    return orThrow(await supabase.from("expenses").insert(input).select().single());
+  async create(
+    input: Omit<Tables["expenses"]["Insert"], "institute_id"> & { institute_id?: string },
+  ) {
+    let instituteId = input.institute_id;
+    if (!instituteId) {
+      const { data: inst } = await supabase.rpc("current_institute_id");
+      instituteId = (inst as string | null) ?? undefined;
+    }
+    if (!instituteId) throw new Error("No institute linked to your account.");
+    return orThrow(
+      await supabase
+        .from("expenses")
+        .insert({ ...input, institute_id: instituteId })
+        .select()
+        .single(),
+    );
   },
   async update(id: string, input: Partial<Tables["expenses"]["Update"]>) {
     return orThrow(await supabase.from("expenses").update(input).eq("id", id).select().single());
@@ -709,7 +737,7 @@ export const expensesApi = {
 
 // ---------- Faculty Attendance & Performance ----------
 export const facultyAttendanceApi = {
-  /** 
+  /**
    * Faculty is "Present" if they have marked both attendance and syllabus for all their scheduled classes today.
    */
   async dailyStatus(date: string) {
@@ -717,14 +745,14 @@ export const facultyAttendanceApi = {
       .from("timetable_slots")
       .select("faculty_id, batch_id")
       .not("faculty_id", "is", null);
-    
+
     if (e1) throw e1;
 
     const { data: attendance, error: e2 } = await supabase
       .from("attendance")
       .select("marked_by, batch_id")
       .eq("date", date);
-    
+
     if (e2) throw e2;
 
     const { data: syllabus, error: e3 } = await supabase
@@ -732,12 +760,12 @@ export const facultyAttendanceApi = {
       .select("faculty_id, chapter_id")
       .gte("created_at", date + "T00:00:00")
       .lte("created_at", date + "T23:59:59");
-    
+
     if (e3) throw e3;
 
     // Logic: Map faculty to their required batches, then check if they marked them
     const facultyWork = new Map<string, Set<string>>();
-    slots.forEach(s => {
+    slots.forEach((s) => {
       if (!s.faculty_id || !s.batch_id) return;
       const set = facultyWork.get(s.faculty_id) ?? new Set();
       set.add(s.batch_id);
@@ -745,22 +773,22 @@ export const facultyAttendanceApi = {
     });
 
     const markedAtt = new Map<string, Set<string>>();
-    attendance.forEach(a => {
+    attendance.forEach((a) => {
       if (!a.marked_by || !a.batch_id) return;
       const set = markedAtt.get(a.marked_by) ?? new Set();
       set.add(a.batch_id);
       markedAtt.set(a.marked_by, set);
     });
 
-    const markedSyl = new Set(syllabus.map(s => s.faculty_id).filter(Boolean));
+    const markedSyl = new Set(syllabus.map((s) => s.faculty_id).filter(Boolean));
 
     return Array.from(facultyWork.entries()).map(([facultyId, requiredBatches]) => {
-      const attDone = Array.from(requiredBatches).every(b => markedAtt.get(facultyId)?.has(b));
+      const attDone = Array.from(requiredBatches).every((b) => markedAtt.get(facultyId)?.has(b));
       const sylDone = markedSyl.has(facultyId);
       return {
         facultyId,
         isAbsent: !attDone || !sylDone,
-        reason: !attDone ? "Attendance not marked" : !sylDone ? "Syllabus not updated" : null
+        reason: !attDone ? "Attendance not marked" : !sylDone ? "Syllabus not updated" : null,
       };
     });
   },
@@ -768,12 +796,10 @@ export const facultyAttendanceApi = {
     const { data: inst } = await supabase.rpc("current_institute_id");
     const { error } = await supabase.rpc("process_faculty_salaries", {
       _institute_id: inst as string,
-      _date: date ?? new Date().toISOString().slice(0, 10)
+      _date: date ?? new Date().toISOString().slice(0, 10),
     });
     if (error) throw error;
-  }
+  },
 };
 
 export { syllabusApi } from "./syllabus";
-
-

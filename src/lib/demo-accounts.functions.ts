@@ -11,9 +11,7 @@ const DEMO_PASSWORD = "Test@1234";
  */
 export const provisionDemoAccounts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
-    z.object({ institute_id: z.string().uuid() }).parse(data)
-  )
+  .inputValidator((data: unknown) => z.object({ institute_id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { data: myRoles } = await context.supabase.rpc("get_my_roles");
     const roles = (myRoles ?? []) as string[];
@@ -41,20 +39,20 @@ export const provisionDemoAccounts = createServerFn({ method: "POST" })
     // Provision Student Accounts
     for (const student of students || []) {
       if (student.user_id) continue;
-      
+
       const email = `demo.stu.${student.id.slice(0, 5)}@academix.demo`;
       const { data: user } = await supabaseAdmin.auth.admin.createUser({
         email,
         password: DEMO_PASSWORD,
         email_confirm: true,
-        user_metadata: { full_name: student.full_name, portal: "student" }
+        user_metadata: { full_name: student.full_name, portal: "student" },
       });
 
       if (user.user) {
         await supabaseAdmin.from("user_roles").insert({
           user_id: user.user.id,
           role: "student",
-          institute_id: data.institute_id
+          institute_id: data.institute_id,
         });
         await supabaseAdmin.from("students").update({ user_id: user.user.id }).eq("id", student.id);
         results.push({ role: "student", email, password: DEMO_PASSWORD });
@@ -64,20 +62,20 @@ export const provisionDemoAccounts = createServerFn({ method: "POST" })
     // Provision Faculty (Teacher) Account
     for (const teacher of facultyMembers || []) {
       if (teacher.user_id) continue;
-      
+
       const email = `demo.teach.${teacher.id.slice(0, 5)}@academix.demo`;
       const { data: user } = await supabaseAdmin.auth.admin.createUser({
         email,
         password: DEMO_PASSWORD,
         email_confirm: true,
-        user_metadata: { full_name: teacher.full_name, portal: "faculty" }
+        user_metadata: { full_name: teacher.full_name, portal: "faculty" },
       });
 
       if (user.user) {
         await supabaseAdmin.from("user_roles").insert({
           user_id: user.user.id,
           role: "faculty",
-          institute_id: data.institute_id
+          institute_id: data.institute_id,
         });
         await supabaseAdmin.from("faculty").update({ user_id: user.user.id }).eq("id", teacher.id);
         results.push({ role: "faculty", email, password: DEMO_PASSWORD });

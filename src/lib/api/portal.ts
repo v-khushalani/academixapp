@@ -70,7 +70,9 @@ export const portalApi = {
     const byId = new Map((names ?? []).map((n) => [n.id, n.full_name]));
     return slots.map((s) => ({
       ...s,
-      faculty: s.faculty_id ? { id: s.faculty_id, full_name: byId.get(s.faculty_id) ?? null } : null,
+      faculty: s.faculty_id
+        ? { id: s.faculty_id, full_name: byId.get(s.faculty_id) ?? null }
+        : null,
     }));
   },
 

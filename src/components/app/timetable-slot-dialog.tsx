@@ -247,7 +247,7 @@ export function TimetableSlotDialog({
               list="timetable-subjects-list"
             />
             <datalist id="timetable-subjects-list">
-              {[...new Set(syllabusChapters.map(c => c.subject).filter(Boolean))].map(s => (
+              {[...new Set(syllabusChapters.map((c) => c.subject).filter(Boolean))].map((s) => (
                 <option key={s} value={s} />
               ))}
             </datalist>

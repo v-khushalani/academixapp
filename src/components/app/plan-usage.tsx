@@ -13,7 +13,8 @@ export function PlanUsageCard() {
     queryFn: () => fetchInstituteControls(),
   });
   const current =
-    controls.find((c) => c.id === activeId) ?? (activeId === ALL_BRANCHES ? controls[0] : undefined);
+    controls.find((c) => c.id === activeId) ??
+    (activeId === ALL_BRANCHES ? controls[0] : undefined);
   const { data } = useUsage();
 
   const rows = data && current ? limitRows(current.limits, data) : [];

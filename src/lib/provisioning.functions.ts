@@ -52,7 +52,7 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
 
     // Explicitly verify the student belongs to an institute the caller can access
     const { data: myInst } = await context.supabase.rpc("current_institute_id");
-    
+
     const { data: student, error: studentError } = await context.supabase
       .from("students")
       .select(

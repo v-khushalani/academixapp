@@ -93,8 +93,14 @@ function TimetablePage() {
     queryKey: ["timetable"],
     queryFn: () => timetableApi.list() as Promise<SlotRow[]>,
   });
-  const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
-  const { data: faculty = [] } = useQuery({ queryKey: ["faculty"], queryFn: () => facultyApi.list() });
+  const { data: batches = [] } = useQuery({
+    queryKey: ["batches"],
+    queryFn: () => batchesApi.list(),
+  });
+  const { data: faculty = [] } = useQuery({
+    queryKey: ["faculty"],
+    queryFn: () => facultyApi.list(),
+  });
   const { data: rooms = [] } = useQuery({ queryKey: ["rooms"], queryFn: () => roomsApi.list() });
   const { data: students = [] } = useQuery({
     queryKey: ["students"],
@@ -169,7 +175,9 @@ function TimetablePage() {
 
   const columns = useMemo(() => {
     const cols = rooms.map((r) => ({ id: r.id, label: r.name, sub: `${r.capacity} seats` }));
-    return cols.length ? cols : [{ id: UNASSIGNED, label: "Classroom 1", sub: "add rooms in Settings" }];
+    return cols.length
+      ? cols
+      : [{ id: UNASSIGNED, label: "Classroom 1", sub: "add rooms in Settings" }];
   }, [rooms]);
 
   const daySlots = useMemo(() => slots.filter((s) => s.day_of_week === day), [slots, day]);
@@ -211,7 +219,12 @@ function TimetablePage() {
         room_id: colId === UNASSIGNED ? null : colId,
         room: colId === UNASSIGNED ? null : (rooms.find((r) => r.id === colId)?.name ?? null),
       };
-      if (findConflicts(moved, slots.filter((s) => s.id !== moving.id)).length) {
+      if (
+        findConflicts(
+          moved,
+          slots.filter((s) => s.id !== moving.id),
+        ).length
+      ) {
         toast.error("That period is already booked for this batch, teacher or room.");
         return;
       }
@@ -244,7 +257,10 @@ function TimetablePage() {
     };
     const conflicts = findConflicts(candidate, slots);
     if (conflicts.length) {
-      const why = conflicts.map((c) => conflictReason(candidate, c)).filter(Boolean).join("; ");
+      const why = conflicts
+        .map((c) => conflictReason(candidate, c))
+        .filter(Boolean)
+        .join("; ");
       toast.error(`Already booked (${why || "same day & time"}).`);
       return;
     }
@@ -339,7 +355,9 @@ function TimetablePage() {
     onSuccess: (made) => {
       qc.invalidateQueries({ queryKey: ["timetable"] });
       toast.success(
-        made ? `${made} class(es) copied to ${DAY_FULL[nextDay]}` : `${DAY_FULL[nextDay]} already has these classes`,
+        made
+          ? `${made} class(es) copied to ${DAY_FULL[nextDay]}`
+          : `${DAY_FULL[nextDay]} already has these classes`,
       );
     },
     onError: (e: Error) => toast.error(e.message),
@@ -468,101 +486,104 @@ function TimetablePage() {
             )}
 
             <TimetableDragProvider onDrop={handleDrop}>
-            <div className="flex flex-col gap-3 lg:flex-row">
-              {canWrite && (
-                <PlanRail
-                  batches={batches.map((b) => ({ id: b.id, name: b.name }))}
-                  faculty={faculty.map((f) => ({ id: f.id, name: f.full_name }))}
-                  subjects={subjectNames}
-                  strength={strength}
-                  placed={placedBatchIds}
-                />
-              )}
-              <div className="min-w-0 flex-1">
-                {isLoading ? (
-                  <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
-                    Loading timetable…
-                  </div>
-                ) : (
-                  <>
-                    <div className="hidden md:block">
-                      <PeriodGrid
-                        innerRef={planRef}
-                        columns={columns}
-                        bands={bands}
-                        cell={cellOf(daySlots)}
-                        canWrite={canWrite}
-                        onDelete={(id) => removeMut.mutate(id)}
-                        cardDrag={(item) => ({ slotId: item.id, label: item.title })}
-                        onEditCol={(colId) => {
-                          const r = rooms.find((x) => x.id === colId);
-                          if (!r) {
-                            toast.info("Add classrooms in Settings → Classrooms & timings");
-                            return;
-                          }
-                          setEditRoom({ id: r.id, name: r.name, capacity: r.capacity });
-                        }}
-                        onCellClick={(colId, band) => {
-                          setEditing(null);
-                          setPresets({
-                            day,
-                            start: band.start,
-                            end: band.end,
-                            roomId: colId === UNASSIGNED ? undefined : colId,
-                          });
-                          setDialogOpen(true);
-                        }}
-                        caption={
-                          <p className="border-b border-border bg-muted/30 px-3 py-1.5 text-[11px] text-muted-foreground">
-                            {DAY_FULL[day]} · drag a <b>batch</b> into an empty period, then drop a{" "}
-                            <b>teacher</b> and a <b>subject</b> on it. Clashes are blocked.
-                          </p>
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2 md:hidden">
-                      {bands.map((b, i) => {
-                        const rows = columns
-                          .map((c) => ({ col: c, s: slotAt(c.id, b, daySlots) }))
-                          .filter((r) => r.s);
-                        return (
-                          <div key={b.start} className="rounded-lg border border-border bg-card p-3">
-                            <p className="text-xs font-semibold">
-                              {formatTime12(b.start)} – {formatTime12(b.end)}
-                            </p>
-                            {rows.length === 0 ? (
-                              <p className="mt-1 text-[11px] text-muted-foreground">Free</p>
-                            ) : (
-                              rows.map(({ col, s }) => (
-                                <button
-                                  key={col.id}
-                                  type="button"
-                                  onClick={() => {
-                                    if (!canWrite || !s) return;
-                                    setEditing(s);
-                                    setPresets({ day });
-                                    setDialogOpen(true);
-                                  }}
-                                  className="mt-1.5 block w-full rounded-md bg-primary/10 px-2 py-1.5 text-left"
-                                >
-                                  <p className="text-xs font-medium">
-                                    {s!.batch?.name ?? "Batch?"} · {s!.subject ?? "Subject?"}
-                                  </p>
-                                  <p className="text-[11px] text-muted-foreground">
-                                    {s!.faculty?.full_name ?? "No teacher"} ·{" "}
-                                    {roomLabel(s!) ?? col.label}
-                                  </p>
-                                </button>
-                              ))
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </>
+              <div className="flex flex-col gap-3 lg:flex-row">
+                {canWrite && (
+                  <PlanRail
+                    batches={batches.map((b) => ({ id: b.id, name: b.name }))}
+                    faculty={faculty.map((f) => ({ id: f.id, name: f.full_name }))}
+                    subjects={subjectNames}
+                    strength={strength}
+                    placed={placedBatchIds}
+                  />
                 )}
+                <div className="min-w-0 flex-1">
+                  {isLoading ? (
+                    <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+                      Loading timetable…
+                    </div>
+                  ) : (
+                    <>
+                      <div className="hidden md:block">
+                        <PeriodGrid
+                          innerRef={planRef}
+                          columns={columns}
+                          bands={bands}
+                          cell={cellOf(daySlots)}
+                          canWrite={canWrite}
+                          onDelete={(id) => removeMut.mutate(id)}
+                          cardDrag={(item) => ({ slotId: item.id, label: item.title })}
+                          onEditCol={(colId) => {
+                            const r = rooms.find((x) => x.id === colId);
+                            if (!r) {
+                              toast.info("Add classrooms in Settings → Classrooms & timings");
+                              return;
+                            }
+                            setEditRoom({ id: r.id, name: r.name, capacity: r.capacity });
+                          }}
+                          onCellClick={(colId, band) => {
+                            setEditing(null);
+                            setPresets({
+                              day,
+                              start: band.start,
+                              end: band.end,
+                              roomId: colId === UNASSIGNED ? undefined : colId,
+                            });
+                            setDialogOpen(true);
+                          }}
+                          caption={
+                            <p className="border-b border-border bg-muted/30 px-3 py-1.5 text-[11px] text-muted-foreground">
+                              {DAY_FULL[day]} · drag a <b>batch</b> into an empty period, then drop
+                              a <b>teacher</b> and a <b>subject</b> on it. Clashes are blocked.
+                            </p>
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2 md:hidden">
+                        {bands.map((b, i) => {
+                          const rows = columns
+                            .map((c) => ({ col: c, s: slotAt(c.id, b, daySlots) }))
+                            .filter((r) => r.s);
+                          return (
+                            <div
+                              key={b.start}
+                              className="rounded-lg border border-border bg-card p-3"
+                            >
+                              <p className="text-xs font-semibold">
+                                {formatTime12(b.start)} – {formatTime12(b.end)}
+                              </p>
+                              {rows.length === 0 ? (
+                                <p className="mt-1 text-[11px] text-muted-foreground">Free</p>
+                              ) : (
+                                rows.map(({ col, s }) => (
+                                  <button
+                                    key={col.id}
+                                    type="button"
+                                    onClick={() => {
+                                      if (!canWrite || !s) return;
+                                      setEditing(s);
+                                      setPresets({ day });
+                                      setDialogOpen(true);
+                                    }}
+                                    className="mt-1.5 block w-full rounded-md bg-primary/10 px-2 py-1.5 text-left"
+                                  >
+                                    <p className="text-xs font-medium">
+                                      {s!.batch?.name ?? "Batch?"} · {s!.subject ?? "Subject?"}
+                                    </p>
+                                    <p className="text-[11px] text-muted-foreground">
+                                      {s!.faculty?.full_name ?? "No teacher"} ·{" "}
+                                      {roomLabel(s!) ?? col.label}
+                                    </p>
+                                  </button>
+                                ))
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
             </TimetableDragProvider>
           </>
         )}
@@ -669,7 +690,9 @@ function PlanRail({
             type="button"
             onClick={() => setStep(i as 0 | 1 | 2)}
             className={`px-1 py-2 text-[11px] font-medium transition-colors ${
-              step === i ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+              step === i
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {t}
@@ -730,7 +753,9 @@ function PlanRail({
               </div>
             ))
           ) : (
-            <p className="text-[11px] text-muted-foreground">Invite teachers from the Faculty page.</p>
+            <p className="text-[11px] text-muted-foreground">
+              Invite teachers from the Faculty page.
+            </p>
           ))}
         {step === 2 &&
           (subjects.length ? (

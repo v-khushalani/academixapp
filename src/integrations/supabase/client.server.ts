@@ -34,13 +34,14 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 
 function createSupabaseAdminClient() {
   const SUPABASE_URL = process.env.SUPABASE_URL;
-  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.EXTERNAL_SUPABASE_SERVICE_ROLE_KEY;
+  const SUPABASE_SERVICE_ROLE_KEY =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.EXTERNAL_SUPABASE_SERVICE_ROLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error(
       "CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing. " +
-      "Please provide EXTERNAL_SUPABASE_SERVICE_ROLE_KEY in your project secrets " +
-      "to use your own Supabase instance without Lovable Cloud."
+        "Please provide EXTERNAL_SUPABASE_SERVICE_ROLE_KEY in your project secrets " +
+        "to use your own Supabase instance without Lovable Cloud.",
     );
   }
 

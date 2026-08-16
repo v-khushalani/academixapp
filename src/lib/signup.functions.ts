@@ -9,16 +9,18 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const createInstituteFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
-    z.object({
-      name: z.string().min(2),
-      tagline: z.string().optional(),
-    }).parse(data)
+    z
+      .object({
+        name: z.string().min(2),
+        tagline: z.string().optional(),
+      })
+      .parse(data),
   )
   .handler(async ({ data, context }) => {
-    const { data: instituteId, error } = await context.supabase.rpc(
-      "create_institute_with_owner",
-      { _name: data.name, _tagline: data.tagline },
-    );
+    const { data: instituteId, error } = await context.supabase.rpc("create_institute_with_owner", {
+      _name: data.name,
+      _tagline: data.tagline,
+    });
 
     if (error) {
       throw new Error(`Failed to create institute: ${error.message}`);
@@ -27,22 +29,23 @@ export const createInstituteFn = createServerFn({ method: "POST" })
     return { success: true, instituteId: instituteId as string };
   });
 
-
 /**
  * Updates branding details for an institute.
- * We use supabaseAdmin here because RLS might be too strict during onboarding 
+ * We use supabaseAdmin here because RLS might be too strict during onboarding
  * (e.g. if the user session hasn't refreshed to see the new role yet).
  */
 export const updateInstituteBrandingFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
-    z.object({
-      institute_id: z.string().uuid(),
-      logo_url: z.string().optional().nullable(),
-      primary_color: z.string().optional().nullable(),
-      address: z.string().optional().nullable(),
-      phone: z.string().optional().nullable(),
-    }).parse(data)
+    z
+      .object({
+        institute_id: z.string().uuid(),
+        logo_url: z.string().optional().nullable(),
+        primary_color: z.string().optional().nullable(),
+        address: z.string().optional().nullable(),
+        phone: z.string().optional().nullable(),
+      })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -69,12 +72,14 @@ export const updateInstituteBrandingFn = createServerFn({ method: "POST" })
 export const setupFirstBatchFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
-    z.object({
-      institute_id: z.string().uuid(),
-      faculty_name: z.string().min(2),
-      batch_name: z.string().min(2),
-      subject: z.string().optional(),
-    }).parse(data)
+    z
+      .object({
+        institute_id: z.string().uuid(),
+        faculty_name: z.string().min(2),
+        batch_name: z.string().min(2),
+        subject: z.string().optional(),
+      })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -96,14 +101,12 @@ export const setupFirstBatchFn = createServerFn({ method: "POST" })
     }
 
     // 2. Create Batch
-    const { error: batchError } = await supabaseAdmin
-      .from("batches")
-      .insert({
-        name: data.batch_name,
-        faculty_id: faculty.id,
-        institute_id: data.institute_id,
-        status: "active",
-      });
+    const { error: batchError } = await supabaseAdmin.from("batches").insert({
+      name: data.batch_name,
+      faculty_id: faculty.id,
+      institute_id: data.institute_id,
+      status: "active",
+    });
 
     if (batchError) {
       console.error("Batch creation error:", batchError);
@@ -132,9 +135,9 @@ export const getMyInstituteStatusFn = createServerFn({ method: "GET" })
       return { hasInstitute: false, role: null, instituteId: null, error: error.message };
     }
 
-    return { 
-      hasInstitute: !!role?.institute_id, 
+    return {
+      hasInstitute: !!role?.institute_id,
       role: role?.role || null,
-      instituteId: role?.institute_id || null 
+      instituteId: role?.institute_id || null,
     };
   });

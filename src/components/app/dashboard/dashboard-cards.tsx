@@ -107,7 +107,13 @@ export function Metric({
   );
 }
 
-export function Bar({ pct, tone = "primary" }: { pct: number; tone?: "primary" | "warning" | "danger" | "success" }) {
+export function Bar({
+  pct,
+  tone = "primary",
+}: {
+  pct: number;
+  tone?: "primary" | "warning" | "danger" | "success";
+}) {
   const bg = {
     primary: "bg-primary",
     warning: "bg-warning",
@@ -116,7 +122,10 @@ export function Bar({ pct, tone = "primary" }: { pct: number; tone?: "primary" |
   }[tone];
   return (
     <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-      <div className={cn("h-full rounded-full", bg)} style={{ width: `${Math.min(100, Math.max(0, pct))}%` }} />
+      <div
+        className={cn("h-full rounded-full", bg)}
+        style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+      />
     </div>
   );
 }

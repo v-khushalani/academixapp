@@ -16,11 +16,9 @@ export const listOrphanedUsersFn = createServerFn({ method: "GET" })
     }
 
     // 1. Get all users who have a role in any institute
-    const { data: usersWithRoles } = await supabaseAdmin
-      .from("user_roles")
-      .select("user_id");
+    const { data: usersWithRoles } = await supabaseAdmin.from("user_roles").select("user_id");
 
-    const linkedUserIds = new Set(usersWithRoles?.map(r => r.user_id) || []);
+    const linkedUserIds = new Set(usersWithRoles?.map((r) => r.user_id) || []);
 
     // 2. Get users from profiles (since auth.users isn't directly queryable via select in some setups, we use the public profile as a proxy)
     const { data: allProfiles } = await supabaseAdmin
@@ -28,7 +26,7 @@ export const listOrphanedUsersFn = createServerFn({ method: "GET" })
       .select("id, full_name, created_at");
 
     // Filter those who don't have roles
-    const orphaned = allProfiles?.filter(p => !linkedUserIds.has(p.id)) || [];
+    const orphaned = allProfiles?.filter((p) => !linkedUserIds.has(p.id)) || [];
 
     return orphaned;
   });
@@ -39,9 +37,11 @@ export const listOrphanedUsersFn = createServerFn({ method: "GET" })
 export const deleteUserFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
-    z.object({
-      user_id: z.string().uuid(),
-    }).parse(data)
+    z
+      .object({
+        user_id: z.string().uuid(),
+      })
+      .parse(data),
   )
   .handler(async ({ data, context }) => {
     // SECURITY: Ensure the caller is a superadmin

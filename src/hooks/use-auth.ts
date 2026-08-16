@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { hydrateInstitute } from "@/lib/academy-settings";
+import { hydrateInstitute, hydrateTemplates } from "@/lib/academy-settings";
 
 export type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -39,7 +39,10 @@ async function bootstrap() {
   const roles = user ? await loadRoles(user.id) : [];
   cache = { session, user, roles, loading: false };
   notify();
-  if (user) void hydrateInstitute().catch(() => {});
+  if (user) {
+    void hydrateInstitute().catch(() => {});
+    void hydrateTemplates().catch(() => {});
+  }
 
   supabase.auth.onAuthStateChange(async (event, s) => {
     const u = s?.user ?? null;
@@ -48,6 +51,7 @@ async function bootstrap() {
     notify();
     if (u && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
       void hydrateInstitute().catch(() => {});
+      void hydrateTemplates().catch(() => {});
     }
   });
 }

@@ -53,7 +53,7 @@ export function LoginCard({
     }
 
     const { data: roleRows, error: roleError } = await supabase.rpc("get_my_roles");
-    
+
     if (roleError) {
       console.error("Role fetch error:", roleError);
       setBusy(false);
@@ -62,7 +62,7 @@ export function LoginCard({
     }
 
     const roles = (roleRows ?? []) as AppRole[];
-    
+
     // Use the unified home helper
     const { homeForRoles } = await import("@/lib/post-auth");
     const to = homeForRoles(roles);
@@ -70,7 +70,9 @@ export function LoginCard({
     if (!to) {
       await supabase.auth.signOut();
       setBusy(false);
-      toast.error("No role has been assigned to this account yet. Ask your institute to enable access.");
+      toast.error(
+        "No role has been assigned to this account yet. Ask your institute to enable access.",
+      );
       return;
     }
 

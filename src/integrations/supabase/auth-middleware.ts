@@ -34,7 +34,9 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 export const requireSupabaseAuth = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
     const SUPABASE_URL = process.env.SUPABASE_URL || "https://jjqdcdwvcxmeplmuhvha.supabase.co";
-    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqcWRjZHd2Y3htZXBsbXVodmhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzOTI5ODQsImV4cCI6MjA5ODk2ODk4NH0.GDBwt-qRw_TxU3Z1Siaw_Xs54YhZzhniBsgNkcXJS1o";
+    const SUPABASE_PUBLISHABLE_KEY =
+      process.env.SUPABASE_PUBLISHABLE_KEY ||
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqcWRjZHd2Y3htZXBsbXVodmhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzOTI5ODQsImV4cCI6MjA5ODk2ODk4NH0.GDBwt-qRw_TxU3Z1Siaw_Xs54YhZzhniBsgNkcXJS1o";
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       throw new Error("Unauthorized: Supabase connection not configured");

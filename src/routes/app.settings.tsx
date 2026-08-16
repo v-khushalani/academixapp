@@ -19,13 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import {
-  batchesApi,
-  instituteApi,
-  roomsApi,
-  userRolesApi,
-  type AppRole,
-} from "@/lib/api";
+import { batchesApi, instituteApi, roomsApi, userRolesApi, type AppRole } from "@/lib/api";
 import { SUPPORT_PHONE } from "@/lib/institute-controls";
 import {
   getInstitute,
@@ -171,8 +165,8 @@ function ReceiptTemplatePanel() {
       {!isPaid && (
         <div className="mt-4 rounded-md bg-muted/50 p-3 text-center">
           <p className="text-xs text-muted-foreground">
-            You are on the <span className="font-bold capitalize">{plan}</span> plan. 
-            Paid templates are available in <strong>Growth</strong> and <strong>Campus</strong>.
+            You are on the <span className="font-bold capitalize">{plan}</span> plan. Paid templates
+            are available in <strong>Growth</strong> and <strong>Campus</strong>.
           </p>
         </div>
       )}
@@ -941,18 +935,26 @@ function TemplatesPanel() {
         <div className="flex justify-end gap-2">
           <Button
             variant="outline"
-            onClick={() => {
+            onClick={async () => {
               setTpls(WA_TEMPLATES);
-              saveTemplates(WA_TEMPLATES);
-              toast.success("Reset to defaults");
+              try {
+                await saveTemplates(WA_TEMPLATES);
+                toast.success("Reset to defaults");
+              } catch (e) {
+                toast.error((e as Error).message);
+              }
             }}
           >
             Reset
           </Button>
           <Button
-            onClick={() => {
-              saveTemplates(tpls);
-              toast.success("Templates saved");
+            onClick={async () => {
+              try {
+                await saveTemplates(tpls);
+                toast.success("Templates saved");
+              } catch (e) {
+                toast.error((e as Error).message);
+              }
             }}
           >
             Save

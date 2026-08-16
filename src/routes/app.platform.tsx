@@ -1,7 +1,16 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ShieldCheck, ArrowRight, ExternalLink, UserMinus, Loader2, Trash2, AlertTriangle, RefreshCw } from "lucide-react";
+import {
+  ShieldCheck,
+  ArrowRight,
+  ExternalLink,
+  UserMinus,
+  Loader2,
+  Trash2,
+  AlertTriangle,
+  RefreshCw,
+} from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Input } from "@/components/ui/input";
@@ -94,7 +103,10 @@ function PlatformPage() {
     queryKey: ["platform-plan-keys"],
     enabled: !!allowed,
     queryFn: async () => {
-      const { data, error } = await supabase.from("plan_catalog").select("key,name").order("sort_order");
+      const { data, error } = await supabase
+        .from("plan_catalog")
+        .select("key,name")
+        .order("sort_order");
       if (error) throw error;
       return data ?? [];
     },
@@ -147,8 +159,14 @@ function PlatformPage() {
 
           <TabsContent value="institutes">
             <div className="grid gap-3 sm:grid-cols-3">
-              <Stat label="Institutes" value={institutes.filter((i) => !i.parent_institute_id).length} />
-              <Stat label="Branches" value={institutes.filter((i) => i.parent_institute_id).length} />
+              <Stat
+                label="Institutes"
+                value={institutes.filter((i) => !i.parent_institute_id).length}
+              />
+              <Stat
+                label="Branches"
+                value={institutes.filter((i) => i.parent_institute_id).length}
+              />
               <Stat
                 label="Students on platform"
                 value={institutes.reduce((a, i) => a + Number(i.students ?? 0), 0)}
@@ -196,8 +214,8 @@ function PlatformPage() {
                         {i.batch_limit > 0 ? ` / ${i.batch_limit}` : ""}
                       </td>
                       <td className="px-3 py-2 text-right">
-                        <Link 
-                          to="/app/platform/$id" 
+                        <Link
+                          to="/app/platform/$id"
                           params={{ id: i.id }}
                           className="inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity"
                         >
@@ -208,7 +226,10 @@ function PlatformPage() {
                   ))}
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-3 py-6 text-center text-xs text-muted-foreground">
+                      <td
+                        colSpan={4}
+                        className="px-3 py-6 text-center text-xs text-muted-foreground"
+                      >
                         No institutes match.
                       </td>
                     </tr>
@@ -452,7 +473,9 @@ function ListCard({
             </span>
           </li>
         ))}
-        {rows.length === 0 && <li className="px-3 py-3 text-xs text-muted-foreground">None yet.</li>}
+        {rows.length === 0 && (
+          <li className="px-3 py-3 text-xs text-muted-foreground">None yet.</li>
+        )}
       </ul>
     </div>
   );
@@ -464,7 +487,11 @@ function DangerZone() {
   const [loading, setLoading] = useState(false);
 
   const handleWipe = async () => {
-    if (!confirm("CRITICAL: This will delete ALL data (institutes, students, batches, etc.) and ALL users except you. This cannot be undone. Are you absolutely sure?")) {
+    if (
+      !confirm(
+        "CRITICAL: This will delete ALL data (institutes, students, batches, etc.) and ALL users except you. This cannot be undone. Are you absolutely sure?",
+      )
+    ) {
       return;
     }
 
@@ -495,16 +522,16 @@ function DangerZone() {
             <div>
               <p className="font-semibold text-sm">Wipe Database & Reset Platform</p>
               <p className="text-xs text-muted-foreground max-w-md">
-                Deletes all data, all institutes, and all users except you. You will be assigned as the single Super Admin.
+                Deletes all data, all institutes, and all users except you. You will be assigned as
+                the single Super Admin.
               </p>
             </div>
-            <Button 
-              variant="destructive" 
-              onClick={handleWipe} 
-              disabled={loading}
-              className="gap-2"
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            <Button variant="destructive" onClick={handleWipe} disabled={loading} className="gap-2">
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
               Wipe Everything
             </Button>
           </div>
@@ -533,15 +560,20 @@ function OrphanedUsersManager() {
     onError: (err: any) => toast.error(err.message || "Failed to delete user"),
   });
 
-  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary" /></div>;
+  if (isLoading)
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="animate-spin text-primary" />
+      </div>
+    );
 
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-border bg-card p-4">
         <h2 className="text-sm font-semibold">Trial & Orphaned Users</h2>
         <p className="text-xs text-muted-foreground mt-1">
-          These users have logged in via Google but have not created an institute or been added to one. 
-          Use this list to clean up trial signups.
+          These users have logged in via Google but have not created an institute or been added to
+          one. Use this list to clean up trial signups.
         </p>
       </div>
 
@@ -567,7 +599,9 @@ function OrphanedUsersManager() {
                     size="icon"
                     className="text-destructive hover:bg-destructive/10"
                     onClick={() => {
-                      if (confirm("Are you sure you want to delete this user? This cannot be undone.")) {
+                      if (
+                        confirm("Are you sure you want to delete this user? This cannot be undone.")
+                      ) {
                         deleteMutation.mutate(user.id);
                       }
                     }}

@@ -25,16 +25,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { batchesApi, leadsApi, studentsApi, type Lead, type LeadInsert, type Student } from "@/lib/api";
+import {
+  batchesApi,
+  leadsApi,
+  studentsApi,
+  type Lead,
+  type LeadInsert,
+  type Student,
+} from "@/lib/api";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { useAuth } from "@/hooks/use-auth";
 import { can, isSuperAdmin } from "@/lib/rbac";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  provisionPortalAccounts,
-  type ProvisionedAccount,
-} from "@/lib/provisioning.functions";
+import { provisionPortalAccounts, type ProvisionedAccount } from "@/lib/provisioning.functions";
 import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
 import { getInstitute, getTemplates } from "@/lib/academy-settings";
 import { ApplicantPreview } from "@/components/app/applicant-preview";
@@ -398,14 +402,10 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
                 </p>
               </td>
               <td className="px-4 py-3 text-sm">
-                {Number(s.token_amount ?? 0) > 0
-                  ? inr(s.token_amount)
-                  : "—"}
+                {Number(s.token_amount ?? 0) > 0 ? inr(s.token_amount) : "—"}
               </td>
               <td className="px-4 py-3 text-xs text-muted-foreground">
-                {s.onboarding_completed_at
-                  ? formatDate(s.onboarding_completed_at)
-                  : "—"}
+                {s.onboarding_completed_at ? formatDate(s.onboarding_completed_at) : "—"}
               </td>
               <td className="px-4 py-3">
                 {canWrite && (
@@ -506,7 +506,7 @@ function CredentialsDialog({
       student_name: a.name,
       parent_name: "Parent",
       academy_name: institute,
-      details: `${typeof window !== "undefined" ? window.location.origin : ""}/login/student\nLogin ID: ${a.loginId}\n${a.password ? `Temporary password: ${a.password}` : "Use your existing password."}`
+      details: `${typeof window !== "undefined" ? window.location.origin : ""}/login/student\nLogin ID: ${a.loginId}\n${a.password ? `Temporary password: ${a.password}` : "Use your existing password."}`,
     }).replace("New homework has been assigned for", "Your portal login is ready for");
 
   return (
@@ -568,15 +568,7 @@ function CredentialsDialog({
 }
 
 /* -------------------- QR panel -------------------- */
-function QrCard({
-  title,
-  blurb,
-  url,
-}: {
-  title: string;
-  blurb: string;
-  url: string;
-}) {
+function QrCard({ title, blurb, url }: { title: string; blurb: string; url: string }) {
   function copy() {
     navigator.clipboard.writeText(url).then(() => toast.success("Link copied"));
   }
@@ -637,8 +629,8 @@ function QrPanel() {
             student name, parent name, phone, class and interest. It lands in <b>Follow-ups</b>.
           </li>
           <li>
-            <b>Follow-ups</b> — your counsellor calls them, notes what happened, and when the
-            parent agrees, sends them the admission link (or fills it at the desk).
+            <b>Follow-ups</b> — your counsellor calls them, notes what happened, and when the parent
+            agrees, sends them the admission link (or fills it at the desk).
           </li>
           <li>
             <b>Admission QR</b> — full form: child details, both parents, address, program and
