@@ -197,9 +197,11 @@ function SignupPage() {
               understand what I want, not to be written down. Understand their content well, then
               execute what is required.'''
             </h1>
-            <p className="mt-3 text-muted-foreground">
-              jaise hi google login kiya, account was already created with proper logo as in the
-              past
+            <p className="mt-3 text-muted-foreground whitespace-pre-line">
+              create mock accounts xyz@academix.website and password: "Test@1234" for all roles for
+              me to verify
+
+              also, add mock data for me to cross check
             </p>
             <div className="mt-10">
               <GoogleButton label="Continue with Google" />
