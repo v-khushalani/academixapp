@@ -4,6 +4,10 @@ import { formatDate } from "@/lib/dates";
 import type { Database } from "@/integrations/supabase/types";
 
 type Tables = Database["public"]["Tables"];
+
+/** PostgREST caps unbounded reads at 1000 rows; ask for a larger explicit window. */
+const MAX_ROWS = 5000;
+
 export type Student = Tables["students"]["Row"];
 export type StudentInsert = Tables["students"]["Insert"];
 export type StudentUpdate = Tables["students"]["Update"];
