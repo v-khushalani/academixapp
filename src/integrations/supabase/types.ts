@@ -737,6 +737,7 @@ export type Database = {
           updated_at: string
           upi_id: string | null
           upi_name: string | null
+          wa_templates: Json
         }
         Insert: {
           academic_year?: string | null
@@ -766,6 +767,7 @@ export type Database = {
           updated_at?: string
           upi_id?: string | null
           upi_name?: string | null
+          wa_templates?: Json
         }
         Update: {
           academic_year?: string | null
@@ -795,6 +797,7 @@ export type Database = {
           updated_at?: string
           upi_id?: string | null
           upi_name?: string | null
+          wa_templates?: Json
         }
         Relationships: [
           {
