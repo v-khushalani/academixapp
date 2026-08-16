@@ -60,7 +60,9 @@ export const studentsApi = {
     let q = supabase.from("students").select("*, batch:batches(*)");
     if (opts?.approvals?.length) q = q.in("approval_status", opts.approvals);
     else if (approval !== "all") q = q.eq("approval_status", approval);
-    const { data, error } = await q.order("created_at", { ascending: false });
+    const { data, error } = await q
+      .order("created_at", { ascending: false })
+      .range(0, MAX_ROWS - 1);
     if (error) throw error;
     return (data ?? []) as (Student & { batch?: Batch | null })[];
   },
@@ -155,7 +157,8 @@ export const feesApi = {
     const { data, error } = await supabase
       .from("fees")
       .select("*, student:students(id,full_name,admission_no)")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(0, MAX_ROWS - 1);
     if (error) throw error;
     return data ?? [];
   },
@@ -346,7 +349,8 @@ export const leadsApi = {
     const { data, error } = await supabase
       .from("leads")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(0, MAX_ROWS - 1);
     if (error) throw error;
     return data ?? [];
   },
