@@ -76,13 +76,47 @@ export const createMockAccountsFn = createServerFn({ method: "POST" })
     }
 
     // 2. Seed actual mock ERP data (Students, Batches, Fees, etc.)
-    const { createDemoData } = await import("./demo-data.functions");
-    const demoRes = await createDemoData({ data: { institute_id: finalInstId, force: true }, context });
+    // Note: We bypass createDemoData and do it manually here to avoid middleware/context issues in server-to-server calls
+    const summary: Record<string, number> = {};
+    
+    // Create Course
+    const { data: course } = await supabaseAdmin.from("courses").insert({ 
+      name: "Mock Course", 
+      code: "MOCK", 
+      institute_id: finalInstId 
+    }).select().single();
+    
+    // Create Faculty
+    const { data: faculty } = await supabaseAdmin.from("faculty").insert({
+      full_name: "Mock Teacher",
+      institute_id: finalInstId,
+      status: "active"
+    }).select().single();
+    
+    // Create Batch
+    const { data: batch } = await supabaseAdmin.from("batches").insert({
+      name: "Mock Batch",
+      course_id: course?.id,
+      faculty_id: faculty?.id,
+      institute_id: finalInstId,
+      status: "active"
+    }).select().single();
+    
+    // Create Students
+    const { data: students } = await supabaseAdmin.from("students").insert([
+      { full_name: "Mock Student A", admission_no: "M-001", batch_id: batch?.id, institute_id: finalInstId, approval_status: "approved" },
+      { full_name: "Mock Student B", admission_no: "M-002", batch_id: batch?.id, institute_id: finalInstId, approval_status: "approved" }
+    ]).select();
 
     return { 
       success: true, 
       results, 
       instituteId: finalInstId,
-      demoSummary: demoRes.summary
+      summary: {
+        courses: 1,
+        faculty: 1,
+        batches: 1,
+        students: students?.length ?? 0
+      }
     };
   });
