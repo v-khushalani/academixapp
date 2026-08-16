@@ -169,7 +169,6 @@ function ExpenseForm({ initial, faculty, onSuccess }: { initial?: any; faculty: 
         ...formData,
         amount: Number(formData.amount),
         faculty_id: formData.faculty_id || null,
-        institute_id: (await facultyApi.list())[0]?.institute_id, // This is a hack, better to get current_institute_id from hook
       } as any);
       toast.success("Expense added");
       onSuccess();
