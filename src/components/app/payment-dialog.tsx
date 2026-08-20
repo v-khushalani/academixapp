@@ -25,6 +25,7 @@ import { downloadReceipt, receiptFile, type ReceiptInput } from "@/lib/receipt";
 import { getInstitute } from "@/lib/academy-settings";
 import { formatDate } from "@/lib/dates";
 import { openWhatsApp } from "@/lib/whatsapp";
+import { logMessage } from "@/lib/api/messages";
 import { feesApi } from "@/lib/api";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 
@@ -149,7 +150,19 @@ export function PaymentDialog({
       URL.revokeObjectURL(url);
       toast.success("QR image saved — attach it in WhatsApp");
     }
-    if (!openWhatsApp(target!.phone, caption)) toast.error("No phone number on file.");
+    const okQr = openWhatsApp(target!.phone, caption);
+    logMessage([
+      {
+        kind: "fee_reminder",
+        title: "Payment QR",
+        message: caption,
+        status: okQr ? "sent" : "failed",
+        recipient_name: target!.student_name,
+        recipient_phone: target!.phone ?? null,
+        fee_id: target!.id,
+      },
+    ]);
+    if (!okQr) toast.error("No phone number on file.");
   }
 
   async function sendReceipt() {
@@ -168,8 +181,22 @@ export function PaymentDialog({
       }
     }
     await downloadReceipt(receipt);
-    if (!openWhatsApp(target!.phone, `${text}\n\n(Receipt PDF attached from your downloads.)`))
-      toast.error("No phone number on file.");
+    const okReceipt = openWhatsApp(
+      target!.phone,
+      `${text}\n\n(Receipt PDF attached from your downloads.)`,
+    );
+    logMessage([
+      {
+        kind: "fee_receipt",
+        title: `Receipt ${no}`,
+        message: text,
+        status: okReceipt ? "sent" : "failed",
+        recipient_name: target!.student_name,
+        recipient_phone: target!.phone ?? null,
+        fee_id: target!.id,
+      },
+    ]);
+    if (!okReceipt) toast.error("No phone number on file.");
   }
 
   // ---- phase 2: money is in, now the receipt ------------------------------
