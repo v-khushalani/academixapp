@@ -175,6 +175,16 @@ export function PaymentDialog({
     if (nav.canShare?.({ files: [file] }) && nav.share) {
       try {
         await nav.share({ files: [file], text, title: `Receipt ${no}` });
+        logMessage([
+          {
+            kind: "fee_receipt",
+            title: `Receipt ${no}`,
+            message: text,
+            recipient_name: target!.student_name,
+            recipient_phone: target!.phone ?? null,
+            fee_id: target!.id,
+          },
+        ]);
         return;
       } catch {
         /* user cancelled — fall through to WhatsApp text */
