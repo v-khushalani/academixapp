@@ -198,10 +198,7 @@ function SignupPage() {
               execute what is required.'''
             </h1>
             <p className="mt-3 text-muted-foreground whitespace-pre-line">
-              create mock accounts xyz@academix.website and password: "Test@1234" for all roles for
-              me to verify
-
-              also, add mock data for me to cross check
+              Load the security issues from the scan results and fix the selected issues.
             </p>
             <div className="mt-10">
               <GoogleButton label="Continue with Google" />
