@@ -46,6 +46,7 @@ import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppSalariesRouteImport } from './routes/app.salaries'
 import { Route as AppReportsRouteImport } from './routes/app.reports'
 import { Route as AppPlatformRouteImport } from './routes/app.platform'
+import { Route as AppMessagesRouteImport } from './routes/app.messages'
 import { Route as AppFeesRouteImport } from './routes/app.fees'
 import { Route as AppFacultyRouteImport } from './routes/app.faculty'
 import { Route as AppBatchesRouteImport } from './routes/app.batches'
@@ -241,6 +242,11 @@ const AppPlatformRoute = AppPlatformRouteImport.update({
   path: '/platform',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMessagesRoute = AppMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppFeesRoute = AppFeesRouteImport.update({
   id: '/fees',
   path: '/fees',
@@ -303,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
+  '/app/messages': typeof AppMessagesRoute
   '/app/platform': typeof AppPlatformRoute
   '/app/reports': typeof AppReportsRoute
   '/app/salaries': typeof AppSalariesRoute
@@ -348,6 +355,7 @@ export interface FileRoutesByTo {
   '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
+  '/app/messages': typeof AppMessagesRoute
   '/app/platform': typeof AppPlatformRoute
   '/app/reports': typeof AppReportsRoute
   '/app/salaries': typeof AppSalariesRoute
@@ -397,6 +405,7 @@ export interface FileRoutesById {
   '/app/batches': typeof AppBatchesRouteWithChildren
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
+  '/app/messages': typeof AppMessagesRoute
   '/app/platform': typeof AppPlatformRoute
   '/app/reports': typeof AppReportsRoute
   '/app/salaries': typeof AppSalariesRoute
@@ -447,6 +456,7 @@ export interface FileRouteTypes {
     | '/app/batches'
     | '/app/faculty'
     | '/app/fees'
+    | '/app/messages'
     | '/app/platform'
     | '/app/reports'
     | '/app/salaries'
@@ -492,6 +502,7 @@ export interface FileRouteTypes {
     | '/app/batches'
     | '/app/faculty'
     | '/app/fees'
+    | '/app/messages'
     | '/app/platform'
     | '/app/reports'
     | '/app/salaries'
@@ -540,6 +551,7 @@ export interface FileRouteTypes {
     | '/app/batches'
     | '/app/faculty'
     | '/app/fees'
+    | '/app/messages'
     | '/app/platform'
     | '/app/reports'
     | '/app/salaries'
@@ -857,6 +869,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPlatformRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/messages': {
+      id: '/app/messages'
+      path: '/messages'
+      fullPath: '/app/messages'
+      preLoaderRoute: typeof AppMessagesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/fees': {
       id: '/app/fees'
       path: '/fees'
@@ -965,6 +984,7 @@ interface AppRouteChildren {
   AppBatchesRoute: typeof AppBatchesRouteWithChildren
   AppFacultyRoute: typeof AppFacultyRoute
   AppFeesRoute: typeof AppFeesRoute
+  AppMessagesRoute: typeof AppMessagesRoute
   AppPlatformRoute: typeof AppPlatformRoute
   AppReportsRoute: typeof AppReportsRoute
   AppSalariesRoute: typeof AppSalariesRoute
@@ -982,6 +1002,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBatchesRoute: AppBatchesRouteWithChildren,
   AppFacultyRoute: AppFacultyRoute,
   AppFeesRoute: AppFeesRoute,
+  AppMessagesRoute: AppMessagesRoute,
   AppPlatformRoute: AppPlatformRoute,
   AppReportsRoute: AppReportsRoute,
   AppSalariesRoute: AppSalariesRoute,
