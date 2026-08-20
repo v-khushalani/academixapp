@@ -57,7 +57,7 @@ export function AbsentAlerts() {
         status: ok ? "sent" : "failed",
         recipient_name: row.student?.full_name ?? null,
         recipient_phone: phone,
-        student_id: row.student_id,
+        student_id: row.student?.id ?? null,
       },
     ]);
     if (!ok) {
