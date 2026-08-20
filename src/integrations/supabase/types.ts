@@ -125,114 +125,10 @@ export type Database = {
           },
         ]
       }
-      audit_logs: {
-        Row: {
-          action: string
-          actor_id: string | null
-          created_at: string
-          entity_id: string
-          entity_type: string
-          id: string
-          institute_id: string
-          ip_address: string | null
-          new_data: Json | null
-          old_data: Json | null
-          user_agent: string | null
-        }
-        Insert: {
-          action: string
-          actor_id?: string | null
-          created_at?: string
-          entity_id: string
-          entity_type: string
-          id?: string
-          institute_id: string
-          ip_address?: string | null
-          new_data?: Json | null
-          old_data?: Json | null
-          user_agent?: string | null
-        }
-        Update: {
-          action?: string
-          actor_id?: string | null
-          created_at?: string
-          entity_id?: string
-          entity_type?: string
-          id?: string
-          institute_id?: string
-          ip_address?: string | null
-          new_data?: Json | null
-          old_data?: Json | null
-          user_agent?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_institute_id_fkey"
-            columns: ["institute_id"]
-            isOneToOne: false
-            referencedRelation: "institutes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      automation_rules: {
-        Row: {
-          action: Json
-          channel: Database["public"]["Enums"]["notification_channel"]
-          condition: Json
-          created_at: string
-          created_by: string | null
-          delay_minutes: number
-          id: string
-          institute_id: string
-          is_active: boolean
-          name: string
-          trigger_key: Database["public"]["Enums"]["automation_trigger"]
-          updated_at: string
-        }
-        Insert: {
-          action?: Json
-          channel?: Database["public"]["Enums"]["notification_channel"]
-          condition?: Json
-          created_at?: string
-          created_by?: string | null
-          delay_minutes?: number
-          id?: string
-          institute_id?: string
-          is_active?: boolean
-          name: string
-          trigger_key: Database["public"]["Enums"]["automation_trigger"]
-          updated_at?: string
-        }
-        Update: {
-          action?: Json
-          channel?: Database["public"]["Enums"]["notification_channel"]
-          condition?: Json
-          created_at?: string
-          created_by?: string | null
-          delay_minutes?: number
-          id?: string
-          institute_id?: string
-          is_active?: boolean
-          name?: string
-          trigger_key?: Database["public"]["Enums"]["automation_trigger"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "automation_rules_institute_id_fkey"
-            columns: ["institute_id"]
-            isOneToOne: false
-            referencedRelation: "institutes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       batches: {
         Row: {
           capacity: number
           class_level: string | null
-          course_id: string | null
           created_at: string
           default_fee: number
           end_date: string | null
@@ -251,7 +147,6 @@ export type Database = {
         Insert: {
           capacity?: number
           class_level?: string | null
-          course_id?: string | null
           created_at?: string
           default_fee?: number
           end_date?: string | null
@@ -270,7 +165,6 @@ export type Database = {
         Update: {
           capacity?: number
           class_level?: string | null
-          course_id?: string | null
           created_at?: string
           default_fee?: number
           end_date?: string | null
@@ -288,52 +182,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "batches_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "batches_institute_id_fkey"
-            columns: ["institute_id"]
-            isOneToOne: false
-            referencedRelation: "institutes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      courses: {
-        Row: {
-          code: string | null
-          created_at: string
-          description: string | null
-          id: string
-          institute_id: string
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          code?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          institute_id?: string
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          code?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          institute_id?: string
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "courses_institute_id_fkey"
             columns: ["institute_id"]
             isOneToOne: false
             referencedRelation: "institutes"
@@ -1174,87 +1023,6 @@ export type Database = {
         }
         Relationships: []
       }
-      student_activities: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          description: string | null
-          fee_id: string | null
-          id: string
-          institute_id: string
-          lead_id: string | null
-          metadata: Json
-          source: Database["public"]["Enums"]["activity_source"]
-          student_id: string | null
-          test_id: string | null
-          title: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          fee_id?: string | null
-          id?: string
-          institute_id?: string
-          lead_id?: string | null
-          metadata?: Json
-          source?: Database["public"]["Enums"]["activity_source"]
-          student_id?: string | null
-          test_id?: string | null
-          title: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          fee_id?: string | null
-          id?: string
-          institute_id?: string
-          lead_id?: string | null
-          metadata?: Json
-          source?: Database["public"]["Enums"]["activity_source"]
-          student_id?: string | null
-          test_id?: string | null
-          title?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "student_activities_fee_id_fkey"
-            columns: ["fee_id"]
-            isOneToOne: false
-            referencedRelation: "fees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "student_activities_institute_id_fkey"
-            columns: ["institute_id"]
-            isOneToOne: false
-            referencedRelation: "institutes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "student_activities_lead_id_fkey"
-            columns: ["lead_id"]
-            isOneToOne: false
-            referencedRelation: "leads"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "student_activities_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "student_activities_test_id_fkey"
-            columns: ["test_id"]
-            isOneToOne: false
-            referencedRelation: "tests"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       student_device_ids: {
         Row: {
           created_at: string
@@ -1293,76 +1061,6 @@ export type Database = {
           },
           {
             foreignKeyName: "student_device_ids_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      student_documents: {
-        Row: {
-          category: string
-          created_at: string
-          file_path: string
-          file_size: number | null
-          id: string
-          institute_id: string
-          lead_id: string | null
-          mime_type: string | null
-          notes: string | null
-          student_id: string
-          title: string
-          updated_at: string
-          uploaded_by: string | null
-        }
-        Insert: {
-          category?: string
-          created_at?: string
-          file_path: string
-          file_size?: number | null
-          id?: string
-          institute_id?: string
-          lead_id?: string | null
-          mime_type?: string | null
-          notes?: string | null
-          student_id: string
-          title: string
-          updated_at?: string
-          uploaded_by?: string | null
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          file_path?: string
-          file_size?: number | null
-          id?: string
-          institute_id?: string
-          lead_id?: string | null
-          mime_type?: string | null
-          notes?: string | null
-          student_id?: string
-          title?: string
-          updated_at?: string
-          uploaded_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "student_documents_institute_id_fkey"
-            columns: ["institute_id"]
-            isOneToOne: false
-            referencedRelation: "institutes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "student_documents_lead_id_fkey"
-            columns: ["lead_id"]
-            isOneToOne: false
-            referencedRelation: "leads"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "student_documents_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
@@ -1549,51 +1247,6 @@ export type Database = {
           },
           {
             foreignKeyName: "students_institute_id_fkey"
-            columns: ["institute_id"]
-            isOneToOne: false
-            referencedRelation: "institutes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      subjects: {
-        Row: {
-          code: string | null
-          course_id: string | null
-          created_at: string
-          id: string
-          institute_id: string
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          code?: string | null
-          course_id?: string | null
-          created_at?: string
-          id?: string
-          institute_id?: string
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          code?: string | null
-          course_id?: string | null
-          created_at?: string
-          id?: string
-          institute_id?: string
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "subjects_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "subjects_institute_id_fkey"
             columns: ["institute_id"]
             isOneToOne: false
             referencedRelation: "institutes"
@@ -2256,14 +1909,6 @@ export type Database = {
       }
     }
     Enums: {
-      activity_source:
-        | "admissions"
-        | "attendance"
-        | "fees"
-        | "tests"
-        | "documents"
-        | "automation"
-        | "manual"
       app_role:
         | "owner"
         | "admin"
@@ -2431,15 +2076,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      activity_source: [
-        "admissions",
-        "attendance",
-        "fees",
-        "tests",
-        "documents",
-        "automation",
-        "manual",
-      ],
       app_role: [
         "owner",
         "admin",
