@@ -21,10 +21,6 @@ export type TimetableSlot = Tables["timetable_slots"]["Row"];
 export type TimetableSlotInsert = Tables["timetable_slots"]["Insert"];
 export type Room = Tables["rooms"]["Row"];
 export type RoomInsert = Tables["rooms"]["Insert"];
-export type Subject = Tables["subjects"]["Row"];
-export type Course = Tables["courses"]["Row"];
-export type CourseInsert = Tables["courses"]["Insert"];
-export type SubjectInsert = Tables["subjects"]["Insert"];
 export type UserRole = Tables["user_roles"]["Row"];
 export type AppRole = Database["public"]["Enums"]["app_role"];
 export type DayPlan = Tables["timetable_day_plan"]["Row"];
@@ -755,46 +751,6 @@ export const attendanceListApi = {
       .eq("date", date);
     if (error) throw error;
     return data ?? [];
-  },
-};
-
-// ---------- Courses & Subjects ----------
-export const coursesApi = {
-  async list() {
-    const { data, error } = await supabase.from("courses").select("*").order("name");
-    if (error) throw error;
-    return data ?? [];
-  },
-  async create(input: CourseInsert) {
-    return orThrow(await supabase.from("courses").insert(input).select().single());
-  },
-  async update(id: string, input: Partial<CourseInsert>) {
-    return orThrow(await supabase.from("courses").update(input).eq("id", id).select().single());
-  },
-  async remove(id: string) {
-    const { error } = await supabase.from("courses").delete().eq("id", id);
-    if (error) throw error;
-  },
-};
-
-export const subjectsApi = {
-  async list() {
-    const { data, error } = await supabase
-      .from("subjects")
-      .select("*, course:courses(id,name)")
-      .order("name");
-    if (error) throw error;
-    return data ?? [];
-  },
-  async create(input: SubjectInsert) {
-    return orThrow(await supabase.from("subjects").insert(input).select().single());
-  },
-  async update(id: string, input: Partial<SubjectInsert>) {
-    return orThrow(await supabase.from("subjects").update(input).eq("id", id).select().single());
-  },
-  async remove(id: string) {
-    const { error } = await supabase.from("subjects").delete().eq("id", id);
-    if (error) throw error;
   },
 };
 
