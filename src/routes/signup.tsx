@@ -193,12 +193,10 @@ function SignupPage() {
         {step === "auth" && (
           <div className="text-center">
             <h1 className="text-3xl font-semibold tracking-tight">
-              '''Do not make any visual modifications. The phrases I write are commands to
-              understand what I want, not to be written down. Understand their content well, then
-              execute what is required.'''
+              Welcome to Academix
             </h1>
             <p className="mt-3 text-muted-foreground whitespace-pre-line">
-              Load the security issues from the scan results and fix the selected issues.
+              Set up your coaching institute in minutes. Admissions, Attendance, Fees, and more.
             </p>
             <div className="mt-10">
               <GoogleButton label="Continue with Google" />
