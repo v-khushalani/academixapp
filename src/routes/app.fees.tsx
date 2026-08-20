@@ -24,6 +24,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { can } from "@/lib/rbac";
 import { WA_TEMPLATES, openWhatsApp, renderTemplate } from "@/lib/whatsapp";
+import { logMessage } from "@/lib/api/messages";
 import { getTemplates, getInstitute } from "@/lib/academy-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate } from "@/lib/dates";
@@ -249,7 +250,20 @@ function FeesPage() {
       receipt_no: r.receipt_no ?? "—",
       academy_name: getInstitute().name,
     });
-    if (!openWhatsApp(phone, msg)) toast.error("No phone number on file for this parent/student.");
+    const ok = openWhatsApp(phone, msg);
+    logMessage([
+      {
+        kind: isPaid ? "fee_receipt" : "fee_reminder",
+        title: isPaid ? "Fee receipt" : "Fee reminder",
+        message: msg,
+        status: ok ? "sent" : "failed",
+        recipient_name: s?.full_name ?? null,
+        recipient_phone: phone,
+        student_id: r.student_id,
+        fee_id: r.id,
+      },
+    ]);
+    if (!ok) toast.error("No phone number on file for this parent/student.");
   }
 
   return (

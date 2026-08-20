@@ -19,6 +19,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import type { Database } from "@/integrations/supabase/types";
 import { WA_TEMPLATES, openWhatsApp, renderTemplate } from "@/lib/whatsapp";
+import { logMessage } from "@/lib/api/messages";
 import { getTemplates, getInstitute } from "@/lib/academy-settings";
 
 type Status = Database["public"]["Enums"]["attendance_status"];
@@ -126,7 +127,19 @@ function AttendancePage() {
       date,
       academy_name: getInstitute().name,
     });
-    if (!openWhatsApp(phone, msg)) toast.error("No parent/student phone on file.");
+    const ok = openWhatsApp(phone, msg);
+    logMessage([
+      {
+        kind: "attendance_absent",
+        title: "Attendance alert",
+        message: msg,
+        status: ok ? "sent" : "failed",
+        recipient_name: s.full_name,
+        recipient_phone: phone,
+        student_id: s.id,
+      },
+    ]);
+    if (!ok) toast.error("No parent/student phone on file.");
   }
 
   return (
