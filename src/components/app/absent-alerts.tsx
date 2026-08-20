@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { attendanceApi } from "@/lib/api";
 import { getInstitute, getTemplates } from "@/lib/academy-settings";
 import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
+import { logMessage } from "@/lib/api/messages";
 
 /**
  * Office-side nudge: as soon as a teacher marks someone absent, the admin gets a
@@ -47,7 +48,19 @@ export function AbsentAlerts() {
       academy_name: inst.name,
     });
     const phone = row.student?.parent_phone ?? row.student?.phone ?? null;
-    if (!openWhatsApp(phone, msg)) {
+    const ok = openWhatsApp(phone, msg);
+    logMessage([
+      {
+        kind: "attendance_absent",
+        title: "Attendance alert",
+        message: msg,
+        status: ok ? "sent" : "failed",
+        recipient_name: row.student?.full_name ?? null,
+        recipient_phone: phone,
+        student_id: row.student?.id ?? null,
+      },
+    ]);
+    if (!ok) {
       toast.error(`No phone number on file for ${row.student?.full_name ?? "this student"}.`);
       return;
     }
