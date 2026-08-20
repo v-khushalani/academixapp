@@ -10,7 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-
+import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -39,7 +39,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
-    // Error tracking could be added here
+    reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
   return (
@@ -78,46 +78,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Academix — #1 Coaching Institute ERP & Academy Management Software India" },
+      { title: "Academix — Institute ERP for Coaching Centres" },
       {
         name: "description",
         content:
-          "Academix is India's most advanced Institute ERP and LMS for coaching centers. Manage admissions, fees, attendance, and syllabus with dedicated portals for admin, teachers, and parents.",
+          "Admissions by QR, attendance, fees with UPI, tests and timetable — plus separate portals for admin, teachers and parents. Built for coaching institutes.",
       },
-      { name: "author", content: "Academix Team" },
-      {
-        property: "og:title",
-        content: "Academix — Coaching Institute ERP & School LMS Software India",
-      },
+      { name: "author", content: "Academix" },
+      { property: "og:title", content: "Academix — Institute ERP for Coaching Centres" },
       {
         property: "og:description",
         content:
-          "Transform your academy with the leading multi-tenant ERP for coaching centers. QR admissions, automated WhatsApp fee receipts, and syllabus tracking.",
+          "Admissions by QR, attendance, fees with UPI, tests and timetable — plus separate portals for admin, teachers and parents. Built for coaching institutes.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Academix — Best Institute Management ERP India" },
-      {
-        name: "twitter:description",
-        content:
-          "India's best ERP for coaching institutes. Features admissions, fee collection, syllabus tracking, and portals for all stakeholders.",
-      },
-      {
-        property: "og:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b0bd8a54-8248-4685-a7b0-f4b9a2993425/id-preview-c44f677a--16835a18-300a-469b-8bf2-6c7cc98982e8.lovable.app-1783651327037.png",
-      },
-      {
-        name: "twitter:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b0bd8a54-8248-4685-a7b0-f4b9a2993425/id-preview-c44f677a--16835a18-300a-469b-8bf2-6c7cc98982e8.lovable.app-1783651327037.png",
-      },
-      {
-        name: "keywords",
-        content:
-          "coaching institute management software, best school erp india, institute lms software, academy management erp, fee management software for coaching, student attendance management app, syllabus tracker for teachers, multi-tenant school software, coaching portal software",
-      },
-      { name: "robots", content: "index, follow" },
+      { name: "twitter:title", content: "Academix — Institute ERP for Coaching Centres" },
+      { name: "twitter:description", content: "Admissions by QR, attendance, fees with UPI, tests and timetable — plus separate portals for admin, teachers and parents. Built for coaching institutes." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b0bd8a54-8248-4685-a7b0-f4b9a2993425/id-preview-c44f677a--16835a18-300a-469b-8bf2-6c7cc98982e8.lovable.app-1783651327037.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b0bd8a54-8248-4685-a7b0-f4b9a2993425/id-preview-c44f677a--16835a18-300a-469b-8bf2-6c7cc98982e8.lovable.app-1783651327037.png" },
     ],
     links: [
       {

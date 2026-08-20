@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BookOpen, CalendarCheck, ClipboardList, Home, LogOut, NotebookPen } from "lucide-react";
+import { BookOpen, CalendarCheck, ClipboardList, Home, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { getInstitute } from "@/lib/academy-settings";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,6 @@ const NAV = [
   { to: "/teach/attendance", label: "Attendance", icon: CalendarCheck },
   { to: "/teach/marks", label: "Marks", icon: ClipboardList },
   { to: "/teach/syllabus", label: "Syllabus", icon: BookOpen },
-  { to: "/teach/homework", label: "Homework", icon: NotebookPen },
 ];
 
 function TeachLayout() {
@@ -36,18 +35,9 @@ function TeachLayout() {
 
   useEffect(() => {
     if (loading) return;
-    if (!session) {
-      navigate({ to: "/login" });
-      return;
-    }
-
-    if (roles.length === 0) {
-      navigate({ to: "/signup" });
-      return;
-    }
-
-    if (isFamily) navigate({ to: "/portal" });
-  }, [loading, session, isFamily, navigate, roles]);
+    if (!session) navigate({ to: "/login/teacher" });
+    else if (isFamily) navigate({ to: "/portal" });
+  }, [loading, session, isFamily, navigate]);
 
   if (loading || !session || isFamily) {
     return (

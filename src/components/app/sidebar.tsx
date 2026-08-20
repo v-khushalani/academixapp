@@ -6,7 +6,6 @@ import {
   Layers,
   CalendarCheck,
   Wallet,
-  IndianRupee,
   FileText,
   Calendar,
   BookOpen,
@@ -33,9 +32,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { canAccess, isSuperAdmin, type ModuleKey } from "@/lib/rbac";
 import { useEffect, useState } from "react";
 import { getInstitute } from "@/lib/academy-settings";
-import { useQuery } from "@tanstack/react-query";
-import { featureOn, fetchInstituteControls, type FeatureKey } from "@/lib/institute-controls";
-import { useBranches, ALL_BRANCHES } from "@/lib/branch";
 
 type NavItem = {
   title: string;
@@ -51,7 +47,6 @@ const nav: NavItem[] = [
   { title: "Batches", url: "/app/batches", icon: Layers, key: "batches" },
   { title: "Attendance", url: "/app/attendance", icon: CalendarCheck, key: "attendance" },
   { title: "Fees", url: "/app/fees", icon: Wallet, key: "fees" },
-  { title: "Expenses", url: "/app/expenses", icon: IndianRupee, key: "fees" },
   { title: "Tests", url: "/app/tests", icon: FileText, key: "tests" },
   { title: "Syllabus", url: "/app/syllabus", icon: BookOpen, key: "syllabus" },
   { title: "Timetable", url: "/app/timetable", icon: Calendar, key: "timetable" },
@@ -91,20 +86,6 @@ export function AppSidebar() {
 
   const base = nav.filter((n) => roles.length === 0 || canAccess(n.key, roles));
   const superadmin = isSuperAdmin(roles);
-
-  // Modules Team Academix has switched off for this institute disappear entirely.
-  const { activeId } = useBranches();
-  const { data: controls = [] } = useQuery({
-    queryKey: ["institute-controls"],
-    queryFn: () => fetchInstituteControls(),
-    enabled: !superadmin,
-  });
-  const current =
-    controls.find((c) => c.id === activeId) ??
-    (activeId === ALL_BRANCHES ? controls[0] : undefined);
-  const visible = superadmin
-    ? base
-    : base.filter((n) => featureOn(current?.features, n.key as FeatureKey) || !current);
 
   const renderItem = (item: NavItem) => {
     const active = isActive(item.url, item.exact);
@@ -152,20 +133,21 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {superadmin ? (
+        {/* Team Academix work lives in its own section, above the institute it is viewing. */}
+        {superadmin && (
           <SidebarGroup>
             {!collapsed && <SidebarGroupLabel>Team Academix</SidebarGroupLabel>}
             <SidebarGroupContent>
               <SidebarMenu>{renderItem(platformNav)}</SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        ) : (
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>{visible.map(renderItem)}</SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
         )}
+        <SidebarGroup>
+          {superadmin && !collapsed && <SidebarGroupLabel>Institute</SidebarGroupLabel>}
+          <SidebarGroupContent>
+            <SidebarMenu>{base.map(renderItem)}</SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>

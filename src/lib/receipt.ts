@@ -1,11 +1,9 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getInstitute } from "./academy-settings";
-import { receiptNo, inr } from "./payments";
-import { pdfCurrency } from "./format";
-import { embedSaira } from "./pdf-font";
+import { receiptNo } from "./payments";
+import { useSaira } from "./pdf-font";
 import { formatDate } from "./dates";
-import { buildModernReceipt, buildProfessionalReceipt } from "./receipt-templates";
 
 export type ReceiptInput = {
   receipt_no?: string | null;
@@ -22,6 +20,9 @@ export type ReceiptInput = {
   parent_name?: string | null;
   received_now?: number | null;
 };
+
+/** Saira is embedded in the PDF, so the ₹ glyph renders correctly. */
+const rs = (n: number) => "₹" + Math.round(Number(n) || 0).toLocaleString("en-IN");
 
 const ONES = [
   "",
@@ -77,25 +78,15 @@ export function amountInWords(value: number): string {
 /** Builds the A5 receipt. Only the amount received on this payment is shown. */
 export async function buildReceipt(f: ReceiptInput): Promise<{ doc: jsPDF; no: string }> {
   const inst = getInstitute();
-  const template = inst.receipt_template || "classic";
   const no = receiptNo(f.receipt_no);
   const doc = new jsPDF({ unit: "mm", format: "a5", orientation: "portrait" });
-  const FONT = await embedSaira(doc);
-  const rs = (n: number) => pdfCurrency(n, FONT);
+  const FONT = await useSaira(doc);
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
   const M = 10;
   const received = Number(f.received_now ?? f.amount_paid) || 0;
 
-  // ---- template logic ---------------------------------------------------
-  if (template === "modern") {
-    return buildModernReceipt(doc, inst, f, no, FONT);
-  }
-  if (template === "professional") {
-    return buildProfessionalReceipt(doc, inst, f, no, FONT);
-  }
-
-  // ---- classic header band -----------------------------------------------
+  // ---- header band -------------------------------------------------------
   doc.setFillColor(23, 37, 84);
   doc.rect(0, 0, W, 26, "F");
   doc.setTextColor(255);
@@ -202,14 +193,9 @@ export async function buildReceipt(f: ReceiptInput): Promise<{ doc: jsPDF; no: s
 
 /** Generates the receipt PDF and triggers download. Returns the receipt number used. */
 export async function downloadReceipt(f: ReceiptInput): Promise<string> {
-  try {
-    const { doc, no } = await buildReceipt(f);
-    doc.save(`${no}.pdf`);
-    return no;
-  } catch (err) {
-    console.error("Receipt download failed:", err);
-    throw new Error("Could not generate PDF. Please try again.");
-  }
+  const { doc, no } = await buildReceipt(f);
+  doc.save(`${no}.pdf`);
+  return no;
 }
 
 /** Receipt as a File, for the native share sheet (WhatsApp attachment). */

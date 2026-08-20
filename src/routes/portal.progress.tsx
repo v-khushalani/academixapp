@@ -56,7 +56,9 @@ function PortalProgress() {
     }));
 
   const avg =
-    points.length === 0 ? 0 : Math.round(points.reduce((s, p) => s + p.pct, 0) / points.length);
+    points.length === 0
+      ? 0
+      : Math.round(points.reduce((s, p) => s + p.pct, 0) / points.length);
   const best = points.reduce((m, p) => Math.max(m, p.pct), 0);
 
   return (

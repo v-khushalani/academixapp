@@ -198,183 +198,183 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
         {!isEdit && tab === "link" ? (
           <SelfFillLink onDone={() => onOpenChange(false)} />
         ) : (
-          <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
-            {isEdit && (
-              <div className="sm:col-span-2 flex items-center justify-between rounded-md border border-border bg-muted/40 px-3 py-2">
-                <p className="text-xs text-muted-foreground">
-                  {canEditDetails
-                    ? "Enrolment details are locked after the student submits the form. Only admins can change them."
-                    : "Enrolment details can only be changed by an admin."}
-                </p>
-                {canEditDetails && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowDetails((v) => !v)}
-                  >
-                    {showDetails ? "Hide details" : "Edit details"}
-                  </Button>
-                )}
-              </div>
-            )}
-            {showDetails && (
-              <>
-                <Field label="Admission #">
-                  <Input
-                    value={form.admission_no}
-                    onChange={(e) => setForm({ ...form, admission_no: e.target.value })}
-                    required
-                  />
-                </Field>
-                <Field label="Full name">
-                  <Input
-                    value={form.full_name}
-                    onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                    required
-                  />
-                </Field>
-                <Field label="Class">
-                  <Input
-                    value={form.class ?? ""}
-                    onChange={(e) => setForm({ ...form, class: e.target.value })}
-                  />
-                </Field>
-                <Field label="School">
-                  <Input
-                    value={form.school ?? ""}
-                    onChange={(e) => setForm({ ...form, school: e.target.value })}
-                  />
-                </Field>
-                <Field label="Father's name *">
-                  <Input
-                    value={form.father_name ?? ""}
-                    onChange={(e) => setForm({ ...form, father_name: e.target.value })}
-                    required
-                  />
-                </Field>
-                <Field label="Father's phone *">
-                  <Input
-                    value={form.father_phone ?? ""}
-                    onChange={(e) => setForm({ ...form, father_phone: e.target.value })}
-                    placeholder="10-digit"
-                    required
-                  />
-                </Field>
-                <Field label="Mother's name *">
-                  <Input
-                    value={form.mother_name ?? ""}
-                    onChange={(e) => setForm({ ...form, mother_name: e.target.value })}
-                    required
-                  />
-                </Field>
-                <Field label="Mother's phone *">
-                  <Input
-                    value={form.mother_phone ?? ""}
-                    onChange={(e) => setForm({ ...form, mother_phone: e.target.value })}
-                    placeholder="10-digit"
-                    required
-                  />
-                </Field>
-                <Field label="Default WhatsApp contact" className="sm:col-span-2">
-                  <Select
-                    value={form.preferred_contact ?? "father"}
-                    onValueChange={(v) => setForm({ ...form, preferred_contact: v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="father">Father</SelectItem>
-                      <SelectItem value="mother">Mother</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field label="Phone">
-                  <Input
-                    value={form.phone ?? ""}
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  />
-                </Field>
-                <Field label="Email">
-                  <Input
-                    type="email"
-                    value={form.email ?? ""}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  />
-                </Field>
-              </>
-            )}
-            <Field label="Batch">
-              <Select
-                value={form.batch_id ?? "none"}
-                onValueChange={(v) => setForm({ ...form, batch_id: v === "none" ? null : v })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Unassigned" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Unassigned</SelectItem>
-                  {batchOptions.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Scholarship (%)">
+        <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+          {isEdit && (
+            <div className="sm:col-span-2 flex items-center justify-between rounded-md border border-border bg-muted/40 px-3 py-2">
+              <p className="text-xs text-muted-foreground">
+                {canEditDetails
+                  ? "Enrolment details are locked after the student submits the form. Only admins can change them."
+                  : "Enrolment details can only be changed by an admin."}
+              </p>
+              {canEditDetails && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDetails((v) => !v)}
+                >
+                  {showDetails ? "Hide details" : "Edit details"}
+                </Button>
+              )}
+            </div>
+          )}
+          {showDetails && (
+            <>
+          <Field label="Admission #">
+            <Input
+              value={form.admission_no}
+              onChange={(e) => setForm({ ...form, admission_no: e.target.value })}
+              required
+            />
+          </Field>
+          <Field label="Full name">
+            <Input
+              value={form.full_name}
+              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+              required
+            />
+          </Field>
+          <Field label="Class">
+            <Input
+              value={form.class ?? ""}
+              onChange={(e) => setForm({ ...form, class: e.target.value })}
+            />
+          </Field>
+          <Field label="School">
+            <Input
+              value={form.school ?? ""}
+              onChange={(e) => setForm({ ...form, school: e.target.value })}
+            />
+          </Field>
+          <Field label="Father's name *">
+            <Input
+              value={form.father_name ?? ""}
+              onChange={(e) => setForm({ ...form, father_name: e.target.value })}
+              required
+            />
+          </Field>
+          <Field label="Father's phone *">
+            <Input
+              value={form.father_phone ?? ""}
+              onChange={(e) => setForm({ ...form, father_phone: e.target.value })}
+              placeholder="10-digit"
+              required
+            />
+          </Field>
+          <Field label="Mother's name *">
+            <Input
+              value={form.mother_name ?? ""}
+              onChange={(e) => setForm({ ...form, mother_name: e.target.value })}
+              required
+            />
+          </Field>
+          <Field label="Mother's phone *">
+            <Input
+              value={form.mother_phone ?? ""}
+              onChange={(e) => setForm({ ...form, mother_phone: e.target.value })}
+              placeholder="10-digit"
+              required
+            />
+          </Field>
+          <Field label="Default WhatsApp contact" className="sm:col-span-2">
+            <Select
+              value={form.preferred_contact ?? "father"}
+              onValueChange={(v) => setForm({ ...form, preferred_contact: v })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="father">Father</SelectItem>
+                <SelectItem value="mother">Mother</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Phone">
+            <Input
+              value={form.phone ?? ""}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            />
+          </Field>
+          <Field label="Email">
+            <Input
+              type="email"
+              value={form.email ?? ""}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+          </Field>
+            </>
+          )}
+          <Field label="Batch">
+            <Select
+              value={form.batch_id ?? "none"}
+              onValueChange={(v) => setForm({ ...form, batch_id: v === "none" ? null : v })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Unassigned" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Unassigned</SelectItem>
+                {batchOptions.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Scholarship (%)">
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              step="0.01"
+              value={form.scholarship_percent ?? 0}
+              onChange={(e) => setForm({ ...form, scholarship_percent: Number(e.target.value) })}
+            />
+          </Field>
+          <Field label="Discount (₹)">
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              value={form.discount ?? 0}
+              onChange={(e) => setForm({ ...form, discount: Number(e.target.value) })}
+            />
+          </Field>
+          <Field label="Status" className="sm:col-span-2">
+            <Select
+              value={form.status ?? "active"}
+              onValueChange={(v) => setForm({ ...form, status: v as StudentInsert["status"] })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="alumni">Alumni</SelectItem>
+                <SelectItem value="dropped">Dropped</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          {showDetails && (
+            <Field label="Address" className="sm:col-span-2">
               <Input
-                type="number"
-                min={0}
-                max={100}
-                step="0.01"
-                value={form.scholarship_percent ?? 0}
-                onChange={(e) => setForm({ ...form, scholarship_percent: Number(e.target.value) })}
+                value={form.address ?? ""}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
               />
             </Field>
-            <Field label="Discount (₹)">
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                value={form.discount ?? 0}
-                onChange={(e) => setForm({ ...form, discount: Number(e.target.value) })}
-              />
-            </Field>
-            <Field label="Status" className="sm:col-span-2">
-              <Select
-                value={form.status ?? "active"}
-                onValueChange={(v) => setForm({ ...form, status: v as StudentInsert["status"] })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="alumni">Alumni</SelectItem>
-                  <SelectItem value="dropped">Dropped</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-            {showDetails && (
-              <Field label="Address" className="sm:col-span-2">
-                <Input
-                  value={form.address ?? ""}
-                  onChange={(e) => setForm({ ...form, address: e.target.value })}
-                />
-              </Field>
-            )}
-            <DialogFooter className="sm:col-span-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving…" : "Save"}
-              </Button>
-            </DialogFooter>
-          </form>
+          )}
+          <DialogFooter className="sm:col-span-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? "Saving…" : "Save"}
+            </Button>
+          </DialogFooter>
+        </form>
         )}
       </DialogContent>
     </Dialog>
@@ -427,9 +427,7 @@ function SelfFillLink({ onDone }: { onDone: () => void }) {
             type="button"
             variant="outline"
             className="flex-1 gap-1.5"
-            onClick={() =>
-              navigator.clipboard.writeText(link).then(() => toast.success("Link copied"))
-            }
+            onClick={() => navigator.clipboard.writeText(link).then(() => toast.success("Link copied"))}
           >
             <Copy className="h-4 w-4" />
             Copy link

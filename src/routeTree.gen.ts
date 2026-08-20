@@ -25,7 +25,6 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as WelcomeTokenRouteImport } from './routes/welcome.$token'
 import { Route as TeachSyllabusRouteImport } from './routes/teach.syllabus'
 import { Route as TeachMarksRouteImport } from './routes/teach.marks'
-import { Route as TeachHomeworkRouteImport } from './routes/teach.homework'
 import { Route as TeachAttendanceRouteImport } from './routes/teach.attendance'
 import { Route as PortalTimetableRouteImport } from './routes/portal.timetable'
 import { Route as PortalProgressRouteImport } from './routes/portal.progress'
@@ -33,7 +32,10 @@ import { Route as PortalHomeworkRouteImport } from './routes/portal.homework'
 import { Route as PortalFeesRouteImport } from './routes/portal.fees'
 import { Route as PortalAttendanceRouteImport } from './routes/portal.attendance'
 import { Route as OnboardTokenRouteImport } from './routes/onboard.$token'
+import { Route as LoginTeacherRouteImport } from './routes/login.teacher'
+import { Route as LoginStudentRouteImport } from './routes/login.student'
 import { Route as LoginPlatformRouteImport } from './routes/login.platform'
+import { Route as LoginAdminRouteImport } from './routes/login.admin'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppTimetableRouteImport } from './routes/app.timetable'
@@ -45,13 +47,11 @@ import { Route as AppReportsRouteImport } from './routes/app.reports'
 import { Route as AppPlatformRouteImport } from './routes/app.platform'
 import { Route as AppFeesRouteImport } from './routes/app.fees'
 import { Route as AppFacultyRouteImport } from './routes/app.faculty'
-import { Route as AppExpensesRouteImport } from './routes/app.expenses'
 import { Route as AppBatchesRouteImport } from './routes/app.batches'
 import { Route as AppAttendanceRouteImport } from './routes/app.attendance'
 import { Route as AppAdmissionsRouteImport } from './routes/app.admissions'
 import { Route as AppTestsIdRouteImport } from './routes/app.tests.$id'
 import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
-import { Route as AppPlatformIdRouteImport } from './routes/app.platform.$id'
 import { Route as AppBatchesIdRouteImport } from './routes/app.batches.$id'
 import { Route as ApiPublicAttendancePunchRouteImport } from './routes/api/public/attendance.punch'
 
@@ -135,11 +135,6 @@ const TeachMarksRoute = TeachMarksRouteImport.update({
   path: '/marks',
   getParentRoute: () => TeachRoute,
 } as any)
-const TeachHomeworkRoute = TeachHomeworkRouteImport.update({
-  id: '/homework',
-  path: '/homework',
-  getParentRoute: () => TeachRoute,
-} as any)
 const TeachAttendanceRoute = TeachAttendanceRouteImport.update({
   id: '/attendance',
   path: '/attendance',
@@ -175,9 +170,24 @@ const OnboardTokenRoute = OnboardTokenRouteImport.update({
   path: '/onboard/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginTeacherRoute = LoginTeacherRouteImport.update({
+  id: '/login/teacher',
+  path: '/login/teacher',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginStudentRoute = LoginStudentRouteImport.update({
+  id: '/login/student',
+  path: '/login/student',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginPlatformRoute = LoginPlatformRouteImport.update({
   id: '/login/platform',
   path: '/login/platform',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginAdminRoute = LoginAdminRouteImport.update({
+  id: '/login/admin',
+  path: '/login/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JoinTokenRoute = JoinTokenRouteImport.update({
@@ -235,11 +245,6 @@ const AppFacultyRoute = AppFacultyRouteImport.update({
   path: '/faculty',
   getParentRoute: () => AppRoute,
 } as any)
-const AppExpensesRoute = AppExpensesRouteImport.update({
-  id: '/expenses',
-  path: '/expenses',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppBatchesRoute = AppBatchesRouteImport.update({
   id: '/batches',
   path: '/batches',
@@ -264,11 +269,6 @@ const AppStudentsIdRoute = AppStudentsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AppStudentsRoute,
-} as any)
-const AppPlatformIdRoute = AppPlatformIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AppPlatformRoute,
 } as any)
 const AppBatchesIdRoute = AppBatchesIdRouteImport.update({
   id: '/$id',
@@ -295,10 +295,9 @@ export interface FileRoutesByFullPath {
   '/app/admissions': typeof AppAdmissionsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
-  '/app/expenses': typeof AppExpensesRoute
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
-  '/app/platform': typeof AppPlatformRouteWithChildren
+  '/app/platform': typeof AppPlatformRoute
   '/app/reports': typeof AppReportsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
@@ -307,7 +306,10 @@ export interface FileRoutesByFullPath {
   '/app/timetable': typeof AppTimetableRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
+  '/login/admin': typeof LoginAdminRoute
   '/login/platform': typeof LoginPlatformRoute
+  '/login/student': typeof LoginStudentRoute
+  '/login/teacher': typeof LoginTeacherRoute
   '/onboard/$token': typeof OnboardTokenRoute
   '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/fees': typeof PortalFeesRoute
@@ -315,7 +317,6 @@ export interface FileRoutesByFullPath {
   '/portal/progress': typeof PortalProgressRoute
   '/portal/timetable': typeof PortalTimetableRoute
   '/teach/attendance': typeof TeachAttendanceRoute
-  '/teach/homework': typeof TeachHomeworkRoute
   '/teach/marks': typeof TeachMarksRoute
   '/teach/syllabus': typeof TeachSyllabusRoute
   '/welcome/$token': typeof WelcomeTokenRoute
@@ -324,7 +325,6 @@ export interface FileRoutesByFullPath {
   '/portal/': typeof PortalIndexRoute
   '/teach/': typeof TeachIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
-  '/app/platform/$id': typeof AppPlatformIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
   '/api/public/attendance/punch': typeof ApiPublicAttendancePunchRoute
@@ -339,10 +339,9 @@ export interface FileRoutesByTo {
   '/app/admissions': typeof AppAdmissionsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
-  '/app/expenses': typeof AppExpensesRoute
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
-  '/app/platform': typeof AppPlatformRouteWithChildren
+  '/app/platform': typeof AppPlatformRoute
   '/app/reports': typeof AppReportsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
@@ -351,7 +350,10 @@ export interface FileRoutesByTo {
   '/app/timetable': typeof AppTimetableRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
+  '/login/admin': typeof LoginAdminRoute
   '/login/platform': typeof LoginPlatformRoute
+  '/login/student': typeof LoginStudentRoute
+  '/login/teacher': typeof LoginTeacherRoute
   '/onboard/$token': typeof OnboardTokenRoute
   '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/fees': typeof PortalFeesRoute
@@ -359,7 +361,6 @@ export interface FileRoutesByTo {
   '/portal/progress': typeof PortalProgressRoute
   '/portal/timetable': typeof PortalTimetableRoute
   '/teach/attendance': typeof TeachAttendanceRoute
-  '/teach/homework': typeof TeachHomeworkRoute
   '/teach/marks': typeof TeachMarksRoute
   '/teach/syllabus': typeof TeachSyllabusRoute
   '/welcome/$token': typeof WelcomeTokenRoute
@@ -368,7 +369,6 @@ export interface FileRoutesByTo {
   '/portal': typeof PortalIndexRoute
   '/teach': typeof TeachIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
-  '/app/platform/$id': typeof AppPlatformIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
   '/api/public/attendance/punch': typeof ApiPublicAttendancePunchRoute
@@ -387,10 +387,9 @@ export interface FileRoutesById {
   '/app/admissions': typeof AppAdmissionsRoute
   '/app/attendance': typeof AppAttendanceRoute
   '/app/batches': typeof AppBatchesRouteWithChildren
-  '/app/expenses': typeof AppExpensesRoute
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
-  '/app/platform': typeof AppPlatformRouteWithChildren
+  '/app/platform': typeof AppPlatformRoute
   '/app/reports': typeof AppReportsRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
@@ -399,7 +398,10 @@ export interface FileRoutesById {
   '/app/timetable': typeof AppTimetableRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
+  '/login/admin': typeof LoginAdminRoute
   '/login/platform': typeof LoginPlatformRoute
+  '/login/student': typeof LoginStudentRoute
+  '/login/teacher': typeof LoginTeacherRoute
   '/onboard/$token': typeof OnboardTokenRoute
   '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/fees': typeof PortalFeesRoute
@@ -407,7 +409,6 @@ export interface FileRoutesById {
   '/portal/progress': typeof PortalProgressRoute
   '/portal/timetable': typeof PortalTimetableRoute
   '/teach/attendance': typeof TeachAttendanceRoute
-  '/teach/homework': typeof TeachHomeworkRoute
   '/teach/marks': typeof TeachMarksRoute
   '/teach/syllabus': typeof TeachSyllabusRoute
   '/welcome/$token': typeof WelcomeTokenRoute
@@ -416,7 +417,6 @@ export interface FileRoutesById {
   '/portal/': typeof PortalIndexRoute
   '/teach/': typeof TeachIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
-  '/app/platform/$id': typeof AppPlatformIdRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
   '/api/public/attendance/punch': typeof ApiPublicAttendancePunchRoute
@@ -436,7 +436,6 @@ export interface FileRouteTypes {
     | '/app/admissions'
     | '/app/attendance'
     | '/app/batches'
-    | '/app/expenses'
     | '/app/faculty'
     | '/app/fees'
     | '/app/platform'
@@ -448,7 +447,10 @@ export interface FileRouteTypes {
     | '/app/timetable'
     | '/auth/callback'
     | '/join/$token'
+    | '/login/admin'
     | '/login/platform'
+    | '/login/student'
+    | '/login/teacher'
     | '/onboard/$token'
     | '/portal/attendance'
     | '/portal/fees'
@@ -456,7 +458,6 @@ export interface FileRouteTypes {
     | '/portal/progress'
     | '/portal/timetable'
     | '/teach/attendance'
-    | '/teach/homework'
     | '/teach/marks'
     | '/teach/syllabus'
     | '/welcome/$token'
@@ -465,7 +466,6 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/teach/'
     | '/app/batches/$id'
-    | '/app/platform/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
     | '/api/public/attendance/punch'
@@ -480,7 +480,6 @@ export interface FileRouteTypes {
     | '/app/admissions'
     | '/app/attendance'
     | '/app/batches'
-    | '/app/expenses'
     | '/app/faculty'
     | '/app/fees'
     | '/app/platform'
@@ -492,7 +491,10 @@ export interface FileRouteTypes {
     | '/app/timetable'
     | '/auth/callback'
     | '/join/$token'
+    | '/login/admin'
     | '/login/platform'
+    | '/login/student'
+    | '/login/teacher'
     | '/onboard/$token'
     | '/portal/attendance'
     | '/portal/fees'
@@ -500,7 +502,6 @@ export interface FileRouteTypes {
     | '/portal/progress'
     | '/portal/timetable'
     | '/teach/attendance'
-    | '/teach/homework'
     | '/teach/marks'
     | '/teach/syllabus'
     | '/welcome/$token'
@@ -509,7 +510,6 @@ export interface FileRouteTypes {
     | '/portal'
     | '/teach'
     | '/app/batches/$id'
-    | '/app/platform/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
     | '/api/public/attendance/punch'
@@ -527,7 +527,6 @@ export interface FileRouteTypes {
     | '/app/admissions'
     | '/app/attendance'
     | '/app/batches'
-    | '/app/expenses'
     | '/app/faculty'
     | '/app/fees'
     | '/app/platform'
@@ -539,7 +538,10 @@ export interface FileRouteTypes {
     | '/app/timetable'
     | '/auth/callback'
     | '/join/$token'
+    | '/login/admin'
     | '/login/platform'
+    | '/login/student'
+    | '/login/teacher'
     | '/onboard/$token'
     | '/portal/attendance'
     | '/portal/fees'
@@ -547,7 +549,6 @@ export interface FileRouteTypes {
     | '/portal/progress'
     | '/portal/timetable'
     | '/teach/attendance'
-    | '/teach/homework'
     | '/teach/marks'
     | '/teach/syllabus'
     | '/welcome/$token'
@@ -556,7 +557,6 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/teach/'
     | '/app/batches/$id'
-    | '/app/platform/$id'
     | '/app/students/$id'
     | '/app/tests/$id'
     | '/api/public/attendance/punch'
@@ -574,7 +574,10 @@ export interface RootRouteChildren {
   TeachRoute: typeof TeachRouteWithChildren
   AuthCallbackRoute: typeof AuthCallbackRoute
   JoinTokenRoute: typeof JoinTokenRoute
+  LoginAdminRoute: typeof LoginAdminRoute
   LoginPlatformRoute: typeof LoginPlatformRoute
+  LoginStudentRoute: typeof LoginStudentRoute
+  LoginTeacherRoute: typeof LoginTeacherRoute
   OnboardTokenRoute: typeof OnboardTokenRoute
   WelcomeTokenRoute: typeof WelcomeTokenRoute
   LoginIndexRoute: typeof LoginIndexRoute
@@ -695,13 +698,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeachMarksRouteImport
       parentRoute: typeof TeachRoute
     }
-    '/teach/homework': {
-      id: '/teach/homework'
-      path: '/homework'
-      fullPath: '/teach/homework'
-      preLoaderRoute: typeof TeachHomeworkRouteImport
-      parentRoute: typeof TeachRoute
-    }
     '/teach/attendance': {
       id: '/teach/attendance'
       path: '/attendance'
@@ -751,11 +747,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login/teacher': {
+      id: '/login/teacher'
+      path: '/login/teacher'
+      fullPath: '/login/teacher'
+      preLoaderRoute: typeof LoginTeacherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login/student': {
+      id: '/login/student'
+      path: '/login/student'
+      fullPath: '/login/student'
+      preLoaderRoute: typeof LoginStudentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login/platform': {
       id: '/login/platform'
       path: '/login/platform'
       fullPath: '/login/platform'
       preLoaderRoute: typeof LoginPlatformRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login/admin': {
+      id: '/login/admin'
+      path: '/login/admin'
+      fullPath: '/login/admin'
+      preLoaderRoute: typeof LoginAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join/$token': {
@@ -835,13 +852,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFacultyRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/expenses': {
-      id: '/app/expenses'
-      path: '/expenses'
-      fullPath: '/app/expenses'
-      preLoaderRoute: typeof AppExpensesRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/batches': {
       id: '/app/batches'
       path: '/batches'
@@ -877,13 +887,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStudentsIdRouteImport
       parentRoute: typeof AppStudentsRoute
     }
-    '/app/platform/$id': {
-      id: '/app/platform/$id'
-      path: '/$id'
-      fullPath: '/app/platform/$id'
-      preLoaderRoute: typeof AppPlatformIdRouteImport
-      parentRoute: typeof AppPlatformRoute
-    }
     '/app/batches/$id': {
       id: '/app/batches/$id'
       path: '/$id'
@@ -911,18 +914,6 @@ const AppBatchesRouteChildren: AppBatchesRouteChildren = {
 
 const AppBatchesRouteWithChildren = AppBatchesRoute._addFileChildren(
   AppBatchesRouteChildren,
-)
-
-interface AppPlatformRouteChildren {
-  AppPlatformIdRoute: typeof AppPlatformIdRoute
-}
-
-const AppPlatformRouteChildren: AppPlatformRouteChildren = {
-  AppPlatformIdRoute: AppPlatformIdRoute,
-}
-
-const AppPlatformRouteWithChildren = AppPlatformRoute._addFileChildren(
-  AppPlatformRouteChildren,
 )
 
 interface AppStudentsRouteChildren {
@@ -953,10 +944,9 @@ interface AppRouteChildren {
   AppAdmissionsRoute: typeof AppAdmissionsRoute
   AppAttendanceRoute: typeof AppAttendanceRoute
   AppBatchesRoute: typeof AppBatchesRouteWithChildren
-  AppExpensesRoute: typeof AppExpensesRoute
   AppFacultyRoute: typeof AppFacultyRoute
   AppFeesRoute: typeof AppFeesRoute
-  AppPlatformRoute: typeof AppPlatformRouteWithChildren
+  AppPlatformRoute: typeof AppPlatformRoute
   AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStudentsRoute: typeof AppStudentsRouteWithChildren
@@ -970,10 +960,9 @@ const AppRouteChildren: AppRouteChildren = {
   AppAdmissionsRoute: AppAdmissionsRoute,
   AppAttendanceRoute: AppAttendanceRoute,
   AppBatchesRoute: AppBatchesRouteWithChildren,
-  AppExpensesRoute: AppExpensesRoute,
   AppFacultyRoute: AppFacultyRoute,
   AppFeesRoute: AppFeesRoute,
-  AppPlatformRoute: AppPlatformRouteWithChildren,
+  AppPlatformRoute: AppPlatformRoute,
   AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStudentsRoute: AppStudentsRouteWithChildren,
@@ -1008,7 +997,6 @@ const PortalRouteWithChildren =
 
 interface TeachRouteChildren {
   TeachAttendanceRoute: typeof TeachAttendanceRoute
-  TeachHomeworkRoute: typeof TeachHomeworkRoute
   TeachMarksRoute: typeof TeachMarksRoute
   TeachSyllabusRoute: typeof TeachSyllabusRoute
   TeachIndexRoute: typeof TeachIndexRoute
@@ -1016,7 +1004,6 @@ interface TeachRouteChildren {
 
 const TeachRouteChildren: TeachRouteChildren = {
   TeachAttendanceRoute: TeachAttendanceRoute,
-  TeachHomeworkRoute: TeachHomeworkRoute,
   TeachMarksRoute: TeachMarksRoute,
   TeachSyllabusRoute: TeachSyllabusRoute,
   TeachIndexRoute: TeachIndexRoute,
@@ -1036,7 +1023,10 @@ const rootRouteChildren: RootRouteChildren = {
   TeachRoute: TeachRouteWithChildren,
   AuthCallbackRoute: AuthCallbackRoute,
   JoinTokenRoute: JoinTokenRoute,
+  LoginAdminRoute: LoginAdminRoute,
   LoginPlatformRoute: LoginPlatformRoute,
+  LoginStudentRoute: LoginStudentRoute,
+  LoginTeacherRoute: LoginTeacherRoute,
   OnboardTokenRoute: OnboardTokenRoute,
   WelcomeTokenRoute: WelcomeTokenRoute,
   LoginIndexRoute: LoginIndexRoute,
@@ -1045,13 +1035,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

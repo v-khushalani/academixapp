@@ -16,16 +16,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { feesApi, studentsApi, attendanceApi, batchesApi, syllabusApi } from "@/lib/api";
-import { groupBySubject } from "@/lib/api/syllabus";
+import { feesApi, studentsApi, attendanceApi, batchesApi } from "@/lib/api";
 import { exportCSV, exportPDF, type Column } from "@/lib/exporters";
 import { supabase } from "@/integrations/supabase/client";
-import { formatDate } from "@/lib/dates";
-import { inr } from "@/lib/format";
 
 export const Route = createFileRoute("/app/reports")({
   component: ReportsPage,
 });
+
+const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 
 function ReportsPage() {
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
@@ -66,17 +65,11 @@ function ReportsPage() {
         <Tabs defaultValue="revenue">
           <TabsList>
             <TabsTrigger value="revenue">Revenue</TabsTrigger>
-            <TabsTrigger value="pnl">P&L</TabsTrigger>
-            <TabsTrigger value="fees">Fees</TabsTrigger>
-            <TabsTrigger value="defaulters">Defaulters</TabsTrigger>
+            <TabsTrigger value="fees">Fee report</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
-            <TabsTrigger value="syllabus">Syllabus Coverage</TabsTrigger>
             <TabsTrigger value="admissions">Admissions</TabsTrigger>
+            <TabsTrigger value="defaulters">Defaulters</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="pnl" className="mt-4">
-            <PnLReport from={from} to={to} />
-          </TabsContent>
 
           <TabsContent value="revenue" className="mt-4">
             <RevenueReport from={from} to={to} />
@@ -92,9 +85,6 @@ function ReportsPage() {
           </TabsContent>
           <TabsContent value="defaulters" className="mt-4">
             <DefaultersReport />
-          </TabsContent>
-          <TabsContent value="syllabus" className="mt-4">
-            <SyllabusReport />
           </TabsContent>
         </Tabs>
       </PageBody>
@@ -450,6 +440,7 @@ function AdmissionsReport({ from, to }: { from: string; to: string }) {
   );
 }
 
+
 type DefaulterRow = {
   id: string;
   student: string;
@@ -616,204 +607,6 @@ function DefaultersReport() {
           </tbody>
         </table>
       </div>
-    </Section>
-  );
-}
-
-function PnLReport({ from, to }: { from: string; to: string }) {
-  const { data: revenue = [] } = useQuery({
-    queryKey: ["report-revenue", from, to],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("fees")
-        .select("amount_paid")
-        .gte("paid_date", from)
-        .lte("paid_date", to)
-        .gt("amount_paid", 0);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const { data: expenses = [] } = useQuery({
-    queryKey: ["report-expenses", from, to],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("expenses")
-        .select("amount, category")
-        .gte("date", from)
-        .lte("date", to);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const totalRev = revenue.reduce((s, r) => s + Number(r.amount_paid), 0);
-  const totalExp = expenses.reduce((s, r) => s + Number(r.amount), 0);
-  const profit = totalRev - totalExp;
-
-  const expByCategory = useMemo(() => {
-    const m: Record<string, number> = {};
-    expenses.forEach((e) => {
-      m[e.category] = (m[e.category] ?? 0) + Number(e.amount);
-    });
-    return Object.entries(m).sort((a, b) => b[1] - a[1]);
-  }, [expenses]);
-
-  return (
-    <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-border bg-card p-4 text-center">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Revenue
-          </p>
-          <p className="mt-1 text-2xl font-bold text-success">{inr(totalRev)}</p>
-        </div>
-        <div className="rounded-lg border border-border bg-card p-4 text-center">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Expenses
-          </p>
-          <p className="mt-1 text-2xl font-bold text-destructive">{inr(totalExp)}</p>
-        </div>
-        <div className="rounded-lg border border-border bg-card p-4 text-center">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Net Profit
-          </p>
-          <p
-            className={`mt-1 text-2xl font-bold ${profit >= 0 ? "text-primary" : "text-destructive"}`}
-          >
-            {inr(profit)}
-          </p>
-        </div>
-      </div>
-
-      <Section title="Expense breakdown">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3">Category</th>
-              <th className="px-4 py-3 text-right">Amount</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {expByCategory.length === 0 && (
-              <tr>
-                <td colSpan={2} className="px-4 py-8 text-center text-muted-foreground">
-                  No expenses recorded in this period.
-                </td>
-              </tr>
-            )}
-            {expByCategory.map(([cat, amt]) => (
-              <tr key={cat}>
-                <td className="px-4 py-3">{cat}</td>
-                <td className="px-4 py-3 text-right font-medium">{inr(amt)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Section>
-    </div>
-  );
-}
-
-function SyllabusReport() {
-  const { data: batches = [] } = useQuery({
-    queryKey: ["batches"],
-    queryFn: () => batchesApi.list(),
-  });
-  const { data: allChapters = [] } = useQuery({
-    queryKey: ["all-chapters"],
-    queryFn: () => syllabusApi.chapters(),
-  });
-  const { data: allLogs = [] } = useQuery({
-    queryKey: ["all-logs"],
-    queryFn: () => syllabusApi.logs({ limit: 500 }),
-  });
-
-  const rows = useMemo(() => {
-    return batches
-      .map((b) => {
-        const chapters = allChapters.filter((c: any) => c.batch_id === b.id);
-        const logs = allLogs.filter((l: any) => l.batch_id === b.id);
-        const progress = groupBySubject(chapters, logs as any);
-        const avgPct = progress.length
-          ? Math.round(progress.reduce((s, p) => s + p.pct, 0) / progress.length)
-          : 0;
-
-        // Get the earliest forecasted date across subjects
-        const forecast = progress
-          .map((p) => p.estimated_completion)
-          .filter(Boolean)
-          .sort((a, b) => b!.localeCompare(a!))[0]; // furthest date
-
-        return {
-          id: b.id,
-          batch: b.name,
-          total: chapters.length,
-          done: chapters.filter((c: any) => c.status === "done").length,
-          pct: avgPct,
-          forecast: forecast ?? "N/A",
-        };
-      })
-      .sort((a, b) => a.pct - b.pct);
-  }, [batches, allChapters, allLogs]);
-
-  const cols: Column<(typeof rows)[0]>[] = [
-    { key: "batch", label: "Batch" },
-    { key: "total", label: "Total Chapters" },
-    { key: "done", label: "Done" },
-    { key: "pct", label: "Progress %" },
-    { key: "forecast", label: "Est. Completion" },
-  ];
-
-  return (
-    <Section
-      title="Syllabus coverage across all batches"
-      actions={
-        <ExportButtons rows={rows} cols={cols} name="syllabus-report" title="Syllabus Report" />
-      }
-    >
-      <table className="w-full text-sm">
-        <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-          <tr>
-            <th className="px-4 py-3">Batch</th>
-            <th className="px-4 py-3">Chapters</th>
-            <th className="px-4 py-3">Progress</th>
-            <th className="px-4 py-3">Forecasting</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {rows.length === 0 && (
-            <tr>
-              <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                No data found.
-              </td>
-            </tr>
-          )}
-          {rows.map((r) => (
-            <tr key={r.id}>
-              <td className="px-4 py-3 font-medium">{r.batch}</td>
-              <td className="px-4 py-3 text-muted-foreground">
-                {r.done} / {r.total}
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className={`h-full rounded-full ${r.pct < 40 ? "bg-destructive" : r.pct < 70 ? "bg-warning" : "bg-success"}`}
-                      style={{ width: `${r.pct}%` }}
-                    />
-                  </div>
-                  <span>{r.pct}%</span>
-                </div>
-              </td>
-              <td className="px-4 py-3 text-xs">
-                {r.forecast === "N/A" ? "Need more data" : formatDate(r.forecast)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </Section>
   );
 }

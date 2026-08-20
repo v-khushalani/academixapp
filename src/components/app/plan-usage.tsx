@@ -1,39 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
-import { KeyRound, Phone } from "lucide-react";
-import { limitRows, useUsage } from "@/lib/usage";
-import { fetchInstituteControls, SUPPORT_PHONE, SUPPORT_PHONE_TEL } from "@/lib/institute-controls";
-import { useBranches, ALL_BRANCHES } from "@/lib/branch";
+import { KeyRound } from "lucide-react";
+import { getInstitute } from "@/lib/academy-settings";
+import { fetchUsage, limitRows, planOf } from "@/lib/usage";
 import { cn } from "@/lib/utils";
 
-/** Limits are configured per institute by Team Academix — never self-served. */
+/** Soft, visible limits. Nothing is ever locked out — we just show the ceiling. */
 export function PlanUsageCard() {
-  const { activeId } = useBranches();
-  const { data: controls = [] } = useQuery({
-    queryKey: ["institute-controls"],
-    queryFn: () => fetchInstituteControls(),
-  });
-  const current =
-    controls.find((c) => c.id === activeId) ??
-    (activeId === ALL_BRANCHES ? controls[0] : undefined);
-  const { data } = useUsage();
+  const inst = getInstitute();
+  const plan = planOf((inst as unknown as { plan?: string }).plan);
+  const { data } = useQuery({ queryKey: ["plan-usage"], queryFn: fetchUsage });
 
-  const rows = data && current ? limitRows(current.limits, data) : [];
+  const rows = data ? limitRows(plan, data) : [];
 
   return (
     <div className="rounded-lg border border-border bg-card p-5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold">Your limits</h3>
-        <a
-          href={`tel:${SUPPORT_PHONE_TEL}`}
-          className="flex items-center gap-1.5 text-xs text-primary hover:underline"
-        >
-          <Phone className="h-3.5 w-3.5" />
-          Need more? Call {SUPPORT_PHONE}
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold">Your plan — {plan.name}</h3>
+        <a href="/pricing" className="text-xs text-primary hover:underline">
+          Compare plans
         </a>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">
-        Academix sets these for your institute. To raise a limit or switch a module on, give us a
-        call — we&apos;ll set it up the same day.
+        {plan.tagline} Limits are advisory — nothing stops working, we&apos;ll just talk when you
+        cross one.
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {rows.map((r) => {

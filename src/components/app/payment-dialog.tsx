@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { QRCodeCanvas } from "qrcode.react";
 import { toast } from "sonner";
 import { Check, Copy, Download, MessageCircle, QrCode } from "lucide-react";
-import { BrandedQR, type BrandedQRHandle } from "./branded-qr";
 import {
   Dialog,
   DialogContent,
@@ -59,7 +59,7 @@ export function PaymentDialog({
   const value = Number(amount) || 0;
   const inst = getInstitute();
   const refresh = useRefreshLinked();
-  const qrRef = useRef<BrandedQRHandle>(null);
+  const qrRef = useRef<HTMLDivElement>(null);
 
   // Pre-fill the pending amount whenever a new fee row is opened; after that the
   // field is fully the user's — they can clear it down to the last digit.
@@ -114,10 +114,11 @@ export function PaymentDialog({
     onOpenChange(false);
   }
 
-  /** The rendered branded QR as a PNG File. */
+  /** The rendered QR as a PNG File, so WhatsApp gets an image, not a raw link. */
   async function qrImage(): Promise<File | null> {
-    if (!qrRef.current) return null;
-    const blob = await qrRef.current.toBlob();
+    const canvas = qrRef.current?.querySelector("canvas");
+    if (!canvas) return null;
+    const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
     if (!blob) return null;
     return new File([blob], `pay-${target!.student_name.replace(/\s+/g, "-")}.png`, {
       type: "image/png",
@@ -190,7 +191,7 @@ export function PaymentDialog({
               className="w-full gap-1.5"
               onClick={async () => {
                 const no = await downloadReceipt(receipt);
-                if (no) toast.success(`Receipt ${no} downloaded`);
+                toast.success(`Receipt ${no} downloaded`);
               }}
             >
               <Download className="h-4 w-4" /> Download receipt (PDF)
@@ -230,9 +231,7 @@ export function PaymentDialog({
                 value={amount}
                 onFocus={(e) => {
                   const el = e.currentTarget;
-                  requestAnimationFrame(() =>
-                    el.setSelectionRange(el.value.length, el.value.length),
-                  );
+                  requestAnimationFrame(() => el.setSelectionRange(el.value.length, el.value.length));
                 }}
                 onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ""))}
               />
@@ -255,14 +254,13 @@ export function PaymentDialog({
           </div>
 
           {link ? (
-            <div className="space-y-4">
-              <BrandedQR
-                ref={qrRef}
-                upiLink={link}
-                amount={value}
-                studentName={target.student_name}
-                description={target.description || "School Fees"}
-              />
+            <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card p-4">
+              <div ref={qrRef}>
+                <QRCodeCanvas value={link} size={168} includeMargin />
+              </div>
+              <p className="text-center text-xs text-muted-foreground">
+                Scan with any UPI app · pays {inst.upi_id}
+              </p>
               <div className="flex w-full flex-wrap gap-2">
                 <Button
                   variant="outline"
@@ -275,12 +273,7 @@ export function PaymentDialog({
                 >
                   <Copy className="h-3.5 w-3.5" /> Copy link
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 gap-1.5"
-                  onClick={sendPaymentQr}
-                >
+                <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={sendPaymentQr}>
                   <MessageCircle className="h-3.5 w-3.5" /> Send QR on WhatsApp
                 </Button>
               </div>

@@ -41,27 +41,15 @@ function AuthCallback() {
         void navigate({ to });
         return;
       }
-      if (error) {
-        await supabase.auth.signOut();
-        toast.error(error);
-        void navigate({ to: "/login" });
-        return;
-      }
-      void navigate({ to: "/signup" });
+      await supabase.auth.signOut();
+      toast.error(error!);
+      void navigate({ to: "/login" });
     })();
   }, [navigate]);
 
   return (
     <div className="grid min-h-screen place-items-center bg-background px-4">
       <p className="text-sm text-muted-foreground">{message}</p>
-      {/* 
-        '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
-                                        
-                                            
-                                            1. delete all accounts from the database and let's start from scratch
-                                            2. i dont feel supabase is properly connected, 0 functions there
-                                            3.complete audit and fix it all
-      */}
     </div>
   );
 }

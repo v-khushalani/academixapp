@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { inr } from "@/lib/format";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, type FormEvent } from "react";
 import { QRCodeSVG } from "qrcode.react";
@@ -25,22 +24,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  batchesApi,
-  leadsApi,
-  studentsApi,
-  type Lead,
-  type LeadInsert,
-  type Student,
-} from "@/lib/api";
+import { batchesApi, leadsApi, studentsApi, type Lead, type LeadInsert, type Student } from "@/lib/api";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { useAuth } from "@/hooks/use-auth";
-import { can, isSuperAdmin } from "@/lib/rbac";
+import { can } from "@/lib/rbac";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import { provisionPortalAccounts, type ProvisionedAccount } from "@/lib/provisioning.functions";
-import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
-import { getInstitute, getTemplates } from "@/lib/academy-settings";
+import {
+  provisionPortalAccounts,
+  type ProvisionedAccount,
+} from "@/lib/provisioning.functions";
+import { openWhatsApp } from "@/lib/whatsapp";
+import { getInstitute } from "@/lib/academy-settings";
 import { ApplicantPreview } from "@/components/app/applicant-preview";
 import { EnquiryRecords } from "@/components/app/enquiry-records";
 import type { Database } from "@/integrations/supabase/types";
@@ -63,7 +58,7 @@ export const Route = createFileRoute("/app/admissions")({
 
 function AdmissionsPage() {
   const { roles } = useAuth();
-  const canWrite = isSuperAdmin(roles) || can("lead:write", roles);
+  const canWrite = can("lead:write", roles);
   const [tab, setTab] = useState("applications");
 
   return (
@@ -402,10 +397,14 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
                 </p>
               </td>
               <td className="px-4 py-3 text-sm">
-                {Number(s.token_amount ?? 0) > 0 ? inr(s.token_amount) : "—"}
+                {Number(s.token_amount ?? 0) > 0
+                  ? "₹" + Number(s.token_amount).toLocaleString("en-IN")
+                  : "—"}
               </td>
               <td className="px-4 py-3 text-xs text-muted-foreground">
-                {s.onboarding_completed_at ? formatDate(s.onboarding_completed_at) : "—"}
+                {s.onboarding_completed_at
+                  ? formatDate(s.onboarding_completed_at)
+                  : "—"}
               </td>
               <td className="px-4 py-3">
                 {canWrite && (
@@ -502,12 +501,7 @@ function CredentialsDialog({
   const institute = getInstitute().name || "our institute";
 
   const message = (a: ProvisionedAccount) =>
-    renderTemplate(getTemplates().homework_assigned, {
-      student_name: a.name,
-      parent_name: "Parent",
-      academy_name: institute,
-      details: `${typeof window !== "undefined" ? window.location.origin : ""}/login/student\nLogin ID: ${a.loginId}\n${a.password ? `Temporary password: ${a.password}` : "Use your existing password."}`,
-    }).replace("New homework has been assigned for", "Your portal login is ready for");
+    `Namaste ${a.name},\n\nYour ${institute} portal login is ready.\n\nLogin page: ${typeof window !== "undefined" ? window.location.origin : ""}/login/student\nLogin ID: ${a.loginId}\n${a.password ? `Temporary password: ${a.password}\n\nPlease sign in and change your password.` : "Use your existing password."}`;
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
@@ -568,7 +562,15 @@ function CredentialsDialog({
 }
 
 /* -------------------- QR panel -------------------- */
-function QrCard({ title, blurb, url }: { title: string; blurb: string; url: string }) {
+function QrCard({
+  title,
+  blurb,
+  url,
+}: {
+  title: string;
+  blurb: string;
+  url: string;
+}) {
   function copy() {
     navigator.clipboard.writeText(url).then(() => toast.success("Link copied"));
   }
@@ -629,8 +631,8 @@ function QrPanel() {
             student name, parent name, phone, class and interest. It lands in <b>Follow-ups</b>.
           </li>
           <li>
-            <b>Follow-ups</b> — your counsellor calls them, notes what happened, and when the parent
-            agrees, sends them the admission link (or fills it at the desk).
+            <b>Follow-ups</b> — your counsellor calls them, notes what happened, and when the
+            parent agrees, sends them the admission link (or fills it at the desk).
           </li>
           <li>
             <b>Admission QR</b> — full form: child details, both parents, address, program and

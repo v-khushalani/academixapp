@@ -1,43 +1,62 @@
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { InstituteLimits } from "@/lib/institute-controls";
+import { planFor, type Plan } from "@/lib/plans";
 
 export type Usage = {
   students: number;
   rooms: number;
   batches: number;
-  faculty: number;
   staffLogins: number;
   teacherLogins: number;
 };
 
-export function useUsage() {
-  return useQuery({
-    queryKey: ["institute-usage"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_institute_usage");
-      if (error) throw error;
-      return (data ?? {
-        students: 0,
-        rooms: 0,
-        batches: 0,
-        faculty: 0,
-        staffLogins: 0,
-        teacherLogins: 0,
-      }) as unknown as Usage;
-    },
-  });
+const OFFICE = ["owner", "admin", "receptionist", "counsellor", "accountant"];
+
+export async function fetchUsage(): Promise<Usage> {
+  const count = async (
+    table: "students" | "rooms" | "batches",
+    filter?: (q: ReturnType<typeof supabase.from>) => unknown,
+  ) => {
+    void filter;
+    const { count: c } = await supabase.from(table).select("id", { count: "exact", head: true });
+    return c ?? 0;
+  };
+
+  const [students, rooms, batches] = await Promise.all([
+    count("students"),
+    count("rooms"),
+    count("batches"),
+  ]);
+
+  const { data: roleRows } = await supabase.from("user_roles").select("user_id, role");
+  const office = new Set<string>();
+  const teachers = new Set<string>();
+  for (const r of roleRows ?? []) {
+    if (OFFICE.includes(r.role as string)) office.add(r.user_id as string);
+    if (r.role === "faculty") teachers.add(r.user_id as string);
+  }
+
+  return {
+    students,
+    rooms,
+    batches,
+    staffLogins: office.size,
+    teacherLogins: teachers.size,
+  };
 }
 
 export type LimitRow = { label: string; used: number; limit: number };
 
-/** 0 means unlimited. Limits are set per institute by Team Academix. */
-export function limitRows(limits: InstituteLimits, u: Usage): LimitRow[] {
+/** 0 in a plan limit means unlimited. */
+export function limitRows(plan: Plan, u: Usage): LimitRow[] {
   return [
-    { label: "Students", used: u.students, limit: limits.students },
-    { label: "Classrooms", used: u.rooms, limit: limits.rooms },
-    { label: "Batches", used: u.batches, limit: limits.batches },
-    { label: "Office logins", used: u.staffLogins, limit: limits.staffLogins },
-    { label: "Teacher logins", used: u.teacherLogins, limit: limits.teacherLogins },
+    { label: "Students", used: u.students, limit: plan.students },
+    { label: "Classrooms", used: u.rooms, limit: plan.rooms },
+    { label: "Batches", used: u.batches, limit: plan.batches },
+    { label: "Office logins", used: u.staffLogins, limit: plan.staffLogins },
+    { label: "Teacher logins", used: u.teacherLogins, limit: plan.teacherLogins },
   ];
+}
+
+export function planOf(key: string | null | undefined) {
+  return planFor(key);
 }

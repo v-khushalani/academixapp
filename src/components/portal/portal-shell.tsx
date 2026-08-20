@@ -75,7 +75,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
     await qc.cancelQueries();
     qc.clear();
     await signOut();
-    navigate({ to: "/login", replace: true });
+    navigate({ to: "/login/student", replace: true });
   }
 
   const value: Ctx = {
@@ -205,7 +205,11 @@ export function StatTile({
   tone?: "default" | "success" | "warning";
 }) {
   const toneClass =
-    tone === "success" ? "text-success" : tone === "warning" ? "text-warning" : "text-foreground";
+    tone === "success"
+      ? "text-success"
+      : tone === "warning"
+        ? "text-warning"
+        : "text-foreground";
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>

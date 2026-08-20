@@ -39,19 +39,11 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
     z.object({ student_id: z.string().uuid(), reset: z.boolean().optional() }).parse(data),
   )
   .handler(async ({ data, context }): Promise<{ accounts: ProvisionedAccount[] }> => {
-    // 1. Authenticated staff/admin check
     const { data: myRoles, error: roleError } = await context.supabase.rpc("get_my_roles");
     if (roleError) throw new Error(roleError.message);
-    const roles = (myRoles ?? []) as string[];
-    const isSuper = roles.includes("superadmin");
-    const hasAdmin = roles.some((r) => ADMIN_ROLES.includes(r));
-
-    if (!isSuper && !hasAdmin) {
+    if (!(myRoles ?? []).some((r: string) => ADMIN_ROLES.includes(r))) {
       throw new Error("Only owners, admins and reception staff can create portal logins.");
     }
-
-    // Explicitly verify the student belongs to an institute the caller can access
-    const { data: myInst } = await context.supabase.rpc("current_institute_id");
 
     const { data: student, error: studentError } = await context.supabase
       .from("students")
@@ -59,26 +51,12 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
         "id, institute_id, full_name, admission_no, email, phone, user_id, preferred_contact, father_name, father_phone, mother_name, mother_phone",
       )
       .eq("id", data.student_id)
-      .eq("institute_id", myInst || "") // Hardened scoped fetch
       .maybeSingle();
     if (studentError) throw new Error(studentError.message);
-    if (!student) throw new Error("Student not found in your institute context.");
+    if (!student) throw new Error("Student not found.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const accounts: ProvisionedAccount[] = [];
-
-    /** Paged lookup — only used when Auth reports the email already exists. */
-    async function findUserIdByEmail(email: string): Promise<string | null> {
-      const target = email.toLowerCase();
-      for (let page = 1; page <= 20; page++) {
-        const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
-        const users = list?.users ?? [];
-        const hit = users.find((u) => (u.email ?? "").toLowerCase() === target);
-        if (hit) return hit.id;
-        if (users.length < 200) return null;
-      }
-      return null;
-    }
 
     async function ensureUser(opts: {
       kind: "student" | "parent";
@@ -93,7 +71,14 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
       let password: string | null = null;
 
       if (!userId) {
-        // Try to create first — cheap, and Auth tells us when the email already exists.
+        const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        const found = list?.users?.find(
+          (u) => (u.email ?? "").toLowerCase() === opts.email.toLowerCase(),
+        );
+        userId = found?.id ?? null;
+      }
+
+      if (!userId) {
         password = tempPassword();
         const { data: createdUser, error } = await supabaseAdmin.auth.admin.createUser({
           email: opts.email,
@@ -101,17 +86,10 @@ export const provisionPortalAccounts = createServerFn({ method: "POST" })
           email_confirm: true,
           user_metadata: { full_name: opts.name, portal: opts.role },
         });
-        if (!error && createdUser.user) {
-          userId = createdUser.user.id;
-          created = true;
-        } else {
-          password = null;
-          userId = await findUserIdByEmail(opts.email);
-          if (!userId) throw new Error(error?.message ?? "Could not create the login");
-        }
-      }
-
-      if (!created && data.reset) {
+        if (error) throw new Error(error.message);
+        userId = createdUser.user!.id;
+        created = true;
+      } else if (data.reset) {
         password = tempPassword();
         const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, { password });
         if (error) throw new Error(error.message);

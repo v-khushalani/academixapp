@@ -1,6 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "@/hooks/use-auth";
-import { acceptFacultyInviteFn, acceptStudentInviteFn } from "@/lib/onboarding.functions";
 
 export const PENDING_INVITE_KEY = "academix.pendingInvite";
 
@@ -49,16 +48,9 @@ export async function waitForSession(tries = 25) {
 export function homeForRoles(roles: AppRole[]): string | null {
   // Team Academix lands straight in the platform console, not an institute dashboard.
   if (roles.includes("superadmin" as AppRole)) return "/app/platform";
-
-  // Staff/Owner roles
   if (roles.some((r) => STAFF.includes(r))) return "/app";
-
-  // Faculty
   if (roles.includes("faculty")) return "/teach";
-
-  // Student/Parent
   if (roles.includes("student") || roles.includes("parent")) return "/portal";
-
   return null;
 }
 
@@ -72,15 +64,11 @@ export async function resolvePostAuthDestination(): Promise<{
 }> {
   const token = takePendingInvite();
   if (token) {
-    try {
-      await acceptFacultyInviteFn({ data: { _token: token } });
-    } catch (error: any) {
+    const { error } = await supabase.rpc("accept_faculty_invite", { _token: token });
+    if (error) {
       // Same link shape is used for student/parent portal invites.
-      try {
-        await acceptStudentInviteFn({ data: { _token: token } });
-      } catch (sErr: any) {
-        console.warn("[invite]", error.message, sErr.message);
-      }
+      const { error: sErr } = await supabase.rpc("accept_student_invite", { _token: token });
+      if (sErr) console.warn("[invite]", error.message, sErr.message);
     }
   }
 
@@ -96,11 +84,9 @@ export async function resolvePostAuthDestination(): Promise<{
 
   const to = homeForRoles(roles);
   if (to) return { to };
-
-  // No roles found. If it's a first-time Google login, send to signup/onboarding.
-  // Otherwise, it might be an uninvited user.
   return {
-    to: "/signup",
-    error: undefined,
+    to: null,
+    error:
+      "This Google account isn't linked to any institute yet. Open the invite link your institute sent you on WhatsApp.",
   };
 }

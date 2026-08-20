@@ -53,23 +53,7 @@ const empty: AdmissionFormValues = {
   preferred_contact: "father",
 };
 
-const CLASSES = [
-  "Nursery",
-  "LKG",
-  "UKG",
-  "1",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "11",
-  "12",
-];
+const CLASSES = ["Nursery", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
 const STEPS = [
   { title: "Student", hint: "Who is joining?" },

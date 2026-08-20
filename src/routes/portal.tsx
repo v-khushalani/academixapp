@@ -19,18 +19,9 @@ function PortalLayout() {
 
   useEffect(() => {
     if (loading) return;
-    if (!session) {
-      navigate({ to: "/login" });
-      return;
-    }
-
-    if (roles.length === 0) {
-      navigate({ to: "/signup" });
-      return;
-    }
-
-    if (!isFamily && isStaff) navigate({ to: "/app" });
-  }, [loading, session, isFamily, isStaff, navigate, roles]);
+    if (!session) navigate({ to: "/login/student" });
+    else if (!isFamily && isStaff) navigate({ to: "/app" });
+  }, [loading, session, isFamily, isStaff, navigate]);
 
   if (loading || !session || (!isFamily && isStaff)) {
     return (

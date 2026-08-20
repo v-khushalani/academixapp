@@ -1,8 +1,8 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { hydrateInstitute, hydrateTemplates } from "@/lib/academy-settings";
+import { hydrateInstitute } from "@/lib/academy-settings";
 
 export type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -21,13 +21,13 @@ function notify() {
   for (const l of listeners) l(cache);
 }
 
-async function loadRoles(_userId: string): Promise<AppRole[]> {
-  const { data, error } = await supabase.rpc("get_my_roles");
+async function loadRoles(userId: string): Promise<AppRole[]> {
+  const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
   if (error) {
-    console.error("Error loading roles via RPC:", error);
+    console.error("[roles]", error);
     return [];
   }
-  return (data ?? []) as AppRole[];
+  return (data ?? []).map((r) => r.role);
 }
 
 async function bootstrap() {
@@ -39,19 +39,15 @@ async function bootstrap() {
   const roles = user ? await loadRoles(user.id) : [];
   cache = { session, user, roles, loading: false };
   notify();
-  if (user) {
-    void hydrateInstitute().catch(() => {});
-    void hydrateTemplates().catch(() => {});
-  }
+  if (user) void hydrateInstitute().catch(() => {});
 
   supabase.auth.onAuthStateChange(async (event, s) => {
     const u = s?.user ?? null;
     const r = u ? await loadRoles(u.id) : [];
     cache = { session: s, user: u, roles: r, loading: false };
     notify();
-    if (u && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
+    if (u && (event === "SIGNED_IN" || event === "USER_UPDATED")) {
       void hydrateInstitute().catch(() => {});
-      void hydrateTemplates().catch(() => {});
     }
   });
 }
@@ -71,9 +67,7 @@ export function useAuth() {
     await supabase.auth.signOut();
   }, []);
 
-  const isSuperAdmin = useMemo(() => state.roles.includes("superadmin" as AppRole), [state.roles]);
-
-  return { ...state, signOut, isSuperAdmin };
+  return { ...state, signOut };
 }
 
 export function hasAnyRole(roles: AppRole[], allowed: AppRole[]): boolean {

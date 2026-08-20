@@ -17,10 +17,7 @@ const MONTHS = [
 
 function toDate(v?: string | number | Date | null): Date | null {
   if (v === null || v === undefined || v === "") return null;
-  const d =
-    v instanceof Date
-      ? v
-      : new Date(typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T00:00:00` : v);
+  const d = v instanceof Date ? v : new Date(typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T00:00:00` : v);
   return Number.isNaN(d.getTime()) ? null : d;
 }
 

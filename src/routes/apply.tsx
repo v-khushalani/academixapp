@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { CheckCircle2 } from "lucide-react";
-import { submitAdmission } from "@/lib/onboarding.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { AdmissionForm, type AdmissionFormValues } from "@/components/app/admission-form";
 import { getInstitute } from "@/lib/academy-settings";
 import { Button } from "@/components/ui/button";
@@ -52,36 +52,33 @@ function ApplyPage() {
 
   async function onSubmit(v: AdmissionFormValues, photoPath: string | null) {
     setSaving(true);
-    try {
-      await submitAdmission({
-        data: {
-          _full_name: v.full_name,
-          _phone: v.phone,
-          _email: v.email,
-          _class: v.class,
-          _dob: v.dob,
-          _school: v.school,
-          _father_name: v.father_name,
-          _father_phone: v.father_phone,
-          _mother_name: v.mother_name,
-          _mother_phone: v.mother_phone,
-          _address: v.address,
-          _program: v.program,
-          _stream: v.stream,
-          _photo_path: photoPath ?? "",
-          _preferred_contact: v.preferred_contact,
-          _intent: "admission",
-          _token_amount: 0,
-          _institute_slug: instituteSlug ?? "",
-        },
-      });
-      setName(v.full_name);
-      setDone(true);
-    } catch (error: any) {
+    const { error } = await supabase.rpc("submit_admission_application", {
+      _full_name: v.full_name,
+      _phone: v.phone,
+      _email: v.email,
+      _class: v.class,
+      _dob: v.dob,
+      _school: v.school,
+      _father_name: v.father_name,
+      _father_phone: v.father_phone,
+      _mother_name: v.mother_name,
+      _mother_phone: v.mother_phone,
+      _address: v.address,
+      _program: v.program,
+      _stream: v.stream,
+      _photo_path: photoPath ?? "",
+      _preferred_contact: v.preferred_contact,
+      _intent: "admission",
+      _token_amount: 0,
+      _institute_slug: instituteSlug ?? "",
+    });
+    setSaving(false);
+    if (error) {
       toast.error(error.message);
-    } finally {
-      setSaving(false);
+      return;
     }
+    setName(v.full_name);
+    setDone(true);
   }
 
   async function submitEnquiry(v: {
@@ -92,36 +89,33 @@ function ApplyPage() {
     program: string;
   }) {
     setSaving(true);
-    try {
-      await submitAdmission({
-        data: {
-          _full_name: v.full_name,
-          _phone: v.phone,
-          _email: "",
-          _class: v.class,
-          _dob: null,
-          _school: "",
-          _father_name: v.parent_name,
-          _father_phone: v.phone,
-          _mother_name: v.parent_name,
-          _mother_phone: v.phone,
-          _address: "",
-          _program: v.program,
-          _stream: "",
-          _photo_path: "",
-          _preferred_contact: "father",
-          _intent: "enquiry",
-          _token_amount: 0,
-          _institute_slug: instituteSlug ?? "",
-        },
-      });
-      setName(v.full_name);
-      setDone(true);
-    } catch (error: any) {
+    const { error } = await supabase.rpc("submit_admission_application", {
+      _full_name: v.full_name,
+      _phone: v.phone,
+      _email: "",
+      _class: v.class,
+      _dob: null as unknown as string,
+      _school: "",
+      _father_name: v.parent_name,
+      _father_phone: v.phone,
+      _mother_name: v.parent_name,
+      _mother_phone: v.phone,
+      _address: "",
+      _program: v.program,
+      _stream: "",
+      _photo_path: "",
+      _preferred_contact: "father",
+      _intent: "enquiry",
+      _token_amount: 0,
+      _institute_slug: instituteSlug ?? "",
+    });
+    setSaving(false);
+    if (error) {
       toast.error(error.message);
-    } finally {
-      setSaving(false);
+      return;
     }
+    setName(v.full_name);
+    setDone(true);
   }
 
   return (

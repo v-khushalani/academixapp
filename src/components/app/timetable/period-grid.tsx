@@ -111,7 +111,9 @@ export function PeriodGrid({
                           : {})}
                         className={`group relative rounded-md border px-2 py-1.5 ${
                           canWrite && cardDrag ? "cursor-grab active:cursor-grabbing " : ""
-                        }${hot ? "ring-2 ring-primary " : ""}${
+                        }${
+                          hot ? "ring-2 ring-primary " : ""
+                        }${
                           item.clash
                             ? "border-destructive/60 bg-destructive/10"
                             : item.warn

@@ -80,9 +80,7 @@ export const ACTION_ROLES: Record<Action, AppRole[]> = {
  */
 export function canAccess(module: ModuleKey, roles: AppRole[]): boolean {
   if (isSuperAdmin(roles)) return true;
-  const allowed = MODULE_ACCESS[module];
-  if (!allowed) return false;
-  return roles.some((r) => allowed.includes(r));
+  return roles.some((r) => MODULE_ACCESS[module].includes(r));
 }
 
 /**

@@ -25,7 +25,7 @@ type Props = { open: boolean; onOpenChange: (v: boolean) => void; faculty?: Facu
 export function FacultyFormDialog({ open, onOpenChange, faculty }: Props) {
   const qc = useQueryClient();
   const isEdit = Boolean(faculty);
-  const [f, setF] = useState<FacultyInsert>({ full_name: "", status: "active", base_salary: 0 });
+  const [f, setF] = useState<FacultyInsert>({ full_name: "", status: "active" });
 
   useEffect(() => {
     if (faculty)
@@ -36,7 +36,6 @@ export function FacultyFormDialog({ open, onOpenChange, faculty }: Props) {
         qualification: faculty.qualification ?? "",
         subject: faculty.subject ?? "",
         joining_date: faculty.joining_date ?? undefined,
-        base_salary: faculty.base_salary ?? 0,
         status: faculty.status,
         notes: faculty.notes ?? "",
       });
@@ -47,7 +46,6 @@ export function FacultyFormDialog({ open, onOpenChange, faculty }: Props) {
         phone: "",
         qualification: "",
         subject: "",
-        base_salary: 0,
         status: "active",
       });
   }, [faculty, open]);
@@ -112,14 +110,6 @@ export function FacultyFormDialog({ open, onOpenChange, faculty }: Props) {
               type="date"
               value={f.joining_date ?? ""}
               onChange={(e) => setF({ ...f, joining_date: e.target.value || undefined })}
-            />
-          </F>
-          <F label="Base Salary (Monthly)">
-            <Input
-              type="number"
-              value={f.base_salary ?? 0}
-              onChange={(e) => setF({ ...f, base_salary: Number(e.target.value) })}
-              placeholder="0.00"
             />
           </F>
           <F label="Status">

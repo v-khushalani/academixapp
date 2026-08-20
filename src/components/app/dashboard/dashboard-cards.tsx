@@ -3,7 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export { inr } from "@/lib/format";
+export const inr = (n: number) => "₹" + Math.round(Number(n) || 0).toLocaleString("en-IN");
 
 /** Oversized headline figure. No card chrome — whitespace does the work. */
 export function HeroStat({
@@ -107,13 +107,7 @@ export function Metric({
   );
 }
 
-export function Bar({
-  pct,
-  tone = "primary",
-}: {
-  pct: number;
-  tone?: "primary" | "warning" | "danger" | "success";
-}) {
+export function Bar({ pct, tone = "primary" }: { pct: number; tone?: "primary" | "warning" | "danger" | "success" }) {
   const bg = {
     primary: "bg-primary",
     warning: "bg-warning",
@@ -122,10 +116,7 @@ export function Bar({
   }[tone];
   return (
     <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-      <div
-        className={cn("h-full rounded-full", bg)}
-        style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
-      />
+      <div className={cn("h-full rounded-full", bg)} style={{ width: `${Math.min(100, Math.max(0, pct))}%` }} />
     </div>
   );
 }

@@ -15,8 +15,12 @@ export const STATUS_LABEL: Record<ChapterStatus, string> = {
 
 export const syllabusApi = {
   /** Chapters for one batch (or the whole institute when no batch is given). */
-  async chapters(batchId?: string): Promise<Chapter[]> {
-    let q = supabase.from("syllabus_chapters").select("*").order("subject").order("position");
+  async chapters(batchId?: string) {
+    let q = supabase
+      .from("syllabus_chapters")
+      .select("*")
+      .order("subject")
+      .order("position");
     if (batchId) q = q.eq("batch_id", batchId);
     const { data, error } = await q;
     if (error) throw error;
@@ -123,12 +127,6 @@ export const syllabusApi = {
     if (error) throw error;
     return rows.length;
   },
-
-  async reorder(ids: string[]) {
-    const { error } = await supabase.rpc("reorder_syllabus_chapters", { _ids: ids });
-    if (error) throw error;
-    return ids;
-  },
 };
 
 export type SubjectProgress = {
@@ -139,11 +137,10 @@ export type SubjectProgress = {
   pct: number;
   current: Chapter | null;
   chapters: Chapter[];
-  estimated_completion?: string | null;
 };
 
 /** Weighted by planned sessions so a 4-session chapter counts more than a 1-session one. */
-export function groupBySubject(chapters: Chapter[], logs: SyllabusLog[] = []): SubjectProgress[] {
+export function groupBySubject(chapters: Chapter[]): SubjectProgress[] {
   const map = new Map<string, Chapter[]>();
   for (const c of chapters) {
     const list = map.get(c.subject) ?? [];
@@ -155,41 +152,17 @@ export function groupBySubject(chapters: Chapter[], logs: SyllabusLog[] = []): S
       const weight = (c: Chapter) => Math.max(1, c.planned_sessions || 1);
       const totalW = list.reduce((s, c) => s + weight(c), 0);
       const doneW = list.reduce(
-        (s, c) =>
-          s + (c.status === "done" ? weight(c) : c.status === "in_progress" ? weight(c) / 2 : 0),
+        (s, c) => s + (c.status === "done" ? weight(c) : c.status === "in_progress" ? weight(c) / 2 : 0),
         0,
       );
-      const doneChapters = list.filter((c) => c.status === "done");
-      const inProgressChapters = list.filter((c) => c.status === "in_progress");
-
-      // Forecasting logic: calculate avg days per chapter based on logs
-      let estimatedCompletion: string | null = null;
-      if (doneChapters.length > 0 && list.length > doneChapters.length) {
-        const subjectLogs = logs
-          .filter((l) => list.some((c) => c.id === l.chapter_id))
-          .sort((a, b) => a.date.localeCompare(b.date));
-        if (subjectLogs.length >= 2) {
-          const start = new Date(subjectLogs[0].date).getTime();
-          const end = new Date(subjectLogs[subjectLogs.length - 1].date).getTime();
-          const daysElapsed = Math.max(1, (end - start) / (1000 * 60 * 60 * 24));
-          const daysPerChapter = daysElapsed / doneChapters.length;
-          const chaptersLeft = list.length - doneChapters.length;
-          const remainingDays = Math.round(chaptersLeft * daysPerChapter);
-          const completionDate = new Date();
-          completionDate.setDate(completionDate.getDate() + remainingDays);
-          estimatedCompletion = completionDate.toISOString().slice(0, 10);
-        }
-      }
-
       return {
         subject,
         total: list.length,
-        done: doneChapters.length,
-        inProgress: inProgressChapters.length,
+        done: list.filter((c) => c.status === "done").length,
+        inProgress: list.filter((c) => c.status === "in_progress").length,
         pct: totalW ? Math.round((doneW / totalW) * 100) : 0,
-        current: inProgressChapters[0] ?? null,
+        current: list.find((c) => c.status === "in_progress") ?? null,
         chapters: list,
-        estimated_completion: estimatedCompletion,
       };
     })
     .sort((a, b) => a.subject.localeCompare(b.subject));

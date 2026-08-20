@@ -23,7 +23,7 @@ export const Route = createFileRoute("/portal/")({
   component: PortalHome,
 });
 
-import { inr } from "@/lib/format";
+const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 function PortalHome() {
@@ -88,7 +88,9 @@ function PortalHome() {
         />
         <StatTile
           label="Last test"
-          value={last?.test ? `${last.marks ?? "—"}/${last.test.max_marks}` : "—"}
+          value={
+            last?.test ? `${last.marks ?? "—"}/${last.test.max_marks}` : "—"
+          }
           sub={last?.test?.title ?? "No tests yet"}
         />
         <StatTile

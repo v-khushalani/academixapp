@@ -125,56 +125,6 @@ export type Database = {
           },
         ]
       }
-      audit_logs: {
-        Row: {
-          action: string
-          actor_id: string | null
-          created_at: string
-          entity_id: string
-          entity_type: string
-          id: string
-          institute_id: string
-          ip_address: string | null
-          new_data: Json | null
-          old_data: Json | null
-          user_agent: string | null
-        }
-        Insert: {
-          action: string
-          actor_id?: string | null
-          created_at?: string
-          entity_id: string
-          entity_type: string
-          id?: string
-          institute_id: string
-          ip_address?: string | null
-          new_data?: Json | null
-          old_data?: Json | null
-          user_agent?: string | null
-        }
-        Update: {
-          action?: string
-          actor_id?: string | null
-          created_at?: string
-          entity_id?: string
-          entity_type?: string
-          id?: string
-          institute_id?: string
-          ip_address?: string | null
-          new_data?: Json | null
-          old_data?: Json | null
-          user_agent?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_institute_id_fkey"
-            columns: ["institute_id"]
-            isOneToOne: false
-            referencedRelation: "institutes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       automation_rules: {
         Row: {
           action: Json
@@ -341,63 +291,8 @@ export type Database = {
           },
         ]
       }
-      expenses: {
-        Row: {
-          amount: number
-          category: string
-          created_at: string | null
-          date: string
-          description: string | null
-          faculty_id: string | null
-          id: string
-          institute_id: string
-          payment_method: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          amount: number
-          category: string
-          created_at?: string | null
-          date?: string
-          description?: string | null
-          faculty_id?: string | null
-          id?: string
-          institute_id: string
-          payment_method?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          amount?: number
-          category?: string
-          created_at?: string | null
-          date?: string
-          description?: string | null
-          faculty_id?: string | null
-          id?: string
-          institute_id?: string
-          payment_method?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "expenses_faculty_id_fkey"
-            columns: ["faculty_id"]
-            isOneToOne: false
-            referencedRelation: "faculty"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "expenses_institute_id_fkey"
-            columns: ["institute_id"]
-            isOneToOne: false
-            referencedRelation: "institutes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       faculty: {
         Row: {
-          base_salary: number | null
           created_at: string
           email: string | null
           full_name: string
@@ -413,7 +308,6 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          base_salary?: number | null
           created_at?: string
           email?: string | null
           full_name: string
@@ -429,7 +323,6 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          base_salary?: number | null
           created_at?: string
           email?: string | null
           full_name?: string
@@ -712,102 +605,67 @@ export type Database = {
         Row: {
           academic_year: string | null
           address: string | null
-          batch_limit: number
           created_at: string
           email: string | null
-          faculty_limit: number
-          features: Json
           id: string
           installment_plan: Json
           logo_url: string | null
           name: string
-          parent_institute_id: string | null
           phone: string | null
           plan: string
           primary_color: string | null
-          receipt_template: string | null
           room_limit: number
           shifts: Json
           slug: string
-          staff_login_limit: number
           status: string
-          student_limit: number
           tagline: string | null
-          teacher_login_limit: number
           updated_at: string
           upi_id: string | null
           upi_name: string | null
-          wa_templates: Json
         }
         Insert: {
           academic_year?: string | null
           address?: string | null
-          batch_limit?: number
           created_at?: string
           email?: string | null
-          faculty_limit?: number
-          features?: Json
           id?: string
           installment_plan?: Json
           logo_url?: string | null
           name: string
-          parent_institute_id?: string | null
           phone?: string | null
           plan?: string
           primary_color?: string | null
-          receipt_template?: string | null
           room_limit?: number
           shifts?: Json
           slug: string
-          staff_login_limit?: number
           status?: string
-          student_limit?: number
           tagline?: string | null
-          teacher_login_limit?: number
           updated_at?: string
           upi_id?: string | null
           upi_name?: string | null
-          wa_templates?: Json
         }
         Update: {
           academic_year?: string | null
           address?: string | null
-          batch_limit?: number
           created_at?: string
           email?: string | null
-          faculty_limit?: number
-          features?: Json
           id?: string
           installment_plan?: Json
           logo_url?: string | null
           name?: string
-          parent_institute_id?: string | null
           phone?: string | null
           plan?: string
           primary_color?: string | null
-          receipt_template?: string | null
           room_limit?: number
           shifts?: Json
           slug?: string
-          staff_login_limit?: number
           status?: string
-          student_limit?: number
           tagline?: string | null
-          teacher_login_limit?: number
           updated_at?: string
           upi_id?: string | null
           upi_name?: string | null
-          wa_templates?: Json
         }
-        Relationships: [
-          {
-            foreignKeyName: "institutes_parent_institute_id_fkey"
-            columns: ["parent_institute_id"]
-            isOneToOne: false
-            referencedRelation: "institutes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       leads: {
         Row: {
@@ -2055,15 +1913,6 @@ export type Database = {
           id: string
         }[]
       }
-      collect_fee_payment: {
-        Args: {
-          _fee_id: string
-          _method?: string
-          _note?: string
-          _received: number
-        }
-        Returns: undefined
-      }
       complete_student_onboarding: {
         Args: {
           _address: string
@@ -2087,13 +1936,8 @@ export type Database = {
         }
         Returns: undefined
       }
-      create_institute_with_owner: {
-        Args: { _name: string; _tagline?: string }
-        Returns: string
-      }
       current_institute_id: { Args: never; Returns: string }
       default_institute_id: { Args: never; Returns: string }
-      get_dashboard_overview: { Args: never; Returns: Json }
       get_faculty_invite: {
         Args: { _token: string }
         Returns: {
@@ -2103,7 +1947,6 @@ export type Database = {
           valid: boolean
         }[]
       }
-      get_institute_usage: { Args: { _institute_id?: string }; Returns: Json }
       get_my_roles: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]
@@ -2160,114 +2003,76 @@ export type Database = {
       mark_attendance_notified: { Args: { _ids: string[] }; Returns: undefined }
       my_batch_ids: { Args: never; Returns: string[] }
       my_faculty_batch_ids: { Args: never; Returns: string[] }
-      my_institute_ids: { Args: never; Returns: string[] }
-      platform_institute_detail: {
-        Args: { _institute_id: string }
-        Returns: {
-          extra: string
-          id: string
-          kind: string
-          subtitle: string
-          title: string
-        }[]
-      }
-      platform_institutes: {
-        Args: never
-        Returns: {
-          batch_limit: number
-          batches: number
-          faculty: number
-          faculty_limit: number
-          features: Json
-          id: string
-          installment_plan: Json
-          name: string
-          parent_institute_id: string
-          plan: string
-          room_limit: number
-          rooms: number
-          slug: string
-          staff_login_limit: number
-          staff_logins: number
-          status: string
-          student_limit: number
-          students: number
-          teacher_login_limit: number
-          teacher_logins: number
-        }[]
-      }
-      platform_update_institute:
-        | {
-            Args: {
-              _batch_limit?: number
-              _clear_parent?: boolean
-              _faculty_limit?: number
-              _features?: Json
-              _id: string
-              _installment_plan?: Json
-              _parent_institute_id?: string
-              _plan?: string
-              _room_limit?: number
-              _staff_login_limit?: number
-              _status?: string
-              _student_limit?: number
-              _teacher_login_limit?: number
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              _batch_limit: number
-              _clear_parent?: boolean
-              _faculty_limit: number
-              _features: Json
-              _id: string
-              _installment_plan: Json
-              _parent_institute_id?: string
-              _plan: string
-              _receipt_template?: string
-              _room_limit: number
-              _staff_login_limit: number
-              _student_limit: number
-              _teacher_login_limit: number
-            }
-            Returns: undefined
-          }
-      process_faculty_salaries: {
-        Args: { _date?: string; _institute_id: string }
-        Returns: undefined
-      }
-      reorder_syllabus_chapters: {
-        Args: { _ids: string[] }
-        Returns: undefined
-      }
       set_student_approval: {
         Args: { _decision: string; _student_id: string }
         Returns: undefined
       }
-      submit_admission_application: {
-        Args: {
-          _address: string
-          _class: string
-          _dob: string
-          _email: string
-          _father_name: string
-          _father_phone: string
-          _full_name: string
-          _institute_slug?: string
-          _intent: string
-          _mother_name: string
-          _mother_phone: string
-          _phone: string
-          _photo_path: string
-          _preferred_contact: string
-          _program: string
-          _school: string
-          _stream: string
-          _token_amount: number
-        }
-        Returns: string
-      }
+      submit_admission_application:
+        | {
+            Args: {
+              _address: string
+              _class: string
+              _dob: string
+              _email: string
+              _father_name: string
+              _father_phone: string
+              _full_name: string
+              _mother_name: string
+              _mother_phone: string
+              _phone: string
+              _photo_path: string
+              _preferred_contact?: string
+              _program: string
+              _school: string
+              _stream: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _address: string
+              _class: string
+              _dob: string
+              _email: string
+              _father_name: string
+              _father_phone: string
+              _full_name: string
+              _intent?: string
+              _mother_name: string
+              _mother_phone: string
+              _phone: string
+              _photo_path: string
+              _preferred_contact?: string
+              _program: string
+              _school: string
+              _stream: string
+              _token_amount?: number
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _address: string
+              _class: string
+              _dob: string
+              _email: string
+              _father_name: string
+              _father_phone: string
+              _full_name: string
+              _institute_slug?: string
+              _intent: string
+              _mother_name: string
+              _mother_phone: string
+              _phone: string
+              _photo_path: string
+              _preferred_contact: string
+              _program: string
+              _school: string
+              _stream: string
+              _token_amount: number
+            }
+            Returns: string
+          }
       sync_student_batch_fee: {
         Args: { _student_id: string }
         Returns: undefined

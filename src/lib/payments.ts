@@ -32,4 +32,4 @@ export function receiptNo(seed?: string | null): string {
   return `RCPT-${stamp}-${rand}`;
 }
 
-export { inr } from "./format";
+export const inr = (n: number) => "₹" + Math.round(Number(n) || 0).toLocaleString("en-IN");

@@ -27,7 +27,6 @@ import {
 } from "@/lib/api";
 import { Field as F } from "@/components/app/field";
 import { formatTime12, toHHMM } from "@/lib/time";
-import { syllabusApi } from "@/lib/api/syllabus";
 
 type Props = {
   open: boolean;
@@ -97,11 +96,6 @@ export function TimetableSlotDialog({
   const { data: rooms = [] } = useQuery({
     queryKey: ["rooms"],
     queryFn: () => roomsApi.list(),
-    enabled: open,
-  });
-  const { data: syllabusChapters = [] } = useQuery({
-    queryKey: ["syllabus"],
-    queryFn: () => syllabusApi.chapters(),
     enabled: open,
   });
 
@@ -244,13 +238,7 @@ export function TimetableSlotDialog({
               value={f.subject ?? ""}
               onChange={(e) => setF({ ...f, subject: e.target.value })}
               placeholder="Physics"
-              list="timetable-subjects-list"
             />
-            <datalist id="timetable-subjects-list">
-              {[...new Set(syllabusChapters.map((c) => c.subject).filter(Boolean))].map((s) => (
-                <option key={s} value={s} />
-              ))}
-            </datalist>
           </F>
           <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

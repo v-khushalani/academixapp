@@ -100,8 +100,8 @@ export function FeeCorrectionDialog({
             >
               <p className="font-medium">Reverse a payment</p>
               <p className="text-xs text-muted-foreground">
-                Money was recorded by mistake or refunded to the parent. It leaves Collected and the
-                bill goes back to pending.
+                Money was recorded by mistake or refunded to the parent. It leaves Collected and
+                the bill goes back to pending.
               </p>
             </button>
           </div>
@@ -133,7 +133,10 @@ export function FeeCorrectionDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
-          <Button onClick={() => mut.mutate()} disabled={mut.isPending || reason.trim().length < 3}>
+          <Button
+            onClick={() => mut.mutate()}
+            disabled={mut.isPending || reason.trim().length < 3}
+          >
             {mode === "cancel" ? "Cancel bill" : "Reverse payment"}
           </Button>
         </DialogFooter>

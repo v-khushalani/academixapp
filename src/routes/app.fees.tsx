@@ -32,7 +32,7 @@ export const Route = createFileRoute("/app/fees")({
   component: FeesPage,
 });
 
-import { inr } from "@/lib/format";
+const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 
 type Row = Awaited<ReturnType<typeof feesApi.list>>[number];
 
@@ -188,9 +188,7 @@ function FeesPage() {
   async function openCollect(r: Row) {
     const { data } = await supabase
       .from("students")
-      .select(
-        "full_name, admission_no, class, parent_phone, phone, preferred_contact, father_phone, mother_phone, batch:batches(name)",
-      )
+      .select("full_name, admission_no, class, parent_phone, phone, preferred_contact, father_phone, mother_phone, batch:batches(name)")
       .eq("id", r.student_id)
       .maybeSingle();
     const s = data as {

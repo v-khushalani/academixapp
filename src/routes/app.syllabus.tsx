@@ -2,26 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { BookOpen, Copy, Plus, Trash2, GripVertical, Undo2, Calendar } from "lucide-react";
-import { formatDate } from "@/lib/dates";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-
+import { BookOpen, Copy, Plus, Trash2 } from "lucide-react";
 import { PageBody, PageHeader } from "@/components/app/page-header";
 import { SyllabusBars } from "@/components/app/syllabus-bar";
 import { Button } from "@/components/ui/button";
@@ -79,87 +60,11 @@ const NEXT: Record<ChapterStatus, ChapterStatus> = {
   done: "pending",
 };
 
-const PREV: Record<ChapterStatus, ChapterStatus> = {
-  pending: "done",
-  in_progress: "pending",
-  done: "in_progress",
-};
-
 const TONE: Record<ChapterStatus, string> = {
   pending: "bg-muted text-muted-foreground",
   in_progress: "bg-primary/10 text-primary",
   done: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
 };
-
-function SortableItem({
-  chapter,
-  onCycle,
-  onUndo,
-  onRemove,
-}: {
-  chapter: Chapter;
-  onCycle: (c: Chapter) => void;
-  onUndo: (c: Chapter) => void;
-  onRemove: (id: string) => void;
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: chapter.id,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 50 : undefined,
-    opacity: isDragging ? 0.5 : undefined,
-  };
-
-  return (
-    <li ref={setNodeRef} style={style} className="flex items-center gap-3 bg-card px-4 py-2.5">
-      <button
-        {...attributes}
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing p-1 -ml-1 text-muted-foreground hover:text-foreground"
-      >
-        <GripVertical className="h-4 w-4" />
-      </button>
-      <span className="w-6 shrink-0 text-xs text-muted-foreground tabular-nums">
-        {chapter.position}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm">{chapter.title}</p>
-        {chapter.completed_on ? (
-          <p className="text-xs text-muted-foreground">Completed {chapter.completed_on}</p>
-        ) : null}
-      </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 text-muted-foreground hover:text-primary"
-          onClick={() => onUndo(chapter)}
-          title="Undo status"
-        >
-          <Undo2 className="h-3.5 w-3.5" />
-        </Button>
-        <button
-          type="button"
-          onClick={() => onCycle(chapter)}
-          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${TONE[chapter.status as ChapterStatus]}`}
-        >
-          {STATUS_LABEL[chapter.status as ChapterStatus]}
-        </button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0"
-          onClick={() => onRemove(chapter.id)}
-        >
-          <Trash2 className="h-4 w-4 text-muted-foreground" />
-        </Button>
-      </div>
-    </li>
-  );
-}
 
 function SyllabusPage() {
   const qc = useQueryClient();
@@ -169,11 +74,6 @@ function SyllabusPage() {
   const [subject, setSubject] = useState("");
   const [titles, setTitles] = useState("");
   const [copyFrom, setCopyFrom] = useState("");
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
 
   const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: batchesApi.list });
   useEffect(() => {
@@ -185,14 +85,13 @@ function SyllabusPage() {
     queryFn: () => syllabusApi.chapters(batchId),
     enabled: Boolean(batchId),
   });
-
   const { data: logs = [] } = useQuery({
     queryKey: ["syllabus-logs", batchId],
     queryFn: () => syllabusApi.logs({ batchId, limit: 12 }),
     enabled: Boolean(batchId),
   });
 
-  const groups = useMemo(() => groupBySubject(chapters, logs), [chapters, logs]);
+  const groups = useMemo(() => groupBySubject(chapters), [chapters]);
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["syllabus"] });
     qc.invalidateQueries({ queryKey: ["syllabus-logs"] });
@@ -203,13 +102,6 @@ function SyllabusPage() {
     onSuccess: refresh,
     onError: (e: Error) => toast.error(e.message),
   });
-
-  const undo = useMutation({
-    mutationFn: (c: Chapter) => syllabusApi.setStatus(c, PREV[c.status as ChapterStatus]),
-    onSuccess: refresh,
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   const remove = useMutation({
     mutationFn: (id: string) => syllabusApi.removeChapter(id),
     onSuccess: () => {
@@ -218,7 +110,6 @@ function SyllabusPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-
   const add = useMutation({
     mutationFn: () => {
       const existing = chapters.filter((c) => c.subject === subject.trim()).length;
@@ -232,7 +123,6 @@ function SyllabusPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-
   const copy = useMutation({
     mutationFn: () => syllabusApi.copyToBatch(copyFrom, batchId),
     onSuccess: (n) => {
@@ -242,22 +132,6 @@ function SyllabusPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-
-  const reorder = useMutation({
-    mutationFn: (ids: string[]) => syllabusApi.reorder(ids),
-    onSuccess: refresh,
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const handleDragEnd = (event: DragEndEvent, subjectChapters: Chapter[]) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = subjectChapters.findIndex((c) => c.id === active.id);
-      const newIndex = subjectChapters.findIndex((c) => c.id === over.id);
-      const newOrder = arrayMove(subjectChapters, oldIndex, newIndex);
-      reorder.mutate(newOrder.map((c) => c.id));
-    }
-  };
 
   const batch = batches.find((b) => b.id === batchId);
   const pending = chapters.filter((c) => c.status !== "done").length;
@@ -326,38 +200,42 @@ function SyllabusPage() {
                       <p className="text-xs text-muted-foreground">
                         {g.done} of {g.total} chapters done
                         {g.current ? ` · now: ${g.current.title}` : ""}
-                        {g.estimated_completion && (
-                          <span className="ml-2 inline-flex items-center gap-1 text-primary">
-                            <Calendar className="h-3 w-3" />
-                            Est. completion: {formatDate(g.estimated_completion)}
-                          </span>
-                        )}
                       </p>
                     </div>
                     <span className="shrink-0 text-sm font-semibold tabular-nums">{g.pct}%</span>
                   </div>
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={(e) => handleDragEnd(e, g.chapters)}
-                  >
-                    <SortableContext
-                      items={g.chapters.map((c) => c.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      <ul className="divide-y divide-border">
-                        {g.chapters.map((c) => (
-                          <SortableItem
-                            key={c.id}
-                            chapter={c}
-                            onCycle={(ch) => cycle.mutate(ch)}
-                            onUndo={(ch) => undo.mutate(ch)}
-                            onRemove={(id) => remove.mutate(id)}
-                          />
-                        ))}
-                      </ul>
-                    </SortableContext>
-                  </DndContext>
+                  <ul className="divide-y divide-border">
+                    {g.chapters.map((c) => (
+                      <li key={c.id} className="flex items-center gap-3 px-4 py-2.5">
+                        <span className="w-6 shrink-0 text-xs text-muted-foreground tabular-nums">
+                          {c.position}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm">{c.title}</p>
+                          {c.completed_on ? (
+                            <p className="text-xs text-muted-foreground">
+                              Completed {c.completed_on}
+                            </p>
+                          ) : null}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => cycle.mutate(c)}
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${TONE[c.status as ChapterStatus]}`}
+                        >
+                          {STATUS_LABEL[c.status as ChapterStatus]}
+                        </button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 shrink-0"
+                          onClick={() => remove.mutate(c.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>

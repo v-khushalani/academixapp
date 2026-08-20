@@ -27,13 +27,19 @@ export type CatalogFeature = {
 };
 
 export async function fetchPlans(): Promise<CatalogPlan[]> {
-  const { data, error } = await supabase.from("plan_catalog").select("*").order("sort_order");
+  const { data, error } = await supabase
+    .from("plan_catalog")
+    .select("*")
+    .order("sort_order");
   if (error) throw error;
   return (data ?? []) as unknown as CatalogPlan[];
 }
 
 export async function fetchFeatures(): Promise<CatalogFeature[]> {
-  const { data, error } = await supabase.from("plan_features").select("*").order("sort_order");
+  const { data, error } = await supabase
+    .from("plan_features")
+    .select("*")
+    .order("sort_order");
   if (error) throw error;
   return (data ?? []).map((r) => ({
     ...(r as unknown as CatalogFeature),

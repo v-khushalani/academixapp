@@ -22,7 +22,7 @@ export const Route = createFileRoute("/portal/fees")({
   component: PortalFees,
 });
 
-import { inr } from "@/lib/format";
+const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 
 function PortalFees() {
   const { student } = usePortalStudent();
@@ -44,7 +44,11 @@ function PortalFees() {
       <div className="grid grid-cols-3 gap-3">
         <StatTile label="Billed" value={inr(stats.billed)} />
         <StatTile label="Paid" value={inr(stats.paid)} tone="success" />
-        <StatTile label="Due" value={inr(stats.due)} tone={stats.due > 0 ? "warning" : "success"} />
+        <StatTile
+          label="Due"
+          value={inr(stats.due)}
+          tone={stats.due > 0 ? "warning" : "success"}
+        />
       </div>
 
       <PortalCard title="Instalments">

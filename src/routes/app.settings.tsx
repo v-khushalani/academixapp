@@ -19,8 +19,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { batchesApi, instituteApi, roomsApi, userRolesApi, type AppRole } from "@/lib/api";
-import { SUPPORT_PHONE } from "@/lib/institute-controls";
+import {
+  batchesApi,
+  instituteApi,
+  roomsApi,
+  userRolesApi,
+  type AppRole,
+} from "@/lib/api";
+import { PLANS, planFor } from "@/lib/plans";
 import {
   getInstitute,
   saveInstitute,
@@ -59,10 +65,7 @@ function SettingsPage() {
             <TabsTrigger value="whatsapp">WhatsApp templates</TabsTrigger>
           </TabsList>
           <TabsContent value="institute">
-            <div className="space-y-4">
-              <InstitutePanel />
-              <BrandingPanel />
-            </div>
+            <InstitutePanel />
           </TabsContent>
           <TabsContent value="rooms">
             <div className="space-y-4">
@@ -86,10 +89,7 @@ function SettingsPage() {
             <DevicesPanel />
           </TabsContent>
           <TabsContent value="branding">
-            <div className="space-y-4">
-              <BrandingPanel />
-              <ReceiptTemplatePanel />
-            </div>
+            <BrandingPanel />
           </TabsContent>
           <TabsContent value="whatsapp">
             <TemplatesPanel />
@@ -97,127 +97,6 @@ function SettingsPage() {
         </Tabs>
       </PageBody>
     </>
-  );
-}
-
-function ReceiptTemplatePanel() {
-  const [s, setS] = useState<InstituteSettings>(getInstitute());
-  const [saving, setSaving] = useState(false);
-  const { data: inst } = useQuery({
-    queryKey: ["institute"],
-    queryFn: () => instituteApi.get(),
-  });
-
-  const plan = inst?.plan ?? "free";
-  const isPaid = plan === "growth" || plan === "campus" || plan === "chain";
-
-  async function save(template: string) {
-    setSaving(true);
-    try {
-      const next = { ...s, receipt_template: template };
-      await saveInstitute(next);
-      setS(next);
-      toast.success("Receipt template updated");
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <Card
-      title="Receipt Template"
-      description={
-        isPaid
-          ? "Choose how your fee receipts look. Changes apply to all new receipts."
-          : "Standardize your documents. Upgrade to Growth or Campus to unlock branded templates."
-      }
-    >
-      <div className="grid gap-4 sm:grid-cols-3">
-        <TemplateOption
-          name="Classic"
-          id="classic"
-          active={s.receipt_template === "classic" || !s.receipt_template}
-          onClick={() => save("classic")}
-          disabled={saving}
-          preview="Simple black & white layout. Great for standard printing."
-        />
-        <TemplateOption
-          name="Modern"
-          id="modern"
-          active={s.receipt_template === "modern"}
-          onClick={() => save("modern")}
-          disabled={saving || !isPaid}
-          locked={!isPaid}
-          preview="Clean, high-contrast layout with blue accents and clear sections."
-        />
-        <TemplateOption
-          name="Professional"
-          id="professional"
-          active={s.receipt_template === "professional"}
-          onClick={() => save("professional")}
-          disabled={saving || !isPaid}
-          locked={!isPaid}
-          preview="Elegant bordered frame with centered branding and official feel."
-        />
-      </div>
-      {!isPaid && (
-        <div className="mt-4 rounded-md bg-muted/50 p-3 text-center">
-          <p className="text-xs text-muted-foreground">
-            You are on the <span className="font-bold capitalize">{plan}</span> plan. Paid templates
-            are available in <strong>Growth</strong> and <strong>Campus</strong>.
-          </p>
-        </div>
-      )}
-    </Card>
-  );
-}
-
-function TemplateOption({
-  name,
-  active,
-  onClick,
-  disabled,
-  locked,
-  preview,
-}: {
-  name: string;
-  id: string;
-  active: boolean;
-  onClick: () => void;
-  disabled?: boolean;
-  locked?: boolean;
-  preview: string;
-}) {
-  return (
-    <button
-      type="button"
-      disabled={disabled || locked}
-      onClick={onClick}
-      className={
-        "relative flex flex-col gap-2 rounded-lg border p-4 text-left transition-all " +
-        (active
-          ? "border-primary bg-primary/5 ring-1 ring-primary"
-          : "border-border hover:border-primary/50 hover:bg-muted/50") +
-        (locked ? " opacity-60 grayscale cursor-not-allowed" : "")
-      }
-    >
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-bold">{name}</span>
-        {active && (
-          <Badge variant="default" className="h-4 px-1.5 text-[10px]">
-            Active
-          </Badge>
-        )}
-        {locked && (
-          <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
-            Locked
-          </Badge>
-        )}
-      </div>
-      <p className="text-[10px] leading-relaxed text-muted-foreground">{preview}</p>
-    </button>
   );
 }
 
@@ -384,9 +263,10 @@ function RoomsPanel() {
   const [name, setName] = useState("");
   const [capacity, setCapacity] = useState("30");
 
-  const limit = institute?.room_limit ?? 0;
+  const plan = planFor(institute?.plan);
+  const limit = institute?.room_limit ?? plan.rooms;
   const used = rooms.length;
-  const atLimit = limit > 0 && used >= limit;
+  const atLimit = used >= limit;
 
   function refresh() {
     qc.invalidateQueries({ queryKey: ["rooms-all"] });
@@ -394,12 +274,23 @@ function RoomsPanel() {
     qc.invalidateQueries({ queryKey: ["timetable"] });
   }
 
+  const changePlan = useMutation({
+    mutationFn: async (key: string) => {
+      if (!institute) throw new Error("Institute not loaded");
+      const p = planFor(key);
+      return instituteApi.setPlan(institute.id, p.key, p.rooms);
+    },
+    onSuccess: () => {
+      toast.success("Plan updated");
+      qc.invalidateQueries({ queryKey: ["institute"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const add = useMutation({
     mutationFn: async () => {
       if (atLimit)
-        throw new Error(
-          `Your institute is set up for ${limit} classrooms. Call Academix on ${SUPPORT_PHONE} to raise this.`,
-        );
+        throw new Error(`Your ${plan.name} plan allows ${limit} classrooms. Upgrade to add more.`);
       return roomsApi.create({ name: name.trim(), capacity: Math.max(1, Number(capacity) || 30) });
     },
     onSuccess: () => {
@@ -437,15 +328,31 @@ function RoomsPanel() {
     >
       <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2">
         <div className="text-sm">
-          <span className="font-medium">Classrooms</span>{" "}
+          <span className="font-medium">{plan.name} plan</span>{" "}
           <span className="text-muted-foreground">
-            — {used} {limit > 0 ? `of ${limit} used` : "in use"}
+            — {used} of {limit} classrooms used
           </span>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <Label className="text-xs">Plan</Label>
+          <Select value={plan.key} onValueChange={(v) => changePlan.mutate(v)}>
+            <SelectTrigger className="h-8 w-52 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PLANS.map((p) => (
+                <SelectItem key={p.key} value={p.key}>
+                  {p.name} — {p.blurb}
+                  {p.priceYearly === 0 ? " · free" : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       {atLimit && (
         <p className="mb-2 text-xs text-destructive">
-          Classroom limit reached — call Academix on {SUPPORT_PHONE} to add more.
+          Classroom limit reached — upgrade the plan above to add more rooms.
         </p>
       )}
       <form
@@ -751,9 +658,8 @@ const ALL_ROLES: AppRole[] = [
   "receptionist",
   "counsellor",
   "accountant",
-  "receptionist",
-  "counsellor",
-  "accountant",
+  "student",
+  "parent",
 ];
 
 function UsersPanel() {
@@ -935,26 +841,18 @@ function TemplatesPanel() {
         <div className="flex justify-end gap-2">
           <Button
             variant="outline"
-            onClick={async () => {
+            onClick={() => {
               setTpls(WA_TEMPLATES);
-              try {
-                await saveTemplates(WA_TEMPLATES);
-                toast.success("Reset to defaults");
-              } catch (e) {
-                toast.error((e as Error).message);
-              }
+              saveTemplates(WA_TEMPLATES);
+              toast.success("Reset to defaults");
             }}
           >
             Reset
           </Button>
           <Button
-            onClick={async () => {
-              try {
-                await saveTemplates(tpls);
-                toast.success("Templates saved");
-              } catch (e) {
-                toast.error((e as Error).message);
-              }
+            onClick={() => {
+              saveTemplates(tpls);
+              toast.success("Templates saved");
             }}
           >
             Save

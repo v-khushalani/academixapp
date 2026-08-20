@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Layers, UserPlus, CalendarCheck, Wallet, IndianRupee } from "lucide-react";
+import { Layers, UserPlus, CalendarCheck, Wallet } from "lucide-react";
 import { PageBody, PageHeader } from "@/components/app/page-header";
 import { dashboardApi, batchesApi } from "@/lib/api";
 import { syllabusApi, overallPct } from "@/lib/api/syllabus";
@@ -10,7 +10,6 @@ import { getInstitute } from "@/lib/academy-settings";
 import { AbsentAlerts } from "@/components/app/absent-alerts";
 import { Panel, Bar, ActionRow, HeroStat, inr } from "@/components/app/dashboard/dashboard-cards";
 import { formatDate } from "@/lib/dates";
-import { DemoDataButton } from "@/components/app/demo-data-button";
 
 export const Route = createFileRoute("/app/")({
   component: DashboardPage,
@@ -22,29 +21,14 @@ function DashboardPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-summary"],
     queryFn: () => dashboardApi.overview(),
-    staleTime: 60000, // 1 minute
+  });
+  const { data: chapters = [] } = useQuery({
+    queryKey: ["syllabus"],
+    queryFn: () => syllabusApi.chapters(),
   });
   const { data: batches = [] } = useQuery({
     queryKey: ["batches"],
     queryFn: () => batchesApi.list(),
-  });
-  const { data: progress = [] } = useQuery({
-    queryKey: ["syllabus-overview"],
-    queryFn: async () => {
-      const all = await syllabusApi.chapters();
-      return batches
-        .map((b) => {
-          const rows = all.filter((c) => c.batch_id === b.id);
-          return {
-            id: b.id,
-            name: b.name,
-            count: rows.length,
-            pct: rows.length ? overallPct(rows) : 0,
-          };
-        })
-        .filter((b) => b.count > 0);
-    },
-    enabled: batches.length > 0,
   });
 
   const name = user?.user_metadata?.full_name || user?.email || "there";
@@ -58,7 +42,12 @@ function DashboardPage() {
         )
       : null;
 
-  const behind = progress
+  const behind = batches
+    .map((b) => {
+      const rows = chapters.filter((c) => c.batch_id === b.id);
+      return { id: b.id, name: b.name, count: rows.length, pct: rows.length ? overallPct(rows) : 0 };
+    })
+    .filter((b) => b.count > 0)
     .filter((b) => b.pct < 60)
     .sort((a, b) => a.pct - b.pct)
     .slice(0, 4);
@@ -67,15 +56,12 @@ function DashboardPage() {
   const dash = isLoading ? "—" : null;
   const nextTest = data?.upcomingTests?.[0];
 
-  const greetingText = greeting();
-
   return (
     <>
       {showMoney ? <AbsentAlerts /> : null}
       <PageHeader
-        title={`${greetingText}, ${name.split(" ")[0]}`}
+        title={`${greeting()}, ${name.split(" ")[0]}`}
         description={`${institute} · ${formatDate(new Date())}`}
-        actions={<DemoDataButton />}
       />
       <PageBody>
         {/* Hero numbers */}
@@ -128,22 +114,13 @@ function DashboardPage() {
                 tone={unmarked > 0 ? "danger" : "default"}
               />
               {showMoney ? (
-                <>
-                  <ActionRow
-                    icon={Wallet}
-                    label="Parents with dues"
-                    count={money?.defaulters?.filter((d: any) => d.due > 0).length ?? 0}
-                    to="/app/fees"
-                    tone={(money?.defaulters.length ?? 0) > 0 ? "warning" : "default"}
-                  />
-                  <ActionRow
-                    icon={IndianRupee}
-                    label="Expenses this month"
-                    count={data?.expensesThisMonth ?? 0}
-                    to="/app/expenses"
-                    tone="default"
-                  />
-                </>
+                <ActionRow
+                  icon={Wallet}
+                  label="Parents with dues"
+                  count={money?.defaulters.filter((d) => d.due > 0).length ?? 0}
+                  to="/app/fees"
+                  tone={(money?.defaulters.length ?? 0) > 0 ? "warning" : "default"}
+                />
               ) : null}
               <ActionRow
                 icon={Layers}
@@ -182,60 +159,21 @@ function DashboardPage() {
           ) : null}
         </div>
 
-        {/* Enhanced Syllabus & Pulse */}
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <Panel title="Syllabus Pulse" className="lg:col-span-2">
-            <div className="space-y-4">
-              {progress.length === 0 && !isLoading && (
-                <p className="py-4 text-center text-xs text-muted-foreground">
-                  No syllabus tracking data yet.
-                </p>
-              )}
-              {progress.map((b) => (
-                <div key={b.id} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium">{b.name}</span>
-                    <span className="tabular-nums text-muted-foreground">{b.pct}% complete</span>
-                  </div>
-                  <Bar
-                    pct={b.pct}
-                    tone={b.pct < 40 ? "danger" : b.pct < 70 ? "warning" : "success"}
-                  />
-                </div>
-              ))}
-            </div>
-          </Panel>
-
-          <Panel title="Quick Links">
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "New Admission", to: "/app/admissions", icon: UserPlus },
-                { label: "Mark Attendance", to: "/app/attendance", icon: CalendarCheck },
-                { label: "Collect Fee", to: "/app/fees", icon: IndianRupee },
-                { label: "View Reports", to: "/app/reports", icon: Layers },
-              ].map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className="flex flex-col items-center justify-center gap-2 rounded-lg border border-border bg-muted/30 p-4 text-center transition-colors hover:border-primary/50 hover:bg-primary/5"
-                >
-                  <link.icon className="h-5 w-5 text-primary" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">
-                    {link.label}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </Panel>
-        </div>
-
+        {/* Slim strips */}
+        {behind.length > 0 ? (
+          <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <span className="font-medium uppercase tracking-[0.14em]">Behind on syllabus</span>
+            {behind.map((b) => (
+              <span key={b.id} className="tabular-nums">
+                {b.name} {b.pct}%
+              </span>
+            ))}
+          </p>
+        ) : null}
         {nextTest ? (
-          <div className="mt-6 flex items-center gap-2 rounded-full bg-primary/5 px-4 py-2 text-[11px] font-medium text-primary">
-            <div className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-            <span>
-              UPCOMING TEST: {nextTest.title} · {nextTest.batch?.name} · {nextTest.date}
-            </span>
-          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Next test: {nextTest.title} · {nextTest.batch?.name ?? "—"} · {nextTest.date}
+          </p>
         ) : null}
       </PageBody>
     </>
@@ -244,9 +182,5 @@ function DashboardPage() {
 
 function greeting() {
   const h = new Date().getHours();
-  if (h < 5) return "Working late";
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  if (h < 21) return "Good evening";
-  return "Burning the midnight oil";
+  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
 }

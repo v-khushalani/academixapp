@@ -22,7 +22,6 @@ export type InstituteSettings = {
   upi_name: string; // payee name shown in the UPI app
   shifts: Shifts; // timetable morning / evening windows
   installment_plan: Installment[]; // default fee installment schedule
-  receipt_template?: string; // e.g. "classic", "modern", "minimal"
 };
 
 const KEY_INSTITUTE = "vk_institute";
@@ -98,10 +97,7 @@ export async function saveInstitute(s: InstituteSettings) {
       upi_id: s.upi_id || null,
       upi_name: s.upi_name || null,
       shifts: s.shifts ?? DEFAULT_SHIFTS,
-      installment_plan: (s.installment_plan?.length
-        ? s.installment_plan
-        : DEFAULT_PLAN) as unknown as never,
-      receipt_template: s.receipt_template || null,
+      installment_plan: (s.installment_plan?.length ? s.installment_plan : DEFAULT_PLAN) as unknown as never,
     })
     .eq("id", row.id);
   if (error) throw error;
@@ -112,7 +108,7 @@ export async function hydrateInstitute() {
   const { data } = await supabase
     .from("institutes")
     .select(
-      "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan, receipt_template",
+      "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan",
     )
     .maybeSingle();
   if (!data) return;
@@ -127,30 +123,9 @@ export function getTemplates(): Record<WhatsAppTemplateKey, string> {
   return { ...WA_TEMPLATES, ...overrides };
 }
 
-function cacheTemplates(t: Partial<Record<WhatsAppTemplateKey, string>>) {
+export function saveTemplates(t: Record<WhatsAppTemplateKey, string>) {
   window.localStorage.setItem(KEY_TEMPLATES, JSON.stringify(t));
   window.dispatchEvent(new Event("vk-templates-changed"));
-}
-
-/** Persist templates on the institute row so all staff share them, and refresh the cache. */
-export async function saveTemplates(t: Record<WhatsAppTemplateKey, string>) {
-  cacheTemplates(t);
-  const { data: row } = await supabase.from("institutes").select("id").maybeSingle();
-  if (!row) return;
-  const { error } = await supabase
-    .from("institutes")
-    .update({ wa_templates: t as unknown as never })
-    .eq("id", row.id);
-  if (error) throw error;
-}
-
-/** Pull shared templates from the institute row into the local cache. */
-export async function hydrateTemplates() {
-  const { data } = await supabase.from("institutes").select("wa_templates").maybeSingle();
-  const stored = (data as { wa_templates?: Record<string, string> } | null)?.wa_templates;
-  if (stored && typeof stored === "object") {
-    cacheTemplates(stored as Partial<Record<WhatsAppTemplateKey, string>>);
-  }
 }
 
 export function applyBranding(hex: string) {

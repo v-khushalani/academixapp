@@ -68,15 +68,11 @@ export function TeacherDaySheet({
 
       {unassigned.length > 0 && (
         <div className="rounded-lg border border-amber-500/50 bg-amber-500/5 p-3 text-xs">
-          {unassigned.length} class(es) today have no teacher assigned — fix them in the weekly
-          plan.
+          {unassigned.length} class(es) today have no teacher assigned — fix them in the weekly plan.
         </div>
       )}
 
-      <div
-        ref={sheetRef}
-        className="grid gap-3 rounded-xl bg-background sm:grid-cols-2 xl:grid-cols-3"
-      >
+      <div ref={sheetRef} className="grid gap-3 rounded-xl bg-background sm:grid-cols-2 xl:grid-cols-3">
         {faculty.map((f) => {
           const rows = rowsFor(f.id);
           return (

@@ -1,1 +1,0 @@
-UPDATE public.plan_catalog SET visible = true WHERE key = 'growth';

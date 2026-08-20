@@ -197,10 +197,7 @@ export function termFor(plan: Plan, years: number): Term {
 }
 
 /** Feature matrix rows shared by the pricing page. */
-export const PLAN_FEATURE_MATRIX: {
-  group: string;
-  rows: { label: string; v: (boolean | string)[] }[];
-}[] = [
+export const PLAN_FEATURE_MATRIX: { group: string; rows: { label: string; v: (boolean | string)[] }[] }[] = [
   {
     group: "Daily operation",
     rows: [
@@ -208,10 +205,7 @@ export const PLAN_FEATURE_MATRIX: {
       { label: "Attendance & fee collection", v: [true, true, true, true] },
       { label: "Tests, marks, syllabus tracker", v: [true, true, true, true] },
       { label: "Timetable with clash detection", v: [true, true, true, true] },
-      {
-        label: "Parent & student portals",
-        v: ["Unlimited", "Unlimited", "Unlimited", "Unlimited"],
-      },
+      { label: "Parent & student portals", v: ["Unlimited", "Unlimited", "Unlimited", "Unlimited"] },
       { label: "WhatsApp messaging (manual send)", v: [true, true, true, true] },
       { label: "Office / admin logins", v: ["2", "6", "20", "Unlimited"] },
       { label: "Teacher logins", v: ["5", "25", "Unlimited", "Unlimited"] },

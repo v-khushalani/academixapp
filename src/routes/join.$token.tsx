@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { acceptFacultyInviteFn } from "@/lib/onboarding.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field as F } from "@/components/app/field";
@@ -55,9 +54,8 @@ function JoinPage() {
       const { data: s } = await supabase.auth.getSession();
       if (!s.session) return;
       claimed.current = true;
-      try {
-        await acceptFacultyInviteFn({ data: { _token: token } });
-      } catch (error: any) {
+      const { error } = await supabase.rpc("accept_faculty_invite", { _token: token });
+      if (error) {
         toast.error(error.message);
         return;
       }
@@ -90,14 +88,12 @@ function JoinPage() {
         return;
       }
     }
-    try {
-      await acceptFacultyInviteFn({ data: { _token: token } });
-    } catch (error: any) {
-      setSaving(false);
+    const { error } = await supabase.rpc("accept_faculty_invite", { _token: token });
+    setSaving(false);
+    if (error) {
       toast.error(error.message);
       return;
     }
-    setSaving(false);
     toast.success("You're in — welcome aboard!");
     void navigate({ to: "/teach" });
   }
@@ -150,28 +146,28 @@ function JoinPage() {
               <>
                 <OrDivider />
                 <form className="space-y-3" onSubmit={onSubmit}>
-                  <F label="Your email *">
-                    <Input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@example.com"
-                      required
-                    />
-                  </F>
-                  <F label="Create a password *">
-                    <Input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="At least 8 characters"
-                      minLength={8}
-                      required
-                    />
-                  </F>
-                  <Button type="submit" className="w-full" disabled={saving || isLoading}>
-                    {saving ? "Setting up…" : "Create my teacher account"}
-                  </Button>
+            <F label="Your email *">
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+            </F>
+            <F label="Create a password *">
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="At least 8 characters"
+                minLength={8}
+                required
+              />
+            </F>
+            <Button type="submit" className="w-full" disabled={saving || isLoading}>
+              {saving ? "Setting up…" : "Create my teacher account"}
+            </Button>
                 </form>
               </>
             )}
