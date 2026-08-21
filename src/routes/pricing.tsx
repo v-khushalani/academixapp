@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,8 @@ import {
   fetchFeatures,
   fetchPlans,
   groupFeatures,
+  type CatalogFeature,
+  type CatalogPlan,
   type FeatureValue,
 } from "@/lib/pricing-catalog";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
@@ -62,12 +64,32 @@ function Mark({ v }: { v: FeatureValue | undefined }) {
   return <span className="text-xs font-medium">{v}</span>;
 }
 
+/** The short comparison shows only the first few rows; order is set in the admin console. */
+const TOP_ROWS = 8;
+
+function Row({ row, plans }: { row: CatalogFeature; plans: CatalogPlan[] }) {
+  return (
+    <tr className="border-t border-border/70">
+      <td className="sticky left-0 z-10 bg-card px-4 py-2.5 text-xs">{row.label}</td>
+      {plans.map((p) => (
+        <td
+          key={p.id}
+          className={`px-3 py-2.5 text-center ${p.highlight ? "bg-primary/5" : ""}`}
+        >
+          <Mark v={row.values?.[p.key]} />
+        </td>
+      ))}
+    </tr>
+  );
+}
+
 function PricingPage() {
   const { data: plans = [] } = useQuery({ queryKey: ["pricing-plans"], queryFn: fetchPlans });
   const { data: features = [] } = useQuery({
     queryKey: ["pricing-features"],
     queryFn: fetchFeatures,
   });
+  const [showAll, setShowAll] = useState(false);
 
   const visible = plans.filter((p) => p.visible);
   const groups = groupFeatures(features);
@@ -140,53 +162,70 @@ function PricingPage() {
           </a>
         </p>
 
-        <div className="mt-12 overflow-x-auto rounded-xl border border-border bg-card">
-          <table className="w-full min-w-[560px] border-collapse text-sm">
-            <thead>
-              <tr className="bg-muted/60">
-                <th className="sticky left-0 z-10 w-[240px] bg-muted/60 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Compare
-                </th>
-                {visible.map((p) => (
-                  <th
-                    key={p.id}
-                    className={`px-3 py-3 text-center text-xs font-semibold ${
-                      p.highlight ? "bg-primary/10 text-primary" : "text-muted-foreground"
-                    }`}
-                  >
-                    {p.name}
+        <div className="mt-12">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-lg font-semibold tracking-tight">What you get</h2>
+            {features.length > TOP_ROWS && (
+              <button
+                type="button"
+                onClick={() => setShowAll((v) => !v)}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                {showAll
+                  ? "Show the short list"
+                  : `See all ${features.length} features`}
+              </button>
+            )}
+          </div>
+
+          <div className="mt-3 overflow-x-auto rounded-xl border border-border bg-card">
+            <table className="w-full min-w-[520px] border-collapse text-sm">
+              <thead>
+                <tr className="bg-muted/60">
+                  <th className="sticky left-0 z-10 w-[220px] bg-muted/60 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Compare
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {groups.map((g) => (
-                <Fragment key={g.group}>
-                  <tr className="border-t border-border">
-                    <td
-                      colSpan={visible.length + 1}
-                      className="bg-muted/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+                  {visible.map((p) => (
+                    <th
+                      key={p.id}
+                      className={`px-3 py-3 text-center text-xs font-semibold ${
+                        p.highlight ? "bg-primary/10 text-primary" : "text-muted-foreground"
+                      }`}
                     >
-                      {g.group}
-                    </td>
-                  </tr>
-                  {g.rows.map((r) => (
-                    <tr key={r.id} className="border-t border-border/70">
-                      <td className="sticky left-0 z-10 bg-card px-4 py-2.5 text-xs">{r.label}</td>
-                      {visible.map((p) => (
-                        <td
-                          key={p.id}
-                          className={`px-3 py-2.5 text-center ${p.highlight ? "bg-primary/5" : ""}`}
-                        >
-                          <Mark v={r.values?.[p.key]} />
-                        </td>
-                      ))}
-                    </tr>
+                      {p.name}
+                    </th>
                   ))}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
+                </tr>
+              </thead>
+              <tbody>
+                {showAll
+                  ? groups.map((g) => (
+                      <Fragment key={g.group}>
+                        <tr className="border-t border-border">
+                          <td
+                            colSpan={visible.length + 1}
+                            className="bg-muted/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+                          >
+                            {g.group}
+                          </td>
+                        </tr>
+                        {g.rows.map((r) => (
+                          <Row key={r.id} row={r} plans={visible} />
+                        ))}
+                      </Fragment>
+                    ))
+                  : features.slice(0, TOP_ROWS).map((r) => (
+                      <Row key={r.id} row={r} plans={visible} />
+                    ))}
+              </tbody>
+            </table>
+          </div>
+
+          {!showAll && features.length > TOP_ROWS && (
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+              The essentials only. Everything else is in the full list.
+            </p>
+          )}
         </div>
 
         <dl className="mt-12 grid gap-3 sm:grid-cols-2">

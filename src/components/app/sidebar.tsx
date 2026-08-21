@@ -174,6 +174,9 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        {!collapsed && !superadmin && (
+          <p className="px-2 pb-1 text-[10px] text-sidebar-foreground/50">Powered by Academix</p>
+        )}
       </SidebarFooter>
     </Sidebar>
   );

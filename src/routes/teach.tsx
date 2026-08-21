@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { BookOpen, CalendarCheck, ClipboardList, Home, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccessGate } from "@/hooks/use-access-gate";
-import { getInstitute } from "@/lib/academy-settings";
+import { BrandMark, PoweredByAcademix, useBrand, useBrandedTitle } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/teach")({
@@ -22,14 +22,9 @@ function TeachLayout() {
   const { session, roles, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const [institute, setInstitute] = useState("Academix");
-
-  useEffect(() => {
-    const sync = () => setInstitute(getInstitute().name || "Academix");
-    sync();
-    window.addEventListener("vk-institute-changed", sync);
-    return () => window.removeEventListener("vk-institute-changed", sync);
-  }, []);
+  const brand = useBrand();
+  const institute = brand.name;
+  useBrandedTitle("Teacher portal");
 
   const allowed = roles.some((r) => ["faculty", "owner", "admin"].includes(r));
   const isFamily = !allowed && (roles.includes("student") || roles.includes("parent"));
@@ -56,9 +51,7 @@ function TeachLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-background pb-16 md:pb-0">
       <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-card px-4 py-3">
-        <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
-          Ax
-        </div>
+        <BrandMark brand={brand} size={32} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{institute}</p>
           <p className="text-xs text-muted-foreground">Teacher portal</p>
@@ -82,6 +75,9 @@ function TeachLayout() {
       <main className="flex-1">
         <Outlet />
       </main>
+      <footer className="px-4 pb-4 pt-2">
+        <PoweredByAcademix />
+      </footer>
 
       <nav className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-border bg-card md:hidden">
         {NAV.map((n) => (

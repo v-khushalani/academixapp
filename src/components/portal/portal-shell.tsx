@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Home, CalendarCheck, TrendingUp, Wallet, Calendar, BookOpen, LogOut } from "lucide-react";
 import { portalApi, type PortalStudent } from "@/lib/api/portal";
 import { useAuth } from "@/hooks/use-auth";
-import { getInstitute } from "@/lib/academy-settings";
+import { BrandMark, PoweredByAcademix, useBrand, useBrandedTitle } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -46,16 +46,14 @@ export function PortalShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const [institute, setInstitute] = useState("Academix");
+  const brand = useBrand();
+  const institute = brand.name;
   const [selected, setSelected] = useState<string | null>(null);
+  useBrandedTitle("Portal");
 
   useEffect(() => {
-    const sync = () => setInstitute(getInstitute().name || "Academix");
-    sync();
-    window.addEventListener("vk-institute-changed", sync);
     const stored = window.localStorage.getItem(KEY);
     if (stored) setSelected(stored);
-    return () => window.removeEventListener("vk-institute-changed", sync);
   }, []);
 
   const { data: students = [], isLoading } = useQuery({
@@ -96,11 +94,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen flex-col bg-background pb-16 md:pb-0">
         <header className="sticky top-0 z-30 border-b border-border bg-card/90 backdrop-blur">
           <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-3">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
-              <span className="text-xs font-bold">
-                {(institute.match(/\b\w/g) || ["A"]).slice(0, 2).join("").toUpperCase()}
-              </span>
-            </div>
+            <BrandMark brand={brand} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold leading-tight">{institute}</p>
               <p className="truncate text-[11px] leading-tight text-muted-foreground">
@@ -150,6 +144,10 @@ export function PortalShell({ children }: { children: ReactNode }) {
         </header>
 
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5">{children}</main>
+
+        <footer className="mx-auto w-full max-w-5xl px-4 pb-4 pt-2">
+          <PoweredByAcademix />
+        </footer>
 
         <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-border bg-card md:hidden">
           {NAV.map((item) => {
