@@ -68,9 +68,10 @@
 
 :root {
   /* Academix brand tokens (light) */
-  --radius: 0.5rem;
-  --background: oklch(0.984 0.003 240); /* #F8FAFC */
+  --radius: 0.75rem;
+  --background: oklch(0.978 0.004 250); /* soft, slightly cool paper */
   --foreground: oklch(0.205 0.02 264); /* #111827 */
+
   --card: oklch(1 0 0); /* #FFFFFF */
   --card-foreground: oklch(0.205 0.02 264);
   --popover: oklch(1 0 0);
@@ -157,5 +158,32 @@
     font-family: var(--font-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Apple-ish typography: tighter, calmer headings. */
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.02em;
+  }
+
+  button,
+  a,
+  [role="button"] {
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease,
+      color 150ms ease,
+      box-shadow 150ms ease,
+      transform 150ms ease;
+  }
+
+  /* Native-feeling scrollbars. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--color-foreground) 18%, transparent) transparent;
   }
 }
+

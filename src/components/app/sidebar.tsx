@@ -71,9 +71,16 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { roles, signOut } = useAuth();
+  const superadmin = isSuperAdmin(roles);
   const [instituteName, setInstituteName] = useState("Academix");
   const [logo, setLogo] = useState("");
   useEffect(() => {
+    // Team Academix never wears an institute's branding.
+    if (superadmin) {
+      setInstituteName("Academix");
+      setLogo("");
+      return;
+    }
     const sync = () => {
       const inst = getInstitute();
       setInstituteName(inst.name || "Academix");
@@ -82,14 +89,17 @@ export function AppSidebar() {
     sync();
     window.addEventListener("vk-institute-changed", sync);
     return () => window.removeEventListener("vk-institute-changed", sync);
-  }, []);
-  const initials = (instituteName.match(/\b\w/g) || ["A"]).slice(0, 2).join("").toUpperCase();
+  }, [superadmin]);
+  const initials = superadmin
+    ? "Ax"
+    : (instituteName.match(/\b\w/g) || ["A"]).slice(0, 2).join("").toUpperCase();
 
   const isActive = (url: string, exact?: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(url + "/");
 
-  const base = nav.filter((n) => roles.length === 0 || canAccess(n.key, roles));
-  const superadmin = isSuperAdmin(roles);
+  // Super admin runs the platform, not an institute — no institute modules in the rail.
+  const base = superadmin ? [] : nav.filter((n) => roles.length === 0 || canAccess(n.key, roles));
+
 
   const renderItem = (item: NavItem) => {
     const active = isActive(item.url, item.exact);
@@ -130,7 +140,7 @@ export function AppSidebar() {
                 {instituteName}
               </p>
               <p className="truncate text-[11px] leading-tight text-muted-foreground">
-                Powered by Academix
+                {superadmin ? "Platform team" : "Powered by Academix"}
               </p>
             </div>
           )}
@@ -146,13 +156,15 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-        <SidebarGroup>
-          {superadmin && !collapsed && <SidebarGroupLabel>Institute</SidebarGroupLabel>}
-          <SidebarGroupContent>
-            <SidebarMenu>{base.map(renderItem)}</SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {base.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>{base.map(renderItem)}</SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
+
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
