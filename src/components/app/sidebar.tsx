@@ -54,7 +54,7 @@ const nav: NavItem[] = [
   { title: "Syllabus", url: "/app/syllabus", icon: BookOpen, key: "syllabus" },
   { title: "Timetable", url: "/app/timetable", icon: Calendar, key: "timetable" },
   { title: "Faculty", url: "/app/faculty", icon: GraduationCap, key: "faculty" },
-  { title: "Salaries", url: "/app/salaries", icon: IndianRupee, key: "salaries" },
+  { title: "Expenses", url: "/app/expenses", icon: IndianRupee, key: "expenses" },
   { title: "Reports", url: "/app/reports", icon: BarChart3, key: "reports" },
   { title: "Settings", url: "/app/settings", icon: Settings, key: "settings" },
 ];

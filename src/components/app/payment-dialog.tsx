@@ -25,6 +25,7 @@ import { downloadReceipt, receiptFile, type ReceiptInput } from "@/lib/receipt";
 import { getInstitute } from "@/lib/academy-settings";
 import { formatDate } from "@/lib/dates";
 import { openWhatsApp } from "@/lib/whatsapp";
+import { brandedQrFile } from "@/lib/branded-qr";
 import { logMessage } from "@/lib/api/messages";
 import { feesApi } from "@/lib/api";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
@@ -115,19 +116,31 @@ export function PaymentDialog({
     onOpenChange(false);
   }
 
-  /** The rendered QR as a PNG File, so WhatsApp gets an image, not a raw link. */
+  /** Branded payment card (logo, institute name, amount, QR, Academix footer). */
   async function qrImage(): Promise<File | null> {
     const canvas = qrRef.current?.querySelector("canvas");
     if (!canvas) return null;
-    const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
-    if (!blob) return null;
-    return new File([blob], `pay-${target!.student_name.replace(/\s+/g, "-")}.png`, {
-      type: "image/png",
-    });
+    try {
+      return await brandedQrFile({
+        qrCanvas: canvas,
+        instituteName: inst.name,
+        logoUrl: inst.logo_url || null,
+        studentName: target!.student_name,
+        description: target!.description ?? "Fees",
+        amountLabel: inr(value),
+        upiId: inst.upi_id || null,
+      });
+    } catch {
+      const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
+      if (!blob) return null;
+      return new File([blob], `pay-${target!.student_name.replace(/\s+/g, "-")}.png`, {
+        type: "image/png",
+      });
+    }
   }
 
   async function sendPaymentQr() {
-    const caption = `Hello, please pay ${inr(value)} towards ${target!.student_name}'s fees.\n\nScan the attached QR with any UPI app.\nUPI ID: ${inst.upi_id}\n\n— ${inst.name}`;
+    const caption = `Hello, please pay ${inr(value)} towards ${target!.student_name}'s fees.\n\nScan the attached QR with any UPI app.\nUPI ID: ${inst.upi_id}\n\n— ${inst.name}\n(Powered by Academix)`;
     const img = await qrImage();
     const nav = navigator as Navigator & {
       canShare?: (d: { files?: File[] }) => boolean;
@@ -213,7 +226,7 @@ export function PaymentDialog({
   if (collected !== null) {
     return (
       <Dialog open onOpenChange={(v) => !v && close()}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-h-[90dvh] max-w-md overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Check className="h-4 w-4 text-success" /> {inr(collected)} received
@@ -247,7 +260,7 @@ export function PaymentDialog({
 
   return (
     <Dialog open onOpenChange={(v) => !v && close()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[90dvh] max-w-md overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <QrCode className="h-4 w-4" /> Collect payment

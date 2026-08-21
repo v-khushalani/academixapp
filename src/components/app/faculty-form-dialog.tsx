@@ -36,6 +36,7 @@ export function FacultyFormDialog({ open, onOpenChange, faculty }: Props) {
         qualification: faculty.qualification ?? "",
         subject: faculty.subject ?? "",
         joining_date: faculty.joining_date ?? undefined,
+        base_salary: faculty.base_salary ?? null,
         status: faculty.status,
         notes: faculty.notes ?? "",
       });
@@ -103,6 +104,17 @@ export function FacultyFormDialog({ open, onOpenChange, faculty }: Props) {
               type="email"
               value={f.email ?? ""}
               onChange={(e) => setF({ ...f, email: e.target.value })}
+            />
+          </F>
+          <F label="Monthly salary (₹)">
+            <Input
+              inputMode="numeric"
+              value={f.base_salary == null ? "" : String(f.base_salary)}
+              onChange={(e) => {
+                const v = e.target.value.replace(/[^\d]/g, "");
+                setF({ ...f, base_salary: v ? Number(v) : null });
+              }}
+              placeholder="e.g. 25000"
             />
           </F>
           <F label="Joining date">

@@ -719,6 +719,7 @@ export type Database = {
           channel: Database["public"]["Enums"]["notification_channel"]
           created_at: string
           created_by: string | null
+          dismissed_at: string | null
           fee_id: string | null
           id: string
           institute_id: string
@@ -726,6 +727,7 @@ export type Database = {
           lead_id: string | null
           message: string
           metadata: Json
+          queue_key: string | null
           recipient_email: string | null
           recipient_name: string | null
           recipient_phone: string | null
@@ -743,6 +745,7 @@ export type Database = {
           channel?: Database["public"]["Enums"]["notification_channel"]
           created_at?: string
           created_by?: string | null
+          dismissed_at?: string | null
           fee_id?: string | null
           id?: string
           institute_id?: string
@@ -750,6 +753,7 @@ export type Database = {
           lead_id?: string | null
           message: string
           metadata?: Json
+          queue_key?: string | null
           recipient_email?: string | null
           recipient_name?: string | null
           recipient_phone?: string | null
@@ -767,6 +771,7 @@ export type Database = {
           channel?: Database["public"]["Enums"]["notification_channel"]
           created_at?: string
           created_by?: string | null
+          dismissed_at?: string | null
           fee_id?: string | null
           id?: string
           institute_id?: string
@@ -774,6 +779,7 @@ export type Database = {
           lead_id?: string | null
           message?: string
           metadata?: Json
+          queue_key?: string | null
           recipient_email?: string | null
           recipient_name?: string | null
           recipient_phone?: string | null
@@ -1924,6 +1930,16 @@ export type Database = {
         Args: { _ids: string[] }
         Returns: undefined
       }
+      revise_installment: {
+        Args: {
+          _carry_forward?: boolean
+          _fee_id: string
+          _new_amount: number
+          _new_due_date?: string
+          _reason?: string
+        }
+        Returns: undefined
+      }
       set_active_institute: {
         Args: { _institute_id: string }
         Returns: undefined
@@ -2025,7 +2041,13 @@ export type Database = {
         | "enrolled"
         | "lost"
       notification_channel: "whatsapp" | "sms" | "email" | "push" | "in_app"
-      notification_status: "draft" | "queued" | "sent" | "delivered" | "failed"
+      notification_status:
+        | "draft"
+        | "queued"
+        | "sent"
+        | "delivered"
+        | "failed"
+        | "ignored"
       student_status: "active" | "inactive" | "alumni" | "dropped"
       test_status: "scheduled" | "ongoing" | "completed" | "cancelled"
       test_type: "quiz" | "unit" | "midterm" | "final" | "mock" | "practice"
@@ -2196,7 +2218,14 @@ export const Constants = {
         "lost",
       ],
       notification_channel: ["whatsapp", "sms", "email", "push", "in_app"],
-      notification_status: ["draft", "queued", "sent", "delivered", "failed"],
+      notification_status: [
+        "draft",
+        "queued",
+        "sent",
+        "delivered",
+        "failed",
+        "ignored",
+      ],
       student_status: ["active", "inactive", "alumni", "dropped"],
       test_status: ["scheduled", "ongoing", "completed", "cancelled"],
       test_type: ["quiz", "unit", "midterm", "final", "mock", "practice"],

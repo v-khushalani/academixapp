@@ -55,6 +55,7 @@ export const messagesApi = {
     student_id?: string | null;
     fee_id?: string | null;
     test_id?: string | null;
+    queue_key?: string | null;
   }[]) {
     if (!rows.length) return;
     const institute_id = await instituteId();

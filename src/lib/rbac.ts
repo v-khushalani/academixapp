@@ -7,7 +7,7 @@ export type ModuleKey =
   | "batches"
   | "attendance"
   | "fees"
-  | "salaries"
+  | "expenses"
   | "messages"
   | "tests"
   | "syllabus"
@@ -40,7 +40,7 @@ export const MODULE_ACCESS: Record<ModuleKey, AppRole[]> = {
   batches: ["owner", "admin", "receptionist"],
   attendance: ["owner", "admin", "faculty", "student", "parent"],
   fees: ["owner", "admin", "accountant", "receptionist", "student", "parent"],
-  salaries: ["owner", "admin", "accountant"],
+  expenses: ["owner", "admin", "accountant"],
   messages: ["owner", "admin", "receptionist", "counsellor", "accountant"],
   tests: ["owner", "admin", "faculty", "student", "parent"],
   syllabus: ["owner", "admin", "faculty", "receptionist"],

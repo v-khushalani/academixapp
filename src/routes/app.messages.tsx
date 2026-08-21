@@ -28,6 +28,7 @@ import { messagesApi, MESSAGE_KINDS, type MessageKind } from "@/lib/api/messages
 import { getInstitute, getTemplates } from "@/lib/academy-settings";
 import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
 import { formatDateTime } from "@/lib/dates";
+import { PendingQueue } from "@/components/app/pending-queue";
 
 export const Route = createFileRoute("/app/messages")({
   component: MessagesPage,
@@ -43,6 +44,7 @@ function MessagesPage() {
   const [status, setStatus] = useState(ALL);
   const [batchId, setBatchId] = useState(ALL);
   const [composeOpen, setComposeOpen] = useState(false);
+  const [tab, setTab] = useState<"pending" | "history">("pending");
 
   const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
   const filters = {
@@ -71,95 +73,116 @@ function MessagesPage() {
         }
       />
       <PageBody>
-        <div className="flex flex-wrap items-end gap-2">
-          <Filter label="From">
-            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-[150px]" />
-          </Filter>
-          <Filter label="To">
-            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-[150px]" />
-          </Filter>
-          <Filter label="Batch">
-            <Select value={batchId} onValueChange={setBatchId}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL}>All batches</SelectItem>
-                {batches.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Filter>
-          <Filter label="Type">
-            <Select value={kind} onValueChange={setKind}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL}>All types</SelectItem>
-                {Object.entries(MESSAGE_KINDS).map(([k, label]) => (
-                  <SelectItem key={k} value={k}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Filter>
-          <Filter label="Status">
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-[130px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL}>All</SelectItem>
-                <SelectItem value="sent">Sent</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-              </SelectContent>
-            </Select>
-          </Filter>
+        <div className="mb-4 inline-flex rounded-lg border border-border bg-muted/40 p-1">
+          {(["pending", "history"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium capitalize transition ${
+                tab === t ? "bg-card shadow-sm" : "text-muted-foreground"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
         </div>
 
-        <p className="mt-4 text-xs text-muted-foreground">
-          {isLoading ? "Loading…" : `${rows.length} message${rows.length === 1 ? "" : "s"} · ${sentCount} sent`}
-        </p>
+        {tab === "pending" ? (
+          <PendingQueue />
+        ) : (
+          <>
+          <div className="flex flex-wrap items-end gap-2">
+            <Filter label="From">
+              <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-[150px]" />
+            </Filter>
+            <Filter label="To">
+              <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-[150px]" />
+            </Filter>
+            <Filter label="Batch">
+              <Select value={batchId} onValueChange={setBatchId}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>All batches</SelectItem>
+                  {batches.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Filter>
+            <Filter label="Type">
+              <Select value={kind} onValueChange={setKind}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>All types</SelectItem>
+                  {Object.entries(MESSAGE_KINDS).map(([k, label]) => (
+                    <SelectItem key={k} value={k}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Filter>
+            <Filter label="Status">
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger className="w-[130px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>All</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                </SelectContent>
+              </Select>
+            </Filter>
+          </div>
 
-        <ul className="mt-2 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
-          {rows.length === 0 && !isLoading ? (
-            <li className="px-4 py-10 text-center text-sm text-muted-foreground">
-              No messages yet. Fee reminders, absent alerts and results land here once sent.
-            </li>
-          ) : null}
-          {rows.map((r) => (
-            <li key={r.id} className="flex gap-3 px-4 py-3">
-              <span className="mt-0.5 shrink-0">
-                {r.status === "failed" ? (
-                  <XCircle className="h-4 w-4 text-destructive" />
-                ) : (
-                  <CheckCircle2 className="h-4 w-4 text-success" />
-                )}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-medium">
-                    {r.recipient_name || r.student?.full_name || "—"}
-                  </span>
-                  <Badge variant="outline" className="text-[10px]">
-                    {MESSAGE_KINDS[r.kind as MessageKind] ?? r.kind}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDateTime(r.sent_at ?? r.created_at)}
-                  </span>
+          <p className="mt-4 text-xs text-muted-foreground">
+            {isLoading ? "Loading…" : `${rows.length} message${rows.length === 1 ? "" : "s"} · ${sentCount} sent`}
+          </p>
+
+          <ul className="mt-2 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+            {rows.length === 0 && !isLoading ? (
+              <li className="px-4 py-10 text-center text-sm text-muted-foreground">
+                No messages yet. Fee reminders, absent alerts and results land here once sent.
+              </li>
+            ) : null}
+            {rows.map((r) => (
+              <li key={r.id} className="flex gap-3 px-4 py-3">
+                <span className="mt-0.5 shrink-0">
+                  {r.status === "failed" ? (
+                    <XCircle className="h-4 w-4 text-destructive" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                  )}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-medium">
+                      {r.recipient_name || r.student?.full_name || "—"}
+                    </span>
+                    <Badge variant="outline" className="text-[10px]">
+                      {MESSAGE_KINDS[r.kind as MessageKind] ?? r.kind}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDateTime(r.sent_at ?? r.created_at)}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 line-clamp-2 whitespace-pre-line text-xs text-muted-foreground">
+                    {r.message}
+                  </p>
                 </div>
-                <p className="mt-0.5 line-clamp-2 whitespace-pre-line text-xs text-muted-foreground">
-                  {r.message}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+          </>
+        )}
       </PageBody>
 
       <ComposeDialog

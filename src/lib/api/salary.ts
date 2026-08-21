@@ -53,6 +53,17 @@ export const salaryApi = {
     });
     if (error) throw error;
   },
+  /** Every salary payment for one teacher, newest first. */
+  async forFaculty(facultyId: string): Promise<SalaryRow[]> {
+    const { data, error } = await supabase
+      .from("expenses")
+      .select("*, faculty:faculty(id, full_name)")
+      .eq("category", SALARY_CATEGORY)
+      .eq("faculty_id", facultyId)
+      .order("date", { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as SalaryRow[];
+  },
   async remove(id: string) {
     const { error } = await supabase.from("expenses").delete().eq("id", id);
     if (error) throw error;
