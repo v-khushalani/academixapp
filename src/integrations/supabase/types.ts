@@ -236,13 +236,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "expenses_faculty_id_fkey"
-            columns: ["faculty_id"]
-            isOneToOne: false
-            referencedRelation: "faculty_directory"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "expenses_institute_id_fkey"
             columns: ["institute_id"]
             isOneToOne: false
@@ -359,13 +352,6 @@ export type Database = {
             columns: ["faculty_id"]
             isOneToOne: false
             referencedRelation: "faculty"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "faculty_invites_faculty_id_fkey"
-            columns: ["faculty_id"]
-            isOneToOne: false
-            referencedRelation: "faculty_directory"
             referencedColumns: ["id"]
           },
           {
@@ -1423,13 +1409,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "syllabus_logs_faculty_id_fkey"
-            columns: ["faculty_id"]
-            isOneToOne: false
-            referencedRelation: "faculty_directory"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "syllabus_logs_institute_id_fkey"
             columns: ["institute_id"]
             isOneToOne: false
@@ -1619,13 +1598,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "timetable_day_plan_faculty_id_fkey"
-            columns: ["faculty_id"]
-            isOneToOne: false
-            referencedRelation: "faculty_directory"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "timetable_day_plan_room_id_fkey"
             columns: ["room_id"]
             isOneToOne: false
@@ -1700,13 +1672,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "timetable_slots_faculty_id_fkey"
-            columns: ["faculty_id"]
-            isOneToOne: false
-            referencedRelation: "faculty_directory"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "timetable_slots_institute_id_fkey"
             columns: ["institute_id"]
             isOneToOne: false
@@ -1756,59 +1721,7 @@ export type Database = {
       }
     }
     Views: {
-      faculty_directory: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          full_name: string | null
-          id: string | null
-          institute_id: string | null
-          joining_date: string | null
-          phone: string | null
-          qualification: string | null
-          status: string | null
-          subject: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string | null
-          institute_id?: string | null
-          joining_date?: string | null
-          phone?: string | null
-          qualification?: string | null
-          status?: string | null
-          subject?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string | null
-          institute_id?: string | null
-          joining_date?: string | null
-          phone?: string | null
-          qualification?: string | null
-          status?: string | null
-          subject?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "faculty_institute_id_fkey"
-            columns: ["institute_id"]
-            isOneToOne: false
-            referencedRelation: "institutes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       accept_faculty_invite: { Args: { _token: string }; Returns: undefined }
@@ -1863,6 +1776,21 @@ export type Database = {
       }
       current_institute_id: { Args: never; Returns: string }
       default_institute_id: { Args: never; Returns: string }
+      faculty_directory: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          id: string
+          institute_id: string
+          joining_date: string
+          phone: string
+          qualification: string
+          status: string
+          subject: string
+          user_id: string
+        }[]
+      }
       get_dashboard_overview: { Args: never; Returns: Json }
       get_faculty_invite: {
         Args: { _token: string }
