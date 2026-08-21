@@ -1894,6 +1894,10 @@ export type Database = {
           teacher_logins: number
         }[]
       }
+      platform_set_parent: {
+        Args: { _id: string; _parent_institute_id: string }
+        Returns: undefined
+      }
       platform_update_institute: {
         Args: {
           _batch_limit: number
