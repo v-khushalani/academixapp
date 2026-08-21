@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { getInstitute } from "./academy-settings";
+import { getInstitute, type ReceiptTemplate } from "./academy-settings";
 import { receiptNo } from "./payments";
 import { useSaira } from "./pdf-font";
 import { formatDate } from "./dates";
@@ -75,10 +75,19 @@ export function amountInWords(value: number): string {
   return `${parts.join(" ")} rupees only`;
 }
 
-/** Builds the A5 receipt. Only the amount received on this payment is shown. */
-export async function buildReceipt(f: ReceiptInput): Promise<{ doc: jsPDF; no: string }> {
+/**
+ * Builds the fee receipt in the institute's chosen template.
+ * Only the amount received on this payment is shown on Classic / Compact.
+ */
+export async function buildReceipt(
+  f: ReceiptInput,
+  template?: ReceiptTemplate,
+): Promise<{ doc: jsPDF; no: string }> {
   const inst = getInstitute();
+  const tpl = template ?? inst.receipt_template ?? "classic";
+  if (tpl === "compact") return buildCompact(f);
   const no = receiptNo(f.receipt_no);
+  const detailed = tpl === "detailed";
   const doc = new jsPDF({ unit: "mm", format: "a5", orientation: "portrait" });
   const FONT = await useSaira(doc);
   const W = doc.internal.pageSize.getWidth();
@@ -180,15 +189,116 @@ export async function buildReceipt(f: ReceiptInput): Promise<{ doc: jsPDF; no: s
   doc.text(`Amount in words: `, M, y);
   doc.setFont(FONT, "normal");
   doc.text(amountInWords(received), M + 26, y, { maxWidth: W - 2 * M - 26 });
+  y += 8;
 
-  // ---- footer ------------------------------------------------------------
-  doc.setDrawColor(220);
-  doc.line(M, H - 20, W - M, H - 20);
-  doc.setFontSize(7.5);
-  doc.setTextColor(120);
-  doc.text("This is a computer-generated receipt.", M, H - 14);
-  doc.text("Authorised signatory", W - M, H - 14, { align: "right" });
+  // ---- detailed template: fee summary ------------------------------------
+  if (detailed) {
+    const total = Number(f.amount) || 0;
+    const paidTotal = Number(f.amount_paid) || 0;
+    autoTable(doc, {
+      startY: y,
+      theme: "plain",
+      styles: { font: FONT, fontSize: 8, cellPadding: 1.1 },
+      columnStyles: {
+        0: { textColor: 110, cellWidth: 40 },
+        1: { halign: "right", fontStyle: "bold" },
+      },
+      body: [
+        ["Instalment amount", rs(total)],
+        ["Paid so far (incl. this)", rs(paidTotal)],
+        ["Balance", rs(Math.max(0, total - paidTotal))],
+        ["Due date", f.due_date ? formatDate(f.due_date) : "—"],
+      ],
+    });
+  }
+
+  drawFooter(doc, FONT, W, H, M);
   return { doc, no };
+}
+
+/** Half-page slip — the same facts, far less ink. */
+async function buildCompact(f: ReceiptInput): Promise<{ doc: jsPDF; no: string }> {
+  const inst = getInstitute();
+  const no = receiptNo(f.receipt_no);
+  const doc = new jsPDF({ unit: "mm", format: [148, 105], orientation: "landscape" });
+  const FONT = await useSaira(doc);
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const M = 9;
+  const received = Number(f.received_now ?? f.amount_paid) || 0;
+
+  let left = M;
+  if (inst.logo_url?.startsWith("data:image")) {
+    try {
+      doc.addImage(inst.logo_url, "PNG", M, M - 2, 12, 12, undefined, "FAST");
+      left = M + 15;
+    } catch {
+      /* ignore unreadable logo */
+    }
+  }
+  doc.setTextColor(20);
+  doc.setFont(FONT, "bold");
+  doc.setFontSize(12);
+  doc.text(inst.name || "Institute", left, M + 4);
+  doc.setFont(FONT, "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(110);
+  const contact = [inst.phone, inst.email].filter(Boolean).join("  ·  ");
+  if (contact) doc.text(contact, left, M + 8.5);
+  doc.setTextColor(20);
+  doc.setFont(FONT, "bold");
+  doc.setFontSize(8.5);
+  doc.text("FEE RECEIPT", W - M, M + 4, { align: "right" });
+  doc.setFont(FONT, "normal");
+  doc.setFontSize(7.5);
+  doc.text(`${no}  ·  ${formatDate(f.paid_date ?? new Date())}`, W - M, M + 8.5, {
+    align: "right",
+  });
+
+  doc.setDrawColor(225);
+  doc.line(M, M + 12, W - M, M + 12);
+
+  autoTable(doc, {
+    startY: M + 15,
+    theme: "plain",
+    margin: { left: M, right: M },
+    styles: { font: FONT, fontSize: 8.5, cellPadding: 1 },
+    columnStyles: { 0: { textColor: 110, cellWidth: 26 } },
+    body: [
+      ["Student", `${f.student_name}${f.admission_no ? `  (${f.admission_no})` : ""}`],
+      ["Class / Batch", [f.class_name, f.batch_name].filter(Boolean).join("  ·  ") || "—"],
+      ["Towards", f.description ?? "Tuition fee"],
+      ["Mode", f.method || "Cash"],
+    ],
+  });
+
+  const y =
+    ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 45) + 4;
+  doc.setFont(FONT, "bold");
+  doc.setFontSize(16);
+  doc.text(rs(received), W - M, y + 4, { align: "right" });
+  doc.setFont(FONT, "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(110);
+  doc.text("AMOUNT RECEIVED", W - M, y + 8, { align: "right" });
+  doc.setTextColor(20);
+  doc.setFontSize(7.5);
+  doc.text(amountInWords(received), M, y + 8, { maxWidth: W - 2 * M - 40 });
+
+  drawFooter(doc, FONT, W, H, M);
+  return { doc, no };
+}
+
+/** Institute line on the left, Academix credit on the right. */
+function drawFooter(doc: jsPDF, FONT: string, W: number, H: number, M: number) {
+  doc.setDrawColor(220);
+  doc.line(M, H - 16, W - M, H - 16);
+  doc.setFont(FONT, "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(130);
+  doc.text("Computer-generated receipt  ·  Powered by Academix", M, H - 11);
+  doc.text("Authorised signatory", W - M, H - 11, { align: "right" });
+  doc.setTextColor(20);
 }
 
 /** Generates the receipt PDF and triggers download. Returns the receipt number used. */
@@ -203,4 +313,27 @@ export async function receiptFile(f: ReceiptInput): Promise<{ file: File; no: st
   const { doc, no } = await buildReceipt(f);
   const blob = doc.output("blob");
   return { file: new File([blob], `${no}.pdf`, { type: "application/pdf" }), no };
+}
+
+/** Data URL of a sample receipt — used by the template preview in Settings. */
+export async function receiptPreviewUrl(template: ReceiptTemplate): Promise<string> {
+  const { doc } = await buildReceipt(
+    {
+      receipt_no: "RCPT-PREVIEW",
+      student_name: "Aarav Sharma",
+      admission_no: "ADM-1042",
+      class_name: "Class 10",
+      batch_name: "Class 10 — Morning",
+      parent_name: "Rajesh Sharma",
+      description: "Tuition fee — Instalment 2 of 4",
+      amount: 12000,
+      amount_paid: 9000,
+      received_now: 6000,
+      due_date: new Date().toISOString().slice(0, 10),
+      paid_date: new Date().toISOString().slice(0, 10),
+      method: "UPI",
+    },
+    template,
+  );
+  return doc.output("datauristring");
 }

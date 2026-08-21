@@ -22,7 +22,15 @@ export type InstituteSettings = {
   upi_name: string; // payee name shown in the UPI app
   shifts: Shifts; // timetable morning / evening windows
   installment_plan: Installment[]; // default fee installment schedule
+  receipt_template: ReceiptTemplate; // layout used for fee receipts
 };
+
+export type ReceiptTemplate = "classic" | "compact" | "detailed";
+export const RECEIPT_TEMPLATES: { key: ReceiptTemplate; name: string; blurb: string }[] = [
+  { key: "classic", name: "Classic", blurb: "A5 receipt with a coloured header band — the default." },
+  { key: "compact", name: "Compact", blurb: "Half-page slip. Minimal ink, quick to print in bulk." },
+  { key: "detailed", name: "Detailed", blurb: "A5 with fee summary, paid-so-far and balance lines." },
+];
 
 const KEY_INSTITUTE = "vk_institute";
 const KEY_TEMPLATES = "vk_wa_templates";
@@ -46,6 +54,7 @@ const DEFAULT_INSTITUTE: InstituteSettings = {
   upi_name: "",
   shifts: DEFAULT_SHIFTS,
   installment_plan: DEFAULT_PLAN,
+  receipt_template: "classic",
 };
 
 const KEY_ACTIVE_UID = "vk_active_uid";
@@ -124,6 +133,7 @@ export async function saveInstitute(s: InstituteSettings) {
       upi_name: s.upi_name || null,
       shifts: s.shifts ?? DEFAULT_SHIFTS,
       installment_plan: (s.installment_plan?.length ? s.installment_plan : DEFAULT_PLAN) as unknown as never,
+      receipt_template: s.receipt_template || "classic",
     })
     .eq("id", instituteId);
   if (error) throw error;
@@ -156,7 +166,7 @@ export async function hydrateInstitute() {
   const { data } = await supabase
     .from("institutes")
     .select(
-      "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan",
+      "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan, receipt_template",
     )
     .eq("id", instituteId)
     .maybeSingle();

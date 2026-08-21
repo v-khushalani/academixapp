@@ -33,9 +33,12 @@ import {
   getTemplates,
   saveTemplates,
   DEFAULT_SHIFTS,
+  RECEIPT_TEMPLATES,
   type InstituteSettings,
+  type ReceiptTemplate,
   type Shifts,
 } from "@/lib/academy-settings";
+import { receiptPreviewUrl } from "@/lib/receipt";
 import { WA_TEMPLATES, type WhatsAppTemplateKey } from "@/lib/whatsapp";
 import { InstallmentPlanEditor } from "@/components/app/installment-plan-editor";
 import { DEFAULT_PLAN, type Installment } from "@/lib/installments";
@@ -62,6 +65,7 @@ function SettingsPage() {
             <TabsTrigger value="access">Plan & logins</TabsTrigger>
             <TabsTrigger value="devices">Attendance machines</TabsTrigger>
             <TabsTrigger value="branding">Branding</TabsTrigger>
+            <TabsTrigger value="receipts">Receipts</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp templates</TabsTrigger>
           </TabsList>
           <TabsContent value="institute">
@@ -90,6 +94,9 @@ function SettingsPage() {
           </TabsContent>
           <TabsContent value="branding">
             <BrandingPanel />
+          </TabsContent>
+          <TabsContent value="receipts">
+            <ReceiptsPanel />
           </TabsContent>
           <TabsContent value="whatsapp">
             <TemplatesPanel />
@@ -808,6 +815,76 @@ function BrandingPanel() {
         >
           Reset
         </Button>
+      </div>
+    </Card>
+  );
+}
+
+function ReceiptsPanel() {
+  const [tpl, setTpl] = useState<ReceiptTemplate>(getInstitute().receipt_template ?? "classic");
+  const [preview, setPreview] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    setPreview("");
+    receiptPreviewUrl(tpl)
+      .then((url) => {
+        if (alive) setPreview(url);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [tpl]);
+
+  async function save() {
+    setSaving(true);
+    try {
+      await saveInstitute({ ...getInstitute(), receipt_template: tpl });
+      toast.success("Receipt template saved");
+    } catch {
+      toast.error("Could not save the template");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Card
+      title="Fee receipt template"
+      description="Pick a layout — the preview below uses sample data. Every download and WhatsApp share uses the saved template."
+    >
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,18rem)_1fr]">
+        <div className="space-y-2">
+          {RECEIPT_TEMPLATES.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setTpl(t.key)}
+              className={`w-full rounded-lg border p-3 text-left transition-colors ${
+                tpl === t.key
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:bg-muted/50"
+              }`}
+            >
+              <p className="text-sm font-semibold">{t.name}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{t.blurb}</p>
+            </button>
+          ))}
+          <Button className="w-full" onClick={save} disabled={saving}>
+            {saving ? "Saving…" : "Use this template"}
+          </Button>
+        </div>
+        <div className="min-h-[26rem] overflow-hidden rounded-lg border border-border bg-muted/30">
+          {preview ? (
+            <iframe title="Receipt preview" src={preview} className="h-[30rem] w-full" />
+          ) : (
+            <div className="grid h-[30rem] place-items-center text-xs text-muted-foreground">
+              Building preview…
+            </div>
+          )}
+        </div>
       </div>
     </Card>
   );
