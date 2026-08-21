@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "@/hooks/use-auth";
+import { PENDING_INSTITUTE_KEY } from "@/components/auth/google-button";
 
 export const PENDING_INVITE_KEY = "academix.pendingInvite";
 
@@ -84,6 +85,38 @@ export async function resolvePostAuthDestination(): Promise<{
 
   const to = homeForRoles(roles);
   if (to) return { to };
+
+  // Brand-new Google sign-up on /signup asked for an institute name — create it now.
+  const pendingName = takePendingInstituteName();
+  if (pendingName) {
+    const { error } = await supabase.rpc("create_institute_with_owner", {
+      _name: pendingName,
+    });
+    if (error) {
+      console.warn("[signup]", error.message);
+      // Maybe a role just landed; try once more before falling through.
+      const { data: re } = await supabase.rpc("get_my_roles");
+      const after = (re ?? []) as AppRole[];
+      const home = homeForRoles(after);
+      if (home) return { to: home };
+      return { to: "/pending" };
+    }
+    // Institute created — refresh the user's active institute cache.
+    const { hydrateInstitute } = await import("@/lib/academy-settings");
+    void hydrateInstitute().catch(() => {});
+    return { to: "/app" };
+  }
+
   // Invite-only platform: a signed-in account with no role waits for approval.
   return { to: "/pending" };
+}
+
+function takePendingInstituteName(): string | null {
+  try {
+    const v = sessionStorage.getItem(PENDING_INSTITUTE_KEY);
+    sessionStorage.removeItem(PENDING_INSTITUTE_KEY);
+    return v;
+  } catch {
+    return null;
+  }
 }

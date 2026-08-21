@@ -6,22 +6,34 @@ import { PENDING_INVITE_KEY, rememberInvite } from "@/lib/post-auth";
 
 export { PENDING_INVITE_KEY };
 
+export const PENDING_INSTITUTE_KEY = "academix.pendingInstitute";
+
 /**
  * Google sign-in. Everyone lands on /auth/callback, which figures out the
- * right portal from the account's roles (or finishes a pending invite).
+ * right portal from the account's roles (or finishes a pending invite, or
+ * creates an institute the owner asked to set up during sign-up).
  */
 export function GoogleButton({
   label = "Continue with Google",
   inviteToken,
+  instituteName,
 }: {
   label?: string;
   inviteToken?: string;
+  instituteName?: string;
 }) {
   const [busy, setBusy] = useState(false);
 
   async function onClick() {
     setBusy(true);
     rememberInvite(inviteToken);
+    if (instituteName) {
+      try {
+        sessionStorage.setItem(PENDING_INSTITUTE_KEY, instituteName.trim());
+      } catch {
+        /* private mode */
+      }
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {

@@ -15,7 +15,7 @@ import { canAccess } from "@/lib/rbac";
 import { getInstitute } from "@/lib/academy-settings";
 import { AbsentAlerts } from "@/components/app/absent-alerts";
 import { SetupChecklist } from "@/components/app/setup-checklist";
-import { ActionRow, HeroStat, inr } from "@/components/app/dashboard/dashboard-cards";
+import { Metric, Panel, inr } from "@/components/app/dashboard/dashboard-cards";
 import { formatDate } from "@/lib/dates";
 
 export const Route = createFileRoute("/app/")({
@@ -55,128 +55,146 @@ function DashboardPage() {
           }}
         />
 
-        {/* Three things you actually do every day. */}
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <BigAction
-            icon={CalendarCheck}
-            title="Take attendance"
-            hint={
-              unmarked > 0
-                ? `${unmarked} batch${unmarked === 1 ? "" : "es"} still unmarked today`
-                : "All batches marked today"
-            }
-            to="/app/attendance"
-            urgent={unmarked > 0}
+        {/* Four plain stats — same card treatment as the rest of the app. */}
+        <section className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <StatCard
+            label="Students"
+            value={dash ?? String(data?.students ?? 0)}
+            to="/app/students"
           />
-          {showMoney ? (
-            <BigAction
-              icon={Wallet}
-              title="Collect fees"
-              hint={`${inr(money?.outstanding ?? 0)} outstanding`}
-              to="/app/fees"
-              urgent={(money?.outstanding ?? 0) > 0}
-            />
-          ) : null}
-          {showMessages ? (
-            <BigAction
-              icon={MessageSquare}
-              title="Send a message"
-              hint="Fee reminders, absent alerts, results"
-              to="/app/messages"
-            />
-          ) : null}
-        </div>
-
-        {/* Numbers, kept to four. */}
-        <section className="mt-6 grid grid-cols-2 gap-x-6 gap-y-8 rounded-lg border border-border bg-card p-5 sm:grid-cols-4">
-          <HeroStat label="Students" value={dash ?? String(data?.students ?? 0)} to="/app/students" />
-          <HeroStat
+          <StatCard
             label="Attendance today"
             value={dash ?? `${today?.batchesMarked ?? 0}/${today?.batchesScheduled ?? 0}`}
-            tone={unmarked > 0 ? "warning" : "success"}
+            sub={
+              unmarked > 0 ? `${unmarked} batch${unmarked === 1 ? "" : "es"} left` : "All marked"
+            }
             to="/app/attendance"
+            tone={unmarked > 0 ? "warning" : "success"}
           />
-          <HeroStat
+          <StatCard
             label="Absent today"
             value={dash ?? String(today?.absent ?? 0)}
-            tone={(today?.absent ?? 0) > 0 ? "danger" : "default"}
+            sub={today?.absent ? "WhatsApp-ready below" : "All present"}
             to="/app/attendance"
+            tone={(today?.absent ?? 0) > 0 ? "danger" : "default"}
           />
           {showMoney ? (
-            <HeroStat
+            <StatCard
               label="Collected this month"
               value={dash ?? inr(money?.collectedThisMonth ?? 0)}
-              tone="success"
+              sub={`${inr(money?.outstanding ?? 0)} outstanding`}
               to="/app/fees"
+              tone="success"
             />
           ) : (
-            <HeroStat label="Active batches" value={dash ?? String(data?.batches ?? 0)} to="/app/batches" />
+            <StatCard
+              label="Active batches"
+              value={dash ?? String(data?.batches ?? 0)}
+              to="/app/batches"
+            />
           )}
         </section>
 
         {/* Anything waiting on a human. */}
-        <div className="mt-6 space-y-2">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-            Needs you
-          </h2>
-          <ActionRow
-            icon={UserPlus}
-            label="Applications waiting for approval"
-            count={data?.pendingApprovals ?? 0}
-            to="/app/admissions"
-            tone={(data?.pendingApprovals ?? 0) > 0 ? "warning" : "default"}
-          />
-          {showMoney ? (
+        <Panel title="Needs you" className="mt-6">
+          <div className="space-y-2">
             <ActionRow
-              icon={Wallet}
-              label="Parents with dues"
-              count={money?.defaulters.filter((d) => d.due > 0).length ?? 0}
-              to="/app/fees"
-              tone={(money?.defaulters.length ?? 0) > 0 ? "warning" : "default"}
+              icon={UserPlus}
+              label="Applications waiting for approval"
+              count={data?.pendingApprovals ?? 0}
+              to="/app/admissions"
+              tone={(data?.pendingApprovals ?? 0) > 0 ? "warning" : "default"}
             />
-          ) : null}
-          <ActionRow
-            icon={Layers}
-            label="Active batches"
-            count={data?.batches ?? 0}
-            to="/app/batches"
-          />
-        </div>
+            {showMoney ? (
+              <ActionRow
+                icon={Wallet}
+                label="Parents with dues"
+                count={money?.defaulters.filter((d) => d.due > 0).length ?? 0}
+                to="/app/fees"
+                tone={(money?.defaulters.length ?? 0) > 0 ? "warning" : "default"}
+              />
+            ) : null}
+            <ActionRow
+              icon={CalendarCheck}
+              label="Batches still unmarked today"
+              count={unmarked}
+              to="/app/attendance"
+              tone={unmarked > 0 ? "warning" : "default"}
+            />
+            {showMessages ? (
+              <ActionRow
+                icon={MessageSquare}
+                label="Send a message"
+                count={0}
+                to="/app/messages"
+                tone="default"
+              />
+            ) : null}
+            <ActionRow
+              icon={Layers}
+              label="Active batches"
+              count={data?.batches ?? 0}
+              to="/app/batches"
+              tone="default"
+            />
+          </div>
+        </Panel>
       </PageBody>
     </>
   );
 }
 
-function BigAction({
-  icon: Icon,
-  title,
-  hint,
+function StatCard({
+  label,
+  value,
+  sub,
   to,
-  urgent,
+  tone,
 }: {
-  icon: LucideIcon;
-  title: string;
-  hint: string;
+  label: string;
+  value: string;
+  sub?: string;
   to: string;
-  urgent?: boolean;
+  tone?: "default" | "success" | "warning" | "danger";
 }) {
   return (
     <Link
       to={to}
-      className="group flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40 active:bg-muted/50 sm:p-5"
+      className="rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40"
     >
-      <span
-        className={
-          "grid h-11 w-11 shrink-0 place-items-center rounded-lg " +
-          (urgent ? "bg-primary text-primary-foreground" : "bg-muted text-foreground")
-        }
-      >
-        <Icon className="h-5 w-5" />
+      <Metric label={label} value={value} sub={sub} tone={tone} />
+    </Link>
+  );
+}
+
+function ActionRow({
+  icon: Icon,
+  label,
+  count,
+  to,
+  tone = "default",
+}: {
+  icon: LucideIcon;
+  label: string;
+  count: number;
+  to: string;
+  tone?: "default" | "warning" | "danger";
+}) {
+  const dot = {
+    default: "bg-muted text-muted-foreground",
+    warning: "bg-warning/10 text-warning",
+    danger: "bg-destructive/10 text-destructive",
+  }[tone];
+  return (
+    <Link
+      to={to}
+      className="flex items-center gap-3 rounded-md border border-border px-3 py-2.5 transition-colors hover:border-primary/30"
+    >
+      <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-md ${dot}`}>
+        <Icon className="h-3.5 w-3.5" />
       </span>
-      <span className="min-w-0">
-        <span className="block text-base font-semibold tracking-tight">{title}</span>
-        <span className="block truncate text-xs text-muted-foreground">{hint}</span>
-      </span>
+      <span className="min-w-0 flex-1 truncate text-sm">{label}</span>
+      <span className="text-sm font-semibold">{count}</span>
     </Link>
   );
 }

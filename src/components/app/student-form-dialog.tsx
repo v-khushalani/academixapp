@@ -26,6 +26,16 @@ import { can } from "@/lib/rbac";
 import { supabase } from "@/integrations/supabase/client";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { getInstitute } from "@/lib/academy-settings";
+import { CLASSES } from "@/lib/constants";
+
+/** Normalise a grade string ("Class 10", "10th", "10") to its bare grade ("10"). */
+function normClass(v?: string | null): string {
+  const s = (v ?? "").trim().toLowerCase();
+  const num = s.match(/\d+/);
+  if (num) return num[0];
+  const word = s.match(/nursery|lkg|ukg/);
+  return word ? word[0] : s;
+}
 
 type Props = {
   open: boolean;
@@ -119,13 +129,15 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
     enabled: open,
   });
 
-  /** a class-9 student should only ever see class-9 batches */
+  /** prefer batches for the student's class, but never hide every batch */
   const batchOptions = useMemo(() => {
-    const cls = (form.class ?? "").trim();
     if (!batches) return [];
+    const cls = normClass(form.class);
     if (!cls) return batches;
-    return batches.filter((b) => !b.class_level || b.class_level === cls);
+    const matching = batches.filter((b) => !b.class_level || normClass(b.class_level) === cls);
+    return matching.length > 0 ? matching : batches;
   }, [batches, form.class]);
+
 
   const mutation = useMutation({
     mutationFn: async (input: StudentInsert) => {
@@ -235,10 +247,22 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
             />
           </Field>
           <Field label="Class">
-            <Input
-              value={form.class ?? ""}
-              onChange={(e) => setForm({ ...form, class: e.target.value })}
-            />
+            <Select
+              value={form.class || "none"}
+              onValueChange={(v) => setForm({ ...form, class: v === "none" ? "" : v })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select class" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Not set</SelectItem>
+                {CLASSES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
           <Field label="School">
             <Input
