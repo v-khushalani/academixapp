@@ -89,8 +89,8 @@ export function TimetableSlotDialog({
     enabled: open,
   });
   const { data: faculty = [] } = useQuery({
-    queryKey: ["faculty"],
-    queryFn: () => facultyApi.list(),
+    queryKey: ["faculty-directory"],
+    queryFn: () => facultyApi.directory(),
     enabled: open,
   });
   const { data: rooms = [] } = useQuery({
