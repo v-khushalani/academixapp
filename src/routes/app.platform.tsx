@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +39,7 @@ type InstituteRow = {
   plan: string | null;
   status: string | null;
   room_limit: number;
+  parent_institute_id: string | null;
   academic_year: string | null;
   created_at: string;
 };
@@ -46,6 +48,20 @@ function PlatformPage() {
   const { roles, loading } = useAuth();
   const allowed = isSuperAdmin(roles);
   const [q, setQ] = useState("");
+  const qc = useQueryClient();
+
+  async function setParent(id: string, parent: string) {
+    const { error } = await supabase.rpc("platform_set_parent", {
+      _id: id,
+      _parent_institute_id: parent || undefined,
+    });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await qc.invalidateQueries({ queryKey: ["platform-institutes"] });
+    toast.success(parent ? "Linked as a branch" : "Set as head office");
+  }
 
   const { data: institutes = [] } = useQuery({
     queryKey: ["platform-institutes"],
@@ -53,7 +69,7 @@ function PlatformPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("institutes")
-        .select("id,name,plan,status,room_limit,academic_year,created_at")
+        .select("id,name,plan,status,room_limit,parent_institute_id,academic_year,created_at")
         .order("created_at");
       if (error) throw error;
       return (data ?? []) as InstituteRow[];
@@ -165,6 +181,7 @@ function PlatformPage() {
               <tr>
                 <th className="px-3 py-2">Institute</th>
                 <th className="px-3 py-2">Plan</th>
+                <th className="px-3 py-2">Branch of</th>
                 <th className="px-3 py-2">Rooms allowed</th>
                 <th className="px-3 py-2">Students</th>
                 <th className="px-3 py-2">Collected / Billed</th>
@@ -180,6 +197,23 @@ function PlatformPage() {
                       <p className="text-xs text-muted-foreground">{i.academic_year ?? "—"}</p>
                     </td>
                     <td className="px-3 py-2">{planFor(i.plan).name}</td>
+                    <td className="px-3 py-2">
+                      <select
+                        aria-label={`Parent institute for ${i.name}`}
+                        value={i.parent_institute_id ?? ""}
+                        onChange={(e) => void setParent(i.id, e.target.value)}
+                        className="h-8 rounded-md border border-border bg-background px-2 text-xs"
+                      >
+                        <option value="">Head office (none)</option>
+                        {institutes
+                          .filter((o) => o.id !== i.id)
+                          .map((o) => (
+                            <option key={o.id} value={o.id}>
+                              {o.name}
+                            </option>
+                          ))}
+                      </select>
+                    </td>
                     <td className="px-3 py-2">{i.room_limit}</td>
                     <td className="px-3 py-2">{agg?.students ?? 0}</td>
                     <td className="px-3 py-2">
