@@ -33,6 +33,7 @@ import { Route as PortalHomeworkRouteImport } from './routes/portal.homework'
 import { Route as PortalFeesRouteImport } from './routes/portal.fees'
 import { Route as PortalAttendanceRouteImport } from './routes/portal.attendance'
 import { Route as OnboardTokenRouteImport } from './routes/onboard.$token'
+import { Route as LoginSplatRouteImport } from './routes/login.$'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppTimetableRouteImport } from './routes/app.timetable'
@@ -174,6 +175,11 @@ const OnboardTokenRoute = OnboardTokenRouteImport.update({
   path: '/onboard/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginSplatRoute = LoginSplatRouteImport.update({
+  id: '/login/$',
+  path: '/login/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinTokenRoute = JoinTokenRouteImport.update({
   id: '/join/$token',
   path: '/join/$token',
@@ -303,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/app/timetable': typeof AppTimetableRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
+  '/login/$': typeof LoginSplatRoute
   '/onboard/$token': typeof OnboardTokenRoute
   '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/fees': typeof PortalFeesRoute
@@ -346,6 +353,7 @@ export interface FileRoutesByTo {
   '/app/timetable': typeof AppTimetableRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
+  '/login/$': typeof LoginSplatRoute
   '/onboard/$token': typeof OnboardTokenRoute
   '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/fees': typeof PortalFeesRoute
@@ -393,6 +401,7 @@ export interface FileRoutesById {
   '/app/timetable': typeof AppTimetableRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
+  '/login/$': typeof LoginSplatRoute
   '/onboard/$token': typeof OnboardTokenRoute
   '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/fees': typeof PortalFeesRoute
@@ -441,6 +450,7 @@ export interface FileRouteTypes {
     | '/app/timetable'
     | '/auth/callback'
     | '/join/$token'
+    | '/login/$'
     | '/onboard/$token'
     | '/portal/attendance'
     | '/portal/fees'
@@ -484,6 +494,7 @@ export interface FileRouteTypes {
     | '/app/timetable'
     | '/auth/callback'
     | '/join/$token'
+    | '/login/$'
     | '/onboard/$token'
     | '/portal/attendance'
     | '/portal/fees'
@@ -530,6 +541,7 @@ export interface FileRouteTypes {
     | '/app/timetable'
     | '/auth/callback'
     | '/join/$token'
+    | '/login/$'
     | '/onboard/$token'
     | '/portal/attendance'
     | '/portal/fees'
@@ -563,6 +575,7 @@ export interface RootRouteChildren {
   TeachRoute: typeof TeachRouteWithChildren
   AuthCallbackRoute: typeof AuthCallbackRoute
   JoinTokenRoute: typeof JoinTokenRoute
+  LoginSplatRoute: typeof LoginSplatRoute
   OnboardTokenRoute: typeof OnboardTokenRoute
   WelcomeTokenRoute: typeof WelcomeTokenRoute
   LoginIndexRoute: typeof LoginIndexRoute
@@ -737,6 +750,13 @@ declare module '@tanstack/react-router' {
       path: '/onboard/$token'
       fullPath: '/onboard/$token'
       preLoaderRoute: typeof OnboardTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login/$': {
+      id: '/login/$'
+      path: '/login/$'
+      fullPath: '/login/$'
+      preLoaderRoute: typeof LoginSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join/$token': {
@@ -1006,6 +1026,7 @@ const rootRouteChildren: RootRouteChildren = {
   TeachRoute: TeachRouteWithChildren,
   AuthCallbackRoute: AuthCallbackRoute,
   JoinTokenRoute: JoinTokenRoute,
+  LoginSplatRoute: LoginSplatRoute,
   OnboardTokenRoute: OnboardTokenRoute,
   WelcomeTokenRoute: WelcomeTokenRoute,
   LoginIndexRoute: LoginIndexRoute,

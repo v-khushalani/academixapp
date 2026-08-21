@@ -1,10 +1,10 @@
 import { expect, type Page } from "@playwright/test";
 
-export const DEMO_PASSWORD = process.env.E2E_PASSWORD ?? "Test@1234";
+export const DEMO_PASSWORD = process.env.E2E_PASSWORD ?? "test@123";
 export const DEMO = {
-  admin: { email: "owner@academix.website", loginPath: "/login/admin", home: "/app" },
-  teacher: { email: "faculty@academix.website", loginPath: "/login/teacher", home: "/teach" },
-  student: { email: "student@academix.website", loginPath: "/login/student", home: "/portal" },
+  admin: { email: "admin@academix.website", loginPath: "/login", home: "/app" },
+  teacher: { email: "teacher@academix.website", loginPath: "/login", home: "/teach" },
+  student: { email: "student@academix.website", loginPath: "/login", home: "/portal" },
 } as const;
 
 export async function login(page: Page, who: keyof typeof DEMO) {
