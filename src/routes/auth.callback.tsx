@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { resolvePostAuthDestination, waitForSession } from "@/lib/post-auth";
 
 export const Route = createFileRoute("/auth/callback")({
@@ -36,14 +35,8 @@ function AuthCallback() {
         return;
       }
       setMessage("Setting up your account…");
-      const { to, error } = await resolvePostAuthDestination();
-      if (to) {
-        void navigate({ to });
-        return;
-      }
-      await supabase.auth.signOut();
-      toast.error(error!);
-      void navigate({ to: "/login" });
+      const { to } = await resolvePostAuthDestination();
+      void navigate({ to: to ?? "/pending" });
     })();
   }, [navigate]);
 
