@@ -94,7 +94,7 @@ function TimetablePage() {
     queryFn: () => timetableApi.list() as Promise<SlotRow[]>,
   });
   const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
-  const { data: faculty = [] } = useQuery({ queryKey: ["faculty"], queryFn: () => facultyApi.directory() });
+  const { data: faculty = [] } = useQuery({ queryKey: ["faculty-directory"], queryFn: () => facultyApi.directory() });
   const { data: rooms = [] } = useQuery({ queryKey: ["rooms"], queryFn: () => roomsApi.list() });
   const { data: students = [] } = useQuery({
     queryKey: ["students"],
