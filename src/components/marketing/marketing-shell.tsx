@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 const NAV = [
   { to: "/for-institutes" as const, label: "Features" },
   { to: "/pricing" as const, label: "Pricing" },
+  { to: "/guide" as const, label: "Guide" },
 ];
 
 export function Wordmark({ className = "" }: { className?: string }) {
@@ -99,6 +100,9 @@ export function MarketingShell({ children }: { children: ReactNode }) {
             </Link>
             <Link to="/pricing" className="hover:text-foreground">
               Pricing
+            </Link>
+            <Link to="/guide" className="hover:text-foreground">
+              Guide
             </Link>
             <Link to="/login" className="hover:text-foreground">
               Sign in
