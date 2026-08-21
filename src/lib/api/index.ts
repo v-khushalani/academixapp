@@ -611,11 +611,19 @@ export const rolesApi = {
 
 // ---------- Faculty ----------
 export const facultyApi = {
+  /** Full rows incl. base_salary — owners/admins/accountants only (RLS enforced). */
   async list() {
     const { data, error } = await supabase.from("faculty").select("*").order("full_name");
     if (error) throw error;
     return data ?? [];
   },
+  /** Salary-free directory any staff role can read (names, subjects, contact). */
+  async directory() {
+    const { data, error } = await supabase.rpc("faculty_directory");
+    if (error) throw error;
+    return data ?? [];
+  },
+
   async create(input: FacultyInsert) {
     return orThrow(await supabase.from("faculty").insert(input).select().single());
   },
