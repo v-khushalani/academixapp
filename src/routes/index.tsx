@@ -60,16 +60,9 @@ function Index() {
             <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
               Run your coaching institute on one screen.
             </h1>
-            <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg whitespace-pre-wrap">
-              '''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''
-                                        
-                                            
-                                            
-                                            1. old portal urls should be completely replaced, not redirected!
-2.Institute owner can create new institute, then faculties and students are only on invite basis and QR codes scan, and then when admin approves, only then student and faculty can log in. Otherwise, there is no procedure to create, mm, student account or faculty account. And also, all logins only via Google login for now. 
-3. We are planning to integrate aadhaar card to make sure there are no fake accounts for student or faculty logins (dummy). Give me the exact process so as a student when fills his or her form after entering aadhaar card it should automatically fetch the details but a student can still modify if there are any changes or something because they are always glitches in government documents given the exact path to integrate this
-4. Do complete market research for pricing's number of students number of classes faculties admin accounts to give in the compare section and this compare section is controlled from super admin panel so whatever super admin updates or modifies should be reflected in the entire project including database too
-5. I tried logging in from the demo account you created and then changed my academy name to VK International and uploaded a picture to as a logo now when I am logging in as a super admin I get the same account how is this means there are many things broken
+            <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
+              Admissions, attendance, fees and parent updates — replacing the register, the fee
+              diary and the WhatsApp chaos.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="w-full gap-2 sm:w-auto">
