@@ -277,7 +277,7 @@ function AddExpenseDialog({
   const [note, setNote] = useState("");
   const [facultyId, setFacultyId] = useState<string>("");
 
-  const { data: staff = [] } = useQuery({ queryKey: ["faculty"], queryFn: () => facultyApi.list() });
+  const { data: staff = [] } = useQuery({ queryKey: ["faculty"], queryFn: () => facultyApi.directory() });
 
   const save = useMutation({
     mutationFn: () =>
