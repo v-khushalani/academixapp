@@ -965,6 +965,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_institute_id: string | null
           avatar_url: string | null
           created_at: string
           full_name: string | null
@@ -973,6 +974,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          active_institute_id?: string | null
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
@@ -981,6 +983,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          active_institute_id?: string | null
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
@@ -988,7 +991,15 @@ export type Database = {
           phone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_active_institute_id_fkey"
+            columns: ["active_institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rooms: {
         Row: {
@@ -1807,6 +1818,18 @@ export type Database = {
           valid: boolean
         }[]
       }
+      group_overview: {
+        Args: never
+        Returns: {
+          batches: number
+          billed: number
+          collected: number
+          institute_id: string
+          is_branch: boolean
+          name: string
+          students: number
+        }[]
+      }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
@@ -1827,6 +1850,15 @@ export type Database = {
       my_batch_ids: { Args: never; Returns: string[] }
       my_faculty_batch_ids: { Args: never; Returns: string[] }
       my_institute_ids: { Args: never; Returns: string[] }
+      my_institutes: {
+        Args: never
+        Returns: {
+          id: string
+          is_active: boolean
+          name: string
+          parent_institute_id: string
+        }[]
+      }
       platform_institute_detail: {
         Args: { _institute_id: string }
         Returns: {
@@ -1862,6 +1894,10 @@ export type Database = {
           teacher_logins: number
         }[]
       }
+      platform_set_parent: {
+        Args: { _id: string; _parent_institute_id: string }
+        Returns: undefined
+      }
       platform_update_institute: {
         Args: {
           _batch_limit: number
@@ -1886,6 +1922,10 @@ export type Database = {
       }
       reorder_syllabus_chapters: {
         Args: { _ids: string[] }
+        Returns: undefined
+      }
+      set_active_institute: {
+        Args: { _institute_id: string }
         Returns: undefined
       }
       set_student_approval: {

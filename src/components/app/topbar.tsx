@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
+import { BranchSwitcher } from "@/components/app/branch-switcher";
 import { useNavigate } from "@tanstack/react-router";
 import { formatDate } from "@/lib/dates";
 
@@ -36,6 +37,8 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-card/80 px-3 backdrop-blur sm:px-4">
       <SidebarTrigger className="shrink-0" />
+
+      <BranchSwitcher />
 
       <div className="min-w-0 flex-1" />
 

@@ -1,4 +1,4 @@
-import pako from "pako";
+import * as pako from "pako";
 
 /**
  * Aadhaar Secure QR — the free, offline way to verify an applicant.
