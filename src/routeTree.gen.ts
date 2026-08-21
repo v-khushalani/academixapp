@@ -13,6 +13,7 @@ import { Route as TeachRouteImport } from './routes/teach'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as GuideRouteImport } from './routes/guide'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ForInstitutesRouteImport } from './routes/for-institutes'
 import { Route as ApplyRouteImport } from './routes/apply'
@@ -75,6 +76,11 @@ const PricingRoute = PricingRouteImport.update({
 const PortalRoute = PortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideRoute = GuideRouteImport.update({
+  id: '/guide',
+  path: '/guide',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -300,6 +306,7 @@ export interface FileRoutesByFullPath {
   '/apply': typeof ApplyRoute
   '/for-institutes': typeof ForInstitutesRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/guide': typeof GuideRoute
   '/portal': typeof PortalRouteWithChildren
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
@@ -348,6 +355,7 @@ export interface FileRoutesByTo {
   '/apply': typeof ApplyRoute
   '/for-institutes': typeof ForInstitutesRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/guide': typeof GuideRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/app/admissions': typeof AppAdmissionsRoute
@@ -396,6 +404,7 @@ export interface FileRoutesById {
   '/apply': typeof ApplyRoute
   '/for-institutes': typeof ForInstitutesRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/guide': typeof GuideRoute
   '/portal': typeof PortalRouteWithChildren
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
@@ -447,6 +456,7 @@ export interface FileRouteTypes {
     | '/apply'
     | '/for-institutes'
     | '/forgot-password'
+    | '/guide'
     | '/portal'
     | '/pricing'
     | '/signup'
@@ -495,6 +505,7 @@ export interface FileRouteTypes {
     | '/apply'
     | '/for-institutes'
     | '/forgot-password'
+    | '/guide'
     | '/pricing'
     | '/signup'
     | '/app/admissions'
@@ -542,6 +553,7 @@ export interface FileRouteTypes {
     | '/apply'
     | '/for-institutes'
     | '/forgot-password'
+    | '/guide'
     | '/portal'
     | '/pricing'
     | '/signup'
@@ -592,6 +604,7 @@ export interface RootRouteChildren {
   ApplyRoute: typeof ApplyRoute
   ForInstitutesRoute: typeof ForInstitutesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  GuideRoute: typeof GuideRoute
   PortalRoute: typeof PortalRouteWithChildren
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
@@ -636,6 +649,13 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide': {
+      id: '/guide'
+      path: '/guide'
+      fullPath: '/guide'
+      preLoaderRoute: typeof GuideRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -1059,6 +1079,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApplyRoute: ApplyRoute,
   ForInstitutesRoute: ForInstitutesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  GuideRoute: GuideRoute,
   PortalRoute: PortalRouteWithChildren,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
