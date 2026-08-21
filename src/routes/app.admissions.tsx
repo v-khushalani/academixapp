@@ -501,7 +501,7 @@ function CredentialsDialog({
   const institute = getInstitute().name || "our institute";
 
   const message = (a: ProvisionedAccount) =>
-    `Namaste ${a.name},\n\nYour ${institute} portal login is ready.\n\nLogin page: ${typeof window !== "undefined" ? window.location.origin : ""}/login/student\nLogin ID: ${a.loginId}\n${a.password ? `Temporary password: ${a.password}\n\nPlease sign in and change your password.` : "Use your existing password."}`;
+    `Namaste ${a.name},\n\nYour ${institute} portal login is ready.\n\nLogin page: ${typeof window !== "undefined" ? window.location.origin : ""}/login\nLogin ID: ${a.loginId}\n${a.password ? `Temporary password: ${a.password}\n\nPlease sign in and change your password.` : "Use your existing password."}`;
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
