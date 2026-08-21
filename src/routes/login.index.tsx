@@ -1,6 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { PortalPicker } from "@/components/marketing/portal-picker";
-import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { createFileRoute } from "@tanstack/react-router";
+import { LoginCard } from "@/components/auth/login-card";
 
 export const Route = createFileRoute("/login/")({
   head: () => ({
@@ -9,40 +8,16 @@ export const Route = createFileRoute("/login/")({
       {
         name: "description",
         content:
-          "Pick your Academix portal: student & parent, teacher, or institute admin, then sign in.",
+          "One Academix login for institute staff, teachers, students and parents. Sign in and land on your own dashboard.",
       },
       { property: "og:title", content: "Sign in — Academix" },
       {
         property: "og:description",
-        content: "Three portals, one platform. Choose yours and sign in.",
+        content: "One login, every role. Academix takes you to the right dashboard.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: LoginChooser,
+  component: LoginCard,
 });
-
-function LoginChooser() {
-  return (
-    <MarketingShell>
-      <div className="mx-auto w-full max-w-5xl px-5 py-12 sm:px-6 sm:py-16">
-        <h1 className="text-3xl font-semibold tracking-tight">Which login do you need?</h1>
-        <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-          Three portals, one platform. Pick yours — if you land on the wrong one, we point you to
-          the right door.
-        </p>
-        <div className="mt-8">
-          <PortalPicker />
-        </div>
-        <p className="mt-8 text-center text-xs text-muted-foreground">
-          Students and teachers get their login from their institute. Running an institute and new
-          here?{" "}
-          <Link to="/signup" className="text-primary hover:underline">
-            Create your institute workspace
-          </Link>
-        </p>
-      </div>
-    </MarketingShell>
-  );
-}

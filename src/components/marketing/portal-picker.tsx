@@ -3,7 +3,7 @@ import { ArrowRight, GraduationCap, ShieldCheck, Users } from "lucide-react";
 
 export const PORTALS = [
   {
-    to: "/login/student" as const,
+    to: "/login" as const,
     icon: Users,
     name: "Student & Parent",
     who: "For families",
@@ -11,7 +11,7 @@ export const PORTALS = [
     id: "Login ID printed on the slip from the institute office",
   },
   {
-    to: "/login/teacher" as const,
+    to: "/login" as const,
     icon: GraduationCap,
     name: "Teacher",
     who: "For faculty",
@@ -19,7 +19,7 @@ export const PORTALS = [
     id: "The email your institute registered for you",
   },
   {
-    to: "/login/admin" as const,
+    to: "/login" as const,
     icon: ShieldCheck,
     name: "Institute Admin",
     who: "For office & owners",

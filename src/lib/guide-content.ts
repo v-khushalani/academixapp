@@ -54,7 +54,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       {
         heading: "Step 1 — Sign in",
         items: [
-          "Open /login/platform and sign in with your Academix Google account.",
+          "Open /login and sign in with your Academix Google account.",
           "You land on the Platform console. Institute staff cannot see this page.",
         ],
       },
@@ -107,7 +107,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       {
         heading: "Step 3 — Hand over access",
         items: [
-          "There are no passwords to share — the owner signs in with Google at /login/admin.",
+          "There are no passwords to share — the owner signs in with Google at /login.",
           "Send them the sign-in link plus this guide link.",
         ],
       },

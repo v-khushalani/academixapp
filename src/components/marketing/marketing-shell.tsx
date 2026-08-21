@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 const NAV = [
   { to: "/for-institutes" as const, label: "Features" },
   { to: "/pricing" as const, label: "Pricing" },
-  { to: "/guide" as const, label: "Guide" },
 ];
 
 export function Wordmark({ className = "" }: { className?: string }) {

@@ -1,89 +1,30 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "@/hooks/use-auth";
+import { homeForRoles } from "@/lib/post-auth";
 import { GoogleButton, OrDivider } from "@/components/auth/google-button";
 
-export type PortalKind = "admin" | "teacher" | "family" | "platform";
-
-const STAFF_ROLES: AppRole[] = [
-  "owner",
-  "admin",
-  "receptionist",
-  "counsellor",
-  "accountant",
-  "superadmin" as AppRole,
-];
-const CONFIG = {
-  admin: {
-    roles: STAFF_ROLES,
-    destination: "/app",
-    label: "staff & admin",
-    elsewhere: "Teacher or student? Use the right portal",
-    elsewhereTo: "/login/teacher",
-  },
-  teacher: {
-    roles: ["faculty"],
-    destination: "/teach",
-    label: "teacher",
-    elsewhere: "Not a teacher? Pick your portal",
-    elsewhereTo: "/login/student",
-  },
-  family: {
-    roles: ["student", "parent"],
-    destination: "/portal",
-    label: "student & parent",
-    elsewhere: "Staff member? Sign in here",
-    elsewhereTo: "/login/admin",
-  },
-  platform: {
-    roles: ["superadmin" as AppRole],
-    destination: "/app/platform",
-    label: "Academix platform",
-    elsewhere: "Institute staff? Sign in here",
-    elsewhereTo: "/login/admin",
-  },
-} as const;
-
-function portalHomeFor(roles: AppRole[]) {
-  if (roles.some((r) => STAFF_ROLES.includes(r)))
-    return { to: "/login/admin", name: "staff" } as const;
-  if (roles.includes("faculty")) return { to: "/login/teacher", name: "teacher" } as const;
-  if (roles.includes("student") || roles.includes("parent"))
-    return { to: "/login/student", name: "student & parent" } as const;
-  return null;
-}
-
-export function LoginCard({
-  kind,
-  title,
-  subtitle,
-  hint,
-  aside,
-  footer,
-}: {
-  kind: PortalKind;
-  title: string;
-  subtitle: string;
-  hint?: ReactNode;
-  aside: ReactNode;
-  footer?: ReactNode;
-}) {
+/**
+ * Single sign-in for everyone — staff, teachers, students, parents and the
+ * Academix team. Roles decide the destination, not the URL you arrived from.
+ */
+export function LoginCard() {
   const navigate = useNavigate();
-  const cfg = CONFIG[kind];
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [wrongPortal, setWrongPortal] = useState<ReturnType<typeof portalHomeFor>>(null);
+  const [noRole, setNoRole] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setWrongPortal(null);
+    setNoRole(false);
+
     const { error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
@@ -96,24 +37,15 @@ export function LoginCard({
 
     const { data: roleRows } = await supabase.rpc("get_my_roles");
     const roles = (roleRows ?? []) as AppRole[];
-    const allowed = roles.some((r) => (cfg.roles as readonly AppRole[]).includes(r));
-
-    if (!allowed) {
-      const target = portalHomeFor(roles);
-      await supabase.auth.signOut();
-      setBusy(false);
-      setWrongPortal(target);
-      toast.error(
-        target
-          ? `This is the ${cfg.label} login. Your account belongs to the ${target.name} portal.`
-          : "No role has been assigned to this account yet. Ask your institute to enable access.",
-      );
-      return;
-    }
+    const to = homeForRoles(roles);
 
     setBusy(false);
+    if (!to) {
+      setNoRole(true);
+      return;
+    }
     toast.success("Welcome back");
-    navigate({ to: cfg.destination });
+    navigate({ to });
   }
 
   return (
@@ -126,8 +58,11 @@ export function LoginCard({
             </div>
             <span className="text-sm font-semibold">Academix</span>
           </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            One login for everyone — office, teachers, students and parents. We take you to the
+            right dashboard automatically.
+          </p>
 
           <div className="mt-8 space-y-3">
             <GoogleButton />
@@ -143,21 +78,18 @@ export function LoginCard({
                 inputMode="email"
                 autoCapitalize="none"
                 autoComplete="username"
-                placeholder={kind === "family" ? "as printed on your login slip" : "you@institute.in"}
+                placeholder="you@institute.in"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                {kind !== "family" && (
-                  <Link to="/forgot-password" className="text-xs text-primary hover:underline">
-                    Forgot?
-                  </Link>
-                )}
+                <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                  Forgot?
+                </Link>
               </div>
               <Input
                 id="password"
@@ -173,33 +105,26 @@ export function LoginCard({
             </Button>
           </form>
 
-          {wrongPortal && (
+          {noRole && (
             <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
-              <p className="font-medium text-destructive">Wrong portal</p>
+              <p className="font-medium text-destructive">Access not activated yet</p>
               <p className="mt-1 text-muted-foreground">
-                Your account belongs to the {wrongPortal.name} portal.
+                Your institute hasn&apos;t linked this account to a role yet. Ask them to send you
+                the invite link again, or open the link they shared on WhatsApp.
               </p>
-              <Link
-                to={wrongPortal.to}
-                className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
-              >
-                Go to the {wrongPortal.name} login →
-              </Link>
             </div>
           )}
 
           <div className="mt-6 space-y-2 text-center text-xs text-muted-foreground">
-            {footer}
-            {kind !== "admin" && (
-              <p>
-                No account yet? Your institute creates it and sends you the login link — there is no
-                self-signup here.
-              </p>
-            )}
             <p>
-              <Link to={cfg.elsewhereTo} className="text-primary hover:underline">
-                {cfg.elsewhere}
+              Running an institute and new here?{" "}
+              <Link to="/signup" className="text-primary hover:underline">
+                Create your institute
               </Link>
+            </p>
+            <p>
+              Teachers, students and parents don&apos;t sign up — your institute sends the login
+              link.
             </p>
             <p>
               <Link to="/" className="hover:text-foreground">
@@ -210,7 +135,18 @@ export function LoginCard({
         </div>
       </div>
       <div className="hidden bg-primary lg:flex lg:items-center lg:justify-center lg:p-12">
-        <div className="max-w-md text-primary-foreground">{aside}</div>
+        <div className="max-w-md text-primary-foreground">
+          <p className="text-sm font-medium uppercase tracking-widest opacity-70">
+            Academix · Institute OS
+          </p>
+          <h2 className="mt-4 text-3xl font-semibold leading-tight">
+            One dashboard for the entire institute.
+          </h2>
+          <p className="mt-3 text-sm opacity-80">
+            Admissions, attendance, fees, tests and timetable — plus the teacher and family portals,
+            all from this one sign-in.
+          </p>
+        </div>
       </div>
     </div>
   );
