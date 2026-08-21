@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { PortalShell } from "@/components/portal/portal-shell";
 import { useAuth } from "@/hooks/use-auth";
+import { useAccessGate } from "@/hooks/use-access-gate";
 
 export const Route = createFileRoute("/portal")({
   ssr: false,
@@ -16,6 +17,8 @@ function PortalLayout() {
 
   const isFamily = roles.includes("student") || roles.includes("parent");
   const isStaff = roles.some((r) => STAFF.includes(r));
+
+  useAccessGate();
 
   useEffect(() => {
     if (loading) return;

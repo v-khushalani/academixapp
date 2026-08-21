@@ -84,9 +84,6 @@ export async function resolvePostAuthDestination(): Promise<{
 
   const to = homeForRoles(roles);
   if (to) return { to };
-  return {
-    to: null,
-    error:
-      "This Google account isn't linked to any institute yet. Open the invite link your institute sent you on WhatsApp.",
-  };
+  // Invite-only platform: a signed-in account with no role waits for approval.
+  return { to: "/pending" };
 }

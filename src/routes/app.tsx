@@ -4,6 +4,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app/sidebar";
 import { TopBar } from "@/components/app/topbar";
 import { useAuth } from "@/hooks/use-auth";
+import { useAccessGate } from "@/hooks/use-access-gate";
 
 export const Route = createFileRoute("/app")({
   ssr: false,
@@ -24,6 +25,8 @@ function AppLayout() {
   ];
   const isStaff = roles.some((r) => staffRoles.includes(r));
   const isFamilyOnly = !isStaff && (roles.includes("student") || roles.includes("parent"));
+
+  useAccessGate();
 
   useEffect(() => {
     if (loading) return;
