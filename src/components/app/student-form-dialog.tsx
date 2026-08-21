@@ -247,10 +247,22 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
             />
           </Field>
           <Field label="Class">
-            <Input
-              value={form.class ?? ""}
-              onChange={(e) => setForm({ ...form, class: e.target.value })}
-            />
+            <Select
+              value={form.class || "none"}
+              onValueChange={(v) => setForm({ ...form, class: v === "none" ? "" : v })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select class" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Not set</SelectItem>
+                {CLASSES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
           <Field label="School">
             <Input
