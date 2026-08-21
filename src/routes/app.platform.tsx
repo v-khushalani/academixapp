@@ -53,7 +53,7 @@ function PlatformPage() {
   async function setParent(id: string, parent: string) {
     const { error } = await supabase.rpc("platform_set_parent", {
       _id: id,
-      _parent_institute_id: parent || undefined,
+      _parent_institute_id: (parent || null) as unknown as string,
     });
     if (error) {
       toast.error(error.message);
