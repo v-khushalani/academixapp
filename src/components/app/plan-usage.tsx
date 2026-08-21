@@ -1,27 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
 import { KeyRound } from "lucide-react";
-import { getInstitute } from "@/lib/academy-settings";
-import { fetchUsage, limitRows, planOf } from "@/lib/usage";
+import { fetchUsage, fetchPlanLimits, limitRows } from "@/lib/usage";
 import { cn } from "@/lib/utils";
 
 /** Soft, visible limits. Nothing is ever locked out — we just show the ceiling. */
 export function PlanUsageCard() {
-  const inst = getInstitute();
-  const plan = planOf((inst as unknown as { plan?: string }).plan);
   const { data } = useQuery({ queryKey: ["plan-usage"], queryFn: fetchUsage });
+  const { data: plan } = useQuery({ queryKey: ["plan-limits"], queryFn: fetchPlanLimits });
 
-  const rows = data ? limitRows(plan, data) : [];
+  const rows = data && plan ? limitRows(plan, data) : [];
 
   return (
     <div className="rounded-lg border border-border bg-card p-5">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold">Your plan — {plan.name}</h3>
+        <h3 className="text-sm font-semibold">Your plan — {plan?.name ?? "…"}</h3>
         <a href="/pricing" className="text-xs text-primary hover:underline">
           Compare plans
         </a>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">
-        {plan.tagline} Limits are advisory — nothing stops working, we&apos;ll just talk when you
+        {plan?.tagline} Limits are advisory — nothing stops working, we&apos;ll just talk when you
         cross one.
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">

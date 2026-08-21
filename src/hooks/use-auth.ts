@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { hydrateInstitute } from "@/lib/academy-settings";
+import { clearInstituteCache, hydrateInstitute } from "@/lib/academy-settings";
 
 export type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -40,6 +40,7 @@ async function bootstrap() {
   cache = { session, user, roles, loading: false };
   notify();
   if (user) void hydrateInstitute().catch(() => {});
+  else clearInstituteCache();
 
   supabase.auth.onAuthStateChange(async (event, s) => {
     const u = s?.user ?? null;
@@ -49,6 +50,7 @@ async function bootstrap() {
     if (u && (event === "SIGNED_IN" || event === "USER_UPDATED")) {
       void hydrateInstitute().catch(() => {});
     }
+    if (event === "SIGNED_OUT") clearInstituteCache();
   });
 }
 
@@ -65,6 +67,7 @@ export function useAuth() {
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
+    clearInstituteCache();
   }, []);
 
   return { ...state, signOut };

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { Field as F } from "@/components/app/field";
+import { AadhaarScan, type AadhaarResult } from "@/components/app/aadhaar-scan";
 
 export type AdmissionFormValues = {
   full_name: string;
@@ -32,7 +33,11 @@ export type AdmissionFormValues = {
 
 type Props = {
   initial?: Partial<AdmissionFormValues>;
-  onSubmit: (values: AdmissionFormValues, photoPath: string | null) => void | Promise<void>;
+  onSubmit: (
+    values: AdmissionFormValues,
+    photoPath: string | null,
+    aadhaar: { hash: string; last4: string; editedFields: string[] } | null,
+  ) => void | Promise<void>;
   saving?: boolean;
 };
 
@@ -70,6 +75,8 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
   const [v, setV] = useState<AdmissionFormValues>({ ...empty, ...(initial ?? {}) });
   const [step, setStep] = useState(0);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [aadhaar, setAadhaar] = useState<AadhaarResult | null>(null);
+  const [autoFilled, setAutoFilled] = useState<Partial<AdmissionFormValues>>({});
   const [uploading, setUploading] = useState(false);
   const set = <K extends keyof AdmissionFormValues>(k: K, val: AdmissionFormValues[K]) =>
     setV((p) => ({ ...p, [k]: val }));
@@ -126,7 +133,16 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
       }
       photoPath = key;
     }
-    await onSubmit(v, photoPath);
+    const editedFields = Object.keys(autoFilled).filter(
+      (k) =>
+        (autoFilled[k as keyof AdmissionFormValues] ?? "") !==
+        (v[k as keyof AdmissionFormValues] ?? ""),
+    );
+    await onSubmit(
+      v,
+      photoPath,
+      aadhaar ? { hash: aadhaar.hash, last4: aadhaar.profile.last4, editedFields } : null,
+    );
   }
 
   const busy = Boolean(saving) || uploading;
@@ -157,6 +173,21 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
       <div className="grid gap-4 sm:grid-cols-2">
         {step === 0 && (
           <Frame>
+            <div className="sm:col-span-2">
+              <AadhaarScan
+                value={aadhaar}
+                onVerified={(r) => {
+                  const filled: Partial<AdmissionFormValues> = {
+                    full_name: r.profile.name,
+                    dob: r.profile.dob,
+                    address: r.profile.address,
+                  };
+                  setAadhaar(r);
+                  setAutoFilled(filled);
+                  setV((p) => ({ ...p, ...filled }));
+                }}
+              />
+            </div>
             <F label="Student's full name *" cls="sm:col-span-2">
               <Input
                 value={v.full_name}

@@ -48,6 +48,18 @@ const DEFAULT_INSTITUTE: InstituteSettings = {
   installment_plan: DEFAULT_PLAN,
 };
 
+const KEY_ACTIVE_UID = "vk_active_uid";
+
+/** The cache is per signed-in account — never share branding across logins. */
+function activeUid(): string {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem(KEY_ACTIVE_UID) ?? "";
+}
+
+function instituteKey(uid = activeUid()): string {
+  return uid ? `${KEY_INSTITUTE}:${uid}` : KEY_INSTITUTE;
+}
+
 function safeRead<T>(key: string): Partial<T> {
   if (typeof window === "undefined") return {};
   try {
@@ -57,8 +69,22 @@ function safeRead<T>(key: string): Partial<T> {
   }
 }
 
+/** Drop every cached institute + branding (sign-out, account switch, superadmin). */
+export function clearInstituteCache() {
+  if (typeof window === "undefined") return;
+  const drop: string[] = [];
+  for (let i = 0; i < window.localStorage.length; i++) {
+    const k = window.localStorage.key(i);
+    if (k && (k === KEY_INSTITUTE || k.startsWith(`${KEY_INSTITUTE}:`))) drop.push(k);
+  }
+  drop.forEach((k) => window.localStorage.removeItem(k));
+  window.localStorage.removeItem(KEY_ACTIVE_UID);
+  applyBranding("");
+  window.dispatchEvent(new Event("vk-institute-changed"));
+}
+
 export function getInstitute(): InstituteSettings {
-  const stored = safeRead<InstituteSettings>(KEY_INSTITUTE);
+  const stored = safeRead<InstituteSettings>(instituteKey());
   return {
     ...DEFAULT_INSTITUTE,
     ...stored,
@@ -73,16 +99,16 @@ export function getInstitute(): InstituteSettings {
 }
 
 function writeCache(s: InstituteSettings) {
-  window.localStorage.setItem(KEY_INSTITUTE, JSON.stringify(s));
+  window.localStorage.setItem(instituteKey(), JSON.stringify(s));
   applyBranding(s.primary_color);
   window.dispatchEvent(new Event("vk-institute-changed"));
 }
 
-/** Persist to the institutes table and refresh the local cache. */
+/** Persist to the caller's own institute row and refresh the local cache. */
 export async function saveInstitute(s: InstituteSettings) {
+  const { data: instituteId } = await supabase.rpc("current_institute_id");
+  if (!instituteId) throw new Error("No institute is linked to this account.");
   writeCache(s);
-  const { data: row } = await supabase.from("institutes").select("id").maybeSingle();
-  if (!row) return;
   const { error } = await supabase
     .from("institutes")
     .update({
@@ -99,17 +125,40 @@ export async function saveInstitute(s: InstituteSettings) {
       shifts: s.shifts ?? DEFAULT_SHIFTS,
       installment_plan: (s.installment_plan?.length ? s.installment_plan : DEFAULT_PLAN) as unknown as never,
     })
-    .eq("id", row.id);
+    .eq("id", instituteId);
   if (error) throw error;
 }
 
-/** Pull the signed-in user's institute row into the local cache. */
+/**
+ * Pull the signed-in user's own institute row into the local cache.
+ * Team Academix (superadmin) has no institute — they keep the neutral theme.
+ */
 export async function hydrateInstitute() {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) {
+    clearInstituteCache();
+    return;
+  }
+  if (activeUid() !== uid) {
+    clearInstituteCache();
+    window.localStorage.setItem(KEY_ACTIVE_UID, uid);
+  }
+
+  const { data: instituteId } = await supabase.rpc("current_institute_id");
+  if (!instituteId) {
+    // Superadmin or a not-yet-approved account: no institute branding at all.
+    applyBranding("");
+    window.dispatchEvent(new Event("vk-institute-changed"));
+    return;
+  }
+
   const { data } = await supabase
     .from("institutes")
     .select(
       "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan",
     )
+    .eq("id", instituteId)
     .maybeSingle();
   if (!data) return;
   writeCache({
@@ -117,6 +166,7 @@ export async function hydrateInstitute() {
     ...Object.fromEntries(Object.entries(data).filter(([, v]) => v !== null)),
   } as InstituteSettings);
 }
+
 
 export function getTemplates(): Record<WhatsAppTemplateKey, string> {
   const overrides = safeRead<Record<WhatsAppTemplateKey, string>>(KEY_TEMPLATES);

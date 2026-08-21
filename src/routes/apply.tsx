@@ -50,7 +50,11 @@ function ApplyPage() {
   const instituteName = getInstitute().name || "Academix";
   const initials = (instituteName.match(/\b\w/g) || ["A"]).slice(0, 2).join("").toUpperCase();
 
-  async function onSubmit(v: AdmissionFormValues, photoPath: string | null) {
+  async function onSubmit(
+    v: AdmissionFormValues,
+    photoPath: string | null,
+    aadhaar: { hash: string; last4: string; editedFields: string[] } | null,
+  ) {
     setSaving(true);
     const { error } = await supabase.rpc("submit_admission_application", {
       _full_name: v.full_name,
@@ -71,6 +75,10 @@ function ApplyPage() {
       _intent: "admission",
       _token_amount: 0,
       _institute_slug: instituteSlug ?? "",
+      _aadhaar_last4: aadhaar?.last4 ?? "",
+      _aadhaar_hash: aadhaar?.hash ?? "",
+      _aadhaar_verified: Boolean(aadhaar),
+      _aadhaar_edited_fields: aadhaar?.editedFields ?? [],
     });
     setSaving(false);
     if (error) {

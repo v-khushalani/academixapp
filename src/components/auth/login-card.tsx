@@ -42,6 +42,7 @@ export function LoginCard() {
     setBusy(false);
     if (!to) {
       setNoRole(true);
+      navigate({ to: "/pending" });
       return;
     }
     toast.success("Welcome back");

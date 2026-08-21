@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { useEffect, useState } from "react";
 import { BookOpen, CalendarCheck, ClipboardList, Home, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useAccessGate } from "@/hooks/use-access-gate";
 import { getInstitute } from "@/lib/academy-settings";
 import { Button } from "@/components/ui/button";
 
@@ -32,6 +33,8 @@ function TeachLayout() {
 
   const allowed = roles.some((r) => ["faculty", "owner", "admin"].includes(r));
   const isFamily = !allowed && (roles.includes("student") || roles.includes("parent"));
+
+  useAccessGate();
 
   useEffect(() => {
     if (loading) return;

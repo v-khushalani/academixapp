@@ -13,6 +13,7 @@ import { Route as TeachRouteImport } from './routes/teach'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as PendingRouteImport } from './routes/pending'
 import { Route as GuideRouteImport } from './routes/guide'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ForInstitutesRouteImport } from './routes/for-institutes'
@@ -33,10 +34,7 @@ import { Route as PortalHomeworkRouteImport } from './routes/portal.homework'
 import { Route as PortalFeesRouteImport } from './routes/portal.fees'
 import { Route as PortalAttendanceRouteImport } from './routes/portal.attendance'
 import { Route as OnboardTokenRouteImport } from './routes/onboard.$token'
-import { Route as LoginTeacherRouteImport } from './routes/login.teacher'
-import { Route as LoginStudentRouteImport } from './routes/login.student'
-import { Route as LoginPlatformRouteImport } from './routes/login.platform'
-import { Route as LoginAdminRouteImport } from './routes/login.admin'
+import { Route as LoginSplatRouteImport } from './routes/login.$'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AppTimetableRouteImport } from './routes/app.timetable'
@@ -76,6 +74,11 @@ const PricingRoute = PricingRouteImport.update({
 const PortalRoute = PortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PendingRoute = PendingRouteImport.update({
+  id: '/pending',
+  path: '/pending',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GuideRoute = GuideRouteImport.update({
@@ -178,24 +181,9 @@ const OnboardTokenRoute = OnboardTokenRouteImport.update({
   path: '/onboard/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginTeacherRoute = LoginTeacherRouteImport.update({
-  id: '/login/teacher',
-  path: '/login/teacher',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginStudentRoute = LoginStudentRouteImport.update({
-  id: '/login/student',
-  path: '/login/student',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginPlatformRoute = LoginPlatformRouteImport.update({
-  id: '/login/platform',
-  path: '/login/platform',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginAdminRoute = LoginAdminRouteImport.update({
-  id: '/login/admin',
-  path: '/login/admin',
+const LoginSplatRoute = LoginSplatRouteImport.update({
+  id: '/login/$',
+  path: '/login/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JoinTokenRoute = JoinTokenRouteImport.update({
@@ -307,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/for-institutes': typeof ForInstitutesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/guide': typeof GuideRoute
+  '/pending': typeof PendingRoute
   '/portal': typeof PortalRouteWithChildren
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
@@ -327,10 +316,7 @@ export interface FileRoutesByFullPath {
   '/app/timetable': typeof AppTimetableRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
-  '/login/admin': typeof LoginAdminRoute
-  '/login/platform': typeof LoginPlatformRoute
-  '/login/student': typeof LoginStudentRoute
-  '/login/teacher': typeof LoginTeacherRoute
+  '/login/$': typeof LoginSplatRoute
   '/onboard/$token': typeof OnboardTokenRoute
   '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/fees': typeof PortalFeesRoute
@@ -356,6 +342,7 @@ export interface FileRoutesByTo {
   '/for-institutes': typeof ForInstitutesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/guide': typeof GuideRoute
+  '/pending': typeof PendingRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/app/admissions': typeof AppAdmissionsRoute
@@ -374,10 +361,7 @@ export interface FileRoutesByTo {
   '/app/timetable': typeof AppTimetableRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
-  '/login/admin': typeof LoginAdminRoute
-  '/login/platform': typeof LoginPlatformRoute
-  '/login/student': typeof LoginStudentRoute
-  '/login/teacher': typeof LoginTeacherRoute
+  '/login/$': typeof LoginSplatRoute
   '/onboard/$token': typeof OnboardTokenRoute
   '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/fees': typeof PortalFeesRoute
@@ -405,6 +389,7 @@ export interface FileRoutesById {
   '/for-institutes': typeof ForInstitutesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/guide': typeof GuideRoute
+  '/pending': typeof PendingRoute
   '/portal': typeof PortalRouteWithChildren
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
@@ -425,10 +410,7 @@ export interface FileRoutesById {
   '/app/timetable': typeof AppTimetableRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
-  '/login/admin': typeof LoginAdminRoute
-  '/login/platform': typeof LoginPlatformRoute
-  '/login/student': typeof LoginStudentRoute
-  '/login/teacher': typeof LoginTeacherRoute
+  '/login/$': typeof LoginSplatRoute
   '/onboard/$token': typeof OnboardTokenRoute
   '/portal/attendance': typeof PortalAttendanceRoute
   '/portal/fees': typeof PortalFeesRoute
@@ -457,6 +439,7 @@ export interface FileRouteTypes {
     | '/for-institutes'
     | '/forgot-password'
     | '/guide'
+    | '/pending'
     | '/portal'
     | '/pricing'
     | '/signup'
@@ -477,10 +460,7 @@ export interface FileRouteTypes {
     | '/app/timetable'
     | '/auth/callback'
     | '/join/$token'
-    | '/login/admin'
-    | '/login/platform'
-    | '/login/student'
-    | '/login/teacher'
+    | '/login/$'
     | '/onboard/$token'
     | '/portal/attendance'
     | '/portal/fees'
@@ -506,6 +486,7 @@ export interface FileRouteTypes {
     | '/for-institutes'
     | '/forgot-password'
     | '/guide'
+    | '/pending'
     | '/pricing'
     | '/signup'
     | '/app/admissions'
@@ -524,10 +505,7 @@ export interface FileRouteTypes {
     | '/app/timetable'
     | '/auth/callback'
     | '/join/$token'
-    | '/login/admin'
-    | '/login/platform'
-    | '/login/student'
-    | '/login/teacher'
+    | '/login/$'
     | '/onboard/$token'
     | '/portal/attendance'
     | '/portal/fees'
@@ -554,6 +532,7 @@ export interface FileRouteTypes {
     | '/for-institutes'
     | '/forgot-password'
     | '/guide'
+    | '/pending'
     | '/portal'
     | '/pricing'
     | '/signup'
@@ -574,10 +553,7 @@ export interface FileRouteTypes {
     | '/app/timetable'
     | '/auth/callback'
     | '/join/$token'
-    | '/login/admin'
-    | '/login/platform'
-    | '/login/student'
-    | '/login/teacher'
+    | '/login/$'
     | '/onboard/$token'
     | '/portal/attendance'
     | '/portal/fees'
@@ -605,16 +581,14 @@ export interface RootRouteChildren {
   ForInstitutesRoute: typeof ForInstitutesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   GuideRoute: typeof GuideRoute
+  PendingRoute: typeof PendingRoute
   PortalRoute: typeof PortalRouteWithChildren
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
   TeachRoute: typeof TeachRouteWithChildren
   AuthCallbackRoute: typeof AuthCallbackRoute
   JoinTokenRoute: typeof JoinTokenRoute
-  LoginAdminRoute: typeof LoginAdminRoute
-  LoginPlatformRoute: typeof LoginPlatformRoute
-  LoginStudentRoute: typeof LoginStudentRoute
-  LoginTeacherRoute: typeof LoginTeacherRoute
+  LoginSplatRoute: typeof LoginSplatRoute
   OnboardTokenRoute: typeof OnboardTokenRoute
   WelcomeTokenRoute: typeof WelcomeTokenRoute
   LoginIndexRoute: typeof LoginIndexRoute
@@ -649,6 +623,13 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pending': {
+      id: '/pending'
+      path: '/pending'
+      fullPath: '/pending'
+      preLoaderRoute: typeof PendingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/guide': {
@@ -791,32 +772,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/login/teacher': {
-      id: '/login/teacher'
-      path: '/login/teacher'
-      fullPath: '/login/teacher'
-      preLoaderRoute: typeof LoginTeacherRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login/student': {
-      id: '/login/student'
-      path: '/login/student'
-      fullPath: '/login/student'
-      preLoaderRoute: typeof LoginStudentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login/platform': {
-      id: '/login/platform'
-      path: '/login/platform'
-      fullPath: '/login/platform'
-      preLoaderRoute: typeof LoginPlatformRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login/admin': {
-      id: '/login/admin'
-      path: '/login/admin'
-      fullPath: '/login/admin'
-      preLoaderRoute: typeof LoginAdminRouteImport
+    '/login/$': {
+      id: '/login/$'
+      path: '/login/$'
+      fullPath: '/login/$'
+      preLoaderRoute: typeof LoginSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join/$token': {
@@ -1080,16 +1040,14 @@ const rootRouteChildren: RootRouteChildren = {
   ForInstitutesRoute: ForInstitutesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   GuideRoute: GuideRoute,
+  PendingRoute: PendingRoute,
   PortalRoute: PortalRouteWithChildren,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
   TeachRoute: TeachRouteWithChildren,
   AuthCallbackRoute: AuthCallbackRoute,
   JoinTokenRoute: JoinTokenRoute,
-  LoginAdminRoute: LoginAdminRoute,
-  LoginPlatformRoute: LoginPlatformRoute,
-  LoginStudentRoute: LoginStudentRoute,
-  LoginTeacherRoute: LoginTeacherRoute,
+  LoginSplatRoute: LoginSplatRoute,
   OnboardTokenRoute: OnboardTokenRoute,
   WelcomeTokenRoute: WelcomeTokenRoute,
   LoginIndexRoute: LoginIndexRoute,
