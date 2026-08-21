@@ -140,7 +140,7 @@ export function AppSidebar() {
                 {instituteName}
               </p>
               <p className="truncate text-[11px] leading-tight text-muted-foreground">
-                Powered by Academix
+                {superadmin ? "Platform team" : "Powered by Academix"}
               </p>
             </div>
           )}
@@ -156,13 +156,15 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-        <SidebarGroup>
-          {superadmin && !collapsed && <SidebarGroupLabel>Institute</SidebarGroupLabel>}
-          <SidebarGroupContent>
-            <SidebarMenu>{base.map(renderItem)}</SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {base.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>{base.map(renderItem)}</SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
+
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
