@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Bell, MessageCircle, Plus, QrCode, Trash2, Wallet } from "lucide-react";
+import { Bell, MessageCircle, Pencil, Plus, QrCode, Trash2, Wallet } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,11 @@ import { logMessage } from "@/lib/api/messages";
 import { getTemplates, getInstitute } from "@/lib/academy-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate } from "@/lib/dates";
+import { displayFeeStatus, feeFollowUpState, FOLLOW_UP_LABEL, isOverdue } from "@/lib/fees";
+import {
+  ReviseInstallmentDialog,
+  type ReviseTarget,
+} from "@/components/app/revise-installment-dialog";
 
 export const Route = createFileRoute("/app/fees")({
   component: FeesPage,
@@ -47,20 +52,21 @@ function FeesPage() {
   const [deleting, setDeleting] = useState<Row | null>(null);
   const [collecting, setCollecting] = useState<PaymentTarget | null>(null);
   const [correcting, setCorrecting] = useState<CorrectionTarget | null>(null);
+  const [revising, setRevising] = useState<ReviseTarget | null>(null);
+  const [followUp, setFollowUp] = useState("all");
 
-  const filtered = useMemo(
-    () => (status === "all" ? data : data.filter((f) => f.status === status)),
-    [data, status],
-  );
+  const filtered = useMemo(() => {
+    let rows = data;
+    if (status !== "all")
+      rows = rows.filter((f) => displayFeeStatus(f) === status);
+    if (followUp !== "all") rows = rows.filter((f) => feeFollowUpState(f) === followUp);
+    return rows;
+  }, [data, status, followUp]);
 
   const live = data.filter(isLiveBill);
   const outstanding = live.reduce((a, b) => a + outstandingOf(b), 0);
   const collected = data.reduce((a, b) => a + Number(b.amount_paid), 0);
-  const overdue = live.filter(
-    (f) =>
-      f.status === "overdue" ||
-      (f.due_date && f.status !== "paid" && new Date(f.due_date) < new Date()),
-  ).length;
+  const overdue = live.filter((f) => isOverdue(f)).length;
 
   const removeMut = useMutation({
     mutationFn: (id: string) => feesApi.remove(id),
@@ -113,24 +119,45 @@ function FeesPage() {
       cell: (r) => formatDate(r.due_date),
     },
     {
+      key: "followup",
+      header: "Follow-up",
+      value: (r) => feeFollowUpState(r),
+      cell: (r) => {
+        const st = feeFollowUpState(r);
+        if (st === "none") return <span className="text-muted-foreground">—</span>;
+        const cls =
+          st === "overdue"
+            ? "bg-destructive/10 text-destructive"
+            : st === "due_2"
+              ? "bg-warning/10 text-warning"
+              : "bg-muted text-muted-foreground";
+        return (
+          <Badge variant="secondary" className={cls}>
+            {FOLLOW_UP_LABEL[st]}
+          </Badge>
+        );
+      },
+    },
+    {
       key: "status",
       header: "Status",
       sortable: true,
-      value: (r) => r.status,
+      value: (r) => displayFeeStatus(r),
       cell: (r) => {
+        const st = displayFeeStatus(r);
         const cls =
-          r.status === "paid"
+          st === "paid"
             ? "bg-success/10 text-success"
-            : r.status === "overdue"
+            : st === "overdue"
               ? "bg-destructive/10 text-destructive"
-              : r.status === "partial"
+              : st === "partial"
                 ? "bg-warning/10 text-warning"
-                : r.status === "cancelled"
+                : st === "cancelled"
                   ? "bg-muted text-muted-foreground line-through"
                   : "bg-muted text-muted-foreground";
         return (
           <Badge variant="secondary" className={cls}>
-            {r.status}
+            {st}
           </Badge>
         );
       },
@@ -157,6 +184,25 @@ function FeesPage() {
           >
             <MessageCircle className="h-4 w-4 text-success" />
           </Button>
+          {canWrite && r.status !== "cancelled" && r.status !== "paid" && (
+            <Button
+              size="icon"
+              variant="ghost"
+              title="Revise installment amount / due date"
+              onClick={() =>
+                setRevising({
+                  id: r.id,
+                  student_name: r.student?.full_name ?? "Student",
+                  description: r.description,
+                  amount: Number(r.amount),
+                  amount_paid: Number(r.amount_paid),
+                  due_date: r.due_date,
+                })
+              }
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
           {canWrite && (
             <Button
               size="icon"
@@ -237,7 +283,17 @@ function FeesPage() {
     } | null;
     const phone = s?.parent_phone ?? s?.phone ?? null;
     const isPaid = r.status === "paid" || Number(r.amount_paid) >= Number(r.amount);
-    const tpl = getTemplates()[isPaid ? "fee_received" : "fee_pending"];
+    const state = feeFollowUpState(r);
+    const tpl =
+      getTemplates()[
+        isPaid
+          ? "fee_received"
+          : state === "overdue"
+            ? "fee_overdue"
+            : state === "due_2" || state === "due_7"
+              ? "fee_due_soon"
+              : "fee_pending"
+      ];
     const msg = renderTemplate(tpl, {
       student_name: s?.full_name,
       parent_name: s?.parent_name ?? "Parent",
@@ -301,6 +357,18 @@ function FeesPage() {
             exportTitle="Fees"
             loading={isLoading}
             toolbar={
+              <div className="flex flex-wrap gap-2">
+              <Select value={followUp} onValueChange={setFollowUp}>
+                <SelectTrigger className="h-9 w-[150px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All follow-ups</SelectItem>
+                  <SelectItem value="due_7">Due in 7 days</SelectItem>
+                  <SelectItem value="due_2">Due in 2 days</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                </SelectContent>
+              </Select>
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger className="h-9 w-[140px]">
                   <SelectValue />
@@ -315,11 +383,13 @@ function FeesPage() {
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
+              </div>
             }
           />
         </div>
       </PageBody>
       <PaymentDialog target={collecting} onOpenChange={(v) => !v && setCollecting(null)} />
+      <ReviseInstallmentDialog target={revising} onOpenChange={(v) => !v && setRevising(null)} />
       <FeeCorrectionDialog target={correcting} onOpenChange={(v) => !v && setCorrecting(null)} />
       <FeeFormDialog open={open} onOpenChange={setOpen} />
       <ConfirmDialog

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Pencil, Plus, Send, Trash2 } from "lucide-react";
+import { Pencil, Plus, Send, Trash2, Wallet } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,8 @@ import { DataTable, type DTColumn } from "@/components/app/data-table";
 import { FacultyFormDialog } from "@/components/app/faculty-form-dialog";
 import { FacultyInviteDialog } from "@/components/app/faculty-invite-dialog";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
+import { FacultySalaryDialog } from "@/components/app/faculty-salary-dialog";
+import { inr } from "@/lib/payments";
 import { facultyApi, type Faculty } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
@@ -30,6 +32,7 @@ function FacultyPage() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editing, setEditing] = useState<Faculty | null>(null);
   const [deleting, setDeleting] = useState<Faculty | null>(null);
+  const [salaryFor, setSalaryFor] = useState<Faculty | null>(null);
 
   const removeMut = useMutation({
     mutationFn: (id: string) => facultyApi.remove(id),
@@ -61,6 +64,18 @@ function FacultyPage() {
       value: (r) => r.qualification ?? "",
       cell: (r) => r.qualification ?? "—",
     },
+    {
+      key: "base_salary",
+      header: "Monthly salary",
+      sortable: true,
+      value: (r) => Number(r.base_salary ?? 0),
+      cell: (r) =>
+        r.base_salary ? (
+          <span className="tabular-nums">{inr(Number(r.base_salary))}</span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+    },
     { key: "phone", header: "Phone", value: (r) => r.phone ?? "", cell: (r) => r.phone ?? "—" },
     { key: "email", header: "Email", value: (r) => r.email ?? "", cell: (r) => r.email ?? "—" },
     {
@@ -84,6 +99,14 @@ function FacultyPage() {
       cell: (r) =>
         canWrite ? (
           <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+            <Button
+              size="icon"
+              variant="ghost"
+              title="Salary"
+              onClick={() => setSalaryFor(r)}
+            >
+              <Wallet className="h-4 w-4" />
+            </Button>
             <Button
               size="icon"
               variant="ghost"
@@ -140,23 +163,6 @@ function FacultyPage() {
         }
       />
       <PageBody>
-        <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/80 sm:text-sm">
-          <p className="font-semibold">Giving teachers portal access</p>
-          <ol className="mt-1 list-decimal space-y-0.5 pl-4">
-            <li>
-              Hit <span className="font-mono">Invite on WhatsApp</span> — the teacher gets a
-              one-time link on their phone.
-            </li>
-            <li>
-              They set an email and password on that link; the teacher role is granted
-              automatically.
-            </li>
-            <li>
-              They will only see Dashboard, Attendance, Tests and Timetable — they can fill
-              attendance and enter test marks, nothing else.
-            </li>
-          </ol>
-        </div>
         <DataTable
           rows={data}
           columns={columns}
@@ -167,6 +173,11 @@ function FacultyPage() {
           loading={isLoading}
         />
       </PageBody>
+      <FacultySalaryDialog
+        faculty={salaryFor}
+        canWrite={canWrite}
+        onOpenChange={(v) => !v && setSalaryFor(null)}
+      />
       <FacultyFormDialog open={open} onOpenChange={setOpen} faculty={editing} />
       <FacultyInviteDialog open={inviteOpen} onOpenChange={setInviteOpen} />
       <ConfirmDialog

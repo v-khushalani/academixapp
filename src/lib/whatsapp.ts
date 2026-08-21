@@ -1,7 +1,12 @@
 // WhatsApp deep-link helpers. No API integration — opens wa.me link with a prefilled
 // message so the sender can review before hitting send. Zero-cost by design.
 
-export type WhatsAppTemplateKey = "fee_pending" | "fee_received" | "attendance_absent";
+export type WhatsAppTemplateKey =
+  | "fee_pending"
+  | "fee_due_soon"
+  | "fee_overdue"
+  | "fee_received"
+  | "attendance_absent";
 
 export type TemplateVars = {
   student_name?: string;
@@ -20,6 +25,10 @@ export type TemplateVars = {
 export const WA_TEMPLATES: Record<WhatsAppTemplateKey, string> = {
   fee_pending:
     "Hello {{parent_name}},\n\nThis is a friendly reminder that fees of ₹{{amount_due}} for {{student_name}} ({{batch_name}}) are pending. Kindly clear the dues by {{due_date}}.\n\nThank you,\n{{academy_name}}",
+  fee_due_soon:
+    "Hello {{parent_name}},\n\nA gentle reminder: {{student_name}}'s fee installment of ₹{{amount_due}} is due on {{due_date}}. Kindly plan the payment.\n\nThank you,\n{{academy_name}}",
+  fee_overdue:
+    "Hello {{parent_name}},\n\n{{student_name}}'s fee installment of ₹{{amount_due}} was due on {{due_date}} and is still pending. Kindly clear it at the earliest, or talk to us if you need a revised plan.\n\nThank you,\n{{academy_name}}",
   fee_received:
     "Hello {{parent_name}},\n\nWe've received ₹{{amount_paid}} towards {{student_name}}'s fees on {{paid_date}}. Receipt #{{receipt_no}}.\n\nThank you,\n{{academy_name}}",
   attendance_absent:
