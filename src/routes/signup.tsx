@@ -39,10 +39,13 @@ function SignupPage() {
         </p>
         <form
           className="mt-8 space-y-4"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            if (!institute.trim()) return;
-            setSent(true);
+            const name = institute.trim();
+            if (!name || busy) return;
+            setBusy(true);
+            const ok = await startGoogleSignIn({ instituteName: name });
+            if (!ok) setBusy(false);
           }}
         >
           <div className="space-y-1.5">
