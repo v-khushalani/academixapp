@@ -8,6 +8,11 @@ export type CatalogPlan = {
   price_yearly: number | null;
   student_limit: number;
   room_limit: number;
+  batch_limit: number;
+  staff_login_limit: number;
+  teacher_login_limit: number;
+  custom_branding: boolean;
+  attendance_devices: boolean;
   contact_only: boolean;
   highlight: boolean;
   visible: boolean;

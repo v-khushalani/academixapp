@@ -23,10 +23,14 @@ export type InstituteSettings = {
   shifts: Shifts; // timetable morning / evening windows
   installment_plan: Installment[]; // default fee installment schedule
   receipt_template: ReceiptTemplate; // layout used for fee receipts
+  receipt_paper: ReceiptPaper; // physical paper used by downloaded/printed receipts
   plan: string; // plan key — decides whether institute branding is allowed
+  custom_branding: boolean;
+  attendance_devices: boolean;
 };
 
 export type ReceiptTemplate = "classic" | "compact" | "detailed";
+export type ReceiptPaper = "a5" | "a4-two-up" | "thermal-80";
 export const RECEIPT_TEMPLATES: { key: ReceiptTemplate; name: string; blurb: string }[] = [
   { key: "classic", name: "Classic", blurb: "A5 receipt with a coloured header band — the default." },
   { key: "compact", name: "Compact", blurb: "Half-page slip. Minimal ink, quick to print in bulk." },
@@ -56,7 +60,10 @@ const DEFAULT_INSTITUTE: InstituteSettings = {
   shifts: DEFAULT_SHIFTS,
   installment_plan: DEFAULT_PLAN,
   receipt_template: "classic",
+  receipt_paper: "a5",
   plan: "free",
+  custom_branding: false,
+  attendance_devices: false,
 };
 
 const KEY_ACTIVE_UID = "vk_active_uid";
@@ -136,6 +143,7 @@ export async function saveInstitute(s: InstituteSettings) {
       shifts: s.shifts ?? DEFAULT_SHIFTS,
       installment_plan: (s.installment_plan?.length ? s.installment_plan : DEFAULT_PLAN) as unknown as never,
       receipt_template: s.receipt_template || "classic",
+      receipt_paper: s.receipt_paper || "a5",
     })
     .eq("id", instituteId);
   if (error) throw error;
@@ -168,7 +176,7 @@ export async function hydrateInstitute() {
   const { data } = await supabase
     .from("institutes")
     .select(
-      "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan, receipt_template, plan",
+      "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan, receipt_template, receipt_paper, plan, custom_branding, attendance_devices",
     )
     .eq("id", instituteId)
     .maybeSingle();
@@ -212,7 +220,8 @@ if (typeof window !== "undefined") {
 const BRANDED_PLANS = new Set(["growth", "campus", "chain", "pro", "multi", "unlimited"]);
 
 export function canUseOwnBranding(plan = getInstitute().plan): boolean {
-  return BRANDED_PLANS.has(String(plan || "free").toLowerCase());
+  const inst = getInstitute();
+  return inst.custom_branding || BRANDED_PLANS.has(String(plan || "free").toLowerCase());
 }
 
 /**
