@@ -221,7 +221,7 @@ const BRANDED_PLANS = new Set(["growth", "campus", "chain", "pro", "multi", "unl
 
 export function canUseOwnBranding(plan = getInstitute().plan): boolean {
   const inst = getInstitute();
-  return inst.custom_branding || BRANDED_PLANS.has(String(plan || "free").toLowerCase());
+  return inst.custom_branding && BRANDED_PLANS.has(String(plan || "free").toLowerCase());
 }
 
 /**
