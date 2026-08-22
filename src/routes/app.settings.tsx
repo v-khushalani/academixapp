@@ -34,6 +34,8 @@ import {
   saveTemplates,
   DEFAULT_SHIFTS,
   RECEIPT_TEMPLATES,
+  canUseOwnBranding,
+
   type InstituteSettings,
   type ReceiptTemplate,
   type Shifts,
