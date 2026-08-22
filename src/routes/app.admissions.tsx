@@ -566,18 +566,28 @@ function QrCard({
   title,
   blurb,
   url,
+  tone,
 }: {
   title: string;
   blurb: string;
   url: string;
+  tone: "muted" | "primary";
 }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-6 text-center">
-      <p className="text-sm font-semibold">{title}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{blurb}</p>
-      <div className="mt-4 rounded-md bg-white p-3">
-        <QRCodeSVG value={url} size={180} includeMargin />
+    <div className="flex flex-col items-center rounded-2xl border border-border bg-card p-5 text-center shadow-sm sm:p-7">
+      <span
+        className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+          tone === "primary"
+            ? "bg-primary/10 text-primary"
+            : "bg-muted text-muted-foreground"
+        }`}
+      >
+        {title}
+      </span>
+      <div className="mt-5 rounded-xl border border-border bg-white p-3">
+        <QRCodeSVG value={url} size={168} includeMargin />
       </div>
+      <p className="mt-4 max-w-[16rem] text-xs leading-relaxed text-muted-foreground">{blurb}</p>
     </div>
   );
 }
@@ -590,17 +600,28 @@ function QrPanel() {
   const admissionUrl = `${base}/apply?${q}mode=admission`;
 
   return (
-    <div className="grid max-w-2xl gap-4 sm:grid-cols-2">
-      <QrCard
-        title="Enquiry QR"
-        blurb="Quick enquiry · walk-ins and hoardings"
-        url={enquiryUrl}
-      />
-      <QrCard
-        title="Admission QR"
-        blurb="Full admission form with photo"
-        url={admissionUrl}
-      />
+    <div className="mx-auto w-full max-w-3xl">
+      <div className="mb-5 text-center">
+        <h3 className="text-base font-semibold">Print these two codes at your front desk</h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Parents scan with any phone camera — the form opens straight away.
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <QrCard
+          tone="muted"
+          title="Enquiry"
+          blurb="5 quick fields. Best for walk-ins, hoardings and pamphlets."
+          url={enquiryUrl}
+        />
+        <QrCard
+          tone="primary"
+          title="Admission"
+          blurb="Full admission form with photo and Aadhaar auto-fill."
+          url={admissionUrl}
+        />
+      </div>
     </div>
   );
 }
+
