@@ -1,5 +1,6 @@
 // Composites the bare UPI QR into a branded, share-ready payment card.
-// Fixed 1080x1350 canvas with generous margins so nothing crops on any phone.
+// Minimal, elegant, monochrome — institute logo + name on top, Academix credit
+// at the bottom. Fixed 1080x1350 canvas so nothing crops on any phone.
 
 export type BrandedQrInput = {
   qrCanvas: HTMLCanvasElement;
@@ -13,6 +14,9 @@ export type BrandedQrInput = {
 
 const W = 1080;
 const H = 1350;
+const INK = "#0f172a";
+const MUTED = "#8a94a6";
+const LINE = "#e6e9ef";
 
 function loadImage(src: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
@@ -24,19 +28,41 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
   });
 }
 
-function fitText(
+function font(ctx: CanvasRenderingContext2D, weight: string, size: number) {
+  ctx.font = `${weight} ${size}px Saira, system-ui, sans-serif`;
+}
+
+/** Shrinks the font until the text fits maxWidth. */
+function fitFont(
   ctx: CanvasRenderingContext2D,
   text: string,
   maxWidth: number,
   startPx: number,
-  weight = "600",
+  weight: string,
 ) {
   let size = startPx;
-  do {
-    ctx.font = `${weight} ${size}px Saira, system-ui, sans-serif`;
+  font(ctx, weight, size);
+  while (ctx.measureText(text).width > maxWidth && size > 18) {
     size -= 2;
-  } while (ctx.measureText(text).width > maxWidth && size > 18);
-  return text;
+    font(ctx, weight, size);
+  }
+}
+
+function roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
 }
 
 /** Draws the branded card and returns it as a PNG File ready for share/download. */
@@ -47,97 +73,109 @@ export async function brandedQrFile(input: BrandedQrInput): Promise<File | null>
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
-  // Background
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
+  ctx.textBaseline = "middle";
 
-  // Header band
-  ctx.fillStyle = "#0f172a";
-  ctx.fillRect(0, 0, W, 210);
-
-  let textX = 72;
+  // ---- Header: logo + institute name, centred, quiet ----
+  let y = 120;
   if (input.logoUrl) {
     const logo = await loadImage(input.logoUrl);
     if (logo) {
-      const box = 110;
+      const box = 120;
+      const cx = W / 2;
       ctx.save();
       ctx.beginPath();
-      ctx.arc(72 + box / 2, 105, box / 2, 0, Math.PI * 2);
+      ctx.arc(cx, y, box / 2, 0, Math.PI * 2);
       ctx.closePath();
       ctx.clip();
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(72, 50, box, box);
+      ctx.fillRect(cx - box / 2, y - box / 2, box, box);
       const ratio = Math.max(box / logo.width, box / logo.height);
       const dw = logo.width * ratio;
       const dh = logo.height * ratio;
-      ctx.drawImage(logo, 72 + (box - dw) / 2, 50 + (box - dh) / 2, dw, dh);
+      ctx.drawImage(logo, cx - dw / 2, y - dh / 2, dw, dh);
       ctx.restore();
-      textX = 72 + box + 28;
+      ctx.strokeStyle = LINE;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, y, box / 2, 0, Math.PI * 2);
+      ctx.stroke();
+      y += 108;
     }
   }
 
-  ctx.fillStyle = "#ffffff";
-  ctx.textBaseline = "middle";
-  ctx.textAlign = "left";
-  const name = fitText(ctx, input.instituteName || "Academy", W - textX - 72, 52, "700");
-  ctx.fillText(name, textX, 92);
-  ctx.font = "400 26px Saira, system-ui, sans-serif";
-  ctx.fillStyle = "rgba(255,255,255,0.75)";
-  ctx.fillText("Fee payment", textX, 138);
-
-  // Student + purpose
   ctx.textAlign = "center";
-  ctx.fillStyle = "#0f172a";
-  fitText(ctx, input.studentName, W - 160, 46, "600");
-  ctx.fillText(input.studentName, W / 2, 292);
-  ctx.font = "400 28px Saira, system-ui, sans-serif";
-  ctx.fillStyle = "#64748b";
-  ctx.fillText(input.description || "Fees", W / 2, 340);
+  ctx.fillStyle = INK;
+  fitFont(ctx, input.instituteName || "Academy", W - 200, 52, "600");
+  ctx.fillText(input.instituteName || "Academy", W / 2, y);
 
-  // Amount
-  ctx.fillStyle = "#0f172a";
-  ctx.font = "700 84px Saira, system-ui, sans-serif";
-  ctx.fillText(input.amountLabel, W / 2, 430);
+  y += 46;
+  font(ctx, "400", 26);
+  ctx.fillStyle = MUTED;
+  ctx.fillText("FEE PAYMENT", W / 2, y);
 
-  // QR panel
-  const panelX = 150;
-  const panelY = 500;
-  const panelW = W - panelX * 2;
-  const panelH = 620;
-  ctx.fillStyle = "#f8fafc";
-  ctx.strokeStyle = "#e2e8f0";
-  ctx.lineWidth = 3;
-  const r = 32;
+  // hairline
+  y += 46;
+  ctx.strokeStyle = LINE;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(panelX + r, panelY);
-  ctx.arcTo(panelX + panelW, panelY, panelX + panelW, panelY + panelH, r);
-  ctx.arcTo(panelX + panelW, panelY + panelH, panelX, panelY + panelH, r);
-  ctx.arcTo(panelX, panelY + panelH, panelX, panelY, r);
-  ctx.arcTo(panelX, panelY, panelX + panelW, panelY, r);
-  ctx.closePath();
+  ctx.moveTo(140, y);
+  ctx.lineTo(W - 140, y);
+  ctx.stroke();
+
+  // ---- Who + what ----
+  y += 66;
+  ctx.fillStyle = INK;
+  fitFont(ctx, input.studentName, W - 200, 42, "500");
+  ctx.fillText(input.studentName, W / 2, y);
+
+  y += 42;
+  font(ctx, "400", 26);
+  ctx.fillStyle = MUTED;
+  ctx.fillText(input.description || "Fees", W / 2, y);
+
+  // ---- Amount ----
+  y += 92;
+  ctx.fillStyle = INK;
+  fitFont(ctx, input.amountLabel, W - 240, 96, "700");
+  ctx.fillText(input.amountLabel, W / 2, y);
+
+  // ---- QR panel ----
+  const qrSize = 420;
+  const panelW = qrSize + 120;
+  const panelH = qrSize + 190;
+  const panelX = (W - panelW) / 2;
+  const panelY = y + 70;
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeStyle = LINE;
+  ctx.lineWidth = 2;
+  roundRect(ctx, panelX, panelY, panelW, panelH, 28);
   ctx.fill();
   ctx.stroke();
 
-  const qrSize = 460;
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(W / 2 - qrSize / 2 - 12, panelY + 40 - 12, qrSize + 24, qrSize + 24);
-  ctx.drawImage(input.qrCanvas, W / 2 - qrSize / 2, panelY + 40, qrSize, qrSize);
+  ctx.drawImage(input.qrCanvas, W / 2 - qrSize / 2, panelY + 60, qrSize, qrSize);
 
-  ctx.fillStyle = "#0f172a";
-  ctx.font = "500 30px Saira, system-ui, sans-serif";
-  ctx.fillText("Scan with any UPI app", W / 2, panelY + 40 + qrSize + 50);
+  ctx.fillStyle = MUTED;
+  font(ctx, "400", 24);
+  ctx.fillText("Scan with any UPI app", W / 2, panelY + 34);
   if (input.upiId) {
-    ctx.fillStyle = "#64748b";
-    ctx.font = "400 26px Saira, system-ui, sans-serif";
-    ctx.fillText(input.upiId, W / 2, panelY + 40 + qrSize + 92);
+    ctx.fillStyle = INK;
+    font(ctx, "500", 26);
+    ctx.fillText(input.upiId, W / 2, panelY + 60 + qrSize + 50);
   }
 
-  // Footer strip
-  ctx.fillStyle = "#0f172a";
-  ctx.fillRect(0, H - 96, W, 96);
-  ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.font = "500 28px Saira, system-ui, sans-serif";
-  ctx.fillText("Powered by Academix", W / 2, H - 48);
+  // ---- Footer credit ----
+  ctx.strokeStyle = LINE;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(140, H - 132);
+  ctx.lineTo(W - 140, H - 132);
+  ctx.stroke();
+
+  ctx.fillStyle = MUTED;
+  font(ctx, "400", 24);
+  ctx.fillText("Powered by Academix", W / 2, H - 84);
 
   const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
   if (!blob) return null;

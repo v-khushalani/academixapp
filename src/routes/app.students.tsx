@@ -434,21 +434,34 @@ function StudentsPage() {
         fields={[
           { key: "full_name", label: "Full name", required: true },
           { key: "phone", label: "Phone" },
+          { key: "email", label: "Email" },
+          { key: "dob", label: "Date of birth (YYYY-MM-DD)" },
           { key: "class", label: "Class" },
+          { key: "school", label: "School" },
+          { key: "program", label: "Program (schooling/foundation/both)" },
+          { key: "stream", label: "Stream (pcm/pcb)" },
           { key: "father_name", label: "Father name" },
           { key: "father_phone", label: "Father phone" },
           { key: "mother_name", label: "Mother name" },
           { key: "mother_phone", label: "Mother phone" },
-          { key: "email", label: "Email" },
+          { key: "preferred_contact", label: "Preferred contact (father/mother)" },
           { key: "address", label: "Address" },
         ]}
         onImport={async (rows) => {
-          const payload = rows.map((r) => ({
-            ...r,
-            approval_status: "approved",
-            parent_name: (r.father_name as string) ?? (r.mother_name as string) ?? null,
-            parent_phone: (r.father_phone as string) ?? (r.mother_phone as string) ?? null,
-          }));
+          const payload = rows.map((r) => {
+            const pc = String(r.preferred_contact ?? "father").toLowerCase() === "mother"
+              ? "mother"
+              : "father";
+            return {
+              ...r,
+              preferred_contact: pc,
+              approval_status: "approved",
+              parent_name:
+                (pc === "mother" ? (r.mother_name as string) : (r.father_name as string)) ?? null,
+              parent_phone:
+                (pc === "mother" ? (r.mother_phone as string) : (r.father_phone as string)) ?? null,
+            };
+          });
           const { error } = await supabase.from("students").insert(payload as never);
           if (error) throw error;
           qc.invalidateQueries({ queryKey: ["students"] });

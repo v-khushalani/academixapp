@@ -1963,57 +1963,33 @@ export type Database = {
         Args: { _decision: string; _student_id: string }
         Returns: undefined
       }
-      submit_admission_application:
-        | {
-            Args: {
-              _address: string
-              _class: string
-              _dob: string
-              _email: string
-              _father_name: string
-              _father_phone: string
-              _full_name: string
-              _institute_slug?: string
-              _intent: string
-              _mother_name: string
-              _mother_phone: string
-              _phone: string
-              _photo_path: string
-              _preferred_contact: string
-              _program: string
-              _school: string
-              _stream: string
-              _token_amount: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              _aadhaar_edited_fields?: string[]
-              _aadhaar_hash?: string
-              _aadhaar_last4?: string
-              _aadhaar_verified?: boolean
-              _address: string
-              _class: string
-              _dob: string
-              _email: string
-              _father_name: string
-              _father_phone: string
-              _full_name: string
-              _institute_slug?: string
-              _intent: string
-              _mother_name: string
-              _mother_phone: string
-              _phone: string
-              _photo_path: string
-              _preferred_contact: string
-              _program: string
-              _school: string
-              _stream: string
-              _token_amount: number
-            }
-            Returns: string
-          }
+      submit_admission_application: {
+        Args: {
+          _aadhaar_edited_fields?: string[]
+          _aadhaar_hash?: string
+          _aadhaar_last4?: string
+          _aadhaar_verified?: boolean
+          _address: string
+          _class: string
+          _dob: string
+          _email: string
+          _father_name: string
+          _father_phone: string
+          _full_name: string
+          _institute_slug?: string
+          _intent: string
+          _mother_name: string
+          _mother_phone: string
+          _phone: string
+          _photo_path: string
+          _preferred_contact: string
+          _program: string
+          _school: string
+          _stream: string
+          _token_amount: number
+        }
+        Returns: string
+      }
       sync_student_batch_fee: {
         Args: { _student_id: string }
         Returns: undefined

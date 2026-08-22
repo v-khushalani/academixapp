@@ -10,6 +10,16 @@ import {
   type AadhaarProfile,
 } from "@/lib/aadhaar";
 
+async function waitForVideo(
+  ref: { current: HTMLVideoElement | null },
+): Promise<HTMLVideoElement | null> {
+  for (let i = 0; i < 30; i++) {
+    if (ref.current) return ref.current;
+    await new Promise((r) => requestAnimationFrame(() => r(null)));
+  }
+  return ref.current;
+}
+
 export type AadhaarResult = {
   profile: AadhaarProfile;
   hash: string;
@@ -58,21 +68,32 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
   }
 
   async function startCamera() {
+    setLive(true);
     try {
       const { default: QrScanner } = await import("qr-scanner");
-      setLive(true);
-      await new Promise((r) => setTimeout(r, 0));
-      if (!videoRef.current) return;
-      const scanner = new QrScanner(videoRef.current, (res) => void accept(res.data), {
+      // Wait for React to actually mount the <video> element before wiring it up,
+      // otherwise the scanner attaches to nothing and the box stays black.
+      const video = await waitForVideo(videoRef);
+      if (!video) throw new Error("no video element");
+      const scanner = new QrScanner(video, (res) => void accept(res.data), {
         highlightScanRegion: true,
         highlightCodeOutline: true,
         maxScansPerSecond: 4,
+        preferredCamera: "environment",
       });
       scannerRef.current = scanner as unknown as { stop: () => void; destroy: () => void };
       await scanner.start();
+      // iOS/iPadOS sometimes leaves the stream paused after start().
+      try {
+        await video.play();
+      } catch {
+        /* autoplay policies — the stream is still attached */
+      }
     } catch {
-      setLive(false);
-      toast.error("Couldn't open the camera. You can upload a photo of the card instead.");
+      stopCamera();
+      toast.error(
+        "Couldn't open the camera. Allow camera access for this site, or upload a photo of the card instead.",
+      );
     }
   }
 
