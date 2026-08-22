@@ -10,6 +10,16 @@ import {
   type AadhaarProfile,
 } from "@/lib/aadhaar";
 
+async function waitForVideo(
+  ref: React.MutableRefObject<HTMLVideoElement | null>,
+): Promise<HTMLVideoElement | null> {
+  for (let i = 0; i < 30; i++) {
+    if (ref.current) return ref.current;
+    await new Promise((r) => requestAnimationFrame(() => r(null)));
+  }
+  return ref.current;
+}
+
 export type AadhaarResult = {
   profile: AadhaarProfile;
   hash: string;
