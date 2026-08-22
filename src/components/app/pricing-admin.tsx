@@ -75,87 +75,30 @@ export function PricingAdmin() {
         <p className="mt-1 text-[11px] text-muted-foreground">
           Prices are internal only — the public page shows “Talk to us” instead of an amount.
         </p>
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-[720px] text-sm">
-            <thead className="text-left text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="px-2 py-1.5">Plan</th>
-                <th className="px-2 py-1.5">Tagline</th>
-                <th className="px-2 py-1.5">₹ / year (internal)</th>
-                <th className="px-2 py-1.5">Students</th>
-                <th className="px-2 py-1.5">Rooms</th>
-                <th className="px-2 py-1.5">Popular</th>
-                <th className="px-2 py-1.5">Visible</th>
-              </tr>
-            </thead>
-            <tbody>
-              {plans.map((p) => (
-                <tr key={p.id} className="border-t border-border">
-                  <td className="px-2 py-2">
-                    <Input
-                      defaultValue={p.name}
-                      className="h-8 w-32"
-                      onBlur={(e) =>
-                        e.target.value !== p.name && savePlan(p.id, { name: e.target.value })
-                      }
-                    />
-                    <p className="mt-1 text-[10px] text-muted-foreground">{p.key}</p>
-                  </td>
-                  <td className="px-2 py-2">
-                    <Input
-                      defaultValue={p.tagline}
-                      className="h-8 w-full sm:min-w-[220px]"
-                      onBlur={(e) =>
-                        e.target.value !== p.tagline && savePlan(p.id, { tagline: e.target.value })
-                      }
-                    />
-                  </td>
-                  <td className="px-2 py-2">
-                    <Input
-                      type="number"
-                      defaultValue={p.price_yearly ?? 0}
-                      className="h-8 w-24"
-                      onBlur={(e) => savePlan(p.id, { price_yearly: Number(e.target.value) })}
-                    />
-                  </td>
-                  <td className="px-2 py-2">
-                    <Input
-                      type="number"
-                      defaultValue={p.student_limit}
-                      className="h-8 w-24"
-                      onBlur={(e) => savePlan(p.id, { student_limit: Number(e.target.value) })}
-                    />
-                  </td>
-                  <td className="px-2 py-2">
-                    <Input
-                      type="number"
-                      defaultValue={p.room_limit}
-                      className="h-8 w-20"
-                      onBlur={(e) => savePlan(p.id, { room_limit: Number(e.target.value) })}
-                    />
-                  </td>
-                  <td className="px-2 py-2">
-                    <Button
-                      size="sm"
-                      variant={p.highlight ? "default" : "outline"}
-                      onClick={() => savePlan(p.id, { highlight: !p.highlight })}
-                    >
-                      {p.highlight ? "Yes" : "No"}
-                    </Button>
-                  </td>
-                  <td className="px-2 py-2">
-                    <Button
-                      size="sm"
-                      variant={p.visible ? "default" : "outline"}
-                      onClick={() => savePlan(p.id, { visible: !p.visible })}
-                    >
-                      {p.visible ? "Shown" : "Hidden"}
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          {plans.map((p) => (
+            <div key={p.id} className="rounded-md border border-border p-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Labeled label="Plan name"><Input defaultValue={p.name} onBlur={(e) => e.target.value !== p.name && savePlan(p.id, { name: e.target.value })} /></Labeled>
+                <Labeled label="Internal ₹ / year"><Input type="number" min={0} defaultValue={p.price_yearly ?? 0} onBlur={(e) => savePlan(p.id, { price_yearly: Number(e.target.value) })} /></Labeled>
+                <Labeled label="Tagline" wide><Input defaultValue={p.tagline} onBlur={(e) => e.target.value !== p.tagline && savePlan(p.id, { tagline: e.target.value })} /></Labeled>
+                {([
+                  ["Students", "student_limit"], ["Classrooms", "room_limit"], ["Batches", "batch_limit"],
+                  ["Office logins", "staff_login_limit"], ["Teacher logins", "teacher_login_limit"],
+                ] as const).map(([label, key]) => (
+                  <Labeled key={key} label={label}><Input type="number" min={0} defaultValue={p[key]} onBlur={(e) => savePlan(p.id, { [key]: Math.max(0, Number(e.target.value)) })} /></Labeled>
+                ))}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Toggle active={p.custom_branding} onClick={() => savePlan(p.id, { custom_branding: !p.custom_branding })}>Custom branding</Toggle>
+                <Toggle active={p.attendance_devices} onClick={() => savePlan(p.id, { attendance_devices: !p.attendance_devices })}>Attendance machines</Toggle>
+                <Toggle active={p.highlight} onClick={() => savePlan(p.id, { highlight: !p.highlight })}>Popular</Toggle>
+                <Toggle active={p.visible} onClick={() => savePlan(p.id, { visible: !p.visible })}>Visible</Toggle>
+                <Toggle active={p.contact_only} onClick={() => savePlan(p.id, { contact_only: !p.contact_only })}>Sales only</Toggle>
+              </div>
+              <p className="mt-2 text-[10px] text-muted-foreground">Key: {p.key} · 0 means unlimited</p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -281,4 +224,12 @@ export function PricingAdmin() {
       </div>
     </div>
   );
+}
+
+function Labeled({ label, wide, children }: { label: string; wide?: boolean; children: React.ReactNode }) {
+  return <label className={`space-y-1 text-xs text-muted-foreground ${wide ? "sm:col-span-2" : ""}`}><span>{label}</span>{children}</label>;
+}
+
+function Toggle({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return <Button size="sm" variant={active ? "default" : "outline"} onClick={onClick}>{children}: {active ? "On" : "Off"}</Button>;
 }

@@ -52,7 +52,7 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
     const profile = parseAadhaarQr(raw);
     if (!profile) {
       setStatus(live ? "scanning" : "idle");
-      toast.error("That doesn't look like an Aadhaar QR. Try again in better light.");
+      toast.error("QR found, but it is not a supported Aadhaar Secure QR.");
       return;
     }
     const hash = await aadhaarFingerprint(raw);
@@ -219,10 +219,10 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
 
       {live && (
         <div className="mt-3 space-y-2">
-          <div className="overflow-hidden rounded-md bg-black">
+          <div className="relative overflow-hidden rounded-md bg-foreground">
             <video ref={videoRef} className="aspect-[3/4] max-h-[70dvh] w-full object-contain sm:aspect-video" muted playsInline />
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
-              <div className="aspect-square w-[78%] max-w-sm rounded-lg border-2 border-primary-foreground/90 shadow-[0_0_0_999px_color-mix(in_oklab,var(--foreground)_45%,transparent)]" />
+              <div className="aspect-square w-[78%] max-w-sm rounded-lg border-2 border-primary-foreground/90 outline-[999px] outline-foreground/50" />
             </div>
           </div>
           <p className="text-center text-[11px] text-muted-foreground">

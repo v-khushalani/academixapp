@@ -26,7 +26,7 @@ import {
   userRolesApi,
   type AppRole,
 } from "@/lib/api";
-import { PLANS, planFor } from "@/lib/plans";
+import { planFor } from "@/lib/plans";
 import {
   getInstitute,
   saveInstitute,
@@ -38,6 +38,7 @@ import {
 
   type InstituteSettings,
   type ReceiptTemplate,
+  type ReceiptPaper,
   type Shifts,
 } from "@/lib/academy-settings";
 import { receiptPreviewUrl } from "@/lib/receipt";
@@ -61,47 +62,40 @@ function SettingsPage() {
         <Tabs defaultValue="institute" className="w-full">
           <TabsList className="mb-4 flex-wrap">
             <TabsTrigger value="institute">Institute</TabsTrigger>
-            <TabsTrigger value="rooms">Classrooms & timings</TabsTrigger>
-            <TabsTrigger value="fees">Fee structures</TabsTrigger>
-            <TabsTrigger value="users">Users & roles</TabsTrigger>
-            <TabsTrigger value="access">Plan & logins</TabsTrigger>
-            <TabsTrigger value="devices">Attendance machines</TabsTrigger>
-            <TabsTrigger value="branding">Branding</TabsTrigger>
-            <TabsTrigger value="receipts">Receipts</TabsTrigger>
-            <TabsTrigger value="whatsapp">WhatsApp templates</TabsTrigger>
+            <TabsTrigger value="academics">Academics</TabsTrigger>
+            <TabsTrigger value="team">Team &amp; access</TabsTrigger>
+            <TabsTrigger value="communication">Communication</TabsTrigger>
+            <TabsTrigger value="brand-print">Brand &amp; print</TabsTrigger>
           </TabsList>
           <TabsContent value="institute">
             <InstitutePanel />
           </TabsContent>
-          <TabsContent value="rooms">
+          <TabsContent value="academics">
             <div className="space-y-4">
               <RoomsPanel />
               <ShiftTimingsPanel />
+              <FeesPanel />
             </div>
           </TabsContent>
-          <TabsContent value="fees">
-            <FeesPanel />
-          </TabsContent>
-          <TabsContent value="users">
-            <UsersPanel />
-          </TabsContent>
-          <TabsContent value="access">
+          <TabsContent value="team">
             <div className="space-y-4">
+              <UsersPanel />
               <PlanUsageCard />
               <LoginsHelpCard />
+              {getInstitute().attendance_devices ? (
+                <DevicesPanel />
+              ) : (
+                <Card title="Attendance machines" description="RFID and biometric attendance is available on paid plans.">
+                  <Button asChild variant="outline"><Link to="/pricing">View plans</Link></Button>
+                </Card>
+              )}
             </div>
           </TabsContent>
-          <TabsContent value="devices">
-            <DevicesPanel />
-          </TabsContent>
-          <TabsContent value="branding">
-            <BrandingPanel />
-          </TabsContent>
-          <TabsContent value="receipts">
-            <ReceiptsPanel />
-          </TabsContent>
-          <TabsContent value="whatsapp">
+          <TabsContent value="communication">
             <TemplatesPanel />
+          </TabsContent>
+          <TabsContent value="brand-print">
+            <div className="space-y-4"><BrandingPanel /><ReceiptsPanel /></div>
           </TabsContent>
         </Tabs>
       </PageBody>
@@ -291,19 +285,6 @@ function RoomsPanel() {
     qc.invalidateQueries({ queryKey: ["timetable"] });
   }
 
-  const changePlan = useMutation({
-    mutationFn: async (key: string) => {
-      if (!institute) throw new Error("Institute not loaded");
-      const p = planFor(key);
-      return instituteApi.setPlan(institute.id, p.key, p.rooms);
-    },
-    onSuccess: () => {
-      toast.success("Plan updated");
-      qc.invalidateQueries({ queryKey: ["institute"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   const add = useMutation({
     mutationFn: async () => {
       if (atLimit)
@@ -350,26 +331,11 @@ function RoomsPanel() {
             — {used} of {limit} classrooms used
           </span>
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <Label className="text-xs">Plan</Label>
-          <Select value={plan.key} onValueChange={(v) => changePlan.mutate(v)}>
-            <SelectTrigger className="h-8 w-52 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PLANS.map((p) => (
-                <SelectItem key={p.key} value={p.key}>
-                  {p.name} — {p.blurb}
-                  {p.priceYearly === 0 ? " · free" : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Button asChild size="sm" variant="outline" className="ml-auto"><Link to="/pricing">Plan details</Link></Button>
       </div>
       {atLimit && (
         <p className="mb-2 text-xs text-destructive">
-          Classroom limit reached — upgrade the plan above to add more rooms.
+          Classroom limit reached — contact Team Academix to change your plan.
         </p>
       )}
       <form
@@ -832,13 +798,14 @@ function BrandingPanel() {
 
 function ReceiptsPanel() {
   const [tpl, setTpl] = useState<ReceiptTemplate>(getInstitute().receipt_template ?? "classic");
+  const [paper, setPaper] = useState<ReceiptPaper>(getInstitute().receipt_paper ?? "a5");
   const [preview, setPreview] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let alive = true;
     setPreview("");
-    receiptPreviewUrl(tpl)
+    receiptPreviewUrl(tpl, paper)
       .then((url) => {
         if (alive) setPreview(url);
       })
@@ -846,12 +813,12 @@ function ReceiptsPanel() {
     return () => {
       alive = false;
     };
-  }, [tpl]);
+  }, [tpl, paper]);
 
   async function save() {
     setSaving(true);
     try {
-      await saveInstitute({ ...getInstitute(), receipt_template: tpl });
+      await saveInstitute({ ...getInstitute(), receipt_template: tpl, receipt_paper: paper });
       toast.success("Receipt template saved");
     } catch {
       toast.error("Could not save the template");
@@ -882,6 +849,17 @@ function ReceiptsPanel() {
               <p className="mt-0.5 text-xs text-muted-foreground">{t.blurb}</p>
             </button>
           ))}
+          <div className="space-y-1.5 pt-2">
+            <Label>Paper format</Label>
+            <Select value={paper} onValueChange={(value) => setPaper(value as ReceiptPaper)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="a5">A5 — one receipt</SelectItem>
+                <SelectItem value="a4-two-up">A4 — two copies</SelectItem>
+                <SelectItem value="thermal-80">80 mm thermal</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Button className="w-full" onClick={save} disabled={saving}>
             {saving ? "Saving…" : "Use this template"}
           </Button>
