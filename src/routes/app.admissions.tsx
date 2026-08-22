@@ -590,53 +590,17 @@ function QrPanel() {
   const admissionUrl = `${base}/apply?${q}mode=admission`;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[auto_1fr]">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <QrCard
-          title="Enquiry QR"
-          blurb="5 fields · for hoardings, school visits, walk-ins"
-          url={enquiryUrl}
-        />
-        <QrCard
-          title="Admission QR"
-          blurb="Full details + photo · for parents ready to join"
-          url={admissionUrl}
-        />
-      </div>
-      <div className="space-y-3 text-sm">
-        <h3 className="text-base font-semibold">How the admissions funnel works</h3>
-        <ol className="list-decimal space-y-1.5 pl-5 text-muted-foreground">
-          <li>
-            <b>Enquiry QR</b> — someone just asking about fees or timing scans this and gives only
-            student name, parent name, phone, class and interest. It lands in <b>Follow-ups</b>.
-          </li>
-          <li>
-            <b>Follow-ups</b> — your counsellor calls them, notes what happened, and when the
-            parent agrees, sends them the admission link (or fills it at the desk).
-          </li>
-          <li>
-            <b>Admission QR</b> — full form: child details, both parents, address, program and
-            photo. It lands in <b>Applications</b> within seconds.
-          </li>
-          <li>
-            <b>Approve</b> — you verify the details and pick a batch. The student goes live and the
-            batch fee is assigned automatically on the Fees page.
-          </li>
-          <li>
-            Anyone you do not admit stays in <b>Follow-ups</b> so nobody is lost.
-          </li>
-        </ol>
-        <p className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
-          Rule of thumb: enquiry QR on anything public (banner, pamphlet, WhatsApp status),
-          admission QR only after the parent has said yes.
-        </p>
-        {!slug && (
-          <p className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
-            Tip: open the app once as an admin so your institute code loads — the link then tags
-            every submission to your institute.
-          </p>
-        )}
-      </div>
+    <div className="grid max-w-2xl gap-4 sm:grid-cols-2">
+      <QrCard
+        title="Enquiry QR"
+        blurb="Quick enquiry · walk-ins and hoardings"
+        url={enquiryUrl}
+      />
+      <QrCard
+        title="Admission QR"
+        blurb="Full admission form with photo"
+        url={admissionUrl}
+      />
     </div>
   );
 }
