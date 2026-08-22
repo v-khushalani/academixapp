@@ -136,7 +136,7 @@ function ExpensesPage() {
       <PageBody>
         <div className="flex flex-wrap items-end gap-2">
           <Select value={period} onValueChange={(v) => setPeriod(v as "month" | "year")}>
-            <SelectTrigger className="h-9 w-[190px]">
+            <SelectTrigger className="h-9 w-full sm:w-[190px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -149,12 +149,12 @@ function ExpensesPage() {
               type="month"
               value={month}
               onChange={(e) => setMonth(e.target.value || currentMonth())}
-              className="h-9 w-[165px]"
+              className="h-9 w-full sm:w-[165px]"
               aria-label="Month"
             />
           ) : null}
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="h-9 w-[170px]">
+            <SelectTrigger className="h-9 w-full sm:w-[170px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

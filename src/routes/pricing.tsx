@@ -179,10 +179,10 @@ function PricingPage() {
           </div>
 
           <div className="mt-3 overflow-x-auto rounded-xl border border-border bg-card">
-            <table className="w-full min-w-[520px] border-collapse text-sm">
+            <table className="w-full min-w-full sm:w-[520px] border-collapse text-sm">
               <thead>
                 <tr className="bg-muted/60">
-                  <th className="sticky left-0 z-10 w-[220px] bg-muted/60 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <th className="sticky left-0 z-10 w-full sm:w-[220px] bg-muted/60 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Compare
                   </th>
                   {visible.map((p) => (

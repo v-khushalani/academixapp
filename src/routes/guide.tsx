@@ -105,7 +105,7 @@ function GuidePage() {
                         key={bi}
                         className="overflow-x-auto rounded-lg border border-border bg-card"
                       >
-                        <table className="w-full min-w-[420px] text-sm">
+                        <table className="w-full min-w-full sm:w-[420px] text-sm">
                           <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
                             <tr>
                               {b.table.head.map((h) => (

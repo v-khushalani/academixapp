@@ -146,7 +146,7 @@ function LeadsBoard({ canWrite }: { canWrite: boolean }) {
           {STAGES.map((s) => (
             <div
               key={s.key}
-              className="min-w-[240px] flex-1 rounded-lg border border-border bg-card"
+              className="min-w-full sm:w-[240px] flex-1 rounded-lg border border-border bg-card"
             >
               <div className="flex items-center justify-between border-b border-border px-3 py-2">
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">

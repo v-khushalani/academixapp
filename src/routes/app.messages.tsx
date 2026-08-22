@@ -94,14 +94,14 @@ function MessagesPage() {
           <>
           <div className="flex flex-wrap items-end gap-2">
             <Filter label="From">
-              <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-[150px]" />
+              <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-full sm:w-[150px]" />
             </Filter>
             <Filter label="To">
-              <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-[150px]" />
+              <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-full sm:w-[150px]" />
             </Filter>
             <Filter label="Batch">
               <Select value={batchId} onValueChange={setBatchId}>
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-full sm:w-[160px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -116,7 +116,7 @@ function MessagesPage() {
             </Filter>
             <Filter label="Type">
               <Select value={kind} onValueChange={setKind}>
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-full sm:w-[160px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -131,7 +131,7 @@ function MessagesPage() {
             </Filter>
             <Filter label="Status">
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="w-[130px]">
+                <SelectTrigger className="w-full sm:w-[130px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

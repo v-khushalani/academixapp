@@ -151,7 +151,7 @@ function BatchesPage() {
           onRowClick={(r) => navigate({ to: "/app/batches/$id", params: { id: r.id } })}
           toolbar={
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="h-9 w-[140px]">
+              <SelectTrigger className="h-9 w-full sm:w-[140px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

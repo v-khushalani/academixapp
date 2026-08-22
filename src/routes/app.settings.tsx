@@ -185,7 +185,7 @@ function InstitutePanel() {
               <Input
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
-                className="h-9 max-w-[220px] text-xs"
+                className="h-9 max-w-full sm:w-[220px] text-xs"
                 onChange={(e) => pickLogo(e.target.files?.[0])}
               />
               {s.logo_url && (
@@ -373,7 +373,7 @@ function RoomsPanel() {
           placeholder="Room name (e.g. Room 101 / Physics Lab)"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="min-w-[180px] flex-1"
+          className="min-w-full sm:w-[180px] flex-1"
         />
         <Input
           type="number"
@@ -402,7 +402,7 @@ function RoomsPanel() {
                 const v = e.target.value.trim();
                 if (v && v !== r.name) update.mutate({ id: r.id, patch: { name: v } });
               }}
-              className="h-8 min-w-[140px] flex-1"
+              className="h-8 min-w-full sm:w-[140px] flex-1"
             />
             <Input
               type="number"

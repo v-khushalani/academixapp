@@ -43,7 +43,7 @@ function ReportsPage() {
             <Label>From</Label>
             <Input
               type="date"
-              className="h-9 w-[160px]"
+              className="h-9 w-full sm:w-[160px]"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
             />
@@ -52,7 +52,7 @@ function ReportsPage() {
             <Label>To</Label>
             <Input
               type="date"
-              className="h-9 w-[160px]"
+              className="h-9 w-full sm:w-[160px]"
               value={to}
               onChange={(e) => setTo(e.target.value)}
             />

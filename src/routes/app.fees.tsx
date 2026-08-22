@@ -359,7 +359,7 @@ function FeesPage() {
             toolbar={
               <div className="flex flex-wrap gap-2">
               <Select value={followUp} onValueChange={setFollowUp}>
-                <SelectTrigger className="h-9 w-[150px]">
+                <SelectTrigger className="h-9 w-full sm:w-[150px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -370,7 +370,7 @@ function FeesPage() {
                 </SelectContent>
               </Select>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="h-9 w-[140px]">
+                <SelectTrigger className="h-9 w-full sm:w-[140px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

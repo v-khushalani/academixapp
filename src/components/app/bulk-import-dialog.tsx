@@ -111,7 +111,7 @@ export function BulkImportDialog<T extends Record<string, unknown>>({
             <Input
               type="file"
               accept=".csv,text/csv"
-              className="h-9 max-w-[260px]"
+              className="h-9 max-w-full sm:w-[260px]"
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) parse(f);
