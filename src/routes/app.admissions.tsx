@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, type FormEvent } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { Plus, Trash2, Check, X, Copy, ExternalLink, Printer } from "lucide-react";
+import { Plus, Trash2, Check, X, Copy, ExternalLink } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
