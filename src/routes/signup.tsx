@@ -28,21 +28,7 @@ export const Route = createFileRoute("/signup")({
 
 function SignupPage() {
   const [institute, setInstitute] = useState("");
-  const [sent, setSent] = useState(false);
-
-  if (sent) {
-    return (
-      <MarketingShell>
-        <div className="mx-auto w-full max-w-sm px-5 py-20 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">All set</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            We&apos;re setting up <span className="font-medium">{institute}</span> and signing you
-            in. You&apos;ll land on your dashboard in a moment.
-          </p>
-        </div>
-      </MarketingShell>
-    );
-  }
+  const [busy, setBusy] = useState(false);
 
   return (
     <MarketingShell>
