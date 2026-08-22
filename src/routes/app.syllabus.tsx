@@ -155,7 +155,7 @@ function SyllabusPage() {
       <PageBody>
         <div className="flex flex-wrap items-center gap-3">
           <Select value={batchId} onValueChange={setBatchId}>
-            <SelectTrigger className="h-9 w-full sm:w-[260px]">
+            <SelectTrigger className="h-9 w-full sm:w-full sm:w-[260px]">
               <SelectValue placeholder="Select batch" />
             </SelectTrigger>
             <SelectContent>

@@ -103,7 +103,7 @@ function TeachMarks() {
       <h1 className="text-xl font-semibold">Enter marks</h1>
       <div className="mt-3 flex flex-wrap gap-2">
         <Select value={testId} onValueChange={setTestId}>
-          <SelectTrigger className="h-9 w-[240px]">
+          <SelectTrigger className="h-9 w-full sm:w-[240px]">
             <SelectValue placeholder="Select test" />
           </SelectTrigger>
           <SelectContent>

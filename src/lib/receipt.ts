@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { getInstitute, type ReceiptTemplate } from "./academy-settings";
+import { getBrandedInstitute, type ReceiptTemplate } from "./academy-settings";
 import { receiptNo } from "./payments";
 import { useSaira } from "./pdf-font";
 import { formatDate } from "./dates";
@@ -83,7 +83,7 @@ export async function buildReceipt(
   f: ReceiptInput,
   template?: ReceiptTemplate,
 ): Promise<{ doc: jsPDF; no: string }> {
-  const inst = getInstitute();
+  const inst = getBrandedInstitute();
   const tpl = template ?? inst.receipt_template ?? "classic";
   if (tpl === "compact") return buildCompact(f);
   const no = receiptNo(f.receipt_no);
@@ -218,7 +218,7 @@ export async function buildReceipt(
 
 /** Half-page slip — the same facts, far less ink. */
 async function buildCompact(f: ReceiptInput): Promise<{ doc: jsPDF; no: string }> {
-  const inst = getInstitute();
+  const inst = getBrandedInstitute();
   const no = receiptNo(f.receipt_no);
   const doc = new jsPDF({ unit: "mm", format: [148, 105], orientation: "landscape" });
   const FONT = await useSaira(doc);

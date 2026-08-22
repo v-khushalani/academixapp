@@ -34,6 +34,8 @@ import {
   saveTemplates,
   DEFAULT_SHIFTS,
   RECEIPT_TEMPLATES,
+  canUseOwnBranding,
+
   type InstituteSettings,
   type ReceiptTemplate,
   type Shifts,
@@ -168,7 +170,15 @@ function InstitutePanel() {
       description="Used across receipts, WhatsApp messages, and printed reports."
     >
       <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
-        <div className="sm:col-span-2 flex items-center gap-4 rounded-lg border border-border p-3">
+        {!canUseOwnBranding(s.plan) && (
+          <div className="rounded-lg border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground sm:col-span-2">
+            <strong className="font-medium text-foreground">Free plan:</strong> receipts, payment QRs
+            and portals carry Academix branding. Upgrade to Growth or Campus to show your own logo
+            and institute name on everything parents see.
+          </div>
+        )}
+        <div className="flex flex-col gap-4 rounded-lg border border-border p-3 sm:col-span-2 sm:flex-row sm:items-center">
+
           <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
             {s.logo_url ? (
               <img src={s.logo_url} alt="Institute logo" className="h-full w-full object-contain" />
@@ -185,7 +195,7 @@ function InstitutePanel() {
               <Input
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
-                className="h-9 max-w-[220px] text-xs"
+                className="h-9 w-full sm:max-w-[220px] text-xs"
                 onChange={(e) => pickLogo(e.target.files?.[0])}
               />
               {s.logo_url && (
@@ -373,7 +383,7 @@ function RoomsPanel() {
           placeholder="Room name (e.g. Room 101 / Physics Lab)"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="min-w-[180px] flex-1"
+          className="w-full sm:min-w-[180px] sm:flex-1"
         />
         <Input
           type="number"
@@ -402,7 +412,7 @@ function RoomsPanel() {
                 const v = e.target.value.trim();
                 if (v && v !== r.name) update.mutate({ id: r.id, patch: { name: v } });
               }}
-              className="h-8 min-w-[140px] flex-1"
+              className="h-8 w-full sm:min-w-[140px] sm:flex-1"
             />
             <Input
               type="number"

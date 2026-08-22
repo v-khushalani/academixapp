@@ -166,7 +166,7 @@ function AttendancePage() {
           <div className="space-y-1.5">
             <Label>Batch</Label>
             <Select value={batchId} onValueChange={setBatchId}>
-              <SelectTrigger className="h-9 w-[220px]">
+              <SelectTrigger className="h-9 w-full sm:w-[220px]">
                 <SelectValue placeholder="Select batch" />
               </SelectTrigger>
               <SelectContent>
@@ -182,7 +182,7 @@ function AttendancePage() {
             <Label>Date</Label>
             <Input
               type="date"
-              className="h-9 w-[180px]"
+              className="h-9 w-full sm:w-[180px]"
               value={date}
               onChange={(e) => setDate(e.target.value)}
             />

@@ -323,7 +323,7 @@ function StudentsPage() {
           toolbar={
             <>
               <Select value={cls} onValueChange={setCls}>
-                <SelectTrigger className="h-9 w-[140px]">
+                <SelectTrigger className="h-9 w-full sm:w-[140px]">
                   <SelectValue placeholder="Class" />
                 </SelectTrigger>
                 <SelectContent>
@@ -336,7 +336,7 @@ function StudentsPage() {
                 </SelectContent>
               </Select>
               <Select value={batchId} onValueChange={setBatchId}>
-                <SelectTrigger className="h-9 w-[150px]">
+                <SelectTrigger className="h-9 w-full sm:w-[150px]">
                   <SelectValue placeholder="Batch" />
                 </SelectTrigger>
                 <SelectContent>
@@ -350,7 +350,7 @@ function StudentsPage() {
                 </SelectContent>
               </Select>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="h-9 w-[140px]">
+                <SelectTrigger className="h-9 w-full sm:w-[140px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -362,7 +362,7 @@ function StudentsPage() {
                 </SelectContent>
               </Select>
               <Select value={approval} onValueChange={setApproval}>
-                <SelectTrigger className="h-9 w-[150px]">
+                <SelectTrigger className="h-9 w-full sm:w-[150px]">
                   <SelectValue placeholder="Approval" />
                 </SelectTrigger>
                 <SelectContent>
@@ -374,7 +374,7 @@ function StudentsPage() {
                 </SelectContent>
               </Select>
               <Select value={dues} onValueChange={setDues}>
-                <SelectTrigger className="h-9 w-[130px]">
+                <SelectTrigger className="h-9 w-full sm:w-[130px]">
                   <SelectValue placeholder="Fees" />
                 </SelectTrigger>
                 <SelectContent>
@@ -384,7 +384,7 @@ function StudentsPage() {
                 </SelectContent>
               </Select>
               <Select value={portal} onValueChange={setPortal}>
-                <SelectTrigger className="h-9 w-[150px]">
+                <SelectTrigger className="h-9 w-full sm:w-[150px]">
                   <SelectValue placeholder="Portal" />
                 </SelectTrigger>
                 <SelectContent>
@@ -397,14 +397,14 @@ function StudentsPage() {
               <Input
                 type="date"
                 aria-label="Admitted from"
-                className="h-9 w-[150px]"
+                className="h-9 w-full sm:w-[150px]"
                 value={from}
                 onChange={(e) => setFrom(e.target.value)}
               />
               <Input
                 type="date"
                 aria-label="Admitted to"
-                className="h-9 w-[150px]"
+                className="h-9 w-full sm:w-[150px]"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
               />

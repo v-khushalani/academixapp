@@ -102,7 +102,7 @@ export function PendingQueue() {
     <div>
       <div className="flex flex-wrap items-center gap-2">
         <Select value={scope} onValueChange={(v) => setScope(v as PendingScope)}>
-          <SelectTrigger className="h-9 w-[150px]">
+          <SelectTrigger className="h-9 w-full sm:w-[150px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -111,7 +111,7 @@ export function PendingQueue() {
           </SelectContent>
         </Select>
         <Select value={kind} onValueChange={setKind}>
-          <SelectTrigger className="h-9 w-[170px]">
+          <SelectTrigger className="h-9 w-full sm:w-[170px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

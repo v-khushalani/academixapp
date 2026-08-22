@@ -23,6 +23,7 @@ export type InstituteSettings = {
   shifts: Shifts; // timetable morning / evening windows
   installment_plan: Installment[]; // default fee installment schedule
   receipt_template: ReceiptTemplate; // layout used for fee receipts
+  plan: string; // plan key — decides whether institute branding is allowed
 };
 
 export type ReceiptTemplate = "classic" | "compact" | "detailed";
@@ -55,6 +56,7 @@ const DEFAULT_INSTITUTE: InstituteSettings = {
   shifts: DEFAULT_SHIFTS,
   installment_plan: DEFAULT_PLAN,
   receipt_template: "classic",
+  plan: "free",
 };
 
 const KEY_ACTIVE_UID = "vk_active_uid";
@@ -166,7 +168,7 @@ export async function hydrateInstitute() {
   const { data } = await supabase
     .from("institutes")
     .select(
-      "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan, receipt_template",
+      "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan, receipt_template, plan",
     )
     .eq("id", instituteId)
     .maybeSingle();
@@ -201,4 +203,25 @@ export function applyBranding(hex: string) {
 // Bootstrap branding on module load (client only)
 if (typeof window !== "undefined") {
   applyBranding(getInstitute().primary_color);
+}
+
+
+/* ---------------- Branding entitlement ---------------------------------- */
+// Own-brand receipts / payment QRs / portal marks are a paid feature. Free
+// institutes get clean Academix branding instead.
+const BRANDED_PLANS = new Set(["growth", "campus", "chain", "pro", "multi", "unlimited"]);
+
+export function canUseOwnBranding(plan = getInstitute().plan): boolean {
+  return BRANDED_PLANS.has(String(plan || "free").toLowerCase());
+}
+
+/**
+ * Institute settings with the brand fields collapsed to Academix when the
+ * plan does not include white-labelling. Use this anywhere a logo or name is
+ * printed on something a parent sees.
+ */
+export function getBrandedInstitute(): InstituteSettings {
+  const inst = getInstitute();
+  if (canUseOwnBranding(inst.plan)) return inst;
+  return { ...inst, name: "Academix", logo_url: "", tagline: "Institute management, simplified" };
 }

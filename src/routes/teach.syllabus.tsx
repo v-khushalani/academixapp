@@ -97,7 +97,7 @@ function TeachSyllabus() {
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Select value={batchId} onValueChange={setBatchId}>
-          <SelectTrigger className="h-9 w-full sm:w-[240px]">
+          <SelectTrigger className="h-9 w-full sm:w-full sm:w-[240px]">
             <SelectValue placeholder="Select batch" />
           </SelectTrigger>
           <SelectContent>

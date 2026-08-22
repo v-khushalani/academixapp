@@ -103,7 +103,7 @@ function TeachAttendance() {
       <h1 className="text-xl font-semibold">Mark attendance</h1>
       <div className="mt-3 flex flex-wrap gap-2">
         <Select value={batchId} onValueChange={setBatchId}>
-          <SelectTrigger className="h-9 w-[190px]">
+          <SelectTrigger className="h-9 w-full sm:w-[190px]">
             <SelectValue placeholder="Select batch" />
           </SelectTrigger>
           <SelectContent>
@@ -116,7 +116,7 @@ function TeachAttendance() {
         </Select>
         <Input
           type="date"
-          className="h-9 w-[160px]"
+          className="h-9 w-full sm:w-[160px]"
           value={date}
           onChange={(e) => setDate(e.target.value)}
         />

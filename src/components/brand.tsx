@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getInstitute } from "@/lib/academy-settings";
+import { getBrandedInstitute } from "@/lib/academy-settings";
 
 export type Brand = { name: string; logo: string; initials: string };
 
@@ -13,7 +13,7 @@ export function useBrand(fallback = "Academix"): Brand {
 
   useEffect(() => {
     const sync = () => {
-      const inst = getInstitute();
+      const inst = getBrandedInstitute();
       const name = inst.name || fallback;
       setBrand({
         name,

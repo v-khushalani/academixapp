@@ -76,13 +76,36 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
       const video = await waitForVideo(videoRef);
       if (!video) throw new Error("no video element");
       const scanner = new QrScanner(video, (res) => void accept(res.data), {
-        highlightScanRegion: true,
-        highlightCodeOutline: true,
-        maxScansPerSecond: 4,
+        highlightScanRegion: false,
+        highlightCodeOutline: false,
+        maxScansPerSecond: 8,
         preferredCamera: "environment",
+        returnDetailedScanResult: true,
+        // Aadhaar's secure QR is extremely dense. The library default crops to a
+        // small centred square and downscales it to 400px, which destroys the
+        // modules — we scan the full frame at high resolution instead.
+        calculateScanRegion: (v) => ({
+          x: 0,
+          y: 0,
+          width: v.videoWidth,
+          height: v.videoHeight,
+          downScaledWidth: Math.min(v.videoWidth || 1280, 1280),
+          downScaledHeight: Math.min(v.videoHeight || 720, 1280),
+        }),
       });
       scannerRef.current = scanner as unknown as { stop: () => void; destroy: () => void };
       await scanner.start();
+      // Ask the camera for the sharpest stream it can give us.
+      try {
+        const track = video.srcObject instanceof MediaStream ? video.srcObject.getVideoTracks()[0] : null;
+        await track?.applyConstraints({
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          advanced: [{ focusMode: "continuous" } as MediaTrackConstraintSet],
+        });
+      } catch {
+        /* device doesn't support these hints — default stream is fine */
+      }
       // iOS/iPadOS sometimes leaves the stream paused after start().
       try {
         await video.play();
@@ -96,6 +119,24 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
       );
     }
   }
+
+  /** Fallback: grab the current frame and decode it like an uploaded photo. */
+  async function captureFrame() {
+    const video = videoRef.current;
+    if (!video) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d")?.drawImage(video, 0, 0);
+    try {
+      const { default: QrScanner } = await import("qr-scanner");
+      const res = await QrScanner.scanImage(canvas, { returnDetailedScanResult: true });
+      await accept(res.data);
+    } catch {
+      toast.error("Couldn't read the QR. Hold the card steady, fill the frame, and try again.");
+    }
+  }
+
 
   async function onFile(file: File) {
     try {
@@ -132,21 +173,32 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
       </p>
 
       {live && (
-        <div className="mt-3 overflow-hidden rounded-md bg-black">
-          <video ref={videoRef} className="h-56 w-full object-cover" muted playsInline />
+        <div className="mt-3 space-y-2">
+          <div className="overflow-hidden rounded-md bg-black">
+            <video ref={videoRef} className="h-64 w-full object-cover sm:h-72" muted playsInline />
+          </div>
+          <p className="text-center text-[11px] text-muted-foreground">
+            Fill the frame with the QR square. Not reading? Tap “Capture frame”.
+          </p>
         </div>
       )}
 
       <div className="mt-3 flex flex-wrap gap-2">
         {live ? (
-          <Button type="button" variant="secondary" size="sm" onClick={stopCamera}>
-            Stop camera
-          </Button>
+          <>
+            <Button type="button" size="sm" className="flex-1" onClick={() => void captureFrame()}>
+              <Camera className="mr-1.5 h-4 w-4" /> Capture frame
+            </Button>
+            <Button type="button" variant="secondary" size="sm" onClick={stopCamera}>
+              Stop camera
+            </Button>
+          </>
         ) : (
           <Button type="button" size="sm" onClick={() => void startCamera()}>
             <Camera className="mr-1.5 h-4 w-4" /> Scan with camera
           </Button>
         )}
+
         <label>
           <input
             type="file"
