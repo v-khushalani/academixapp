@@ -855,7 +855,7 @@ function ReceiptsPanel() {
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="a5">A5 — one receipt</SelectItem>
-                <SelectItem value="a4-two-up">A4 — two copies</SelectItem>
+                <SelectItem value="a4-two-up">A4 — full page</SelectItem>
                 <SelectItem value="thermal-80">80 mm thermal</SelectItem>
               </SelectContent>
             </Select>

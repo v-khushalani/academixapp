@@ -35,13 +35,12 @@ import {
   type ProvisionedAccount,
 } from "@/lib/provisioning.functions";
 import { openWhatsApp } from "@/lib/whatsapp";
-import { getInstitute } from "@/lib/academy-settings";
+import { getBrandedInstitute, getInstitute } from "@/lib/academy-settings";
 import { ApplicantPreview } from "@/components/app/applicant-preview";
 import { EnquiryRecords } from "@/components/app/enquiry-records";
 import type { Database } from "@/integrations/supabase/types";
 import { formatDate } from "@/lib/dates";
 import { downloadAdmissionPoster, printAdmissionPoster } from "@/lib/admission-poster";
-import { getBrandedInstitute } from "@/lib/academy-settings";
 
 type Stage = Database["public"]["Enums"]["lead_stage"];
 const STAGES: { key: Stage; label: string }[] = [
