@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { getBrandedInstitute, type ReceiptTemplate } from "./academy-settings";
+import { getBrandedInstitute, type ReceiptPaper, type ReceiptTemplate } from "./academy-settings";
 import { receiptNo } from "./payments";
 import { useSaira } from "./pdf-font";
 import { formatDate } from "./dates";
@@ -82,13 +82,16 @@ export function amountInWords(value: number): string {
 export async function buildReceipt(
   f: ReceiptInput,
   template?: ReceiptTemplate,
+  paper?: ReceiptPaper,
 ): Promise<{ doc: jsPDF; no: string }> {
   const inst = getBrandedInstitute();
   const tpl = template ?? inst.receipt_template ?? "classic";
-  if (tpl === "compact") return buildCompact(f);
+  const targetPaper = paper ?? inst.receipt_paper ?? "a5";
+  if (targetPaper === "thermal-80") return buildCompact(f, true);
+  if (tpl === "compact") return buildCompact(f, false);
   const no = receiptNo(f.receipt_no);
   const detailed = tpl === "detailed";
-  const doc = new jsPDF({ unit: "mm", format: "a5", orientation: "portrait" });
+  const doc = new jsPDF({ unit: "mm", format: targetPaper === "a4-two-up" ? "a4" : "a5", orientation: "portrait" });
   const FONT = await useSaira(doc);
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -217,10 +220,14 @@ export async function buildReceipt(
 }
 
 /** Half-page slip — the same facts, far less ink. */
-async function buildCompact(f: ReceiptInput): Promise<{ doc: jsPDF; no: string }> {
+async function buildCompact(f: ReceiptInput, thermal: boolean): Promise<{ doc: jsPDF; no: string }> {
   const inst = getBrandedInstitute();
   const no = receiptNo(f.receipt_no);
-  const doc = new jsPDF({ unit: "mm", format: [148, 105], orientation: "landscape" });
+  const doc = new jsPDF({
+    unit: "mm",
+    format: thermal ? [80, 160] : [148, 105],
+    orientation: thermal ? "portrait" : "landscape",
+  });
   const FONT = await useSaira(doc);
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -315,8 +322,26 @@ export async function receiptFile(f: ReceiptInput): Promise<{ file: File; no: st
   return { file: new File([blob], `${no}.pdf`, { type: "application/pdf" }), no };
 }
 
+/** Opens the generated PDF in the browser print dialog. */
+export async function printReceipt(f: ReceiptInput): Promise<string> {
+  const { doc, no } = await buildReceipt(f);
+  const href = URL.createObjectURL(doc.output("blob"));
+  const frame = document.createElement("iframe");
+  frame.hidden = true;
+  frame.src = href;
+  frame.onload = () => {
+    frame.contentWindow?.print();
+    window.setTimeout(() => {
+      URL.revokeObjectURL(href);
+      frame.remove();
+    }, 30_000);
+  };
+  document.body.appendChild(frame);
+  return no;
+}
+
 /** Data URL of a sample receipt — used by the template preview in Settings. */
-export async function receiptPreviewUrl(template: ReceiptTemplate): Promise<string> {
+export async function receiptPreviewUrl(template: ReceiptTemplate, paper: ReceiptPaper = "a5"): Promise<string> {
   const { doc } = await buildReceipt(
     {
       receipt_no: "RCPT-PREVIEW",
@@ -334,6 +359,7 @@ export async function receiptPreviewUrl(template: ReceiptTemplate): Promise<stri
       method: "UPI",
     },
     template,
+    paper,
   );
   return doc.output("datauristring");
 }
