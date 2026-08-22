@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { inr, upiLink } from "@/lib/payments";
 import { downloadReceipt, receiptFile, type ReceiptInput } from "@/lib/receipt";
-import { getInstitute } from "@/lib/academy-settings";
+import { getInstitute, getBrandedInstitute } from "@/lib/academy-settings";
 import { formatDate } from "@/lib/dates";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { brandedQrFile } from "@/lib/branded-qr";
@@ -60,6 +60,7 @@ export function PaymentDialog({
   const [collected, setCollected] = useState<number | null>(null);
   const value = Number(amount) || 0;
   const inst = getInstitute();
+  const brand = getBrandedInstitute();
   const refresh = useRefreshLinked();
   const qrRef = useRef<HTMLDivElement>(null);
 
@@ -123,8 +124,8 @@ export function PaymentDialog({
     try {
       return await brandedQrFile({
         qrCanvas: canvas,
-        instituteName: inst.name,
-        logoUrl: inst.logo_url || null,
+        instituteName: brand.name,
+        logoUrl: brand.logo_url || null,
         studentName: target!.student_name,
         description: target!.description ?? "Fees",
         amountLabel: inr(value),
@@ -140,7 +141,7 @@ export function PaymentDialog({
   }
 
   async function sendPaymentQr() {
-    const caption = `Hello, please pay ${inr(value)} towards ${target!.student_name}'s fees.\n\nScan the attached QR with any UPI app.\nUPI ID: ${inst.upi_id}\n\n— ${inst.name}\n(Powered by Academix)`;
+    const caption = `Hello, please pay ${inr(value)} towards ${target!.student_name}'s fees.\n\nScan the attached QR with any UPI app.\nUPI ID: ${inst.upi_id}\n\n— ${brand.name}\n(Powered by Academix)`;
     const img = await qrImage();
     const nav = navigator as Navigator & {
       canShare?: (d: { files?: File[] }) => boolean;
@@ -180,7 +181,7 @@ export function PaymentDialog({
 
   async function sendReceipt() {
     const { file, no } = await receiptFile(receipt);
-    const text = `Receipt ${no} — ${inr(collected ?? 0)} received towards ${target!.student_name}'s fees. Thank you. — ${inst.name}`;
+    const text = `Receipt ${no} — ${inr(collected ?? 0)} received towards ${target!.student_name}'s fees. Thank you. — ${brand.name}`;
     const nav = navigator as Navigator & {
       canShare?: (d: { files?: File[] }) => boolean;
       share?: (d: { files?: File[]; text?: string; title?: string }) => Promise<void>;
