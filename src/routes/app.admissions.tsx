@@ -571,32 +571,12 @@ function QrCard({
   blurb: string;
   url: string;
 }) {
-  function copy() {
-    navigator.clipboard.writeText(url).then(() => toast.success("Link copied"));
-  }
   return (
-    <div className="rounded-lg border border-border bg-card p-5 text-center">
+    <div className="rounded-lg border border-border bg-card p-6 text-center">
       <p className="text-sm font-semibold">{title}</p>
       <p className="mt-1 text-xs text-muted-foreground">{blurb}</p>
-      <div className="mt-3 rounded-md bg-white p-3">
+      <div className="mt-4 rounded-md bg-white p-3">
         <QRCodeSVG value={url} size={180} includeMargin />
-      </div>
-      <p className="mt-3 font-mono text-[10px] break-all">{url}</p>
-      <div className="mt-3 flex flex-wrap justify-center gap-2">
-        <Button size="sm" variant="outline" className="gap-1.5" onClick={copy}>
-          <Copy className="h-4 w-4" />
-          Copy
-        </Button>
-        <Button size="sm" variant="outline" className="gap-1.5" asChild>
-          <a href={url} target="_blank" rel="noreferrer">
-            <ExternalLink className="h-4 w-4" />
-            Open
-          </a>
-        </Button>
-        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => window.print()}>
-          <Printer className="h-4 w-4" />
-          Print
-        </Button>
       </div>
     </div>
   );
