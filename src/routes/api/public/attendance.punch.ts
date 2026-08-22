@@ -48,10 +48,12 @@ export const Route = createFileRoute("/api/public/attendance/punch")({
           return Response.json({ error: "Unknown device" }, { status: 401 });
         }
 
-        const { data: allowed } = await supabaseAdmin.rpc("institute_allows_attendance_devices", {
-          _institute_id: device.institute_id,
-        });
-        if (!allowed) {
+        const { data: institute } = await supabaseAdmin
+          .from("institutes")
+          .select("attendance_devices")
+          .eq("id", device.institute_id)
+          .maybeSingle();
+        if (!institute?.attendance_devices) {
           return Response.json({ error: "Attendance machines are not enabled for this plan" }, { status: 403 });
         }
 

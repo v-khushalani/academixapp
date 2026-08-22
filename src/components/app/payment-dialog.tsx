@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { QRCodeCanvas } from "qrcode.react";
 import { toast } from "sonner";
-import { Check, Copy, Download, MessageCircle, QrCode } from "lucide-react";
+import { Check, Copy, Download, MessageCircle, Printer, QrCode } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { inr, upiLink } from "@/lib/payments";
-import { downloadReceipt, receiptFile, type ReceiptInput } from "@/lib/receipt";
+import { downloadReceipt, printReceipt, receiptFile, type ReceiptInput } from "@/lib/receipt";
 import { getInstitute, getBrandedInstitute } from "@/lib/academy-settings";
 import { formatDate } from "@/lib/dates";
 import { openWhatsApp } from "@/lib/whatsapp";
@@ -246,6 +246,16 @@ export function PaymentDialog({
               }}
             >
               <Download className="h-4 w-4" /> Download receipt (PDF)
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full gap-1.5"
+              onClick={async () => {
+                await printReceipt(receipt);
+                toast.success("Print dialog opened");
+              }}
+            >
+              <Printer className="h-4 w-4" /> Print receipt
             </Button>
             <Button className="w-full gap-1.5" onClick={sendReceipt}>
               <MessageCircle className="h-4 w-4" /> Send receipt on WhatsApp
