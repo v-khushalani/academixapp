@@ -65,7 +65,7 @@ function Mark({ v }: { v: FeatureValue | undefined }) {
 }
 
 /** The short comparison shows only the first few rows; order is set in the admin console. */
-const TOP_ROWS = 8;
+const TOP_ROWS = 20;
 
 function Row({ row, plans }: { row: CatalogFeature; plans: CatalogPlan[] }) {
   return (
@@ -89,7 +89,7 @@ function PricingPage() {
     queryKey: ["pricing-features"],
     queryFn: fetchFeatures,
   });
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(true);
 
   const visible = plans.filter((p) => p.visible);
   const groups = groupFeatures(features);
