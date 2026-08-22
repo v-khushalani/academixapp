@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
-import { GoogleButton } from "@/components/auth/google-button";
+import { GoogleButton, startGoogleSignIn } from "@/components/auth/google-button";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -28,21 +28,7 @@ export const Route = createFileRoute("/signup")({
 
 function SignupPage() {
   const [institute, setInstitute] = useState("");
-  const [sent, setSent] = useState(false);
-
-  if (sent) {
-    return (
-      <MarketingShell>
-        <div className="mx-auto w-full max-w-sm px-5 py-20 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">All set</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            We&apos;re setting up <span className="font-medium">{institute}</span> and signing you
-            in. You&apos;ll land on your dashboard in a moment.
-          </p>
-        </div>
-      </MarketingShell>
-    );
-  }
+  const [busy, setBusy] = useState(false);
 
   return (
     <MarketingShell>
@@ -53,10 +39,13 @@ function SignupPage() {
         </p>
         <form
           className="mt-8 space-y-4"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            if (!institute.trim()) return;
-            setSent(true);
+            const name = institute.trim();
+            if (!name || busy) return;
+            setBusy(true);
+            const ok = await startGoogleSignIn({ instituteName: name });
+            if (!ok) setBusy(false);
           }}
         >
           <div className="space-y-1.5">

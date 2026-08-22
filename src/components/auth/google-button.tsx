@@ -13,6 +13,32 @@ export const PENDING_INSTITUTE_KEY = "academix.pendingInstitute";
  * right portal from the account's roles (or finishes a pending invite, or
  * creates an institute the owner asked to set up during sign-up).
  */
+export async function startGoogleSignIn({
+  inviteToken,
+  instituteName,
+}: { inviteToken?: string; instituteName?: string } = {}): Promise<boolean> {
+  rememberInvite(inviteToken);
+  if (instituteName) {
+    try {
+      sessionStorage.setItem(PENDING_INSTITUTE_KEY, instituteName.trim());
+    } catch {
+      /* private mode */
+    }
+  }
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+      queryParams: { prompt: "select_account" },
+    },
+  });
+  if (error) {
+    toast.error(error.message);
+    return false;
+  }
+  return true;
+}
+
 export function GoogleButton({
   label = "Continue with Google",
   inviteToken,
@@ -26,25 +52,8 @@ export function GoogleButton({
 
   async function onClick() {
     setBusy(true);
-    rememberInvite(inviteToken);
-    if (instituteName) {
-      try {
-        sessionStorage.setItem(PENDING_INSTITUTE_KEY, instituteName.trim());
-      } catch {
-        /* private mode */
-      }
-    }
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: { prompt: "select_account" },
-      },
-    });
-    if (error) {
-      setBusy(false);
-      toast.error(error.message);
-    }
+    const ok = await startGoogleSignIn({ inviteToken, instituteName });
+    if (!ok) setBusy(false);
   }
 
   return (
