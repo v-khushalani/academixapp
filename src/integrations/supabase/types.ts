@@ -561,8 +561,10 @@ export type Database = {
         Row: {
           academic_year: string | null
           address: string | null
+          attendance_devices: boolean
           batch_limit: number
           created_at: string
+          custom_branding: boolean
           email: string | null
           faculty_limit: number
           features: Json
@@ -574,6 +576,7 @@ export type Database = {
           phone: string | null
           plan: string
           primary_color: string | null
+          receipt_paper: string
           receipt_template: string | null
           room_limit: number
           shifts: Json
@@ -591,8 +594,10 @@ export type Database = {
         Insert: {
           academic_year?: string | null
           address?: string | null
+          attendance_devices?: boolean
           batch_limit?: number
           created_at?: string
+          custom_branding?: boolean
           email?: string | null
           faculty_limit?: number
           features?: Json
@@ -604,6 +609,7 @@ export type Database = {
           phone?: string | null
           plan?: string
           primary_color?: string | null
+          receipt_paper?: string
           receipt_template?: string | null
           room_limit?: number
           shifts?: Json
@@ -621,8 +627,10 @@ export type Database = {
         Update: {
           academic_year?: string | null
           address?: string | null
+          attendance_devices?: boolean
           batch_limit?: number
           created_at?: string
+          custom_branding?: boolean
           email?: string | null
           faculty_limit?: number
           features?: Json
@@ -634,6 +642,7 @@ export type Database = {
           phone?: string | null
           plan?: string
           primary_color?: string | null
+          receipt_paper?: string
           receipt_template?: string | null
           room_limit?: number
           shifts?: Json
@@ -881,10 +890,12 @@ export type Database = {
       }
       plan_catalog: {
         Row: {
+          attendance_devices: boolean
           batch_limit: number
           contact_only: boolean
           created_at: string
           cta: string
+          custom_branding: boolean
           highlight: boolean
           id: string
           key: string
@@ -900,10 +911,12 @@ export type Database = {
           visible: boolean
         }
         Insert: {
+          attendance_devices?: boolean
           batch_limit?: number
           contact_only?: boolean
           created_at?: string
           cta?: string
+          custom_branding?: boolean
           highlight?: boolean
           id?: string
           key: string
@@ -919,10 +932,12 @@ export type Database = {
           visible?: boolean
         }
         Update: {
+          attendance_devices?: boolean
           batch_limit?: number
           contact_only?: boolean
           created_at?: string
           cta?: string
+          custom_branding?: boolean
           highlight?: boolean
           id?: string
           key?: string
@@ -1863,6 +1878,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      institute_allows_attendance_devices: {
+        Args: { _institute_id: string }
         Returns: boolean
       }
       is_my_student: { Args: { _student_id: string }; Returns: boolean }

@@ -70,9 +70,16 @@ export function parseAadhaarQr(raw: string): AadhaarProfile | null {
   const parts = text.split("\xff");
   if (parts.length < 10) return null;
 
-  // V2 layout: [version?] refId, name, dob, gender, careOf, district, landmark,
-  // house, location, pincode, postOffice, state, street, subDistrict, vtc, ...
-  const offset = /^\d$/.test(parts[0] ?? "") ? 1 : 0;
+  // UIDAI has shipped payloads with no version prefix and with one/two short
+  // version fields. Pick the first offset that yields a plausible ref/name/DOB
+  // rather than assuming one fixed layout.
+  const offset = [0, 1, 2].find((candidate) => {
+    const ref = (parts[candidate] ?? "").trim();
+    const candidateName = (parts[candidate + 1] ?? "").trim();
+    const candidateDob = toIsoDate(parts[candidate + 2] ?? "");
+    return /\d{4}/.test(ref) && candidateName.length >= 2 && Boolean(candidateDob);
+  });
+  if (offset === undefined) return null;
   const refId = parts[offset] ?? "";
   const name = (parts[offset + 1] ?? "").trim();
   const dob = toIsoDate(parts[offset + 2] ?? "");
@@ -100,7 +107,7 @@ export function parseAadhaarQr(raw: string): AadhaarProfile | null {
     dob,
     gender,
     address: addressParts.join(", "),
-    last4: refId.slice(0, 4).replace(/\D/g, ""),
+    last4: (refId.match(/\d{4}/)?.[0] ?? "").slice(0, 4),
     photo: "",
   };
 }

@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { Plus, Trash2, Check, X, Copy, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Check, X, Copy, Download, ExternalLink, Printer } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,11 +35,12 @@ import {
   type ProvisionedAccount,
 } from "@/lib/provisioning.functions";
 import { openWhatsApp } from "@/lib/whatsapp";
-import { getInstitute } from "@/lib/academy-settings";
+import { getBrandedInstitute, getInstitute } from "@/lib/academy-settings";
 import { ApplicantPreview } from "@/components/app/applicant-preview";
 import { EnquiryRecords } from "@/components/app/enquiry-records";
 import type { Database } from "@/integrations/supabase/types";
 import { formatDate } from "@/lib/dates";
+import { downloadAdmissionPoster, printAdmissionPoster } from "@/lib/admission-poster";
 
 type Stage = Database["public"]["Enums"]["lead_stage"];
 const STAGES: { key: Stage; label: string }[] = [
@@ -573,6 +574,26 @@ function QrCard({
   url: string;
   tone: "muted" | "primary";
 }) {
+  const qrRef = useRef<HTMLDivElement>(null);
+  const brand = getBrandedInstitute();
+  const kind = title as "Enquiry" | "Admission";
+  const posterInput = () => {
+    const svg = qrRef.current?.querySelector("svg");
+    if (!svg) return null;
+    return { svg, kind, url, instituteName: brand.name, logoUrl: brand.logo_url || null };
+  };
+
+  async function run(action: "png" | "pdf" | "print") {
+    const input = posterInput();
+    if (!input) return toast.error("QR is still loading");
+    try {
+      if (action === "print") await printAdmissionPoster(input);
+      else await downloadAdmissionPoster(input, action);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not prepare poster");
+    }
+  }
+
   return (
     <div className="flex flex-col items-center rounded-2xl border border-border bg-card p-5 text-center shadow-sm sm:p-7">
       <span
@@ -584,10 +605,19 @@ function QrCard({
       >
         {title}
       </span>
-      <div className="mt-5 rounded-xl border border-border bg-white p-3">
+      <div ref={qrRef} className="mt-5 rounded-xl border border-border bg-background p-3">
         <QRCodeSVG value={url} size={168} includeMargin />
       </div>
       <p className="mt-4 max-w-[16rem] text-xs leading-relaxed text-muted-foreground">{blurb}</p>
+      <div className="mt-4 grid w-full grid-cols-3 gap-2">
+        <Button type="button" size="sm" variant="outline" onClick={() => void run("png")} title="Download image">
+          <Download className="h-4 w-4" /><span className="sr-only">Download PNG</span>
+        </Button>
+        <Button type="button" size="sm" variant="outline" onClick={() => void run("pdf")}>PDF</Button>
+        <Button type="button" size="sm" onClick={() => void run("print")} title="Print A4 poster">
+          <Printer className="h-4 w-4" /><span className="sr-only">Print poster</span>
+        </Button>
+      </div>
     </div>
   );
 }
