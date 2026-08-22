@@ -102,7 +102,7 @@ export function DataTable<T extends { id: string | number }>({
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="relative w-full min-w-full sm:w-[180px] flex-1 sm:w-auto">
+        <div className="relative w-full flex-1 sm:min-w-[180px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={q}

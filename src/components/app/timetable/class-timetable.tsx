@@ -148,7 +148,7 @@ export function ClassTimetable({ slots, batches }: { slots: SlotRow[]; batches: 
                 {periods.map((p, i) => (
                   <th
                     key={`${p.start}-${p.end}`}
-                    className="min-w-full sm:w-[132px] border-l border-border px-3 py-2 text-center"
+                    className="min-w-[132px] border-l border-border px-3 py-2 text-center"
                   >
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Period {i + 1}

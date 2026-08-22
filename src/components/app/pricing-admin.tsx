@@ -76,7 +76,7 @@ export function PricingAdmin() {
           Prices are internal only — the public page shows “Talk to us” instead of an amount.
         </p>
         <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-full sm:w-[720px] text-sm">
+          <table className="w-full min-w-[720px] text-sm">
             <thead className="text-left text-xs uppercase text-muted-foreground">
               <tr>
                 <th className="px-2 py-1.5">Plan</th>
@@ -104,7 +104,7 @@ export function PricingAdmin() {
                   <td className="px-2 py-2">
                     <Input
                       defaultValue={p.tagline}
-                      className="h-8 min-w-full sm:w-[220px]"
+                      className="h-8 w-full sm:min-w-[220px]"
                       onBlur={(e) =>
                         e.target.value !== p.tagline && savePlan(p.id, { tagline: e.target.value })
                       }
@@ -164,7 +164,7 @@ export function PricingAdmin() {
           Comparison table — tap a cell to cycle tick → cross → text
         </p>
         <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-full sm:w-[720px] text-sm">
+          <table className="w-full min-w-[720px] text-sm">
             <thead className="text-left text-xs uppercase text-muted-foreground">
               <tr>
                 <th className="px-2 py-1.5">Group</th>
@@ -194,7 +194,7 @@ export function PricingAdmin() {
                   <td className="px-2 py-1.5">
                     <Input
                       defaultValue={r.label}
-                      className="h-8 min-w-full sm:w-[240px]"
+                      className="h-8 w-full sm:min-w-[240px]"
                       onBlur={(e) =>
                         e.target.value !== r.label && saveFeature(r, { label: e.target.value })
                       }
