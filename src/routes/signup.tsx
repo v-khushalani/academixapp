@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
-import { GoogleButton } from "@/components/auth/google-button";
+import { GoogleButton, startGoogleSignIn } from "@/components/auth/google-button";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
