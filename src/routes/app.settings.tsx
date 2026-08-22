@@ -168,7 +168,15 @@ function InstitutePanel() {
       description="Used across receipts, WhatsApp messages, and printed reports."
     >
       <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
-        <div className="sm:col-span-2 flex items-center gap-4 rounded-lg border border-border p-3">
+        {!canUseOwnBranding(s.plan) && (
+          <div className="rounded-lg border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground sm:col-span-2">
+            <strong className="font-medium text-foreground">Free plan:</strong> receipts, payment QRs
+            and portals carry Academix branding. Upgrade to Growth or Campus to show your own logo
+            and institute name on everything parents see.
+          </div>
+        )}
+        <div className="flex flex-col gap-4 rounded-lg border border-border p-3 sm:col-span-2 sm:flex-row sm:items-center">
+
           <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
             {s.logo_url ? (
               <img src={s.logo_url} alt="Institute logo" className="h-full w-full object-contain" />
