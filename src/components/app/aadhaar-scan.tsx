@@ -11,7 +11,7 @@ import {
 } from "@/lib/aadhaar";
 
 async function waitForVideo(
-  ref: React.MutableRefObject<HTMLVideoElement | null>,
+  ref: { current: HTMLVideoElement | null },
 ): Promise<HTMLVideoElement | null> {
   for (let i = 0; i < 30; i++) {
     if (ref.current) return ref.current;
