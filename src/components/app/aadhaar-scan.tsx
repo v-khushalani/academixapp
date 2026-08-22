@@ -173,21 +173,32 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
       </p>
 
       {live && (
-        <div className="mt-3 overflow-hidden rounded-md bg-black">
-          <video ref={videoRef} className="h-56 w-full object-cover" muted playsInline />
+        <div className="mt-3 space-y-2">
+          <div className="overflow-hidden rounded-md bg-black">
+            <video ref={videoRef} className="h-64 w-full object-cover sm:h-72" muted playsInline />
+          </div>
+          <p className="text-center text-[11px] text-muted-foreground">
+            Fill the frame with the QR square. Not reading? Tap “Capture frame”.
+          </p>
         </div>
       )}
 
       <div className="mt-3 flex flex-wrap gap-2">
         {live ? (
-          <Button type="button" variant="secondary" size="sm" onClick={stopCamera}>
-            Stop camera
-          </Button>
+          <>
+            <Button type="button" size="sm" className="flex-1" onClick={() => void captureFrame()}>
+              <Camera className="mr-1.5 h-4 w-4" /> Capture frame
+            </Button>
+            <Button type="button" variant="secondary" size="sm" onClick={stopCamera}>
+              Stop camera
+            </Button>
+          </>
         ) : (
           <Button type="button" size="sm" onClick={() => void startCamera()}>
             <Camera className="mr-1.5 h-4 w-4" /> Scan with camera
           </Button>
         )}
+
         <label>
           <input
             type="file"
