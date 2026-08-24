@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { isSuperAdmin } from "@/lib/rbac";
 import { planFor } from "@/lib/plans";
 import { formatDate } from "@/lib/dates";
-import { fetchPlans, type CatalogPlan } from "@/lib/pricing-catalog";
+import { fetchPlans } from "@/lib/pricing-catalog";
 import { PricingAdmin } from "@/components/app/pricing-admin";
 
 export const Route = createFileRoute("/app/platform")({
