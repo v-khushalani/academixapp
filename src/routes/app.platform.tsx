@@ -39,10 +39,13 @@ type PlatformInstitute = {
   status: string | null;
   parent_institute_id: string | null;
   student_limit: number;
+  room_limit: number;
   batch_limit: number;
   faculty_limit: number;
   staff_login_limit: number;
   teacher_login_limit: number;
+  custom_branding: boolean;
+  attendance_devices: boolean;
   students: number;
   batches: number;
   rooms: number;
