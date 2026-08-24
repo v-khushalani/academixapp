@@ -307,6 +307,219 @@ function InstituteDetail({
   );
 }
 
+type PlanForm = {
+  plan: string;
+  status: string;
+  student_limit: number;
+  room_limit: number;
+  batch_limit: number;
+  faculty_limit: number;
+  staff_login_limit: number;
+  teacher_login_limit: number;
+  custom_branding: boolean;
+  attendance_devices: boolean;
+  note: string;
+};
+
+const LIMIT_FIELDS = [
+  ["Students", "student_limit", "students"],
+  ["Classrooms", "room_limit", "rooms"],
+  ["Batches", "batch_limit", "batches"],
+  ["Teachers", "faculty_limit", "faculty"],
+  ["Office logins", "staff_login_limit", "staff_logins"],
+  ["Teacher logins", "teacher_login_limit", "teacher_logins"],
+] as const;
+
+function PlanControl({ institute }: { institute: PlatformInstitute }) {
+  const qc = useQueryClient();
+  const { data: catalog = [] } = useQuery({ queryKey: ["pricing-plans"], queryFn: fetchPlans });
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<PlanForm>(() => ({
+    plan: institute.plan ?? "free",
+    status: institute.status ?? "active",
+    student_limit: institute.student_limit,
+    room_limit: institute.room_limit,
+    batch_limit: institute.batch_limit,
+    faculty_limit: institute.faculty_limit,
+    staff_login_limit: institute.staff_login_limit,
+    teacher_login_limit: institute.teacher_login_limit,
+    custom_branding: institute.custom_branding,
+    attendance_devices: institute.attendance_devices,
+    note: "",
+  }));
+
+  const set = <K extends keyof PlanForm>(k: K, v: PlanForm[K]) =>
+    setForm((f) => ({ ...f, [k]: v }));
+
+  function pickPlan(key: string) {
+    const p = catalog.find((c) => c.key === key);
+    setForm((f) => ({
+      ...f,
+      plan: key,
+      ...(p
+        ? {
+            student_limit: p.student_limit,
+            room_limit: p.room_limit,
+            batch_limit: p.batch_limit,
+            faculty_limit: (p as unknown as { faculty_limit?: number }).faculty_limit ?? f.faculty_limit,
+            staff_login_limit: p.staff_login_limit,
+            teacher_login_limit: p.teacher_login_limit,
+            custom_branding: p.custom_branding,
+            attendance_devices: p.attendance_devices,
+          }
+        : {}),
+    }));
+  }
+
+  async function save() {
+    setSaving(true);
+    const { error } = await supabase.rpc("platform_set_plan", {
+      _id: institute.id,
+      _plan: form.plan,
+      _status: form.status,
+      _student_limit: form.student_limit,
+      _room_limit: form.room_limit,
+      _batch_limit: form.batch_limit,
+      _faculty_limit: form.faculty_limit,
+      _staff_login_limit: form.staff_login_limit,
+      _teacher_login_limit: form.teacher_login_limit,
+      _custom_branding: form.custom_branding,
+      _attendance_devices: form.attendance_devices,
+      _note: form.note.trim() || null,
+    });
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    await qc.invalidateQueries({ queryKey: ["platform-institutes"] });
+    await qc.invalidateQueries({ queryKey: ["plan-changes", institute.id] });
+    toast.success("Plan updated");
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Plan &amp; limits
+        </p>
+        <span className="text-[11px] text-muted-foreground">0 means unlimited</span>
+      </div>
+
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <label className="space-y-1 text-xs text-muted-foreground">
+          <span>Plan</span>
+          <select
+            value={form.plan}
+            onChange={(e) => pickPlan(e.target.value)}
+            className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm text-foreground"
+          >
+            {catalog.map((c) => (
+              <option key={c.key} value={c.key}>
+                {c.name}
+              </option>
+            ))}
+            {!catalog.some((c) => c.key === form.plan) && (
+              <option value={form.plan}>{form.plan}</option>
+            )}
+          </select>
+        </label>
+        <label className="space-y-1 text-xs text-muted-foreground">
+          <span>Account status</span>
+          <select
+            value={form.status}
+            onChange={(e) => set("status", e.target.value)}
+            className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm text-foreground"
+          >
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </label>
+        {LIMIT_FIELDS.map(([label, key, usageKey]) => (
+          <label key={key} className="space-y-1 text-xs text-muted-foreground">
+            <span>
+              {label}{" "}
+              <span className="text-[10px]">
+                (used {Number(institute[usageKey as keyof PlatformInstitute] ?? 0)})
+              </span>
+            </span>
+            <Input
+              type="number"
+              min={0}
+              value={form[key]}
+              onChange={(e) => set(key, Math.max(0, Number(e.target.value)))}
+              className="h-9"
+            />
+          </label>
+        ))}
+        <label className="space-y-1 text-xs text-muted-foreground sm:col-span-2">
+          <span>Note (why this changed)</span>
+          <Input
+            value={form.note}
+            onChange={(e) => set("note", e.target.value)}
+            placeholder="e.g. Upgraded to Growth, paid till Aug 2027"
+            className="h-9"
+          />
+        </label>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          variant={form.custom_branding ? "default" : "outline"}
+          onClick={() => set("custom_branding", !form.custom_branding)}
+        >
+          Custom branding: {form.custom_branding ? "On" : "Off"}
+        </Button>
+        <Button
+          size="sm"
+          variant={form.attendance_devices ? "default" : "outline"}
+          onClick={() => set("attendance_devices", !form.attendance_devices)}
+        >
+          Attendance machines: {form.attendance_devices ? "On" : "Off"}
+        </Button>
+        <Button size="sm" onClick={() => void save()} disabled={saving} className="ml-auto">
+          {saving ? "Saving…" : "Save plan"}
+        </Button>
+      </div>
+
+      <PlanHistory instituteId={institute.id} />
+    </div>
+  );
+}
+
+type PlanChange = {
+  id: string;
+  from_plan: string | null;
+  to_plan: string | null;
+  note: string | null;
+  created_at: string;
+};
+
+function PlanHistory({ instituteId }: { instituteId: string }) {
+  const { data: rows = [] } = useQuery({
+    queryKey: ["plan-changes", instituteId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("plan_change_log")
+        .select("id, from_plan, to_plan, note, created_at")
+        .eq("institute_id", instituteId)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return (data ?? []) as PlanChange[];
+    },
+  });
+  if (rows.length === 0) return null;
+  return (
+    <ul className="mt-3 space-y-1 border-t border-border pt-2 text-[11px] text-muted-foreground">
+      {rows.map((r) => (
+        <li key={r.id}>
+          {formatDate(r.created_at)} · {planFor(r.from_plan).name} → {planFor(r.to_plan).name}
+          {r.note ? ` · ${r.note}` : ""}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function DetailList({ title, rows }: { title: string; rows: DetailRow[] }) {
   return (
     <div className="rounded-lg border border-border bg-card">
