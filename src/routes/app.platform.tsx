@@ -167,7 +167,14 @@ function PlatformPage() {
                           <p className="font-medium">{i.name}</p>
                           <p className="text-xs text-muted-foreground">/{i.slug}</p>
                         </td>
-                        <td className="px-3 py-2">{planFor(i.plan).name}</td>
+                        <td className="px-3 py-2">
+                          <p className="font-medium">{planFor(i.plan).name}</p>
+                          {i.status && i.status !== "active" && (
+                            <Badge variant="destructive" className="mt-0.5 text-[10px]">
+                              {i.status}
+                            </Badge>
+                          )}
+                        </td>
                         <td className="px-3 py-2">
                           <select
                             aria-label={`Parent institute for ${i.name}`}
