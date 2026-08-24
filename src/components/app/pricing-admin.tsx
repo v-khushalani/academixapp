@@ -84,6 +84,7 @@ export function PricingAdmin() {
                 <Labeled label="Tagline" wide><Input defaultValue={p.tagline} onBlur={(e) => e.target.value !== p.tagline && savePlan(p.id, { tagline: e.target.value })} /></Labeled>
                 {([
                   ["Students", "student_limit"], ["Classrooms", "room_limit"], ["Batches", "batch_limit"],
+                  ["Teachers", "faculty_limit"],
                   ["Office logins", "staff_login_limit"], ["Teacher logins", "teacher_login_limit"],
                 ] as const).map(([label, key]) => (
                   <Labeled key={key} label={label}><Input type="number" min={0} defaultValue={p[key]} onBlur={(e) => savePlan(p.id, { [key]: Math.max(0, Number(e.target.value)) })} /></Labeled>
