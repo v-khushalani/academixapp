@@ -9,6 +9,7 @@ export type CatalogPlan = {
   student_limit: number;
   room_limit: number;
   batch_limit: number;
+  faculty_limit: number;
   staff_login_limit: number;
   teacher_login_limit: number;
   custom_branding: boolean;

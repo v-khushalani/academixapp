@@ -896,6 +896,7 @@ export type Database = {
           created_at: string
           cta: string
           custom_branding: boolean
+          faculty_limit: number
           highlight: boolean
           id: string
           key: string
@@ -917,6 +918,7 @@ export type Database = {
           created_at?: string
           cta?: string
           custom_branding?: boolean
+          faculty_limit?: number
           highlight?: boolean
           id?: string
           key: string
@@ -938,6 +940,7 @@ export type Database = {
           created_at?: string
           cta?: string
           custom_branding?: boolean
+          faculty_limit?: number
           highlight?: boolean
           id?: string
           key?: string
@@ -953,6 +956,50 @@ export type Database = {
           visible?: boolean
         }
         Relationships: []
+      }
+      plan_change_log: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          from_limits: Json
+          from_plan: string | null
+          id: string
+          institute_id: string
+          note: string | null
+          to_limits: Json
+          to_plan: string | null
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          from_limits?: Json
+          from_plan?: string | null
+          id?: string
+          institute_id: string
+          note?: string | null
+          to_limits?: Json
+          to_plan?: string | null
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          from_limits?: Json
+          from_plan?: string | null
+          id?: string
+          institute_id?: string
+          note?: string | null
+          to_limits?: Json
+          to_plan?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_change_log_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       plan_features: {
         Row: {
@@ -1912,8 +1959,10 @@ export type Database = {
       platform_institutes: {
         Args: never
         Returns: {
+          attendance_devices: boolean
           batch_limit: number
           batches: number
+          custom_branding: boolean
           faculty: number
           faculty_limit: number
           features: Json
@@ -1936,6 +1985,23 @@ export type Database = {
       }
       platform_set_parent: {
         Args: { _id: string; _parent_institute_id: string }
+        Returns: undefined
+      }
+      platform_set_plan: {
+        Args: {
+          _attendance_devices: boolean
+          _batch_limit: number
+          _custom_branding: boolean
+          _faculty_limit: number
+          _id: string
+          _note?: string
+          _plan: string
+          _room_limit: number
+          _staff_login_limit: number
+          _status?: string
+          _student_limit: number
+          _teacher_login_limit: number
+        }
         Returns: undefined
       }
       platform_update_institute: {
