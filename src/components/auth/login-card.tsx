@@ -19,6 +19,12 @@ export function LoginCard() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [noRole, setNoRole] = useState(false);
+  // Guards against a native (non-React) form GET submit if a parent taps
+  // "Sign in" before hydration finishes on a slow mobile connection.
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
+
+
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
