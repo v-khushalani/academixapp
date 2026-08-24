@@ -287,6 +287,8 @@ function InstituteDetail({
         </div>
       </div>
 
+      <PlanControl institute={institute} />
+
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : (
