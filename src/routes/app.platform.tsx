@@ -370,7 +370,7 @@ function PlanControl({ institute }: { institute: PlatformInstitute }) {
             student_limit: p.student_limit,
             room_limit: p.room_limit,
             batch_limit: p.batch_limit,
-            faculty_limit: (p as unknown as { faculty_limit?: number }).faculty_limit ?? f.faculty_limit,
+            faculty_limit: p.faculty_limit ?? f.faculty_limit,
             staff_login_limit: p.staff_login_limit,
             teacher_login_limit: p.teacher_login_limit,
             custom_branding: p.custom_branding,
