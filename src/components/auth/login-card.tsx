@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,12 @@ export function LoginCard() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [noRole, setNoRole] = useState(false);
+  // Guards against a native (non-React) form GET submit if a parent taps
+  // "Sign in" before hydration finishes on a slow mobile connection.
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
+
+
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -101,9 +107,10 @@ export function LoginCard() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={busy}>
+            <Button type="submit" className="w-full" disabled={busy || !ready}>
               {busy ? "Signing in…" : "Sign in"}
             </Button>
+
           </form>
 
           {noRole && (

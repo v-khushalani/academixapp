@@ -2040,6 +2040,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      role_in_institute: {
+        Args: {
+          _institute_id: string
+          _roles: Database["public"]["Enums"]["app_role"][]
+        }
+        Returns: boolean
+      }
       set_active_institute: {
         Args: { _institute_id: string }
         Returns: undefined
