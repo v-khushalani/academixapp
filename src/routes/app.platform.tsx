@@ -387,7 +387,7 @@ function PlanControl({ institute }: { institute: PlatformInstitute }) {
       _teacher_login_limit: form.teacher_login_limit,
       _custom_branding: form.custom_branding,
       _attendance_devices: form.attendance_devices,
-      _note: form.note.trim() || null,
+      _note: form.note.trim() || undefined,
     });
     setSaving(false);
     if (error) return toast.error(error.message);
