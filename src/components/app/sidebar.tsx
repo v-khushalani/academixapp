@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { canAccess, isSuperAdmin, type ModuleKey } from "@/lib/rbac";
+import { MODULE_FEATURE } from "@/lib/features";
+import { useFeatures } from "@/hooks/use-features";
 import { useEffect, useState } from "react";
 import { getInstitute } from "@/lib/academy-settings";
 
@@ -72,6 +74,7 @@ export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { roles, signOut } = useAuth();
   const superadmin = isSuperAdmin(roles);
+  const { isOn } = useFeatures();
   const [instituteName, setInstituteName] = useState("Academix");
   const [logo, setLogo] = useState("");
   useEffect(() => {
