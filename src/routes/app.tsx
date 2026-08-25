@@ -30,6 +30,8 @@ function AppLayout() {
   const isFamilyOnly = !isStaff && (roles.includes("student") || roles.includes("parent"));
 
   useAccessGate();
+  useLinkedRealtime(!!session);
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
 
   useEffect(() => {
     if (loading) return;
@@ -52,8 +54,11 @@ function AppLayout() {
         <SidebarInset className="flex min-w-0 flex-1 flex-col">
           <TopBar />
           <main className="flex-1">
-            <Outlet />
+            <FeatureGate pathname={pathname}>
+              <Outlet />
+            </FeatureGate>
           </main>
+
         </SidebarInset>
       </div>
     </SidebarProvider>
