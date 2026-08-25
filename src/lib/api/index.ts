@@ -44,7 +44,22 @@ export const LINKED_KEYS = [
   "tests",
   "portal-fees",
   "rooms",
+  // everything else that shares enrolment / money / staffing state
+  "leads",
+  "pending-queue",
+  "faculty",
+  "faculty-directory",
+  "syllabus",
+  "syllabus-chapters",
+  "expenses",
+  "salaries",
+  "messages",
+  "notifications",
+  "plan-usage",
+  "portal-students",
+  "reports",
 ] as const;
+
 
 // ---------- Students ----------
 export const studentsApi = {
