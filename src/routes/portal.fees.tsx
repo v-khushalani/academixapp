@@ -25,7 +25,7 @@ export const Route = createFileRoute("/portal/fees")({
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 
 function PortalFees() {
-  const { student } = usePortalStudent();
+  const { student, isParent } = usePortalStudent();
   const { data = [], isLoading } = useQuery({
     queryKey: ["portal-fees", student?.id],
     queryFn: () => portalApi.fees(student!.id),
@@ -79,6 +79,16 @@ function PortalFees() {
           </ul>
         )}
       </PortalCard>
+
+      {isParent && stats.due > 0 && (
+        <div className="rounded-lg border border-border bg-muted/40 p-3">
+          <p className="text-sm font-medium">{inr(stats.due)} is still due</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Pay at the institute office or on the UPI details shared with you on WhatsApp. The
+            receipt appears here as soon as the office records the payment.
+          </p>
+        </div>
+      )}
 
       <p className="text-xs text-muted-foreground">
         Payments are recorded by the institute office. Contact them for receipts or corrections.
