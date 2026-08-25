@@ -1,15 +1,18 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app/sidebar";
 import { TopBar } from "@/components/app/topbar";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccessGate } from "@/hooks/use-access-gate";
+import { FeatureGate } from "@/components/app/feature-gate";
+import { useLinkedRealtime } from "@/hooks/use-linked-realtime";
 
 export const Route = createFileRoute("/app")({
   ssr: false,
   component: AppLayout,
 });
+
 
 function AppLayout() {
   const { session, roles, loading } = useAuth();
