@@ -20,6 +20,8 @@ type Ctx = {
   student: PortalStudent | null;
   setStudentId: (id: string) => void;
   isLoading: boolean;
+  /** Parent logins get the money + alerts view; students get the study view. */
+  isParent: boolean;
 };
 
 const PortalContext = createContext<Ctx | null>(null);
@@ -30,13 +32,23 @@ export function usePortalStudent() {
   return ctx;
 }
 
-const NAV: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
+type NavItem = { to: string; label: string; icon: typeof Home; exact?: boolean };
+
+/** Parents care about money and attendance; students care about their own work. */
+const PARENT_NAV: NavItem[] = [
   { to: "/portal", label: "Home", icon: Home, exact: true },
+  { to: "/portal/fees", label: "Fees", icon: Wallet },
   { to: "/portal/attendance", label: "Attendance", icon: CalendarCheck },
   { to: "/portal/progress", label: "Progress", icon: TrendingUp },
-  { to: "/portal/fees", label: "Fees", icon: Wallet },
   { to: "/portal/timetable", label: "Timetable", icon: Calendar },
+];
+
+const STUDENT_NAV: NavItem[] = [
+  { to: "/portal", label: "Home", icon: Home, exact: true },
   { to: "/portal/homework", label: "Homework", icon: BookOpen },
+  { to: "/portal/attendance", label: "Attendance", icon: CalendarCheck },
+  { to: "/portal/progress", label: "Progress", icon: TrendingUp },
+  { to: "/portal/timetable", label: "Timetable", icon: Calendar },
 ];
 
 const KEY = "vk_portal_student";
@@ -76,10 +88,13 @@ export function PortalShell({ children }: { children: ReactNode }) {
     navigate({ to: "/login", replace: true });
   }
 
+  const NAV = isParent ? PARENT_NAV : STUDENT_NAV;
+
   const value: Ctx = {
     students,
     student,
     isLoading,
+    isParent,
     setStudentId: (id) => {
       setSelected(id);
       window.localStorage.setItem(KEY, id);
@@ -149,7 +164,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
           <PoweredByAcademix />
         </footer>
 
-        <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-border bg-card md:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-card md:hidden">
           {NAV.map((item) => {
             const active = isActive(item.to, item.exact);
             return (
