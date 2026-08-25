@@ -14,6 +14,7 @@ export type CatalogPlan = {
   teacher_login_limit: number;
   custom_branding: boolean;
   attendance_devices: boolean;
+  features: Record<string, boolean> | null;
   contact_only: boolean;
   highlight: boolean;
   visible: boolean;

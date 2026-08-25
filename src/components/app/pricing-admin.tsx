@@ -12,6 +12,8 @@ import {
   type CatalogPlan,
   type FeatureValue,
 } from "@/lib/pricing-catalog";
+import { FeatureChips } from "@/components/app/platform-features";
+import type { FeatureMap } from "@/lib/features";
 
 /** Cycle: tick -> cross -> text -> tick */
 function nextValue(v: FeatureValue | undefined): FeatureValue {
@@ -96,6 +98,17 @@ export function PricingAdmin() {
                 <Toggle active={p.highlight} onClick={() => savePlan(p.id, { highlight: !p.highlight })}>Popular</Toggle>
                 <Toggle active={p.visible} onClick={() => savePlan(p.id, { visible: !p.visible })}>Visible</Toggle>
                 <Toggle active={p.contact_only} onClick={() => savePlan(p.id, { contact_only: !p.contact_only })}>Sales only</Toggle>
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Modules included by default
+                </p>
+                <div className="mt-2">
+                  <FeatureChips
+                    value={(p.features ?? {}) as FeatureMap}
+                    onChange={(next) => savePlan(p.id, { features: next as Record<string, boolean> })}
+                  />
+                </div>
               </div>
               <p className="mt-2 text-[10px] text-muted-foreground">Key: {p.key} · 0 means unlimited</p>
             </div>
