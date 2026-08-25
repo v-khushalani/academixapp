@@ -46,19 +46,31 @@ export const LINKED_KEYS = [
   "rooms",
   // everything else that shares enrolment / money / staffing state
   "leads",
-  "pending-queue",
+  "pending",
+  "absent-today",
   "faculty",
   "faculty-directory",
   "syllabus",
-  "syllabus-chapters",
+  "syllabus-logs",
   "expenses",
   "salaries",
   "messages",
-  "notifications",
   "plan-usage",
+  "plan-limits",
   "portal-students",
-  "reports",
+  "portal-attendance",
+  "portal-results",
+  "student-dues",
+  "group-overview",
+  "report-revenue",
+  "report-attendance",
+  "report-defaulters",
+  "report-admissions",
+  "teach-att",
+  "teach-roster",
+  "teach-marks-roster",
 ] as const;
+
 
 
 // ---------- Students ----------
