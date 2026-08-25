@@ -15,6 +15,8 @@ import { planFor } from "@/lib/plans";
 import { formatDate } from "@/lib/dates";
 import { fetchPlans } from "@/lib/pricing-catalog";
 import { PricingAdmin } from "@/components/app/pricing-admin";
+import { FeatureChips, GlobalFeatureFlags } from "@/components/app/platform-features";
+import type { FeatureMap } from "@/lib/features";
 
 export const Route = createFileRoute("/app/platform")({
   head: () => ({
@@ -48,6 +50,7 @@ type PlatformInstitute = {
   teacher_login_limit: number;
   custom_branding: boolean;
   attendance_devices: boolean;
+  features: FeatureMap | null;
   students: number;
   batches: number;
   rooms: number;
@@ -136,6 +139,7 @@ function PlatformPage() {
             <TabsList className="mb-4 flex-wrap">
               <TabsTrigger value="overview">Institutes</TabsTrigger>
               <TabsTrigger value="pricing">Plans &amp; pricing</TabsTrigger>
+              <TabsTrigger value="features">Feature switches</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -221,6 +225,10 @@ function PlatformPage() {
                   </tbody>
                 </table>
               </div>
+            </TabsContent>
+
+            <TabsContent value="features">
+              <GlobalFeatureFlags />
             </TabsContent>
 
             <TabsContent value="pricing">
@@ -327,6 +335,7 @@ type PlanForm = {
   teacher_login_limit: number;
   custom_branding: boolean;
   attendance_devices: boolean;
+  features: FeatureMap;
   note: string;
 };
 
@@ -354,6 +363,7 @@ function PlanControl({ institute }: { institute: PlatformInstitute }) {
     teacher_login_limit: institute.teacher_login_limit,
     custom_branding: institute.custom_branding,
     attendance_devices: institute.attendance_devices,
+    features: (institute.features ?? {}) as FeatureMap,
     note: "",
   }));
 
@@ -375,6 +385,7 @@ function PlanControl({ institute }: { institute: PlatformInstitute }) {
             teacher_login_limit: p.teacher_login_limit,
             custom_branding: p.custom_branding,
             attendance_devices: p.attendance_devices,
+            features: (p.features ?? {}) as FeatureMap,
           }
         : {}),
     }));
@@ -394,6 +405,7 @@ function PlanControl({ institute }: { institute: PlatformInstitute }) {
       _teacher_login_limit: form.teacher_login_limit,
       _custom_branding: form.custom_branding,
       _attendance_devices: form.attendance_devices,
+      _features: form.features,
       _note: form.note.trim() || undefined,
     });
     setSaving(false);
@@ -467,6 +479,15 @@ function PlanControl({ institute }: { institute: PlatformInstitute }) {
             className="h-9"
           />
         </label>
+      </div>
+
+      <div className="mt-3 rounded-md border border-border p-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Modules for this institute — tap to remove one during a bargain
+        </p>
+        <div className="mt-2">
+          <FeatureChips value={form.features} onChange={(next) => set("features", next)} />
+        </div>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
