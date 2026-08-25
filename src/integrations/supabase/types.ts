@@ -897,6 +897,7 @@ export type Database = {
           cta: string
           custom_branding: boolean
           faculty_limit: number
+          features: Json
           highlight: boolean
           id: string
           key: string
@@ -919,6 +920,7 @@ export type Database = {
           cta?: string
           custom_branding?: boolean
           faculty_limit?: number
+          features?: Json
           highlight?: boolean
           id?: string
           key: string
@@ -941,6 +943,7 @@ export type Database = {
           cta?: string
           custom_branding?: boolean
           faculty_limit?: number
+          features?: Json
           highlight?: boolean
           id?: string
           key?: string
@@ -1028,6 +1031,30 @@ export type Database = {
           sort_order?: number
           updated_at?: string
           values?: Json
+        }
+        Relationships: []
+      }
+      platform_feature_flags: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          key: string
+          note: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          key: string
+          note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          key?: string
+          note?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1936,6 +1963,7 @@ export type Database = {
       mark_attendance_notified: { Args: { _ids: string[] }; Returns: undefined }
       my_batch_ids: { Args: never; Returns: string[] }
       my_faculty_batch_ids: { Args: never; Returns: string[] }
+      my_features: { Args: never; Returns: Json }
       my_institute_ids: { Args: never; Returns: string[] }
       my_institutes: {
         Args: never
@@ -1987,23 +2015,42 @@ export type Database = {
         Args: { _id: string; _parent_institute_id: string }
         Returns: undefined
       }
-      platform_set_plan: {
-        Args: {
-          _attendance_devices: boolean
-          _batch_limit: number
-          _custom_branding: boolean
-          _faculty_limit: number
-          _id: string
-          _note?: string
-          _plan: string
-          _room_limit: number
-          _staff_login_limit: number
-          _status?: string
-          _student_limit: number
-          _teacher_login_limit: number
-        }
-        Returns: undefined
-      }
+      platform_set_plan:
+        | {
+            Args: {
+              _attendance_devices: boolean
+              _batch_limit: number
+              _custom_branding: boolean
+              _faculty_limit: number
+              _id: string
+              _note?: string
+              _plan: string
+              _room_limit: number
+              _staff_login_limit: number
+              _status?: string
+              _student_limit: number
+              _teacher_login_limit: number
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _attendance_devices: boolean
+              _batch_limit: number
+              _custom_branding: boolean
+              _faculty_limit: number
+              _features?: Json
+              _id: string
+              _note?: string
+              _plan: string
+              _room_limit: number
+              _staff_login_limit: number
+              _status?: string
+              _student_limit: number
+              _teacher_login_limit: number
+            }
+            Returns: undefined
+          }
       platform_update_institute: {
         Args: {
           _batch_limit: number
