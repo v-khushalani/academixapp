@@ -63,12 +63,13 @@ test.describe("admin portal", () => {
     );
 
     const all = await rowCount(page);
+    const statusFilter = page.locator("button[role=combobox]").nth(1);
     for (const status of ["Pending", "Partial", "Paid"]) {
-      await page.locator("button[role=combobox]").first().click();
+      await statusFilter.click();
       await page.getByRole("option", { name: status, exact: true }).click();
       await page.waitForTimeout(600);
       expect(await rowCount(page), `${status} filter returns more rows than "all"`).toBeLessThanOrEqual(all);
-      await page.locator("button[role=combobox]").first().click();
+      await statusFilter.click();
       await page.getByRole("option", { name: "All statuses" }).click();
       await page.waitForTimeout(400);
     }
