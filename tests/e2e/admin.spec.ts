@@ -97,16 +97,27 @@ test.describe("admin portal", () => {
   });
 
   test("Revenue report total matches money collected on Fees", async ({ page }) => {
-    await login(page, "admin");
+    // Reports is a paid module, so this runs on the institute that has it.
+    await login(page, "proAdmin");
     await page.goto("/app/fees", { waitUntil: "networkidle" });
     const collected = await kpi(page, "Collected");
 
     await page.goto("/app/reports", { waitUntil: "networkidle" });
+    await page.waitForTimeout(1500);
     const text = await page.locator("body").innerText();
     const m = text.match(/Total\s+₹([\d,]+)/);
     expect(m, "revenue total missing").not.toBeNull();
     const revenue = Number(m![1].replace(/,/g, ""));
     // Revenue is date-filtered, so it can only ever be a subset of lifetime collections.
     expect(revenue).toBeLessThanOrEqual(collected);
+  });
+
+  test("a module switched off by the plan shows the upgrade screen, not a dead end", async ({
+    page,
+  }) => {
+    await login(page, "admin"); // free plan institute
+    await page.goto("/app/reports", { waitUntil: "networkidle" });
+    await expect(page.getByText(/not on your plan/i).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /back to dashboard/i }).first()).toBeVisible();
   });
 });
