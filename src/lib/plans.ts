@@ -3,7 +3,7 @@
  * (`plan_catalog` → `institutes`), edited by Team Academix in the platform
  * console. These constants only cover the moment before that data loads.
  */
-export type PlanKey = "free" | "growth" | "campus" | "chain";
+export type PlanKey = "free" | "growth" | "campus";
 
 export type Plan = {
   key: PlanKey;
