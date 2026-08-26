@@ -41,7 +41,7 @@ export const PLANS: Plan[] = [
   },
   {
     key: "growth",
-    name: "Pro",
+    name: "Growth",
     rooms: 0,
     students: 0,
     staffLogins: 0,
@@ -50,24 +50,11 @@ export const PLANS: Plan[] = [
     priceYearly: 5990,
     blurb: "Unlimited students · one centre",
     tagline: "Everything for one centre. Unlimited students.",
-    cta: "Choose Pro",
+    cta: "Choose Growth",
   },
   {
     key: "campus",
-    name: "Campus (legacy)",
-    rooms: 30,
-    students: 1500,
-    staffLogins: 20,
-    teacherLogins: 0,
-    batches: 0,
-    priceYearly: 14990,
-    blurb: "1,500 students · 30 classrooms",
-    tagline: "Older plan — kept for existing institutes.",
-    cta: "Talk to us",
-  },
-  {
-    key: "chain",
-    name: "Chain",
+    name: "Campus",
     rooms: 0,
     students: 0,
     staffLogins: 0,
@@ -83,10 +70,12 @@ export const PLANS: Plan[] = [
 /** Older institutes may still carry legacy keys. */
 const LEGACY: Record<string, PlanKey> = {
   starter: "free",
-  unlimited: "chain",
+  unlimited: "campus",
   pro: "growth",
-  multi: "chain",
+  multi: "campus",
+  chain: "campus",
 };
+
 
 
 export function planFor(key: string | null | undefined): Plan {
