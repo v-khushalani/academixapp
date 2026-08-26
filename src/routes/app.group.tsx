@@ -109,7 +109,7 @@ function GroupPage() {
         </div>
 
         <p className="mt-3 text-xs text-muted-foreground">
-          Branches are set up by Team Academix on the Chain plan. Each branch keeps its own
+          Branches are set up by Team Academix on the Campus plan. Each branch keeps its own
           students, batches, fees and staff — this page only rolls the numbers up.
         </p>
       </PageBody>
