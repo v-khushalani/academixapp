@@ -128,7 +128,7 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
     if (photoFile) {
       setUploading(true);
       const ext = photoFile.name.split(".").pop() || "jpg";
-      const key = `applicants/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const key = `submissions/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { error } = await supabase.storage
         .from("student-photos")
         .upload(key, photoFile, { upsert: false, contentType: photoFile.type });
@@ -396,4 +396,12 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
 
 function Frame({ children }: { children: ReactNode }) {
   return <div className="sm:col-span-2 grid gap-4 sm:grid-cols-2">{children}</div>;
+}
+function Row({ label, value }: { label: string; value?: string }) {
+  return (
+    <div className="flex gap-2">
+      <dt className="w-28 shrink-0 text-xs text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 flex-1 break-words text-sm">{value?.trim() || "—"}</dd>
+    </div>
+  );
 }
