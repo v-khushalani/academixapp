@@ -194,22 +194,39 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
                 }}
               />
             </div>
-            <F label="Student's full name *" cls="sm:col-span-2">
-              <Input
-                value={v.full_name}
-                onChange={(e) => set("full_name", e.target.value)}
-                placeholder="As it should appear on records"
-                autoFocus
-              />
-            </F>
-            <F label="Phone (WhatsApp) *" cls="sm:col-span-2">
-              <Input
-                inputMode="numeric"
-                value={v.phone}
-                onChange={(e) => set("phone", e.target.value)}
-                placeholder="10-digit number"
-              />
-            </F>
+            {aadhaar ? (
+              <>
+                <div className="sm:col-span-2 rounded-lg border border-border bg-muted/40 p-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Fetched from Aadhaar
+                  </p>
+                  <dl className="mt-2 space-y-1.5 text-sm">
+                    <Row label="Name" value={v.full_name} />
+                    <Row label="Date of birth" value={v.dob} />
+                    <Row label="Address" value={v.address} />
+                    <Row label="Aadhaar" value={`XXXX XXXX ${aadhaar.profile.last4}`} />
+                  </dl>
+                </div>
+                <F label="Student's mobile number *" cls="sm:col-span-2">
+                  <Input
+                    inputMode="numeric"
+                    value={v.phone}
+                    onChange={(e) => set("phone", e.target.value)}
+                    placeholder="10-digit number"
+                    autoFocus
+                  />
+                </F>
+              </>
+            ) : (
+              <p className="sm:col-span-2 text-xs text-muted-foreground">
+                Aadhaar scan is required. Once it is read, we show you exactly what was fetched.
+              </p>
+            )}
+          </Frame>
+        )}
+
+        {step === 1 && (
+          <Frame>
             <F label="Class applying for *" cls="sm:col-span-2">
               <Select value={v.class} onValueChange={(x) => set("class", x)}>
                 <SelectTrigger className="h-11">
@@ -257,10 +274,16 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
                 </Select>
               </F>
             )}
+            <F label="Current school (optional)">
+              <Input value={v.school} onChange={(e) => set("school", e.target.value)} />
+            </F>
+            <F label="Email (optional)">
+              <Input type="email" value={v.email} onChange={(e) => set("email", e.target.value)} />
+            </F>
           </Frame>
         )}
 
-        {step === 1 && (
+        {step === 2 && (
           <Frame>
             <F label="Father's name *">
               <Input value={v.father_name} onChange={(e) => set("father_name", e.target.value)} />
@@ -301,22 +324,6 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
           </Frame>
         )}
 
-        {step === 2 && (
-          <Frame>
-            <F label="Date of birth">
-              <Input type="date" value={v.dob} onChange={(e) => set("dob", e.target.value)} />
-            </F>
-            <F label="Current school">
-              <Input value={v.school} onChange={(e) => set("school", e.target.value)} />
-            </F>
-            <F label="Email">
-              <Input type="email" value={v.email} onChange={(e) => set("email", e.target.value)} />
-            </F>
-            <F label="Address">
-              <Input value={v.address} onChange={(e) => set("address", e.target.value)} />
-            </F>
-          </Frame>
-        )}
 
         {step === 3 && (
           <Frame>
