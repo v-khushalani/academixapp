@@ -41,14 +41,14 @@ import { useFeatures } from "@/hooks/use-features";
 import { useEffect, useState } from "react";
 import { getInstitute } from "@/lib/academy-settings";
 
-type NavItem = {
+export type NavItem = {
   title: string;
   url: string;
   icon: typeof LayoutDashboard;
   key: ModuleKey;
   exact?: boolean;
 };
-const nav: NavItem[] = [
+export const nav: NavItem[] = [
   { title: "Dashboard", url: "/app", icon: LayoutDashboard, key: "dashboard", exact: true },
   { title: "Students", url: "/app/students", icon: Users, key: "students" },
   { title: "Admissions", url: "/app/admissions", icon: UserPlus, key: "admissions" },
@@ -65,7 +65,7 @@ const nav: NavItem[] = [
   { title: "Settings", url: "/app/settings", icon: Settings, key: "settings" },
 ];
 
-const platformNav: NavItem[] = [
+export const platformNav: NavItem[] = [
   { title: "Overview", url: "/app/platform", icon: Gauge, key: "platform", exact: true },
   { title: "Institutes", url: "/app/platform/institutes", icon: Building2, key: "platform" },
   { title: "Plans & pricing", url: "/app/platform/plans", icon: Tags, key: "platform" },
