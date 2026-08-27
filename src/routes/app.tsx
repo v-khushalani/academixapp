@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/
 import { useEffect } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app/sidebar";
+import { MobileTabBar } from "@/components/app/mobile-tabbar";
 import { TopBar } from "@/components/app/topbar";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccessGate } from "@/hooks/use-access-gate";
@@ -51,14 +52,14 @@ function AppLayout() {
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
-        <SidebarInset className="flex min-w-0 flex-1 flex-col">
+        <SidebarInset className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
           <TopBar />
           <main className="flex-1">
             <FeatureGate pathname={pathname}>
               <Outlet />
             </FeatureGate>
           </main>
-
+          <MobileTabBar />
         </SidebarInset>
       </div>
     </SidebarProvider>
