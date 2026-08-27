@@ -87,15 +87,19 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
 
   function validate(i: number): boolean {
     if (i === 0) {
+      if (!aadhaar) return !toast.error("Please scan the student's Aadhaar QR to continue");
       if (!v.full_name.trim()) return !toast.error("Student's full name is required");
       if (v.phone.replace(/\D/g, "").length < 10)
-        return !toast.error("Please enter a valid 10-digit phone number");
+        return !toast.error("Please enter a valid 10-digit mobile number");
+      return true;
+    }
+    if (i === 1) {
       if (!v.class) return !toast.error("Please choose the class");
       if (showProgram && !v.program) return !toast.error("Please choose a program");
       if (showStream && !v.stream) return !toast.error("Please choose PCM or PCB");
       return true;
     }
-    if (i === 1) {
+    if (i === 2) {
       if (!v.father_name.trim()) return !toast.error("Father's name is required");
       if (v.father_phone.replace(/\D/g, "").length < 10)
         return !toast.error("Father's phone must be 10 digits");
@@ -106,6 +110,7 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
     }
     return true;
   }
+
 
   function next() {
     if (!validate(step)) return;
