@@ -61,11 +61,12 @@ const empty: AdmissionFormValues = {
 const CLASSES = ["Nursery", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
 const STEPS = [
-  { title: "Student", hint: "Who is joining?" },
+  { title: "Identity", hint: "Scan the student's Aadhaar QR — it fills the details for you" },
+  { title: "Study details", hint: "What are you joining for?" },
   { title: "Parents", hint: "Who should we contact?" },
-  { title: "A few more details", hint: "All optional — skip if you're in a hurry" },
   { title: "Photo & submit", hint: "Last step" },
 ];
+
 
 /**
  * Enquiry form shown on the public QR link. Asked one small frame at a time so a
@@ -86,15 +87,19 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
 
   function validate(i: number): boolean {
     if (i === 0) {
+      if (!aadhaar) return !toast.error("Please scan the student's Aadhaar QR to continue");
       if (!v.full_name.trim()) return !toast.error("Student's full name is required");
       if (v.phone.replace(/\D/g, "").length < 10)
-        return !toast.error("Please enter a valid 10-digit phone number");
+        return !toast.error("Please enter a valid 10-digit mobile number");
+      return true;
+    }
+    if (i === 1) {
       if (!v.class) return !toast.error("Please choose the class");
       if (showProgram && !v.program) return !toast.error("Please choose a program");
       if (showStream && !v.stream) return !toast.error("Please choose PCM or PCB");
       return true;
     }
-    if (i === 1) {
+    if (i === 2) {
       if (!v.father_name.trim()) return !toast.error("Father's name is required");
       if (v.father_phone.replace(/\D/g, "").length < 10)
         return !toast.error("Father's phone must be 10 digits");
@@ -105,6 +110,7 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
     }
     return true;
   }
+
 
   function next() {
     if (!validate(step)) return;
@@ -122,7 +128,7 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
     if (photoFile) {
       setUploading(true);
       const ext = photoFile.name.split(".").pop() || "jpg";
-      const key = `applicants/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const key = `submissions/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { error } = await supabase.storage
         .from("student-photos")
         .upload(key, photoFile, { upsert: false, contentType: photoFile.type });
@@ -188,22 +194,39 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
                 }}
               />
             </div>
-            <F label="Student's full name *" cls="sm:col-span-2">
-              <Input
-                value={v.full_name}
-                onChange={(e) => set("full_name", e.target.value)}
-                placeholder="As it should appear on records"
-                autoFocus
-              />
-            </F>
-            <F label="Phone (WhatsApp) *" cls="sm:col-span-2">
-              <Input
-                inputMode="numeric"
-                value={v.phone}
-                onChange={(e) => set("phone", e.target.value)}
-                placeholder="10-digit number"
-              />
-            </F>
+            {aadhaar ? (
+              <>
+                <div className="sm:col-span-2 rounded-lg border border-border bg-muted/40 p-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Fetched from Aadhaar
+                  </p>
+                  <dl className="mt-2 space-y-1.5 text-sm">
+                    <Row label="Name" value={v.full_name} />
+                    <Row label="Date of birth" value={v.dob} />
+                    <Row label="Address" value={v.address} />
+                    <Row label="Aadhaar" value={`XXXX XXXX ${aadhaar.profile.last4}`} />
+                  </dl>
+                </div>
+                <F label="Student's mobile number *" cls="sm:col-span-2">
+                  <Input
+                    inputMode="numeric"
+                    value={v.phone}
+                    onChange={(e) => set("phone", e.target.value)}
+                    placeholder="10-digit number"
+                    autoFocus
+                  />
+                </F>
+              </>
+            ) : (
+              <p className="sm:col-span-2 text-xs text-muted-foreground">
+                Aadhaar scan is required. Once it is read, we show you exactly what was fetched.
+              </p>
+            )}
+          </Frame>
+        )}
+
+        {step === 1 && (
+          <Frame>
             <F label="Class applying for *" cls="sm:col-span-2">
               <Select value={v.class} onValueChange={(x) => set("class", x)}>
                 <SelectTrigger className="h-11">
@@ -251,10 +274,16 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
                 </Select>
               </F>
             )}
+            <F label="Current school (optional)">
+              <Input value={v.school} onChange={(e) => set("school", e.target.value)} />
+            </F>
+            <F label="Email (optional)">
+              <Input type="email" value={v.email} onChange={(e) => set("email", e.target.value)} />
+            </F>
           </Frame>
         )}
 
-        {step === 1 && (
+        {step === 2 && (
           <Frame>
             <F label="Father's name *">
               <Input value={v.father_name} onChange={(e) => set("father_name", e.target.value)} />
@@ -295,22 +324,6 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
           </Frame>
         )}
 
-        {step === 2 && (
-          <Frame>
-            <F label="Date of birth">
-              <Input type="date" value={v.dob} onChange={(e) => set("dob", e.target.value)} />
-            </F>
-            <F label="Current school">
-              <Input value={v.school} onChange={(e) => set("school", e.target.value)} />
-            </F>
-            <F label="Email">
-              <Input type="email" value={v.email} onChange={(e) => set("email", e.target.value)} />
-            </F>
-            <F label="Address">
-              <Input value={v.address} onChange={(e) => set("address", e.target.value)} />
-            </F>
-          </Frame>
-        )}
 
         {step === 3 && (
           <Frame>
@@ -383,4 +396,12 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
 
 function Frame({ children }: { children: ReactNode }) {
   return <div className="sm:col-span-2 grid gap-4 sm:grid-cols-2">{children}</div>;
+}
+function Row({ label, value }: { label: string; value?: string }) {
+  return (
+    <div className="flex gap-2">
+      <dt className="w-28 shrink-0 text-xs text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 flex-1 break-words text-sm">{value?.trim() || "—"}</dd>
+    </div>
+  );
 }
