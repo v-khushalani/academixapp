@@ -1,8 +1,11 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { BookOpen, CalendarCheck, ClipboardList, Home, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccessGate } from "@/hooks/use-access-gate";
+import { useFeatures } from "@/hooks/use-features";
+import { TEACH_FEATURE } from "@/lib/features";
+import { FeatureLocked } from "@/components/app/feature-gate";
 import { BrandMark, PoweredByAcademix, useBrand, useBrandedTitle } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 
@@ -24,6 +27,7 @@ function TeachLayout() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const brand = useBrand();
   const institute = brand.name;
+  const { isOn } = useFeatures();
   useBrandedTitle("Teacher portal");
 
   const allowed = roles.some((r) => ["faculty", "owner", "admin"].includes(r));
@@ -45,8 +49,19 @@ function TeachLayout() {
     );
   }
 
+  // Modules the institute's plan does not include disappear from the teacher rail.
+  const nav = NAV.filter((n) => {
+    const f = TEACH_FEATURE[n.to];
+    return !f || isOn(f);
+  });
+  const pathFeature = Object.entries(TEACH_FEATURE).find(
+    ([p]) => pathname === p || pathname.startsWith(p + "/"),
+  )?.[1];
+  const locked = pathFeature && !isOn(pathFeature) ? pathFeature : null;
+
   const active = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-16 md:pb-0">
