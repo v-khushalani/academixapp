@@ -58,6 +58,7 @@ import { Route as AppTestsIdRouteImport } from './routes/app.tests.$id'
 import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
 import { Route as AppPlatformPlansRouteImport } from './routes/app.platform.plans'
 import { Route as AppPlatformInstitutesRouteImport } from './routes/app.platform.institutes'
+import { Route as AppPlatformFeaturesRouteImport } from './routes/app.platform.features'
 import { Route as AppBatchesIdRouteImport } from './routes/app.batches.$id'
 import { Route as ApiPublicAttendancePunchRouteImport } from './routes/api/public/attendance.punch'
 
@@ -306,6 +307,11 @@ const AppPlatformInstitutesRoute = AppPlatformInstitutesRouteImport.update({
   path: '/institutes',
   getParentRoute: () => AppPlatformRoute,
 } as any)
+const AppPlatformFeaturesRoute = AppPlatformFeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
+  getParentRoute: () => AppPlatformRoute,
+} as any)
 const AppBatchesIdRoute = AppBatchesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -364,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/portal/': typeof PortalIndexRoute
   '/teach/': typeof TeachIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
+  '/app/platform/features': typeof AppPlatformFeaturesRoute
   '/app/platform/institutes': typeof AppPlatformInstitutesRoute
   '/app/platform/plans': typeof AppPlatformPlansRoute
   '/app/students/$id': typeof AppStudentsIdRoute
@@ -413,6 +420,7 @@ export interface FileRoutesByTo {
   '/portal': typeof PortalIndexRoute
   '/teach': typeof TeachIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
+  '/app/platform/features': typeof AppPlatformFeaturesRoute
   '/app/platform/institutes': typeof AppPlatformInstitutesRoute
   '/app/platform/plans': typeof AppPlatformPlansRoute
   '/app/students/$id': typeof AppStudentsIdRoute
@@ -467,6 +475,7 @@ export interface FileRoutesById {
   '/portal/': typeof PortalIndexRoute
   '/teach/': typeof TeachIndexRoute
   '/app/batches/$id': typeof AppBatchesIdRoute
+  '/app/platform/features': typeof AppPlatformFeaturesRoute
   '/app/platform/institutes': typeof AppPlatformInstitutesRoute
   '/app/platform/plans': typeof AppPlatformPlansRoute
   '/app/students/$id': typeof AppStudentsIdRoute
@@ -522,6 +531,7 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/teach/'
     | '/app/batches/$id'
+    | '/app/platform/features'
     | '/app/platform/institutes'
     | '/app/platform/plans'
     | '/app/students/$id'
@@ -571,6 +581,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/teach'
     | '/app/batches/$id'
+    | '/app/platform/features'
     | '/app/platform/institutes'
     | '/app/platform/plans'
     | '/app/students/$id'
@@ -624,6 +635,7 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/teach/'
     | '/app/batches/$id'
+    | '/app/platform/features'
     | '/app/platform/institutes'
     | '/app/platform/plans'
     | '/app/students/$id'
@@ -998,6 +1010,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPlatformInstitutesRouteImport
       parentRoute: typeof AppPlatformRoute
     }
+    '/app/platform/features': {
+      id: '/app/platform/features'
+      path: '/features'
+      fullPath: '/app/platform/features'
+      preLoaderRoute: typeof AppPlatformFeaturesRouteImport
+      parentRoute: typeof AppPlatformRoute
+    }
     '/app/batches/$id': {
       id: '/app/batches/$id'
       path: '/$id'
@@ -1028,12 +1047,14 @@ const AppBatchesRouteWithChildren = AppBatchesRoute._addFileChildren(
 )
 
 interface AppPlatformRouteChildren {
+  AppPlatformFeaturesRoute: typeof AppPlatformFeaturesRoute
   AppPlatformInstitutesRoute: typeof AppPlatformInstitutesRoute
   AppPlatformPlansRoute: typeof AppPlatformPlansRoute
   AppPlatformIndexRoute: typeof AppPlatformIndexRoute
 }
 
 const AppPlatformRouteChildren: AppPlatformRouteChildren = {
+  AppPlatformFeaturesRoute: AppPlatformFeaturesRoute,
   AppPlatformInstitutesRoute: AppPlatformInstitutesRoute,
   AppPlatformPlansRoute: AppPlatformPlansRoute,
   AppPlatformIndexRoute: AppPlatformIndexRoute,
