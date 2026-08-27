@@ -12,18 +12,42 @@ export type PortalStudent = {
   batch?: { id: string; name: string } | null;
 };
 
+const PORTAL_COLS =
+  "id, full_name, admission_no, class, program, stream, batch_id, photo_path, batch:batches(id,name)";
+
 export const portalApi = {
-  /** Students the signed-in user is allowed to see (own record, or children). */
+  /**
+   * Only the signed-in person's own record plus the children linked to them.
+   * Scoped explicitly so a user who also holds a staff/teacher role never sees
+   * other students inside the family portal.
+   */
   async myStudents(): Promise<PortalStudent[]> {
-    const { data, error } = await supabase
-      .from("students")
-      .select(
-        "id, full_name, admission_no, class, program, stream, batch_id, photo_path, batch:batches(id,name)",
-      )
-      .order("full_name");
-    if (error) throw error;
-    return (data ?? []) as unknown as PortalStudent[];
+    const { data: auth } = await supabase.auth.getUser();
+    const uid = auth.user?.id;
+    if (!uid) return [];
+
+    const [own, links] = await Promise.all([
+      supabase.from("students").select(PORTAL_COLS).eq("user_id", uid),
+      supabase.from("parent_students").select("student_id").eq("parent_user_id", uid),
+    ]);
+    if (own.error) throw own.error;
+    if (links.error) throw links.error;
+
+    const rows = [...(own.data ?? [])];
+    const childIds = (links.data ?? []).map((r) => r.student_id).filter(Boolean);
+    if (childIds.length > 0) {
+      const kids = await supabase.from("students").select(PORTAL_COLS).in("id", childIds);
+      if (kids.error) throw kids.error;
+      rows.push(...(kids.data ?? []));
+    }
+
+    const unique = new Map<string, unknown>();
+    for (const r of rows) unique.set((r as { id: string }).id, r);
+    return (Array.from(unique.values()) as unknown as PortalStudent[]).sort((a, b) =>
+      a.full_name.localeCompare(b.full_name),
+    );
   },
+
 
   async attendance(studentId: string) {
     const { data, error } = await supabase
