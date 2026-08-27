@@ -168,6 +168,7 @@ function PlatformInstitutes() {
           )}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }
