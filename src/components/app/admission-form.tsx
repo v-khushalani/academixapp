@@ -61,11 +61,12 @@ const empty: AdmissionFormValues = {
 const CLASSES = ["Nursery", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
 const STEPS = [
-  { title: "Student", hint: "Who is joining?" },
+  { title: "Identity", hint: "Scan the student's Aadhaar QR — it fills the details for you" },
+  { title: "Study details", hint: "What are you joining for?" },
   { title: "Parents", hint: "Who should we contact?" },
-  { title: "A few more details", hint: "All optional — skip if you're in a hurry" },
   { title: "Photo & submit", hint: "Last step" },
 ];
+
 
 /**
  * Enquiry form shown on the public QR link. Asked one small frame at a time so a
