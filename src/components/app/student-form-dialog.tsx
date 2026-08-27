@@ -27,15 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { getInstitute } from "@/lib/academy-settings";
 import { CLASSES } from "@/lib/constants";
-
-/** Normalise a grade string ("Class 10", "10th", "10") to its bare grade ("10"). */
-function normClass(v?: string | null): string {
-  const s = (v ?? "").trim().toLowerCase();
-  const num = s.match(/\d+/);
-  if (num) return num[0];
-  const word = s.match(/nursery|lkg|ukg/);
-  return word ? word[0] : s;
-}
+import { batchesForClass } from "@/lib/class-match";
 
 type Props = {
   open: boolean;
