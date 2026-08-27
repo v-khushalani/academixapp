@@ -165,7 +165,7 @@ export function AppSidebar() {
           <SidebarGroup>
             {!collapsed && <SidebarGroupLabel>Team Academix</SidebarGroupLabel>}
             <SidebarGroupContent>
-              <SidebarMenu>{renderItem(platformNav)}</SidebarMenu>
+              <SidebarMenu>{platformNav.map(renderItem)}</SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         )}
