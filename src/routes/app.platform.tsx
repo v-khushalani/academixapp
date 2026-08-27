@@ -62,12 +62,13 @@ function PlatformLayout() {
         }
       />
       <PageBody>
-        <nav className="mb-4 flex flex-wrap gap-1 rounded-lg border border-border bg-card p-1">
+        {/* Desktop navigation lives in the sidebar; mobile keeps a scrollable pill row. */}
+        <nav className="mb-4 flex gap-1 overflow-x-auto rounded-lg border border-border bg-card p-1 md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {TABS.map((t) => (
             <Link
               key={t.to}
               to={t.to}
-              className={`rounded-md px-3 py-1.5 text-sm ${
+              className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-sm ${
                 active(t.to, t.exact)
                   ? "bg-primary/10 font-medium text-primary"
                   : "text-muted-foreground hover:bg-muted"

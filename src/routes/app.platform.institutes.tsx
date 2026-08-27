@@ -32,7 +32,69 @@ function PlatformInstitutes() {
   if (open) return <InstituteDetail institute={open} onBack={() => setOpenId(null)} />;
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-card">
+    <>
+      {/* Mobile: one card per institute — tables do not survive small screens. */}
+      <div className="space-y-3 md:hidden">
+        {institutes.map((i) => (
+          <div key={i.id} className="rounded-lg border border-border bg-card p-3">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+              <div className="min-w-0">
+                <p className="truncate font-semibold">{i.name}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  /{i.slug} · {planFor(i.plan).name}
+                </p>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => setOpenId(i.id)}>
+                Open
+              </Button>
+            </div>
+            {i.status && i.status !== "active" && (
+              <Badge variant="destructive" className="mt-2 text-[10px]">
+                {i.status}
+              </Badge>
+            )}
+            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+              <div>
+                <p className="text-muted-foreground">Students</p>
+                <Usage used={Number(i.students)} limit={i.student_limit} />
+              </div>
+              <div>
+                <p className="text-muted-foreground">Teachers</p>
+                <Usage used={Number(i.faculty)} limit={i.faculty_limit} />
+              </div>
+              <div>
+                <p className="text-muted-foreground">Batches</p>
+                <Usage used={Number(i.batches)} limit={i.batch_limit} />
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {Number(i.staff_logins)} office · {Number(i.teacher_logins)} teacher logins
+            </p>
+            <select
+              aria-label={`Parent institute for ${i.name}`}
+              value={i.parent_institute_id ?? ""}
+              onChange={(e) => void setParent(i.id, e.target.value)}
+              className="mt-2 h-9 w-full rounded-md border border-border bg-background px-2 text-xs"
+            >
+              <option value="">Head office (none)</option>
+              {institutes
+                .filter((o) => o.id !== i.id)
+                .map((o) => (
+                  <option key={o.id} value={o.id}>
+                    Branch of {o.name}
+                  </option>
+                ))}
+            </select>
+          </div>
+        ))}
+        {!isLoading && institutes.length === 0 && (
+          <p className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            No institutes yet.
+          </p>
+        )}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-lg border border-border bg-card md:block">
       <table className="w-full min-w-[760px] text-sm">
         <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
           <tr>
@@ -106,6 +168,7 @@ function PlatformInstitutes() {
           )}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }
