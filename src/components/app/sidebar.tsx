@@ -61,12 +61,12 @@ const nav: NavItem[] = [
   { title: "Settings", url: "/app/settings", icon: Settings, key: "settings" },
 ];
 
-const platformNav: NavItem = {
-  title: "Platform console",
-  url: "/app/platform",
-  icon: ShieldCheck,
-  key: "platform",
-};
+const platformNav: NavItem[] = [
+  { title: "Overview", url: "/app/platform", icon: Gauge, key: "platform", exact: true },
+  { title: "Institutes", url: "/app/platform/institutes", icon: Building2, key: "platform" },
+  { title: "Plans & pricing", url: "/app/platform/plans", icon: Tags, key: "platform" },
+  { title: "Features", url: "/app/platform/features", icon: ToggleRight, key: "platform" },
+];
 
 export function AppSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar();
