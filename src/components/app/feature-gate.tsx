@@ -26,7 +26,13 @@ export function featureForPath(pathname: string): FeatureKey | null {
 
 
 /** Shown instead of a module the institute's plan does not include. */
-export function FeatureLocked({ feature }: { feature: FeatureKey }) {
+export function FeatureLocked({
+  feature,
+  backTo = "/app",
+}: {
+  feature: FeatureKey;
+  backTo?: string;
+}) {
   return (
     <div className="grid min-h-[60vh] place-items-center px-6">
       <div className="max-w-md text-center">
@@ -45,9 +51,10 @@ export function FeatureLocked({ feature }: { feature: FeatureKey }) {
             <a href="/pricing">See what&rsquo;s included</a>
           </Button>
           <Button asChild size="sm" variant="outline">
-            <Link to="/app">Back to dashboard</Link>
+            <Link to={backTo}>Go back</Link>
           </Button>
         </div>
+
       </div>
     </div>
   );
