@@ -95,7 +95,7 @@ function TeachLayout() {
       </footer>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-20 grid border-t border-border bg-card md:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 grid border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
         style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
       >
         {nav.map((n) => (
