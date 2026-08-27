@@ -72,7 +72,7 @@ function TeachLayout() {
           <p className="text-xs text-muted-foreground">Teacher portal</p>
         </div>
         <nav className="hidden items-center gap-1 md:flex">
-          {NAV.map((n) => (
+          {nav.map((n) => (
             <Link
               key={n.to}
               to={n.to}
@@ -88,14 +88,17 @@ function TeachLayout() {
       </header>
 
       <main className="flex-1">
-        <Outlet />
+        {locked ? <FeatureLocked feature={locked} backTo="/teach" /> : <Outlet />}
       </main>
       <footer className="px-4 pb-4 pt-2">
         <PoweredByAcademix />
       </footer>
 
-      <nav className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-border bg-card md:hidden">
-        {NAV.map((n) => (
+      <nav
+        className="fixed inset-x-0 bottom-0 z-20 grid border-t border-border bg-card md:hidden"
+        style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
+      >
+        {nav.map((n) => (
           <Link
             key={n.to}
             to={n.to}
