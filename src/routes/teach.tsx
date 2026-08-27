@@ -1,8 +1,11 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { BookOpen, CalendarCheck, ClipboardList, Home, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useAccessGate } from "@/hooks/use-access-gate";
+import { useFeatures } from "@/hooks/use-features";
+import { TEACH_FEATURE } from "@/lib/features";
+import { FeatureLocked } from "@/components/app/feature-gate";
 import { BrandMark, PoweredByAcademix, useBrand, useBrandedTitle } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 
@@ -24,6 +27,7 @@ function TeachLayout() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const brand = useBrand();
   const institute = brand.name;
+  const { isOn } = useFeatures();
   useBrandedTitle("Teacher portal");
 
   const allowed = roles.some((r) => ["faculty", "owner", "admin"].includes(r));
@@ -45,8 +49,19 @@ function TeachLayout() {
     );
   }
 
+  // Modules the institute's plan does not include disappear from the teacher rail.
+  const nav = NAV.filter((n) => {
+    const f = TEACH_FEATURE[n.to];
+    return !f || isOn(f);
+  });
+  const pathFeature = Object.entries(TEACH_FEATURE).find(
+    ([p]) => pathname === p || pathname.startsWith(p + "/"),
+  )?.[1];
+  const locked = pathFeature && !isOn(pathFeature) ? pathFeature : null;
+
   const active = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-16 md:pb-0">
@@ -57,7 +72,7 @@ function TeachLayout() {
           <p className="text-xs text-muted-foreground">Teacher portal</p>
         </div>
         <nav className="hidden items-center gap-1 md:flex">
-          {NAV.map((n) => (
+          {nav.map((n) => (
             <Link
               key={n.to}
               to={n.to}
@@ -73,14 +88,17 @@ function TeachLayout() {
       </header>
 
       <main className="flex-1">
-        <Outlet />
+        {locked ? <FeatureLocked feature={locked} backTo="/teach" /> : <Outlet />}
       </main>
       <footer className="px-4 pb-4 pt-2">
         <PoweredByAcademix />
       </footer>
 
-      <nav className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-border bg-card md:hidden">
-        {NAV.map((n) => (
+      <nav
+        className="fixed inset-x-0 bottom-0 z-20 grid border-t border-border bg-card md:hidden"
+        style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}
+      >
+        {nav.map((n) => (
           <Link
             key={n.to}
             to={n.to}

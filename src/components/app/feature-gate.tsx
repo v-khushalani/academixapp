@@ -2,29 +2,37 @@ import { Link } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFeatures } from "@/hooks/use-features";
-import { FEATURE_LABEL, MODULE_FEATURE, type FeatureKey } from "@/lib/features";
-import type { ModuleKey } from "@/lib/rbac";
+import { FEATURE_LABEL, type FeatureKey } from "@/lib/features";
 
-/** Route prefix → module, longest match first. */
-const ROUTE_MODULE: [string, ModuleKey][] = [
+
+/** Route prefix → feature, longest match first. */
+const ROUTE_FEATURE: [string, FeatureKey][] = [
   ["/app/admissions", "admissions"],
   ["/app/tests", "tests"],
   ["/app/syllabus", "syllabus"],
   ["/app/timetable", "timetable"],
   ["/app/expenses", "expenses"],
-  ["/app/salaries", "expenses"],
+  ["/app/salaries", "salaries"],
   ["/app/messages", "messages"],
   ["/app/reports", "reports"],
+  ["/app/fees", "fees"],
+  ["/app/group", "branches"],
 ];
 
 export function featureForPath(pathname: string): FeatureKey | null {
-  const hit = ROUTE_MODULE.find(([p]) => pathname === p || pathname.startsWith(p + "/"));
-  if (!hit) return null;
-  return MODULE_FEATURE[hit[1]] ?? null;
+  const hit = ROUTE_FEATURE.find(([p]) => pathname === p || pathname.startsWith(p + "/"));
+  return hit ? hit[1] : null;
 }
 
+
 /** Shown instead of a module the institute's plan does not include. */
-export function FeatureLocked({ feature }: { feature: FeatureKey }) {
+export function FeatureLocked({
+  feature,
+  backTo = "/app",
+}: {
+  feature: FeatureKey;
+  backTo?: string;
+}) {
   return (
     <div className="grid min-h-[60vh] place-items-center px-6">
       <div className="max-w-md text-center">
@@ -43,9 +51,10 @@ export function FeatureLocked({ feature }: { feature: FeatureKey }) {
             <a href="/pricing">See what&rsquo;s included</a>
           </Button>
           <Button asChild size="sm" variant="outline">
-            <Link to="/app">Back to dashboard</Link>
+            <Link to={backTo}>Go back</Link>
           </Button>
         </div>
+
       </div>
     </div>
   );

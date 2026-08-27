@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useFeatures } from "@/hooks/use-features";
+import { ALWAYS_ON, FEATURE_GROUPS, FEATURES, isFeatureOn } from "@/lib/features";
 import { useEffect, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -69,6 +71,7 @@ function SettingsPage() {
           </TabsList>
           <TabsContent value="institute">
             <InstitutePanel />
+            <ModulesPanel />
           </TabsContent>
           <TabsContent value="academics">
             <div className="space-y-4">
@@ -933,6 +936,54 @@ function F({ label, children, cls }: { label: string; children: React.ReactNode;
     <div className={`space-y-1.5 ${cls ?? ""}`}>
       <Label className="text-xs">{label}</Label>
       {children}
+    </div>
+  );
+}
+
+/** Read-only: which modules this institute currently has. */
+function ModulesPanel() {
+  const { map } = useFeatures();
+  return (
+    <div className="mt-4 rounded-lg border border-border bg-card p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Your modules
+      </p>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        Included with your plan. Need something switched on? Call Team Academix on 70666 70222.
+      </p>
+      {FEATURE_GROUPS.map((g) => (
+        <div key={g} className="mt-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {g}
+          </p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {FEATURES.filter((f) => f.group === g).map((f) => (
+              <span
+                key={f.key}
+                title={f.hint}
+                className={`rounded-full border px-2.5 py-1 text-xs ${
+                  isFeatureOn(map, f.key)
+                    ? "border-primary/30 bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground line-through"
+                }`}
+              >
+                {f.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+      <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border pt-2">
+        {ALWAYS_ON.map((f) => (
+          <span
+            key={f.label}
+            title={f.hint}
+            className="rounded-full border border-dashed border-border px-2.5 py-1 text-xs text-muted-foreground"
+          >
+            {f.label}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

@@ -5,6 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Home, CalendarCheck, TrendingUp, Wallet, Calendar, BookOpen, LogOut } from "lucide-react";
 import { portalApi, type PortalStudent } from "@/lib/api/portal";
 import { useAuth } from "@/hooks/use-auth";
+import { useFeatures } from "@/hooks/use-features";
+import { PORTAL_FEATURE } from "@/lib/features";
 import { BrandMark, PoweredByAcademix, useBrand, useBrandedTitle } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import {
@@ -79,6 +81,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
   );
 
   const isParent = roles.includes("parent");
+  const { isOn } = useFeatures();
   const displayName = user?.user_metadata?.full_name || student?.full_name || "Welcome";
 
   async function handleSignOut() {
@@ -88,7 +91,11 @@ export function PortalShell({ children }: { children: ReactNode }) {
     navigate({ to: "/login", replace: true });
   }
 
-  const NAV = isParent ? PARENT_NAV : STUDENT_NAV;
+  // Modules the institute's plan does not include disappear from the family rail.
+  const NAV = (isParent ? PARENT_NAV : STUDENT_NAV).filter((n) => {
+    const f = PORTAL_FEATURE[n.to];
+    return !f || isOn(f);
+  });
 
   const value: Ctx = {
     students,
@@ -164,7 +171,10 @@ export function PortalShell({ children }: { children: ReactNode }) {
           <PoweredByAcademix />
         </footer>
 
-        <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-card md:hidden">
+        <nav
+          className="fixed inset-x-0 bottom-0 z-30 grid border-t border-border bg-card md:hidden"
+          style={{ gridTemplateColumns: `repeat(${NAV.length}, minmax(0, 1fr))` }}
+        >
           {NAV.map((item) => {
             const active = isActive(item.to, item.exact);
             return (
