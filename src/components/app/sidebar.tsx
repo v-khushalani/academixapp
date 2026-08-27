@@ -16,6 +16,10 @@ import {
   Settings,
   ShieldCheck,
   LogOut,
+  Gauge,
+  Building2,
+  Tags,
+  ToggleRight,
 } from "lucide-react";
 import {
   Sidebar,
