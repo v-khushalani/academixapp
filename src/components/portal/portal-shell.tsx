@@ -172,7 +172,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
         </footer>
 
         <nav
-          className="fixed inset-x-0 bottom-0 z-30 grid border-t border-border bg-card md:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 grid border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
           style={{ gridTemplateColumns: `repeat(${NAV.length}, minmax(0, 1fr))` }}
         >
           {NAV.map((item) => {
@@ -181,12 +181,12 @@ export function PortalShell({ children }: { children: ReactNode }) {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex flex-col items-center gap-0.5 py-2 text-[10px] ${
+                className={`flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium ${
                   active ? "text-primary" : "text-muted-foreground"
                 }`}
               >
-                <item.icon className="h-4 w-4" />
-                <span className="truncate px-0.5">{item.label}</span>
+                <item.icon className="h-5 w-5" />
+                <span className="w-full truncate px-1 text-center">{item.label}</span>
               </Link>
             );
           })}
