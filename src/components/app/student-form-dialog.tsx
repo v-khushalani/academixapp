@@ -129,14 +129,12 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
     enabled: open,
   });
 
-  /** prefer batches for the student's class, but never hide every batch */
+  /** Batches are tied to a class — only that class's batches (plus open ones) show. */
   const batchOptions = useMemo(() => {
     if (!batches) return [];
-    const cls = normClass(form.class);
-    if (!cls) return batches;
-    const matching = batches.filter((b) => !b.class_level || normClass(b.class_level) === cls);
-    return matching.length > 0 ? matching : batches;
+    return batchesForClass(batches, form.class);
   }, [batches, form.class]);
+
 
 
   const mutation = useMutation({
