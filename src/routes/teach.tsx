@@ -102,7 +102,7 @@ function TeachLayout() {
           <Link
             key={n.to}
             to={n.to}
-            className={`flex flex-col items-center gap-0.5 py-2 text-[11px] ${active(n.to, n.exact) ? "text-primary" : "text-muted-foreground"}`}
+            className={`flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium ${active(n.to, n.exact) ? "text-primary" : "text-muted-foreground"}`}
           >
             <n.icon className="h-5 w-5" />
             {n.label}
