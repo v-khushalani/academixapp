@@ -2,8 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFeatures } from "@/hooks/use-features";
-import { FEATURE_LABEL, MODULE_FEATURE, type FeatureKey } from "@/lib/features";
-import type { ModuleKey } from "@/lib/rbac";
+import { FEATURE_LABEL, type FeatureKey } from "@/lib/features";
+
 
 /** Route prefix → feature, longest match first. */
 const ROUTE_FEATURE: [string, FeatureKey][] = [
