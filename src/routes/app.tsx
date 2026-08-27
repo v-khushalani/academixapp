@@ -51,14 +51,14 @@ function AppLayout() {
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
-        <SidebarInset className="flex min-w-0 flex-1 flex-col">
+        <SidebarInset className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
           <TopBar />
           <main className="flex-1">
             <FeatureGate pathname={pathname}>
               <Outlet />
             </FeatureGate>
           </main>
-
+          <MobileTabBar />
         </SidebarInset>
       </div>
     </SidebarProvider>
