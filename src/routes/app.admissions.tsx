@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { batchesForClass } from "@/lib/class-match";
 import { batchesApi, leadsApi, studentsApi, type Lead, type LeadInsert, type Student } from "@/lib/api";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { useAuth } from "@/hooks/use-auth";
@@ -453,7 +454,7 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
                   <SelectValue placeholder="Choose a batch" />
                 </SelectTrigger>
                 <SelectContent>
-                  {batches.map((b) => (
+                  {batchesForClass(batches, admitting?.class).map((b) => (
                     <SelectItem key={b.id} value={b.id}>
                       {b.name}
                     </SelectItem>
