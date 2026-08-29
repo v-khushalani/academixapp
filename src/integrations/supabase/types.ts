@@ -1815,6 +1815,7 @@ export type Database = {
     Functions: {
       accept_faculty_invite: { Args: { _token: string }; Returns: undefined }
       accept_student_invite: { Args: { _token: string }; Returns: undefined }
+      apply_plan_catalog_to_members: { Args: { _key: string }; Returns: number }
       approve_admission: {
         Args: { _batch_id: string; _student_id: string; _token_amount?: number }
         Returns: undefined
@@ -2011,6 +2012,7 @@ export type Database = {
           teacher_logins: number
         }[]
       }
+      platform_push_plan: { Args: { _key: string }; Returns: number }
       platform_set_parent: {
         Args: { _id: string; _parent_institute_id: string }
         Returns: undefined
