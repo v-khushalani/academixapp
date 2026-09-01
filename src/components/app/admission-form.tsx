@@ -203,39 +203,81 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
                     address: r.profile.address,
                   };
                   setAadhaar(r);
-                  setAutoFilled(filled);
-                  setV((p) => ({ ...p, ...filled }));
+                  setAutoFilled(r.source === "qr" ? filled : {});
+                  if (r.source === "qr") setV((p) => ({ ...p, ...filled }));
                 }}
+                onSkip={() =>
+                  setAadhaar({
+                    profile: {
+                      name: "",
+                      dob: "",
+                      gender: "",
+                      address: "",
+                      last4: "",
+                      photo: "",
+                    },
+                    hash: "",
+                    source: "manual",
+                  })
+                }
               />
             </div>
             {aadhaar ? (
-              <>
-                <div className="sm:col-span-2 rounded-lg border border-border bg-muted/40 p-3">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Fetched from Aadhaar
-                  </p>
-                  <dl className="mt-2 space-y-1.5 text-sm">
-                    <Row label="Name" value={v.full_name} />
-                    <Row label="Date of birth" value={v.dob} />
-                    <Row label="Address" value={v.address} />
-                    <Row label="Aadhaar" value={`XXXX XXXX ${aadhaar.profile.last4}`} />
-                  </dl>
-                </div>
-                <F label="Student's mobile number *" cls="sm:col-span-2">
-                  <Input
-                    inputMode="numeric"
-                    value={v.phone}
-                    onChange={(e) => set("phone", e.target.value)}
-                    placeholder="10-digit number"
-                    autoFocus
-                  />
-                </F>
-              </>
+              aadhaar.source === "qr" ? (
+                <>
+                  <div className="sm:col-span-2 rounded-lg border border-border bg-muted/40 p-3">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Fetched from Aadhaar
+                    </p>
+                    <dl className="mt-2 space-y-1.5 text-sm">
+                      <Row label="Name" value={v.full_name} />
+                      <Row label="Date of birth" value={v.dob} />
+                      <Row label="Address" value={v.address} />
+                      <Row label="Aadhaar" value={`XXXX XXXX ${aadhaar.profile.last4}`} />
+                    </dl>
+                  </div>
+                  <F label="Student's mobile number *" cls="sm:col-span-2">
+                    <Input
+                      inputMode="numeric"
+                      value={v.phone}
+                      onChange={(e) => set("phone", e.target.value)}
+                      placeholder="10-digit number"
+                      autoFocus
+                    />
+                  </F>
+                </>
+              ) : (
+                <>
+                  <F label="Student's full name *" cls="sm:col-span-2">
+                    <Input
+                      value={v.full_name}
+                      onChange={(e) => set("full_name", e.target.value)}
+                      autoFocus
+                    />
+                  </F>
+                  <F label="Date of birth *">
+                    <Input type="date" value={v.dob} onChange={(e) => set("dob", e.target.value)} />
+                  </F>
+                  <F label="Student's mobile number *">
+                    <Input
+                      inputMode="numeric"
+                      value={v.phone}
+                      onChange={(e) => set("phone", e.target.value)}
+                      placeholder="10-digit number"
+                    />
+                  </F>
+                  <F label="Address *" cls="sm:col-span-2">
+                    <Input value={v.address} onChange={(e) => set("address", e.target.value)} />
+                  </F>
+                </>
+              )
             ) : (
               <p className="sm:col-span-2 text-xs text-muted-foreground">
-                Aadhaar scan is required. Once it is read, we show you exactly what was fetched.
+                Scan the Aadhaar QR to auto-fill. No card handy? Type the Aadhaar number, or choose
+                “No Aadhaar — fill manually”.
               </p>
             )}
+
           </Frame>
         )}
 
