@@ -23,9 +23,3 @@ export const CLASSES = [
 
 /** Application form program options */
 export const PROGRAMS = ["JEE Main", "JEE Advanced", "NEET", "CA"] as const;
-
-/** Application form stream options */
-export const STREAMS = ["PCM", "PCB", "Commerce", "Humanities"] as const;
-
-/** Application form preferred contact options */
-export const PREFERRED_CONTACTS = ["father", "mother", "self"] as const;
