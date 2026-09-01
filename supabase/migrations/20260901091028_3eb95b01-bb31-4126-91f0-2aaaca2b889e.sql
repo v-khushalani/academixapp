@@ -1,5 +1,3 @@
--- Public admission/enquiry pages must show the institute from the QR link,
--- never whatever institute happens to be cached in that phone's browser.
 CREATE OR REPLACE FUNCTION public.public_institute_brand(_slug text)
 RETURNS TABLE (name text, logo_url text, primary_color text, custom_branding boolean, plan text)
 LANGUAGE sql

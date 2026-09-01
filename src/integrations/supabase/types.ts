@@ -2075,6 +2075,16 @@ export type Database = {
         Args: { _date?: string; _institute_id: string }
         Returns: undefined
       }
+      public_institute_brand: {
+        Args: { _slug: string }
+        Returns: {
+          custom_branding: boolean
+          logo_url: string
+          name: string
+          plan: string
+          primary_color: string
+        }[]
+      }
       reorder_syllabus_chapters: {
         Args: { _ids: string[] }
         Returns: undefined
