@@ -72,7 +72,7 @@ function ApplyPage() {
   async function onSubmit(
     v: AdmissionFormValues,
     photoPath: string | null,
-    aadhaar: { hash: string; last4: string; editedFields: string[] } | null,
+    aadhaar: { hash: string; last4: string; editedFields: string[]; verified: boolean } | null,
   ) {
     setSaving(true);
     const { error } = await supabase.rpc("submit_admission_application", {
