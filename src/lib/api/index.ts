@@ -23,8 +23,6 @@ export type Room = Tables["rooms"]["Row"];
 export type RoomInsert = Tables["rooms"]["Insert"];
 export type UserRole = Tables["user_roles"]["Row"];
 export type AppRole = Database["public"]["Enums"]["app_role"];
-export type DayPlan = Tables["timetable_day_plan"]["Row"];
-export type DayPlanInsert = Tables["timetable_day_plan"]["Insert"];
 export type Institute = Tables["institutes"]["Row"];
 
 function orThrow<T>({ data, error }: { data: T | null; error: unknown }): T {
@@ -611,31 +609,6 @@ export const dashboardApi = {
   },
 };
 
-// ---------- Profiles + Users ----------
-export const profilesApi = {
-  async list() {
-    const { data, error } = await supabase.from("profiles").select("*");
-    if (error) throw error;
-    return data ?? [];
-  },
-  async get(id: string) {
-    const { data, error } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-    if (error) throw error;
-    return data;
-  },
-  async update(id: string, input: Partial<Tables["profiles"]["Update"]>) {
-    return orThrow(await supabase.from("profiles").update(input).eq("id", id).select().single());
-  },
-};
-
-export const rolesApi = {
-  async listForUser(userId: string) {
-    const { data, error } = await supabase.from("user_roles").select("*").eq("user_id", userId);
-    if (error) throw error;
-    return data ?? [];
-  },
-};
-
 // ---------- Faculty ----------
 export const facultyApi = {
   /** Full rows incl. base_salary — owners/admins/accountants only (RLS enforced). */
@@ -727,65 +700,6 @@ export const instituteApi = {
         .select()
         .single(),
     );
-  },
-};
-
-// ---------- Daily schedule (per-date plan on top of the weekly grid) ----------
-export type DayPlanRow = DayPlan & {
-  batch?: { id: string; name: string } | null;
-  faculty?: { id: string; full_name: string; phone: string | null } | null;
-  room_ref?: { id: string; name: string; capacity: number } | null;
-};
-
-export const dayPlanApi = {
-  async listForDate(date: string): Promise<DayPlanRow[]> {
-    const { data, error } = await supabase
-      .from("timetable_day_plan")
-      .select(
-        "*, batch:batches(id,name), faculty:faculty(id,full_name,phone), room_ref:rooms(id,name,capacity)",
-      )
-      .eq("date", date);
-    if (error) throw error;
-    return (data ?? []) as DayPlanRow[];
-  },
-  /** One row per weekly slot per date — update when it already exists. */
-  async save(input: DayPlanInsert & { slot_id: string; date: string }) {
-    const { data: existing, error: findErr } = await supabase
-      .from("timetable_day_plan")
-      .select("id")
-      .eq("slot_id", input.slot_id)
-      .eq("date", input.date)
-      .maybeSingle();
-    if (findErr) throw findErr;
-    if (existing) {
-      return orThrow(
-        await supabase
-          .from("timetable_day_plan")
-          .update(input)
-          .eq("id", existing.id)
-          .select()
-          .single(),
-      );
-    }
-    return orThrow(await supabase.from("timetable_day_plan").insert(input).select().single());
-  },
-  async remove(id: string) {
-    const { error } = await supabase.from("timetable_day_plan").delete().eq("id", id);
-    if (error) throw error;
-  },
-};
-
-// ---------- Attendance (extended) ----------
-export const attendanceListApi = {
-  async listForDate(date: string) {
-    const { data, error } = await supabase
-      .from("attendance")
-      .select(
-        "*, student:students(id,full_name,admission_no,parent_name,parent_phone,phone), batch:batches(id,name)",
-      )
-      .eq("date", date);
-    if (error) throw error;
-    return data ?? [];
   },
 };
 
