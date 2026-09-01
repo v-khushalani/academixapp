@@ -152,9 +152,6 @@ export const FEATURE_LABEL = Object.fromEntries(FEATURES.map((f) => [f.key, f.la
 
 const FEATURE_KEYS = FEATURES.map((f) => f.key);
 
-export function isFeatureKey(key: string): key is FeatureKey {
-  return (FEATURE_KEYS as string[]).includes(key);
-}
 
 /** Which console module each feature gates. Modules absent here are always on. */
 export const MODULE_FEATURE: Partial<Record<ModuleKey, FeatureKey>> = {

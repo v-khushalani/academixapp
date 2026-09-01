@@ -35,13 +35,3 @@ export function planTotal(plan: Installment[]): number {
   return plan.reduce((s, p) => s + (Number(p.share) || 0), 0);
 }
 
-export function amountsFor(plan: Installment[], net: number): number[] {
-  const total = planTotal(plan) || plan.length;
-  let running = 0;
-  return plan.map((p, i) => {
-    if (i === plan.length - 1) return Math.max(0, net - running);
-    const amt = Math.round((net * (Number(p.share) || 0)) / total);
-    running += amt;
-    return amt;
-  });
-}

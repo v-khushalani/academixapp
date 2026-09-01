@@ -21,6 +21,3 @@ export function formatTime12(t?: string | null): string {
   return mm === 0 ? `${h12} ${suffix}` : `${h12}:${String(mm).padStart(2, "0")} ${suffix}`;
 }
 
-export function formatRange12(start?: string | null, end?: string | null): string {
-  return `${formatTime12(start)} – ${formatTime12(end)}`;
-}

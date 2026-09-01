@@ -107,6 +107,3 @@ export function limitRows(plan: Plan | PlanLimits, u: Usage): LimitRow[] {
   ];
 }
 
-export function planOf(key: string | null | undefined) {
-  return planFor(key);
-}
