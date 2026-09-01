@@ -35,11 +35,6 @@ export function planTotal(plan: Installment[]): number {
   return plan.reduce((s, p) => s + (Number(p.share) || 0), 0);
 }
 
-export function describeInstallment(p: Installment): string {
-  const when = p.basis === "batch_start" ? "batch start" : "admission";
-  return p.days === 0 ? `due on ${when}` : `due ${p.days} days after ${when}`;
-}
-
 export function amountsFor(plan: Installment[], net: number): number[] {
   const total = planTotal(plan) || plan.length;
   let running = 0;
