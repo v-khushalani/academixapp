@@ -169,8 +169,16 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
     await onSubmit(
       v,
       photoPath,
-      aadhaar ? { hash: aadhaar.hash, last4: aadhaar.profile.last4, editedFields } : null,
+      aadhaar && aadhaar.source !== "manual"
+        ? {
+            hash: aadhaar.hash,
+            last4: aadhaar.profile.last4,
+            editedFields,
+            verified: aadhaar.source === "qr",
+          }
+        : null,
     );
+
   }
 
   const busy = Boolean(saving) || uploading;
