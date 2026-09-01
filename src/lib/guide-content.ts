@@ -250,9 +250,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         heading: "Step 4 — Mistakes",
-        items: [
-          "Never delete a payment. Use Cancel / Reverse payment so the audit trail stays.",
-        ],
+        items: ["Never delete a payment. Use Cancel / Reverse payment so the audit trail stays."],
       },
       {
         heading: "Routine",
@@ -349,11 +347,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
       },
       {
         heading: "Three daily actions",
-        items: [
-          "Take attendance.",
-          "Collect fees.",
-          "Send a message.",
-        ],
+        items: ["Take attendance.", "Collect fees.", "Send a message."],
       },
     ],
   },

@@ -440,7 +440,6 @@ function AdmissionsReport({ from, to }: { from: string; to: string }) {
   );
 }
 
-
 type DefaulterRow = {
   id: string;
   student: string;

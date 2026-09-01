@@ -91,7 +91,11 @@ export async function buildReceipt(
   if (tpl === "compact") return buildCompact(f, false);
   const no = receiptNo(f.receipt_no);
   const detailed = tpl === "detailed";
-  const doc = new jsPDF({ unit: "mm", format: targetPaper === "a4-two-up" ? "a4" : "a5", orientation: "portrait" });
+  const doc = new jsPDF({
+    unit: "mm",
+    format: targetPaper === "a4-two-up" ? "a4" : "a5",
+    orientation: "portrait",
+  });
   const FONT = await useSaira(doc);
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -220,7 +224,10 @@ export async function buildReceipt(
 }
 
 /** Half-page slip — the same facts, far less ink. */
-async function buildCompact(f: ReceiptInput, thermal: boolean): Promise<{ doc: jsPDF; no: string }> {
+async function buildCompact(
+  f: ReceiptInput,
+  thermal: boolean,
+): Promise<{ doc: jsPDF; no: string }> {
   const inst = getBrandedInstitute();
   const no = receiptNo(f.receipt_no);
   const doc = new jsPDF({
@@ -341,7 +348,10 @@ export async function printReceipt(f: ReceiptInput): Promise<string> {
 }
 
 /** Data URL of a sample receipt — used by the template preview in Settings. */
-export async function receiptPreviewUrl(template: ReceiptTemplate, paper: ReceiptPaper = "a5"): Promise<string> {
+export async function receiptPreviewUrl(
+  template: ReceiptTemplate,
+  paper: ReceiptPaper = "a5",
+): Promise<string> {
   const { doc } = await buildReceipt(
     {
       receipt_no: "RCPT-PREVIEW",

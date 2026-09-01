@@ -46,7 +46,8 @@ export const Route = createFileRoute("/app/expenses")({
       { title: "Expenses · Academix" },
       {
         name: "description",
-        content: "Track salaries, rent, electricity and every other cost of running your institute.",
+        content:
+          "Track salaries, rent, electricity and every other cost of running your institute.",
       },
       { property: "og:title", content: "Expenses · Academix" },
       {
@@ -277,7 +278,10 @@ function AddExpenseDialog({
   const [note, setNote] = useState("");
   const [facultyId, setFacultyId] = useState<string>("");
 
-  const { data: staff = [] } = useQuery({ queryKey: ["faculty-directory"], queryFn: () => facultyApi.directory() });
+  const { data: staff = [] } = useQuery({
+    queryKey: ["faculty-directory"],
+    queryFn: () => facultyApi.directory(),
+  });
 
   const save = useMutation({
     mutationFn: () =>

@@ -66,9 +66,7 @@ function GuidePage() {
                 className={`h-4 w-4 transition-transform ${tocOpen ? "rotate-180" : ""}`}
               />
             </button>
-            <ol
-              className={`${tocOpen ? "block" : "hidden"} mt-2 space-y-1 lg:mt-0 lg:block`}
-            >
+            <ol className={`${tocOpen ? "block" : "hidden"} mt-2 space-y-1 lg:mt-0 lg:block`}>
               {GUIDE_SECTIONS.map((s, i) => (
                 <li key={s.id}>
                   <a
@@ -94,9 +92,7 @@ function GuidePage() {
                   </span>
                   {s.title}
                 </h2>
-                {s.intro ? (
-                  <p className="mt-2 text-sm text-muted-foreground">{s.intro}</p>
-                ) : null}
+                {s.intro ? <p className="mt-2 text-sm text-muted-foreground">{s.intro}</p> : null}
 
                 <div className="mt-5 space-y-5">
                   {s.blocks.map((b, bi) =>
@@ -121,9 +117,7 @@ function GuidePage() {
                                 {r.map((c, ci) => (
                                   <td
                                     key={ci}
-                                    className={
-                                      ci === 0 ? "px-4 py-2.5 font-medium" : "px-4 py-2.5"
-                                    }
+                                    className={ci === 0 ? "px-4 py-2.5 font-medium" : "px-4 py-2.5"}
                                   >
                                     {c}
                                   </td>

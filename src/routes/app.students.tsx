@@ -57,7 +57,10 @@ function StudentsPage() {
   const [editing, setEditing] = useState<Student | null>(null);
   const [deleting, setDeleting] = useState<Row | null>(null);
 
-  const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
+  const { data: batches = [] } = useQuery({
+    queryKey: ["batches"],
+    queryFn: () => batchesApi.list(),
+  });
   const { data: invites = [] } = useQuery({
     queryKey: ["student-invites"],
     queryFn: () => studentInvitesApi.list(),
@@ -243,7 +246,10 @@ function StudentsPage() {
                   title="Send onboarding link on WhatsApp"
                   onClick={() => {
                     const url = `${window.location.origin}/onboard/${r.onboarding_token}`;
-                    const inst = (typeof window !== "undefined" && JSON.parse(window.localStorage.getItem("vk_institute") ?? "{}").name) || "our institute";
+                    const inst =
+                      (typeof window !== "undefined" &&
+                        JSON.parse(window.localStorage.getItem("vk_institute") ?? "{}").name) ||
+                      "our institute";
                     const msg = `Hello ${r.full_name},\n\nWelcome to ${inst}. Please fill your admission details using the link below:\n${url}\n\nThank you.`;
                     if (!openWhatsApp(r.phone, msg)) toast.error("No phone number on file");
                   }}
@@ -449,9 +455,10 @@ function StudentsPage() {
         ]}
         onImport={async (rows) => {
           const payload = rows.map((r) => {
-            const pc = String(r.preferred_contact ?? "father").toLowerCase() === "mother"
-              ? "mother"
-              : "father";
+            const pc =
+              String(r.preferred_contact ?? "father").toLowerCase() === "mother"
+                ? "mother"
+                : "father";
             return {
               ...r,
               preferred_contact: pc,

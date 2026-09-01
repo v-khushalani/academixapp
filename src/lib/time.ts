@@ -20,4 +20,3 @@ export function formatTime12(t?: string | null): string {
   const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
   return mm === 0 ? `${h12} ${suffix}` : `${h12}:${String(mm).padStart(2, "0")} ${suffix}`;
 }
-

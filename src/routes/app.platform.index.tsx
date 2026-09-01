@@ -195,7 +195,10 @@ function PlatformOverview() {
           )}
         </Panel>
 
-        <Panel title="Recent plan changes" action={{ to: "/app/platform/features", label: "Features" }}>
+        <Panel
+          title="Recent plan changes"
+          action={{ to: "/app/platform/features", label: "Features" }}
+        >
           {changes.length === 0 ? (
             <Empty>No plan changes logged yet.</Empty>
           ) : (

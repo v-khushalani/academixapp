@@ -68,10 +68,7 @@ export function DevicesPanel() {
     queryFn: () => studentsApi.list(),
   });
 
-  const nameOf = useMemo(
-    () => new Map(students.map((s) => [s.id, s.full_name])),
-    [students],
-  );
+  const nameOf = useMemo(() => new Map(students.map((s) => [s.id, s.full_name])), [students]);
 
   const addDevice = useMutation({
     mutationFn: async () => {
@@ -165,10 +162,19 @@ export function DevicesPanel() {
           }}
         >
           <F label="Device name">
-            <Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Front gate reader" />
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              placeholder="Front gate reader"
+            />
           </F>
           <F label="Location">
-            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Reception" />
+            <Input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Reception"
+            />
           </F>
           <div className="flex items-end">
             <Button type="submit" size="sm" className="gap-1.5" disabled={addDevice.isPending}>
@@ -194,7 +200,10 @@ export function DevicesPanel() {
                     {d.last_seen_at ? `last seen ${formatDateTime(d.last_seen_at)}` : "never seen"}
                   </p>
                 </div>
-                <Badge variant="secondary" className={d.is_active ? "bg-success/10 text-success" : ""}>
+                <Badge
+                  variant="secondary"
+                  className={d.is_active ? "bg-success/10 text-success" : ""}
+                >
                   {d.is_active ? "active" : "off"}
                 </Badge>
                 <Button
@@ -238,7 +247,12 @@ export function DevicesPanel() {
           }}
         >
           <F label="Card / finger ID">
-            <Input value={uid} onChange={(e) => setUid(e.target.value)} required placeholder="0006123456" />
+            <Input
+              value={uid}
+              onChange={(e) => setUid(e.target.value)}
+              required
+              placeholder="0006123456"
+            />
           </F>
           <F label="Student">
             <Select value={studentId} onValueChange={setStudentId}>
@@ -266,7 +280,10 @@ export function DevicesPanel() {
             <p className="text-xs text-muted-foreground">No cards linked yet.</p>
           ) : (
             maps.map((m) => (
-              <div key={m.id} className="flex items-center gap-2 rounded-md border border-border p-2.5">
+              <div
+                key={m.id}
+                className="flex items-center gap-2 rounded-md border border-border p-2.5"
+              >
                 <span className="font-mono text-xs">{m.uid}</span>
                 <span className="min-w-0 flex-1 truncate text-sm">
                   {nameOf.get(m.student_id) ?? "Unknown student"}

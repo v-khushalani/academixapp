@@ -88,9 +88,7 @@ function PortalHome() {
         />
         <StatTile
           label="Last test"
-          value={
-            last?.test ? `${last.marks ?? "—"}/${last.test.max_marks}` : "—"
-          }
+          value={last?.test ? `${last.marks ?? "—"}/${last.test.max_marks}` : "—"}
           sub={last?.test?.title ?? "No tests yet"}
         />
         <StatTile

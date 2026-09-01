@@ -16,11 +16,7 @@ export const STATUS_LABEL: Record<ChapterStatus, string> = {
 export const syllabusApi = {
   /** Chapters for one batch (or the whole institute when no batch is given). */
   async chapters(batchId?: string) {
-    let q = supabase
-      .from("syllabus_chapters")
-      .select("*")
-      .order("subject")
-      .order("position");
+    let q = supabase.from("syllabus_chapters").select("*").order("subject").order("position");
     if (batchId) q = q.eq("batch_id", batchId);
     const { data, error } = await q;
     if (error) throw error;
@@ -152,7 +148,8 @@ export function groupBySubject(chapters: Chapter[]): SubjectProgress[] {
       const weight = (c: Chapter) => Math.max(1, c.planned_sessions || 1);
       const totalW = list.reduce((s, c) => s + weight(c), 0);
       const doneW = list.reduce(
-        (s, c) => s + (c.status === "done" ? weight(c) : c.status === "in_progress" ? weight(c) / 2 : 0),
+        (s, c) =>
+          s + (c.status === "done" ? weight(c) : c.status === "in_progress" ? weight(c) / 2 : 0),
         0,
       );
       return {

@@ -72,4 +72,3 @@ export function useAuth() {
 
   return { ...state, signOut };
 }
-

@@ -57,8 +57,7 @@ function FeesPage() {
 
   const filtered = useMemo(() => {
     let rows = data;
-    if (status !== "all")
-      rows = rows.filter((f) => displayFeeStatus(f) === status);
+    if (status !== "all") rows = rows.filter((f) => displayFeeStatus(f) === status);
     if (followUp !== "all") rows = rows.filter((f) => feeFollowUpState(f) === followUp);
     return rows;
   }, [data, status, followUp]);
@@ -235,7 +234,9 @@ function FeesPage() {
   async function openCollect(r: Row) {
     const { data } = await supabase
       .from("students")
-      .select("full_name, admission_no, class, parent_phone, phone, preferred_contact, father_phone, mother_phone, batch:batches(name)")
+      .select(
+        "full_name, admission_no, class, parent_phone, phone, preferred_contact, father_phone, mother_phone, batch:batches(name)",
+      )
       .eq("id", r.student_id)
       .maybeSingle();
     const s = data as {
@@ -358,31 +359,31 @@ function FeesPage() {
             loading={isLoading}
             toolbar={
               <div className="flex flex-wrap gap-2">
-              <Select value={followUp} onValueChange={setFollowUp}>
-                <SelectTrigger className="h-9 w-full sm:w-[150px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All follow-ups</SelectItem>
-                  <SelectItem value="due_7">Due in 7 days</SelectItem>
-                  <SelectItem value="due_2">Due in 2 days</SelectItem>
-                  <SelectItem value="overdue">Overdue</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="h-9 w-full sm:w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="partial">Partial</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="overdue">Overdue</SelectItem>
-                  <SelectItem value="waived">Waived</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={followUp} onValueChange={setFollowUp}>
+                  <SelectTrigger className="h-9 w-full sm:w-[150px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All follow-ups</SelectItem>
+                    <SelectItem value="due_7">Due in 7 days</SelectItem>
+                    <SelectItem value="due_2">Due in 2 days</SelectItem>
+                    <SelectItem value="overdue">Overdue</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger className="h-9 w-full sm:w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All statuses</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="partial">Partial</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="overdue">Overdue</SelectItem>
+                    <SelectItem value="waived">Waived</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             }
           />

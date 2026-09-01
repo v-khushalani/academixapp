@@ -128,7 +128,11 @@ export function FacultyInviteDialog({
             }}
           >
             <F label="Teacher name *">
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" />
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Full name"
+              />
             </F>
             <F label="WhatsApp number">
               <Input

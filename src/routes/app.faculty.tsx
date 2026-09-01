@@ -99,12 +99,7 @@ function FacultyPage() {
       cell: (r) =>
         canWrite ? (
           <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-            <Button
-              size="icon"
-              variant="ghost"
-              title="Salary"
-              onClick={() => setSalaryFor(r)}
-            >
+            <Button size="icon" variant="ghost" title="Salary" onClick={() => setSalaryFor(r)}>
               <Wallet className="h-4 w-4" />
             </Button>
             <Button

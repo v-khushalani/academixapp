@@ -46,7 +46,10 @@ function MessagesPage() {
   const [composeOpen, setComposeOpen] = useState(false);
   const [tab, setTab] = useState<"pending" | "history">("pending");
 
-  const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
+  const { data: batches = [] } = useQuery({
+    queryKey: ["batches"],
+    queryFn: () => batchesApi.list(),
+  });
   const filters = {
     from: from || undefined,
     to: to || undefined,
@@ -92,95 +95,107 @@ function MessagesPage() {
           <PendingQueue />
         ) : (
           <>
-          <div className="flex flex-wrap items-end gap-2">
-            <Filter label="From">
-              <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-full sm:w-[150px]" />
-            </Filter>
-            <Filter label="To">
-              <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-full sm:w-[150px]" />
-            </Filter>
-            <Filter label="Batch">
-              <Select value={batchId} onValueChange={setBatchId}>
-                <SelectTrigger className="w-full sm:w-[160px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL}>All batches</SelectItem>
-                  {batches.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Filter>
-            <Filter label="Type">
-              <Select value={kind} onValueChange={setKind}>
-                <SelectTrigger className="w-full sm:w-[160px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL}>All types</SelectItem>
-                  {Object.entries(MESSAGE_KINDS).map(([k, label]) => (
-                    <SelectItem key={k} value={k}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Filter>
-            <Filter label="Status">
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="w-full sm:w-[130px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL}>All</SelectItem>
-                  <SelectItem value="sent">Sent</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-            </Filter>
-          </div>
+            <div className="flex flex-wrap items-end gap-2">
+              <Filter label="From">
+                <Input
+                  type="date"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                  className="w-full sm:w-[150px]"
+                />
+              </Filter>
+              <Filter label="To">
+                <Input
+                  type="date"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                  className="w-full sm:w-[150px]"
+                />
+              </Filter>
+              <Filter label="Batch">
+                <Select value={batchId} onValueChange={setBatchId}>
+                  <SelectTrigger className="w-full sm:w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL}>All batches</SelectItem>
+                    {batches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Filter>
+              <Filter label="Type">
+                <Select value={kind} onValueChange={setKind}>
+                  <SelectTrigger className="w-full sm:w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL}>All types</SelectItem>
+                    {Object.entries(MESSAGE_KINDS).map(([k, label]) => (
+                      <SelectItem key={k} value={k}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Filter>
+              <Filter label="Status">
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger className="w-full sm:w-[130px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL}>All</SelectItem>
+                    <SelectItem value="sent">Sent</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Filter>
+            </div>
 
-          <p className="mt-4 text-xs text-muted-foreground">
-            {isLoading ? "Loading…" : `${rows.length} message${rows.length === 1 ? "" : "s"} · ${sentCount} sent`}
-          </p>
+            <p className="mt-4 text-xs text-muted-foreground">
+              {isLoading
+                ? "Loading…"
+                : `${rows.length} message${rows.length === 1 ? "" : "s"} · ${sentCount} sent`}
+            </p>
 
-          <ul className="mt-2 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
-            {rows.length === 0 && !isLoading ? (
-              <li className="px-4 py-10 text-center text-sm text-muted-foreground">
-                No messages yet. Fee reminders, absent alerts and results land here once sent.
-              </li>
-            ) : null}
-            {rows.map((r) => (
-              <li key={r.id} className="flex gap-3 px-4 py-3">
-                <span className="mt-0.5 shrink-0">
-                  {r.status === "failed" ? (
-                    <XCircle className="h-4 w-4 text-destructive" />
-                  ) : (
-                    <CheckCircle2 className="h-4 w-4 text-success" />
-                  )}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-medium">
-                      {r.recipient_name || r.student?.full_name || "—"}
-                    </span>
-                    <Badge variant="outline" className="text-[10px]">
-                      {MESSAGE_KINDS[r.kind as MessageKind] ?? r.kind}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDateTime(r.sent_at ?? r.created_at)}
-                    </span>
+            <ul className="mt-2 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+              {rows.length === 0 && !isLoading ? (
+                <li className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  No messages yet. Fee reminders, absent alerts and results land here once sent.
+                </li>
+              ) : null}
+              {rows.map((r) => (
+                <li key={r.id} className="flex gap-3 px-4 py-3">
+                  <span className="mt-0.5 shrink-0">
+                    {r.status === "failed" ? (
+                      <XCircle className="h-4 w-4 text-destructive" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-medium">
+                        {r.recipient_name || r.student?.full_name || "—"}
+                      </span>
+                      <Badge variant="outline" className="text-[10px]">
+                        {MESSAGE_KINDS[r.kind as MessageKind] ?? r.kind}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDateTime(r.sent_at ?? r.created_at)}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 line-clamp-2 whitespace-pre-line text-xs text-muted-foreground">
+                      {r.message}
+                    </p>
                   </div>
-                  <p className="mt-0.5 line-clamp-2 whitespace-pre-line text-xs text-muted-foreground">
-                    {r.message}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
           </>
         )}
       </PageBody>
@@ -207,7 +222,11 @@ function Filter({ label, children }: { label: string; children: React.ReactNode 
 
 const PRESETS: { key: MessageKind; label: string; body: () => string }[] = [
   { key: "fee_reminder", label: "Fee reminder", body: () => getTemplates().fee_pending },
-  { key: "attendance_absent", label: "Attendance alert", body: () => getTemplates().attendance_absent },
+  {
+    key: "attendance_absent",
+    label: "Attendance alert",
+    body: () => getTemplates().attendance_absent,
+  },
   {
     key: "result",
     label: "Result",
@@ -233,7 +252,10 @@ function ComposeDialog({
   const [body, setBody] = useState(PRESETS[0]!.body());
   const [done, setDone] = useState<Record<string, boolean>>({});
 
-  const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list() });
+  const { data: batches = [] } = useQuery({
+    queryKey: ["batches"],
+    queryFn: () => batchesApi.list(),
+  });
   const { data: students = [] } = useQuery({
     queryKey: ["students"],
     queryFn: () => studentsApi.list(),
@@ -328,7 +350,9 @@ function ComposeDialog({
           <Label htmlFor="msg-body">Message</Label>
           <Textarea id="msg-body" rows={6} value={body} onChange={(e) => setBody(e.target.value)} />
           <p className="text-[11px] text-muted-foreground">
-            {"{{student_name}}, {{parent_name}}, {{batch_name}}, {{academy_name}} fill in automatically."}
+            {
+              "{{student_name}}, {{parent_name}}, {{batch_name}}, {{academy_name}} fill in automatically."
+            }
           </p>
         </div>
 

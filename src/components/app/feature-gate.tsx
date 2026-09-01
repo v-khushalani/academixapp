@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { useFeatures } from "@/hooks/use-features";
 import { FEATURE_LABEL, type FeatureKey } from "@/lib/features";
 
-
 /** Route prefix → feature, longest match first. */
 const ROUTE_FEATURE: [string, FeatureKey][] = [
   ["/app/admissions", "admissions"],
@@ -24,7 +23,6 @@ export function featureForPath(pathname: string): FeatureKey | null {
   return hit ? hit[1] : null;
 }
 
-
 /** Shown instead of a module the institute's plan does not include. */
 export function FeatureLocked({
   feature,
@@ -39,9 +37,7 @@ export function FeatureLocked({
         <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-muted">
           <Lock className="h-5 w-5 text-muted-foreground" />
         </div>
-        <h2 className="mt-4 text-lg font-semibold">
-          {FEATURE_LABEL[feature]} is not on your plan
-        </h2>
+        <h2 className="mt-4 text-lg font-semibold">{FEATURE_LABEL[feature]} is not on your plan</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           This module is switched off for your institute. Team Academix can enable it right away —
           call 70666 70222 or ask for an upgrade.
@@ -54,7 +50,6 @@ export function FeatureLocked({
             <Link to={backTo}>Go back</Link>
           </Button>
         </div>
-
       </div>
     </div>
   );

@@ -150,9 +150,6 @@ export const FEATURE_LABEL = Object.fromEntries(FEATURES.map((f) => [f.key, f.la
   string
 >;
 
-const FEATURE_KEYS = FEATURES.map((f) => f.key);
-
-
 /** Which console module each feature gates. Modules absent here are always on. */
 export const MODULE_FEATURE: Partial<Record<ModuleKey, FeatureKey>> = {
   admissions: "admissions",
@@ -193,7 +190,11 @@ export function resolveFeatures(
   const out: FeatureMap = {};
   for (const f of FEATURES) {
     let own = institute?.[f.key];
-    if (own === undefined && legacyPortalOff && (f.key === "student_portal" || f.key === "parent_portal")) {
+    if (
+      own === undefined &&
+      legacyPortalOff &&
+      (f.key === "student_portal" || f.key === "parent_portal")
+    ) {
       own = false;
     }
     out[f.key] = globalOff.includes(f.key) ? false : own !== false;

@@ -34,4 +34,3 @@ export function normalisePlan(raw: unknown): Installment[] {
 export function planTotal(plan: Installment[]): number {
   return plan.reduce((s, p) => s + (Number(p.share) || 0), 0);
 }
-

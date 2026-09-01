@@ -69,8 +69,6 @@ export const LINKED_KEYS = [
   "teach-marks-roster",
 ] as const;
 
-
-
 // ---------- Students ----------
 export const studentsApi = {
   async list(opts?: {
@@ -210,7 +208,9 @@ export const feesApi = {
         method: method || null,
         paid_date: new Date().toISOString().slice(0, 10),
         receipt_no: row.receipt_no ?? makeReceiptNo(),
-        description: note ? `${row.description ?? ""}${row.description ? " · " : ""}${note}` : row.description,
+        description: note
+          ? `${row.description ?? ""}${row.description ? " · " : ""}${note}`
+          : row.description,
       })
       .eq("id", feeId);
     if (error) throw error;
@@ -329,7 +329,11 @@ export function makeReceiptNo() {
 }
 
 /** Single source of truth for "how much is still owed" on one fee row. */
-export function outstandingOf(f: { amount: number | string; amount_paid?: number | string | null; status?: string | null }) {
+export function outstandingOf(f: {
+  amount: number | string;
+  amount_paid?: number | string | null;
+  status?: string | null;
+}) {
   if (f.status === "waived" || f.status === "paid" || f.status === "cancelled") return 0;
   return Math.max(0, Number(f.amount) - Number(f.amount_paid ?? 0));
 }
@@ -519,7 +523,10 @@ export const dashboardApi = {
         .select("id", { count: "exact", head: true })
         .eq("approval_status", "approved")
         .gte("admission_date", monthStart),
-      supabase.from("students").select("id", { count: "exact", head: true }).eq("approval_status", "pending"),
+      supabase
+        .from("students")
+        .select("id", { count: "exact", head: true })
+        .eq("approval_status", "pending"),
       supabase
         .from("students")
         .select("id", { count: "exact", head: true })
@@ -558,7 +565,12 @@ export const dashboardApi = {
       if (days <= 30) ageing.current += due;
       else if (days <= 60) ageing.d30 += due;
       else ageing.d60 += due;
-      const s = f.student as { id?: string; full_name?: string; parent_phone?: string | null; phone?: string | null } | null;
+      const s = f.student as {
+        id?: string;
+        full_name?: string;
+        parent_phone?: string | null;
+        phone?: string | null;
+      } | null;
       if (s?.id) {
         const found = defaulters.find((d) => d.id === s.id);
         if (found) found.due += due;

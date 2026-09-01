@@ -121,12 +121,7 @@ export function ClassTimetable({ slots, batches }: { slots: SlotRow[]; batches: 
             <Share2 className="h-4 w-4" />
             <span className="hidden sm:inline">Text</span>
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="gap-1.5"
-            onClick={() => window.print()}
-          >
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => window.print()}>
             <Printer className="h-4 w-4" />
             <span className="hidden sm:inline">Print</span>
           </Button>
@@ -175,9 +170,7 @@ export function ClassTimetable({ slots, batches }: { slots: SlotRow[]; batches: 
                       >
                         {s ? (
                           <div className="rounded-md bg-primary/10 px-2 py-1.5">
-                            <p className="truncate text-xs font-semibold">
-                              {s.subject ?? "Class"}
-                            </p>
+                            <p className="truncate text-xs font-semibold">{s.subject ?? "Class"}</p>
                             <p className="truncate text-[11px] text-muted-foreground">
                               {s.faculty?.full_name ?? "—"}
                             </p>

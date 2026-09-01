@@ -21,13 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import {
-  batchesApi,
-  instituteApi,
-  roomsApi,
-  userRolesApi,
-  type AppRole,
-} from "@/lib/api";
+import { batchesApi, instituteApi, roomsApi, userRolesApi, type AppRole } from "@/lib/api";
 import { planFor } from "@/lib/plans";
 import {
   getInstitute,
@@ -37,7 +31,6 @@ import {
   DEFAULT_SHIFTS,
   RECEIPT_TEMPLATES,
   canUseOwnBranding,
-
   type InstituteSettings,
   type ReceiptTemplate,
   type ReceiptPaper,
@@ -88,8 +81,13 @@ function SettingsPage() {
               {getInstitute().attendance_devices ? (
                 <DevicesPanel />
               ) : (
-                <Card title="Attendance machines" description="RFID and biometric attendance is available on paid plans.">
-                  <Button asChild variant="outline"><Link to="/pricing">View plans</Link></Button>
+                <Card
+                  title="Attendance machines"
+                  description="RFID and biometric attendance is available on paid plans."
+                >
+                  <Button asChild variant="outline">
+                    <Link to="/pricing">View plans</Link>
+                  </Button>
                 </Card>
               )}
             </div>
@@ -98,7 +96,10 @@ function SettingsPage() {
             <TemplatesPanel />
           </TabsContent>
           <TabsContent value="brand-print">
-            <div className="space-y-4"><BrandingPanel /><ReceiptsPanel /></div>
+            <div className="space-y-4">
+              <BrandingPanel />
+              <ReceiptsPanel />
+            </div>
           </TabsContent>
         </Tabs>
       </PageBody>
@@ -169,13 +170,12 @@ function InstitutePanel() {
       <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
         {!canUseOwnBranding(s.plan) && (
           <div className="rounded-lg border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground sm:col-span-2">
-            <strong className="font-medium text-foreground">Free plan:</strong> receipts, payment QRs
-            and portals carry Academix branding. Upgrade to Growth or Campus to show your own logo
-            and institute name on everything parents see.
+            <strong className="font-medium text-foreground">Free plan:</strong> receipts, payment
+            QRs and portals carry Academix branding. Upgrade to Growth or Campus to show your own
+            logo and institute name on everything parents see.
           </div>
         )}
         <div className="flex flex-col gap-4 rounded-lg border border-border p-3 sm:col-span-2 sm:flex-row sm:items-center">
-
           <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
             {s.logo_url ? (
               <img src={s.logo_url} alt="Institute logo" className="h-full w-full object-contain" />
@@ -334,7 +334,9 @@ function RoomsPanel() {
             — {used} of {limit} classrooms used
           </span>
         </div>
-        <Button asChild size="sm" variant="outline" className="ml-auto"><Link to="/pricing">Plan details</Link></Button>
+        <Button asChild size="sm" variant="outline" className="ml-auto">
+          <Link to="/pricing">Plan details</Link>
+        </Button>
       </div>
       {atLimit && (
         <p className="mb-2 text-xs text-destructive">
@@ -843,9 +845,7 @@ function ReceiptsPanel() {
               type="button"
               onClick={() => setTpl(t.key)}
               className={`w-full rounded-lg border p-3 text-left transition-colors ${
-                tpl === t.key
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:bg-muted/50"
+                tpl === t.key ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
               }`}
             >
               <p className="text-sm font-semibold">{t.name}</p>
@@ -855,7 +855,9 @@ function ReceiptsPanel() {
           <div className="space-y-1.5 pt-2">
             <Label>Paper format</Label>
             <Select value={paper} onValueChange={(value) => setPaper(value as ReceiptPaper)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="a5">A5 — one receipt</SelectItem>
                 <SelectItem value="a4-two-up">A4 — full page</SelectItem>
