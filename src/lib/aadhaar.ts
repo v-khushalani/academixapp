@@ -120,3 +120,57 @@ export async function aadhaarFingerprint(seed: string): Promise<string> {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
+
+/* ------------------------------------------------------------------ */
+/* Aadhaar number (typed by hand when the card / QR is not available)  */
+/* ------------------------------------------------------------------ */
+
+const D = [
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  [1, 2, 3, 4, 0, 6, 7, 8, 9, 5],
+  [2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
+  [3, 4, 0, 1, 2, 8, 9, 5, 6, 7],
+  [4, 0, 1, 2, 3, 9, 5, 6, 7, 8],
+  [5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
+  [6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
+  [7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
+  [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
+  [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+];
+const P = [
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  [1, 5, 7, 6, 2, 8, 3, 0, 9, 4],
+  [5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
+  [8, 9, 1, 6, 0, 4, 3, 5, 2, 7],
+  [9, 4, 5, 3, 1, 2, 6, 8, 7, 0],
+  [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
+  [2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
+  [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
+];
+
+/**
+ * UIDAI numbers carry a Verhoeff checksum. This catches typos locally — it does
+ * NOT prove the number exists (that needs a licensed UIDAI API).
+ */
+export function isValidAadhaarNumber(input: string): boolean {
+  const digits = input.replace(/\D/g, "");
+  if (digits.length !== 12 || digits[0] === "0" || digits[0] === "1") return false;
+  let c = 0;
+  digits
+    .split("")
+    .reverse()
+    .forEach((ch, i) => {
+      c = D[c][P[i % 8][Number(ch)]];
+    });
+  return c === 0;
+}
+
+export function formatAadhaar(input: string): string {
+  return (
+    input
+      .replace(/\D/g, "")
+      .slice(0, 12)
+      .match(/.{1,4}/g)
+      ?.join(" ") ?? ""
+  );
+}

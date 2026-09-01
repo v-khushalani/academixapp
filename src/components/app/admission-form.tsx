@@ -36,7 +36,7 @@ type Props = {
   onSubmit: (
     values: AdmissionFormValues,
     photoPath: string | null,
-    aadhaar: { hash: string; last4: string; editedFields: string[] } | null,
+    aadhaar: { hash: string; last4: string; editedFields: string[]; verified: boolean } | null,
   ) => void | Promise<void>;
   saving?: boolean;
 };
@@ -102,10 +102,18 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
 
   function validate(i: number): boolean {
     if (i === 0) {
-      if (!aadhaar) return !toast.error("Please scan the student's Aadhaar QR to continue");
+      if (!aadhaar)
+        return !toast.error(
+          "Scan the Aadhaar QR, type the Aadhaar number, or choose to fill manually",
+        );
       if (!v.full_name.trim()) return !toast.error("Student's full name is required");
+      if (aadhaar.source !== "qr") {
+        if (!v.dob) return !toast.error("Date of birth is required");
+        if (!v.address.trim()) return !toast.error("Address is required");
+      }
       if (v.phone.replace(/\D/g, "").length < 10)
         return !toast.error("Please enter a valid 10-digit mobile number");
+
       return true;
     }
     if (i === 1) {
@@ -161,8 +169,16 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
     await onSubmit(
       v,
       photoPath,
-      aadhaar ? { hash: aadhaar.hash, last4: aadhaar.profile.last4, editedFields } : null,
+      aadhaar && aadhaar.source !== "manual"
+        ? {
+            hash: aadhaar.hash,
+            last4: aadhaar.profile.last4,
+            editedFields,
+            verified: aadhaar.source === "qr",
+          }
+        : null,
     );
+
   }
 
   const busy = Boolean(saving) || uploading;
@@ -203,39 +219,81 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
                     address: r.profile.address,
                   };
                   setAadhaar(r);
-                  setAutoFilled(filled);
-                  setV((p) => ({ ...p, ...filled }));
+                  setAutoFilled(r.source === "qr" ? filled : {});
+                  if (r.source === "qr") setV((p) => ({ ...p, ...filled }));
                 }}
+                onSkip={() =>
+                  setAadhaar({
+                    profile: {
+                      name: "",
+                      dob: "",
+                      gender: "",
+                      address: "",
+                      last4: "",
+                      photo: "",
+                    },
+                    hash: "",
+                    source: "manual",
+                  })
+                }
               />
             </div>
             {aadhaar ? (
-              <>
-                <div className="sm:col-span-2 rounded-lg border border-border bg-muted/40 p-3">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Fetched from Aadhaar
-                  </p>
-                  <dl className="mt-2 space-y-1.5 text-sm">
-                    <Row label="Name" value={v.full_name} />
-                    <Row label="Date of birth" value={v.dob} />
-                    <Row label="Address" value={v.address} />
-                    <Row label="Aadhaar" value={`XXXX XXXX ${aadhaar.profile.last4}`} />
-                  </dl>
-                </div>
-                <F label="Student's mobile number *" cls="sm:col-span-2">
-                  <Input
-                    inputMode="numeric"
-                    value={v.phone}
-                    onChange={(e) => set("phone", e.target.value)}
-                    placeholder="10-digit number"
-                    autoFocus
-                  />
-                </F>
-              </>
+              aadhaar.source === "qr" ? (
+                <>
+                  <div className="sm:col-span-2 rounded-lg border border-border bg-muted/40 p-3">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Fetched from Aadhaar
+                    </p>
+                    <dl className="mt-2 space-y-1.5 text-sm">
+                      <Row label="Name" value={v.full_name} />
+                      <Row label="Date of birth" value={v.dob} />
+                      <Row label="Address" value={v.address} />
+                      <Row label="Aadhaar" value={`XXXX XXXX ${aadhaar.profile.last4}`} />
+                    </dl>
+                  </div>
+                  <F label="Student's mobile number *" cls="sm:col-span-2">
+                    <Input
+                      inputMode="numeric"
+                      value={v.phone}
+                      onChange={(e) => set("phone", e.target.value)}
+                      placeholder="10-digit number"
+                      autoFocus
+                    />
+                  </F>
+                </>
+              ) : (
+                <>
+                  <F label="Student's full name *" cls="sm:col-span-2">
+                    <Input
+                      value={v.full_name}
+                      onChange={(e) => set("full_name", e.target.value)}
+                      autoFocus
+                    />
+                  </F>
+                  <F label="Date of birth *">
+                    <Input type="date" value={v.dob} onChange={(e) => set("dob", e.target.value)} />
+                  </F>
+                  <F label="Student's mobile number *">
+                    <Input
+                      inputMode="numeric"
+                      value={v.phone}
+                      onChange={(e) => set("phone", e.target.value)}
+                      placeholder="10-digit number"
+                    />
+                  </F>
+                  <F label="Address *" cls="sm:col-span-2">
+                    <Input value={v.address} onChange={(e) => set("address", e.target.value)} />
+                  </F>
+                </>
+              )
             ) : (
               <p className="sm:col-span-2 text-xs text-muted-foreground">
-                Aadhaar scan is required. Once it is read, we show you exactly what was fetched.
+                Scan the Aadhaar QR to auto-fill. No card handy? Type the Aadhaar number, or choose
+                “No Aadhaar — fill manually”.
               </p>
             )}
+
           </Frame>
         )}
 
