@@ -36,7 +36,7 @@ type Props = {
   onSubmit: (
     values: AdmissionFormValues,
     photoPath: string | null,
-    aadhaar: { hash: string; last4: string; editedFields: string[] } | null,
+    aadhaar: { hash: string; last4: string; editedFields: string[]; verified: boolean } | null,
   ) => void | Promise<void>;
   saving?: boolean;
 };
