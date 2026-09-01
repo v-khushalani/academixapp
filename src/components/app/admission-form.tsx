@@ -102,10 +102,18 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
 
   function validate(i: number): boolean {
     if (i === 0) {
-      if (!aadhaar) return !toast.error("Please scan the student's Aadhaar QR to continue");
+      if (!aadhaar)
+        return !toast.error(
+          "Scan the Aadhaar QR, type the Aadhaar number, or choose to fill manually",
+        );
       if (!v.full_name.trim()) return !toast.error("Student's full name is required");
+      if (aadhaar.source !== "qr") {
+        if (!v.dob) return !toast.error("Date of birth is required");
+        if (!v.address.trim()) return !toast.error("Address is required");
+      }
       if (v.phone.replace(/\D/g, "").length < 10)
         return !toast.error("Please enter a valid 10-digit mobile number");
+
       return true;
     }
     if (i === 1) {
