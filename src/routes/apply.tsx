@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdmissionForm, type AdmissionFormValues } from "@/components/app/admission-form";
-import { getInstitute } from "@/lib/academy-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,7 +46,27 @@ function ApplyPage() {
   const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
-  const instituteName = getInstitute().name || "Academix";
+  // Branding comes from the slug in the QR link — never from this browser's
+  // cache, which may still hold whichever institute last signed in here.
+  const [brand, setBrand] = useState<{ name: string; logo: string }>({ name: "", logo: "" });
+  useEffect(() => {
+    let alive = true;
+    if (!instituteSlug) {
+      setBrand({ name: "", logo: "" });
+      return;
+    }
+    void supabase
+      .rpc("public_institute_brand", { _slug: instituteSlug })
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!alive || !data) return;
+        setBrand({ name: data.name ?? "", logo: data.custom_branding ? (data.logo_url ?? "") : "" });
+      });
+    return () => {
+      alive = false;
+    };
+  }, [instituteSlug]);
+  const instituteName = brand.name || "Academix";
   const initials = (instituteName.match(/\b\w/g) || ["A"]).slice(0, 2).join("").toUpperCase();
 
   async function onSubmit(
@@ -77,7 +96,7 @@ function ApplyPage() {
       _institute_slug: instituteSlug ?? "",
       _aadhaar_last4: aadhaar?.last4 ?? "",
       _aadhaar_hash: aadhaar?.hash ?? "",
-      _aadhaar_verified: Boolean(aadhaar),
+      _aadhaar_verified: aadhaar?.verified ?? false,
       _aadhaar_edited_fields: aadhaar?.editedFields ?? [],
     });
     setSaving(false);
@@ -130,9 +149,17 @@ function ApplyPage() {
     <div className="min-h-screen bg-background px-4 py-10">
       <div className="mx-auto max-w-2xl rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="mb-6 flex items-center gap-2">
-          <div className="grid h-10 w-10 place-items-center rounded-md bg-primary text-primary-foreground">
-            <span className="text-sm font-bold">{initials}</span>
-          </div>
+          {brand.logo ? (
+            <img
+              src={brand.logo}
+              alt={instituteName}
+              className="h-10 w-10 rounded-md border border-border bg-card object-contain"
+            />
+          ) : (
+            <div className="grid h-10 w-10 place-items-center rounded-md bg-primary text-primary-foreground">
+              <span className="text-sm font-bold">{initials}</span>
+            </div>
+          )}
           <div>
             <p className="text-sm font-semibold tracking-tight">{instituteName}</p>
             <p className="text-xs text-muted-foreground">
