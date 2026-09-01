@@ -521,7 +521,7 @@ function TimetablePage() {
                       />
                     </div>
                     <div className="space-y-2 md:hidden">
-                      {bands.map((b, i) => {
+                      {bands.map((b) => {
                         const rows = columns
                           .map((c) => ({ col: c, s: slotAt(c.id, b, daySlots) }))
                           .filter((r) => r.s);

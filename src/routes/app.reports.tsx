@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { feesApi, studentsApi, attendanceApi, batchesApi } from "@/lib/api";
+import { feesApi, studentsApi, batchesApi } from "@/lib/api";
 import { exportCSV, exportPDF, type Column } from "@/lib/exporters";
 import { supabase } from "@/integrations/supabase/client";
 

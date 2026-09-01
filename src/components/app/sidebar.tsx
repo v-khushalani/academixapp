@@ -14,7 +14,6 @@ import {
   MessageSquare,
   IndianRupee,
   Settings,
-  ShieldCheck,
   LogOut,
   Gauge,
   Building2,

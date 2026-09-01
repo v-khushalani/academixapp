@@ -18,7 +18,7 @@ import { batchesApi, attendanceApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import type { Database } from "@/integrations/supabase/types";
-import { WA_TEMPLATES, openWhatsApp, renderTemplate } from "@/lib/whatsapp";
+import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
 import { logMessage } from "@/lib/api/messages";
 import { getTemplates, getInstitute } from "@/lib/academy-settings";
 
