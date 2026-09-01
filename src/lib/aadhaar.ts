@@ -120,13 +120,3 @@ export async function aadhaarFingerprint(seed: string): Promise<string> {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
-
-/** Demo payload used by the "Simulate scan" button while auditing. */
-export const SAMPLE_AADHAAR: AadhaarProfile = {
-  name: "Aarav Sharma",
-  dob: "2010-06-14",
-  gender: "M",
-  address: "12, MG Road, Shivaji Nagar, Pune, Maharashtra, 411005",
-  last4: "4821",
-  photo: "",
-};

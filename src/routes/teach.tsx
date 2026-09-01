@@ -62,7 +62,6 @@ function TeachLayout() {
   const active = (to: string, exact?: boolean) =>
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
 
-
   return (
     <div className="flex min-h-screen flex-col bg-background pb-16 md:pb-0">
       <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-card px-4 py-3">

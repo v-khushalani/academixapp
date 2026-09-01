@@ -117,18 +117,6 @@ export function reconcile(slots: SlotRow[]): { clashes: Clash[]; badIds: Set<str
 }
 
 /** Soft warnings when a batch's strength exceeds the classroom capacity. */
-export function capacityWarnings(
-  slots: SlotRow[],
-  batchStrength: Map<string, number>,
-): { slot: SlotRow; strength: number; capacity: number }[] {
-  const out: { slot: SlotRow; strength: number; capacity: number }[] = [];
-  for (const s of slots) {
-    const cap = s.room_ref?.capacity;
-    const strength = s.batch_id ? (batchStrength.get(s.batch_id) ?? 0) : 0;
-    if (cap && strength > cap) out.push({ slot: s, strength, capacity: cap });
-  }
-  return out;
-}
 
 export function buildBands(start: string, end: string, period: number): Band[] {
   const out: Band[] = [];

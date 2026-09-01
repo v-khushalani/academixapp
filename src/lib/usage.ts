@@ -106,7 +106,3 @@ export function limitRows(plan: Plan | PlanLimits, u: Usage): LimitRow[] {
     { label: "Teacher logins", used: u.teacherLogins, limit: plan.teacherLogins },
   ];
 }
-
-export function planOf(key: string | null | undefined) {
-  return planFor(key);
-}

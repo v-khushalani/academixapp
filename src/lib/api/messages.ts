@@ -45,18 +45,20 @@ export const messagesApi = {
     return rows as MessageRow[];
   },
   /** Records what was handed to WhatsApp. Status is `sent` — delivery is out of our hands. */
-  async log(rows: {
-    kind: MessageKind;
-    title: string;
-    message: string;
-    status?: MessageLog["status"];
-    recipient_name?: string | null;
-    recipient_phone?: string | null;
-    student_id?: string | null;
-    fee_id?: string | null;
-    test_id?: string | null;
-    queue_key?: string | null;
-  }[]) {
+  async log(
+    rows: {
+      kind: MessageKind;
+      title: string;
+      message: string;
+      status?: MessageLog["status"];
+      recipient_name?: string | null;
+      recipient_phone?: string | null;
+      student_id?: string | null;
+      fee_id?: string | null;
+      test_id?: string | null;
+      queue_key?: string | null;
+    }[],
+  ) {
     if (!rows.length) return;
     const institute_id = await instituteId();
     const now = new Date().toISOString();

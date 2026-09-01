@@ -27,10 +27,17 @@ export async function fetchAccessState(roles: AppRole[]): Promise<AccessState> {
 
   const isFamilyOnly =
     !roles.some((r) =>
-      ["owner", "admin", "receptionist", "counsellor", "accountant", "faculty", "superadmin"].includes(
-        r as string,
-      ),
-    ) && (roles.includes("student") || roles.includes("parent"));
+      [
+        "owner",
+        "admin",
+        "receptionist",
+        "counsellor",
+        "accountant",
+        "faculty",
+        "superadmin",
+      ].includes(r as string),
+    ) &&
+    (roles.includes("student") || roles.includes("parent"));
 
   if (isFamilyOnly && roles.includes("student")) {
     const { data } = await supabase

@@ -76,8 +76,6 @@ const LEGACY: Record<string, PlanKey> = {
   chain: "campus",
 };
 
-
-
 export function planFor(key: string | null | undefined): Plan {
   const k = key ? (LEGACY[key] ?? key) : null;
   return PLANS.find((p) => p.key === k) ?? PLANS[0];

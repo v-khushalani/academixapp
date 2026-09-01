@@ -146,28 +146,28 @@ function JoinPage() {
               <>
                 <OrDivider />
                 <form className="space-y-3" onSubmit={onSubmit}>
-            <F label="Your email *">
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-              />
-            </F>
-            <F label="Create a password *">
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 8 characters"
-                minLength={8}
-                required
-              />
-            </F>
-            <Button type="submit" className="w-full" disabled={saving || isLoading}>
-              {saving ? "Setting up…" : "Create my teacher account"}
-            </Button>
+                  <F label="Your email *">
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      required
+                    />
+                  </F>
+                  <F label="Create a password *">
+                    <Input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="At least 8 characters"
+                      minLength={8}
+                      required
+                    />
+                  </F>
+                  <Button type="submit" className="w-full" disabled={saving || isLoading}>
+                    {saving ? "Setting up…" : "Create my teacher account"}
+                  </Button>
                 </form>
               </>
             )}

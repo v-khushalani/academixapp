@@ -55,6 +55,8 @@ function PortalLayout() {
   }
 
   return (
-    <PortalShell>{locked ? <FeatureLocked feature={locked} backTo="/portal" /> : <Outlet />}</PortalShell>
+    <PortalShell>
+      {locked ? <FeatureLocked feature={locked} backTo="/portal" /> : <Outlet />}
+    </PortalShell>
   );
 }

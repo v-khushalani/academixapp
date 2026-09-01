@@ -8,7 +8,6 @@ import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -25,16 +24,19 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { batchesForClass } from "@/lib/class-match";
-import { batchesApi, leadsApi, studentsApi, type Lead, type LeadInsert, type Student } from "@/lib/api";
+import {
+  batchesApi,
+  leadsApi,
+  studentsApi,
+  type Lead,
+  type LeadInsert,
+  type Student,
+} from "@/lib/api";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
-import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  provisionPortalAccounts,
-  type ProvisionedAccount,
-} from "@/lib/provisioning.functions";
+import { provisionPortalAccounts, type ProvisionedAccount } from "@/lib/provisioning.functions";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { getBrandedInstitute, getInstitute } from "@/lib/academy-settings";
 import { ApplicantPreview } from "@/components/app/applicant-preview";
@@ -404,9 +406,7 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
                   : "—"}
               </td>
               <td className="px-4 py-3 text-xs text-muted-foreground">
-                {s.onboarding_completed_at
-                  ? formatDate(s.onboarding_completed_at)
-                  : "—"}
+                {s.onboarding_completed_at ? formatDate(s.onboarding_completed_at) : "—"}
               </td>
               <td className="px-4 py-3">
                 {canWrite && (
@@ -599,9 +599,7 @@ function QrCard({
     <div className="flex flex-col items-center rounded-2xl border border-border bg-card p-5 text-center shadow-sm sm:p-7">
       <span
         className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
-          tone === "primary"
-            ? "bg-primary/10 text-primary"
-            : "bg-muted text-muted-foreground"
+          tone === "primary" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
         }`}
       >
         {title}
@@ -611,12 +609,22 @@ function QrCard({
       </div>
       <p className="mt-4 max-w-[16rem] text-xs leading-relaxed text-muted-foreground">{blurb}</p>
       <div className="mt-4 grid w-full grid-cols-3 gap-2">
-        <Button type="button" size="sm" variant="outline" onClick={() => void run("png")} title="Download image">
-          <Download className="h-4 w-4" /><span className="sr-only">Download PNG</span>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => void run("png")}
+          title="Download image"
+        >
+          <Download className="h-4 w-4" />
+          <span className="sr-only">Download PNG</span>
         </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => void run("pdf")}>PDF</Button>
+        <Button type="button" size="sm" variant="outline" onClick={() => void run("pdf")}>
+          PDF
+        </Button>
         <Button type="button" size="sm" onClick={() => void run("print")} title="Print A4 poster">
-          <Printer className="h-4 w-4" /><span className="sr-only">Print poster</span>
+          <Printer className="h-4 w-4" />
+          <span className="sr-only">Print poster</span>
         </Button>
       </div>
     </div>
@@ -655,4 +663,3 @@ function QrPanel() {
     </div>
   );
 }
-

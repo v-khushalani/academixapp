@@ -292,7 +292,9 @@ export function PaymentDialog({
                 value={amount}
                 onFocus={(e) => {
                   const el = e.currentTarget;
-                  requestAnimationFrame(() => el.setSelectionRange(el.value.length, el.value.length));
+                  requestAnimationFrame(() =>
+                    el.setSelectionRange(el.value.length, el.value.length),
+                  );
                 }}
                 onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ""))}
               />
@@ -334,7 +336,12 @@ export function PaymentDialog({
                 >
                   <Copy className="h-3.5 w-3.5" /> Copy link
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={sendPaymentQr}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 gap-1.5"
+                  onClick={sendPaymentQr}
+                >
                   <MessageCircle className="h-3.5 w-3.5" /> Send QR on WhatsApp
                 </Button>
               </div>

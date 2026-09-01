@@ -24,8 +24,6 @@ export function LoginCard() {
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
 
-
-
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -110,7 +108,6 @@ export function LoginCard() {
             <Button type="submit" className="w-full" disabled={busy || !ready}>
               {busy ? "Signing in…" : "Sign in"}
             </Button>
-
           </form>
 
           {noRole && (

@@ -58,10 +58,7 @@ function SignupPage() {
               required
             />
           </div>
-          <GoogleButton
-            label="Create with Google"
-            instituteName={institute.trim() || undefined}
-          />
+          <GoogleButton label="Create with Google" instituteName={institute.trim() || undefined} />
         </form>
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Already have an account?{" "}

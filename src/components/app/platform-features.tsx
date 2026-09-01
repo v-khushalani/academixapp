@@ -147,6 +147,3 @@ export function FeatureMatrix({
     </div>
   );
 }
-
-/** Back-compat alias used by older screens. */
-export const FeatureChips = FeatureMatrix;

@@ -16,7 +16,10 @@ export const Route = createFileRoute("/onboard/$token")({
           "Fill in student and parent details to complete your admission at your coaching institute.",
       },
       { property: "og:title", content: "Complete your admission form — Academix" },
-      { property: "og:description", content: "Secure student onboarding link from your institute." },
+      {
+        property: "og:description",
+        content: "Secure student onboarding link from your institute.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

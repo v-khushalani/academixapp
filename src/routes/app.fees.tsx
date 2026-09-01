@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Bell, MessageCircle, Pencil, Plus, QrCode, Trash2, Wallet } from "lucide-react";
@@ -23,7 +23,7 @@ import { FeeCorrectionDialog, type CorrectionTarget } from "@/components/app/fee
 import { useAuth } from "@/hooks/use-auth";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { can } from "@/lib/rbac";
-import { WA_TEMPLATES, openWhatsApp, renderTemplate } from "@/lib/whatsapp";
+import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
 import { logMessage } from "@/lib/api/messages";
 import { getTemplates, getInstitute } from "@/lib/academy-settings";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,8 +57,7 @@ function FeesPage() {
 
   const filtered = useMemo(() => {
     let rows = data;
-    if (status !== "all")
-      rows = rows.filter((f) => displayFeeStatus(f) === status);
+    if (status !== "all") rows = rows.filter((f) => displayFeeStatus(f) === status);
     if (followUp !== "all") rows = rows.filter((f) => feeFollowUpState(f) === followUp);
     return rows;
   }, [data, status, followUp]);
@@ -235,7 +234,9 @@ function FeesPage() {
   async function openCollect(r: Row) {
     const { data } = await supabase
       .from("students")
-      .select("full_name, admission_no, class, parent_phone, phone, preferred_contact, father_phone, mother_phone, batch:batches(name)")
+      .select(
+        "full_name, admission_no, class, parent_phone, phone, preferred_contact, father_phone, mother_phone, batch:batches(name)",
+      )
       .eq("id", r.student_id)
       .maybeSingle();
     const s = data as {
@@ -358,31 +359,31 @@ function FeesPage() {
             loading={isLoading}
             toolbar={
               <div className="flex flex-wrap gap-2">
-              <Select value={followUp} onValueChange={setFollowUp}>
-                <SelectTrigger className="h-9 w-full sm:w-[150px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All follow-ups</SelectItem>
-                  <SelectItem value="due_7">Due in 7 days</SelectItem>
-                  <SelectItem value="due_2">Due in 2 days</SelectItem>
-                  <SelectItem value="overdue">Overdue</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="h-9 w-full sm:w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="partial">Partial</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="overdue">Overdue</SelectItem>
-                  <SelectItem value="waived">Waived</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={followUp} onValueChange={setFollowUp}>
+                  <SelectTrigger className="h-9 w-full sm:w-[150px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All follow-ups</SelectItem>
+                    <SelectItem value="due_7">Due in 7 days</SelectItem>
+                    <SelectItem value="due_2">Due in 2 days</SelectItem>
+                    <SelectItem value="overdue">Overdue</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger className="h-9 w-full sm:w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All statuses</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="partial">Partial</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="overdue">Overdue</SelectItem>
+                    <SelectItem value="waived">Waived</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             }
           />

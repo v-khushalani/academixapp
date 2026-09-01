@@ -14,7 +14,6 @@ export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
 
-
 function AppLayout() {
   const { session, roles, loading } = useAuth();
   const navigate = useNavigate();

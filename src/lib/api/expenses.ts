@@ -96,7 +96,10 @@ export const expensesApi = {
 export function byCategory(rows: ExpenseRow[]) {
   const map = new Map<string, number>();
   for (const r of rows)
-    map.set(r.category ?? "miscellaneous", (map.get(r.category ?? "miscellaneous") ?? 0) + Number(r.amount || 0));
+    map.set(
+      r.category ?? "miscellaneous",
+      (map.get(r.category ?? "miscellaneous") ?? 0) + Number(r.amount || 0),
+    );
   return [...map.entries()]
     .map(([category, amount]) => ({ category, amount }))
     .sort((a, b) => b.amount - a.amount);

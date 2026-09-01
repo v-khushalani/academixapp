@@ -108,7 +108,9 @@ export function ReviseInstallmentDialog({
               Move the difference to the next installment
               {diff !== 0 ? (
                 <span className="block text-xs text-muted-foreground">
-                  {diff > 0 ? `${inr(diff)} will be added there` : `${inr(-diff)} will be reduced there`}
+                  {diff > 0
+                    ? `${inr(diff)} will be added there`
+                    : `${inr(-diff)} will be reduced there`}
                 </span>
               ) : null}
             </span>

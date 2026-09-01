@@ -24,8 +24,18 @@ export function SetupChecklist({ signals }: { signals: SetupSignals }) {
   const inst = getInstitute();
   const brandDone = !!inst.name && inst.name !== "Your Institute";
   const steps = [
-    { label: "Add your institute name and logo", done: brandDone, to: "/app/settings", cta: "Open settings" },
-    { label: "Create your first batch", done: signals.batches > 0, to: "/app/batches", cta: "Add batch" },
+    {
+      label: "Add your institute name and logo",
+      done: brandDone,
+      to: "/app/settings",
+      cta: "Open settings",
+    },
+    {
+      label: "Create your first batch",
+      done: signals.batches > 0,
+      to: "/app/batches",
+      cta: "Add batch",
+    },
     { label: "Add students", done: signals.students > 0, to: "/app/students", cta: "Add students" },
     {
       label: "Take attendance or collect a fee",
@@ -94,7 +104,12 @@ export function SetupChecklist({ signals }: { signals: SetupSignals }) {
             >
               {s.done ? <Check className="h-3 w-3" /> : null}
             </span>
-            <span className={cn("min-w-0 flex-1 truncate", s.done && "text-muted-foreground line-through")}>
+            <span
+              className={cn(
+                "min-w-0 flex-1 truncate",
+                s.done && "text-muted-foreground line-through",
+              )}
+            >
               {s.label}
             </span>
           </li>

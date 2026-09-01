@@ -2,15 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Camera, Check, LoaderCircle, ShieldCheck, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  parseAadhaarQr,
-  aadhaarFingerprint,
-  type AadhaarProfile,
-} from "@/lib/aadhaar";
+import { parseAadhaarQr, aadhaarFingerprint, type AadhaarProfile } from "@/lib/aadhaar";
 
-async function waitForVideo(
-  ref: { current: HTMLVideoElement | null },
-): Promise<HTMLVideoElement | null> {
+async function waitForVideo(ref: {
+  current: HTMLVideoElement | null;
+}): Promise<HTMLVideoElement | null> {
   for (let i = 0; i < 30; i++) {
     if (ref.current) return ref.current;
     await new Promise((r) => requestAnimationFrame(() => r(null)));
@@ -92,14 +88,22 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
           const width = v.videoWidth || 1920;
           const height = v.videoHeight || 1080;
           const scale = Math.min(1, 1920 / width);
-          return { x: 0, y: 0, width, height, downScaledWidth: Math.round(width * scale), downScaledHeight: Math.round(height * scale) };
+          return {
+            x: 0,
+            y: 0,
+            width,
+            height,
+            downScaledWidth: Math.round(width * scale),
+            downScaledHeight: Math.round(height * scale),
+          };
         },
       });
       scannerRef.current = scanner as unknown as { stop: () => void; destroy: () => void };
       await scanner.start();
       // Ask the camera for the sharpest stream it can give us.
       try {
-        const track = video.srcObject instanceof MediaStream ? video.srcObject.getVideoTracks()[0] : null;
+        const track =
+          video.srcObject instanceof MediaStream ? video.srcObject.getVideoTracks()[0] : null;
         await track?.applyConstraints({
           width: { ideal: 1920 },
           height: { ideal: 1080 },
@@ -108,10 +112,13 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
       } catch {
         /* device doesn't support these hints — default stream is fine */
       }
-      const track = video.srcObject instanceof MediaStream ? video.srcObject.getVideoTracks()[0] : null;
+      const track =
+        video.srcObject instanceof MediaStream ? video.srcObject.getVideoTracks()[0] : null;
       const settings = track?.getSettings();
       if ((settings?.width ?? 0) < 1000) {
-        setCameraHint("Camera resolution is low. Use good light or upload a close, sharp photo for best results.");
+        setCameraHint(
+          "Camera resolution is low. Use good light or upload a close, sharp photo for best results.",
+        );
       }
       // iOS/iPadOS sometimes leaves the stream paused after start().
       try {
@@ -137,9 +144,14 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
       if (!ctx) throw new Error("No image context");
       const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
       for (const threshold of [150, 185, 115]) {
-        const adjusted = new ImageData(new Uint8ClampedArray(image.data), image.width, image.height);
+        const adjusted = new ImageData(
+          new Uint8ClampedArray(image.data),
+          image.width,
+          image.height,
+        );
         for (let i = 0; i < adjusted.data.length; i += 4) {
-          const lum = adjusted.data[i] * 0.299 + adjusted.data[i + 1] * 0.587 + adjusted.data[i + 2] * 0.114;
+          const lum =
+            adjusted.data[i] * 0.299 + adjusted.data[i + 1] * 0.587 + adjusted.data[i + 2] * 0.114;
           const value = lum >= threshold ? 255 : 0;
           adjusted.data[i] = value;
           adjusted.data[i + 1] = value;
@@ -174,7 +186,6 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
       toast.error("Couldn't read the QR. Hold the card steady, fill the frame, and try again.");
     }
   }
-
 
   async function onFile(file: File) {
     setStatus("reading");
@@ -220,13 +231,19 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
       {live && (
         <div className="mt-3 space-y-2">
           <div className="relative overflow-hidden rounded-md bg-foreground">
-            <video ref={videoRef} className="aspect-[3/4] max-h-[70dvh] w-full object-contain sm:aspect-video" muted playsInline />
+            <video
+              ref={videoRef}
+              className="aspect-[3/4] max-h-[70dvh] w-full object-contain sm:aspect-video"
+              muted
+              playsInline
+            />
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
               <div className="aspect-square w-[78%] max-w-sm rounded-lg border-2 border-primary-foreground/90 outline-[999px] outline-foreground/50" />
             </div>
           </div>
           <p className="text-center text-[11px] text-muted-foreground">
-            Hold the QR square inside the guide, keep still, and avoid glare. {status === "reading" ? "Reading…" : "Scanning automatically…"}
+            Hold the QR square inside the guide, keep still, and avoid glare.{" "}
+            {status === "reading" ? "Reading…" : "Scanning automatically…"}
           </p>
           {cameraHint && <p className="text-center text-[11px] text-warning">{cameraHint}</p>}
         </div>
@@ -235,8 +252,19 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
       <div className="mt-3 flex flex-wrap gap-2">
         {live ? (
           <>
-             <Button type="button" size="sm" className="flex-1" onClick={() => void captureFrame()} disabled={status === "reading"}>
-               {status === "reading" ? <LoaderCircle className="mr-1.5 h-4 w-4 animate-spin" /> : <Camera className="mr-1.5 h-4 w-4" />} Capture sharp frame
+            <Button
+              type="button"
+              size="sm"
+              className="flex-1"
+              onClick={() => void captureFrame()}
+              disabled={status === "reading"}
+            >
+              {status === "reading" ? (
+                <LoaderCircle className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <Camera className="mr-1.5 h-4 w-4" />
+              )}{" "}
+              Capture sharp frame
             </Button>
             <Button type="button" variant="secondary" size="sm" onClick={stopCamera}>
               Stop camera
@@ -270,7 +298,6 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
           </Button>
         )}
       </div>
-
     </div>
   );
 }

@@ -29,7 +29,9 @@ function downloadBlob(blob: Blob, name: string) {
   URL.revokeObjectURL(href);
 }
 
-export async function buildAdmissionPoster(input: AdmissionPosterInput): Promise<HTMLCanvasElement> {
+export async function buildAdmissionPoster(
+  input: AdmissionPosterInput,
+): Promise<HTMLCanvasElement> {
   const canvas = document.createElement("canvas");
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
@@ -60,7 +62,11 @@ export async function buildAdmissionPoster(input: AdmissionPosterInput): Promise
 
   ctx.fillStyle = "#172033";
   ctx.font = "700 82px Saira, sans-serif";
-  ctx.fillText(input.kind === "Admission" ? "Apply for admission" : "Send an enquiry", WIDTH / 2, 430);
+  ctx.fillText(
+    input.kind === "Admission" ? "Apply for admission" : "Send an enquiry",
+    WIDTH / 2,
+    430,
+  );
   ctx.fillStyle = "#64748b";
   ctx.font = "400 34px Saira, sans-serif";
   ctx.fillText("Open your camera and scan the code", WIDTH / 2, 495);
@@ -80,7 +86,11 @@ export async function buildAdmissionPoster(input: AdmissionPosterInput): Promise
 
   ctx.fillStyle = "#172033";
   ctx.font = "600 36px Saira, sans-serif";
-  ctx.fillText(input.kind === "Admission" ? "Complete your admission form" : "Share five quick details", WIDTH / 2, 1410);
+  ctx.fillText(
+    input.kind === "Admission" ? "Complete your admission form" : "Share five quick details",
+    WIDTH / 2,
+    1410,
+  );
   ctx.fillStyle = "#64748b";
   ctx.font = "400 24px Saira, sans-serif";
   const shortUrl = input.url.replace(/^https?:\/\//, "");
@@ -110,7 +120,9 @@ export async function printAdmissionPoster(input: AdmissionPosterInput) {
   const canvas = await buildAdmissionPoster(input);
   const popup = window.open("", "_blank", "noopener,noreferrer");
   if (!popup) throw new Error("Allow pop-ups to print the poster");
-  popup.document.write(`<title>${input.kind} poster</title><style>@page{size:A4;margin:0}body{margin:0}img{width:210mm;height:297mm;display:block}</style><img alt="${input.kind} poster" src="${canvas.toDataURL("image/png")}">`);
+  popup.document.write(
+    `<title>${input.kind} poster</title><style>@page{size:A4;margin:0}body{margin:0}img{width:210mm;height:297mm;display:block}</style><img alt="${input.kind} poster" src="${canvas.toDataURL("image/png")}">`,
+  );
   popup.document.close();
   popup.onload = () => popup.print();
 }

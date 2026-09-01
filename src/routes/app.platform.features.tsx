@@ -22,8 +22,8 @@ function PlatformFeatures() {
           One institute at a time
         </p>
         <p className="mt-1 text-[11px] text-muted-foreground">
-          Give a single institute a module their plan does not include, or take one away. Their
-          plan and limits stay untouched.
+          Give a single institute a module their plan does not include, or take one away. Their plan
+          and limits stay untouched.
         </p>
         <select
           aria-label="Institute"

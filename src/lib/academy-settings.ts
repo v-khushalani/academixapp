@@ -32,9 +32,21 @@ export type InstituteSettings = {
 export type ReceiptTemplate = "classic" | "compact" | "detailed";
 export type ReceiptPaper = "a5" | "a4-two-up" | "thermal-80";
 export const RECEIPT_TEMPLATES: { key: ReceiptTemplate; name: string; blurb: string }[] = [
-  { key: "classic", name: "Classic", blurb: "A5 receipt with a coloured header band — the default." },
-  { key: "compact", name: "Compact", blurb: "Half-page slip. Minimal ink, quick to print in bulk." },
-  { key: "detailed", name: "Detailed", blurb: "A5 with fee summary, paid-so-far and balance lines." },
+  {
+    key: "classic",
+    name: "Classic",
+    blurb: "A5 receipt with a coloured header band — the default.",
+  },
+  {
+    key: "compact",
+    name: "Compact",
+    blurb: "Half-page slip. Minimal ink, quick to print in bulk.",
+  },
+  {
+    key: "detailed",
+    name: "Detailed",
+    blurb: "A5 with fee summary, paid-so-far and balance lines.",
+  },
 ];
 
 const KEY_INSTITUTE = "vk_institute";
@@ -141,7 +153,9 @@ export async function saveInstitute(s: InstituteSettings) {
       upi_id: s.upi_id || null,
       upi_name: s.upi_name || null,
       shifts: s.shifts ?? DEFAULT_SHIFTS,
-      installment_plan: (s.installment_plan?.length ? s.installment_plan : DEFAULT_PLAN) as unknown as never,
+      installment_plan: (s.installment_plan?.length
+        ? s.installment_plan
+        : DEFAULT_PLAN) as unknown as never,
       receipt_template: s.receipt_template || "classic",
       receipt_paper: s.receipt_paper || "a5",
     })
@@ -187,7 +201,6 @@ export async function hydrateInstitute() {
   } as InstituteSettings);
 }
 
-
 export function getTemplates(): Record<WhatsAppTemplateKey, string> {
   const overrides = safeRead<Record<WhatsAppTemplateKey, string>>(KEY_TEMPLATES);
   return { ...WA_TEMPLATES, ...overrides };
@@ -212,7 +225,6 @@ export function applyBranding(hex: string) {
 if (typeof window !== "undefined") {
   applyBranding(getInstitute().primary_color);
 }
-
 
 /* ---------------- Branding entitlement ---------------------------------- */
 // Own-brand receipts / payment QRs / portal marks are a paid feature. Free

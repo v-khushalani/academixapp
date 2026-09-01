@@ -72,7 +72,3 @@ export function useAuth() {
 
   return { ...state, signOut };
 }
-
-export function hasAnyRole(roles: AppRole[], allowed: AppRole[]): boolean {
-  return roles.some((r) => allowed.includes(r));
-}

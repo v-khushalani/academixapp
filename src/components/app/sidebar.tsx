@@ -14,7 +14,6 @@ import {
   MessageSquare,
   IndianRupee,
   Settings,
-  ShieldCheck,
   LogOut,
   Gauge,
   Building2,
@@ -105,14 +104,14 @@ export function AppSidebar() {
     exact ? pathname === url : pathname === url || pathname.startsWith(url + "/");
 
   // Super admin runs the platform, not an institute — no institute modules in the rail.
-  const allowed = superadmin ? [] : nav.filter((n) => roles.length === 0 || canAccess(n.key, roles));
+  const allowed = superadmin
+    ? []
+    : nav.filter((n) => roles.length === 0 || canAccess(n.key, roles));
   // Modules the institute's plan does not include are hidden entirely.
   const base = allowed.filter((n) => {
     const f = MODULE_FEATURE[n.key];
     return !f || isOn(f);
   });
-
-
 
   const renderItem = (item: NavItem) => {
     const active = isActive(item.url, item.exact);

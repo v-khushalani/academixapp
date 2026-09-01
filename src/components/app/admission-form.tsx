@@ -58,7 +58,23 @@ const empty: AdmissionFormValues = {
   preferred_contact: "father",
 };
 
-const CLASSES = ["Nursery", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+const CLASSES = [
+  "Nursery",
+  "LKG",
+  "UKG",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "11",
+  "12",
+];
 
 const STEPS = [
   { title: "Identity", hint: "Scan the student's Aadhaar QR — it fills the details for you" },
@@ -66,7 +82,6 @@ const STEPS = [
   { title: "Parents", hint: "Who should we contact?" },
   { title: "Photo & submit", hint: "Last step" },
 ];
-
 
 /**
  * Enquiry form shown on the public QR link. Asked one small frame at a time so a
@@ -110,7 +125,6 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
     }
     return true;
   }
-
 
   function next() {
     if (!validate(step)) return;
@@ -323,7 +337,6 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
             </F>
           </Frame>
         )}
-
 
         {step === 3 && (
           <Frame>

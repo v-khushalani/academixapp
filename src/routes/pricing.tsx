@@ -25,8 +25,7 @@ export const Route = createFileRoute("/pricing")({
       { property: "og:title", content: "Academix plans — start free, scale simple" },
       {
         property: "og:description",
-        content:
-          "Free forever tier plus two paid plans. Compare every feature at a glance.",
+        content: "Free forever tier plus two paid plans. Compare every feature at a glance.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -72,10 +71,7 @@ function Row({ row, plans }: { row: CatalogFeature; plans: CatalogPlan[] }) {
     <tr className="border-t border-border/70">
       <td className="sticky left-0 z-10 bg-card px-4 py-2.5 text-xs">{row.label}</td>
       {plans.map((p) => (
-        <td
-          key={p.id}
-          className={`px-3 py-2.5 text-center ${p.highlight ? "bg-primary/5" : ""}`}
-        >
+        <td key={p.id} className={`px-3 py-2.5 text-center ${p.highlight ? "bg-primary/5" : ""}`}>
           <Mark v={row.values?.[p.key]} />
         </td>
       ))}
@@ -102,8 +98,8 @@ function PricingPage() {
             Simple plans. Start free.
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-base text-muted-foreground">
-            Run your whole institute free. Need more scale or automation? We'll take you through
-            the paid plans on a quick call.
+            Run your whole institute free. Need more scale or automation? We'll take you through the
+            paid plans on a quick call.
           </p>
         </div>
 
@@ -135,11 +131,7 @@ function PricingPage() {
               <p className="mt-1 text-xs text-muted-foreground">
                 {p.student_limit.toLocaleString("en-IN")} students · {p.room_limit} classrooms
               </p>
-              <Button
-                asChild
-                className="mt-6 w-full"
-                variant={p.highlight ? "default" : "outline"}
-              >
+              <Button asChild className="mt-6 w-full" variant={p.highlight ? "default" : "outline"}>
                 {p.price_yearly === 0 && !p.contact_only ? (
                   <Link to="/signup">{p.cta}</Link>
                 ) : (
@@ -171,9 +163,7 @@ function PricingPage() {
                 onClick={() => setShowAll((v) => !v)}
                 className="text-xs font-medium text-primary hover:underline"
               >
-                {showAll
-                  ? "Show the short list"
-                  : `See all ${features.length} features`}
+                {showAll ? "Show the short list" : `See all ${features.length} features`}
               </button>
             )}
           </div>
@@ -214,9 +204,9 @@ function PricingPage() {
                         ))}
                       </Fragment>
                     ))
-                  : features.slice(0, TOP_ROWS).map((r) => (
-                      <Row key={r.id} row={r} plans={visible} />
-                    ))}
+                  : features
+                      .slice(0, TOP_ROWS)
+                      .map((r) => <Row key={r.id} row={r} plans={visible} />)}
               </tbody>
             </table>
           </div>
