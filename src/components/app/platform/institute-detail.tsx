@@ -11,7 +11,7 @@ import { formatDate } from "@/lib/dates";
 import { fetchPlans } from "@/lib/pricing-catalog";
 import { FeatureMatrix } from "@/components/app/platform-features";
 import type { FeatureMap } from "@/lib/features";
-import type { DetailRow, PlatformInstitute } from "./shared";
+import { usePlatformInstitutes, type DetailRow, type PlatformInstitute } from "./shared";
 
 export function InstituteDetail({
   institute,
@@ -324,7 +324,7 @@ export function PlanControl({ institute }: { institute: PlatformInstitute }) {
         </Button>
       </div>
 
-      {!featuresOnly && <PlanHistory instituteId={institute.id} />}
+      <PlanHistory instituteId={institute.id} />
     </div>
   );
 }
