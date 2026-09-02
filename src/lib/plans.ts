@@ -63,7 +63,7 @@ export const PLANS: Plan[] = [
     priceYearly: null,
     blurb: "Unlimited · multi-branch",
     tagline: "Many branches on one dashboard.",
-    cta: "Talk to us",
+    cta: "Book a walkthrough",
   },
 ];
 

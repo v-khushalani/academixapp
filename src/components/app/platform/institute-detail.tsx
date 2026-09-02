@@ -11,7 +11,7 @@ import { formatDate } from "@/lib/dates";
 import { fetchPlans } from "@/lib/pricing-catalog";
 import { FeatureMatrix } from "@/components/app/platform-features";
 import type { FeatureMap } from "@/lib/features";
-import type { DetailRow, PlatformInstitute } from "./shared";
+import { usePlatformInstitutes, type DetailRow, type PlatformInstitute } from "./shared";
 
 export function InstituteDetail({
   institute,
@@ -113,15 +113,21 @@ const LIMIT_FIELDS = [
   ["Teacher logins", "teacher_login_limit", "teacher_logins"],
 ] as const;
 
-export function PlanControl({
-  institute,
-  featuresOnly = false,
-}: {
-  institute: PlatformInstitute;
-  featuresOnly?: boolean;
-}) {
+export function PlanControl({ institute }: { institute: PlatformInstitute }) {
   const qc = useQueryClient();
   const { data: catalog = [] } = useQuery({ queryKey: ["pricing-plans"], queryFn: fetchPlans });
+  const { data: siblings = [] } = usePlatformInstitutes();
+
+  async function setParent(parent: string) {
+    const { error } = await supabase.rpc("platform_set_parent", {
+      _id: institute.id,
+      _parent_institute_id: (parent || null) as unknown as string,
+    });
+    if (error) return toast.error(error.message);
+    await qc.invalidateQueries({ queryKey: ["platform-institutes"] });
+    toast.success(parent ? "Linked as a branch" : "Set as head office");
+  }
+
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<PlanForm>(() => ({
     plan: institute.plan ?? "free",
@@ -191,64 +197,77 @@ export function PlanControl({
 
   return (
     <div className="rounded-lg border border-border bg-card p-3">
-      {!featuresOnly && (
-        <>
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Plan &amp; limits
-            </p>
-            <span className="text-[11px] text-muted-foreground">0 means unlimited</span>
-          </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Plan &amp; limits
+        </p>
+        <span className="text-[11px] text-muted-foreground">0 means unlimited</span>
+      </div>
 
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <label className="space-y-1 text-xs text-muted-foreground">
-              <span>Plan</span>
-              <select
-                value={form.plan}
-                onChange={(e) => pickPlan(e.target.value)}
-                className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm text-foreground"
-              >
-                {catalog.map((c) => (
-                  <option key={c.key} value={c.key}>
-                    {c.name}
-                  </option>
-                ))}
-                {!catalog.some((c) => c.key === form.plan) && (
-                  <option value={form.plan}>{form.plan}</option>
-                )}
-              </select>
-            </label>
-            <label className="space-y-1 text-xs text-muted-foreground">
-              <span>Account status</span>
-              <select
-                value={form.status}
-                onChange={(e) => set("status", e.target.value)}
-                className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm text-foreground"
-              >
-                <option value="active">Active</option>
-                <option value="suspended">Suspended</option>
-              </select>
-            </label>
-            {LIMIT_FIELDS.map(([label, key, usageKey]) => (
-              <label key={key} className="space-y-1 text-xs text-muted-foreground">
-                <span>
-                  {label}{" "}
-                  <span className="text-[10px]">
-                    (used {Number(institute[usageKey as keyof PlatformInstitute] ?? 0)})
-                  </span>
-                </span>
-                <Input
-                  type="number"
-                  min={0}
-                  value={form[key]}
-                  onChange={(e) => set(key, Math.max(0, Number(e.target.value)))}
-                  className="h-9"
-                />
-              </label>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <label className="space-y-1 text-xs text-muted-foreground">
+          <span>Plan</span>
+          <select
+            value={form.plan}
+            onChange={(e) => pickPlan(e.target.value)}
+            className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm text-foreground"
+          >
+            {catalog.map((c) => (
+              <option key={c.key} value={c.key}>
+                {c.name}
+              </option>
             ))}
-          </div>
-        </>
-      )}
+            {!catalog.some((c) => c.key === form.plan) && (
+              <option value={form.plan}>{form.plan}</option>
+            )}
+          </select>
+        </label>
+        <label className="space-y-1 text-xs text-muted-foreground">
+          <span>Account status</span>
+          <select
+            value={form.status}
+            onChange={(e) => set("status", e.target.value)}
+            className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm text-foreground"
+          >
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </label>
+        <label className="space-y-1 text-xs text-muted-foreground">
+          <span>Branch of</span>
+          <select
+            value={institute.parent_institute_id ?? ""}
+            onChange={(e) => void setParent(e.target.value)}
+            className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm text-foreground"
+          >
+            <option value="">Head office (none)</option>
+            {siblings
+              .filter((o) => o.id !== institute.id)
+              .map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.name}
+                </option>
+              ))}
+          </select>
+        </label>
+        {LIMIT_FIELDS.map(([label, key, usageKey]) => (
+          <label key={key} className="space-y-1 text-xs text-muted-foreground">
+            <span>
+              {label}{" "}
+              <span className="text-[10px]">
+                (used {Number(institute[usageKey as keyof PlatformInstitute] ?? 0)})
+              </span>
+            </span>
+            <Input
+              type="number"
+              min={0}
+              value={form[key]}
+              onChange={(e) => set(key, Math.max(0, Number(e.target.value)))}
+              className="h-9"
+            />
+          </label>
+        ))}
+      </div>
 
       <div className="mt-3 rounded-md border border-border p-2">
         <div className="flex flex-wrap items-center gap-2">
@@ -305,7 +324,7 @@ export function PlanControl({
         </Button>
       </div>
 
-      {!featuresOnly && <PlanHistory instituteId={institute.id} />}
+      <PlanHistory instituteId={institute.id} />
     </div>
   );
 }

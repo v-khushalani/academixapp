@@ -59,7 +59,7 @@ function PlatformOverview() {
   );
   const branches = institutes.filter((i) => i.parent_institute_id).length;
   const idle = institutes.filter((i) => Number(i.students) === 0).length;
-  const top = [...institutes].sort((a, b) => Number(b.students) - Number(a.students)).slice(0, 6);
+  const attention = [...suspended, ...nearLimit.filter((i) => !suspended.includes(i))];
   const nameOf = (id: string) => institutes.find((i) => i.id === id)?.name ?? "Institute";
 
   return (
@@ -92,106 +92,54 @@ function PlatformOverview() {
         />
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-3">
-        <Panel title="Plan mix" action={{ to: "/app/platform/plans", label: "Pricing" }}>
-          {institutes.length === 0 ? (
-            <Empty>{isLoading ? "Loading…" : "No institutes yet."}</Empty>
-          ) : (
-            <ul className="space-y-2">
-              {Object.entries(byPlan).map(([name, n]) => {
-                const pct = Math.round((n / institutes.length) * 100);
-                return (
-                  <li key={name}>
-                    <div className="flex items-baseline justify-between text-sm">
-                      <span>{name}</span>
-                      <span className="font-semibold tabular-nums">
-                        {n}
-                        <span className="ml-1 text-xs font-normal text-muted-foreground">
-                          {pct}%
-                        </span>
-                      </span>
-                    </div>
-                    <div className="mt-1 h-1.5 rounded-full bg-muted">
-                      <div className="h-1.5 rounded-full bg-primary" style={{ width: `${pct}%` }} />
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Panel>
-
-        <Panel
-          title="Close to their limit"
-          action={{ to: "/app/platform/institutes", label: "Institutes" }}
-        >
-          {nearLimit.length === 0 ? (
-            <Empty>Everyone has room — no upgrade calls needed today.</Empty>
-          ) : (
-            <ul className="space-y-2 text-sm">
-              {nearLimit.map((i) => (
-                <li key={i.id} className="flex items-center justify-between gap-2">
-                  <span className="truncate">{i.name}</span>
-                  <Badge variant="secondary" className="shrink-0 tabular-nums">
-                    {Number(i.students)}/{i.student_limit}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-
-        <Panel title="Needs attention">
-          {suspended.length === 0 ? (
-            <Empty>No suspended accounts.</Empty>
-          ) : (
-            <ul className="space-y-2 text-sm">
-              {suspended.map((i) => (
-                <li key={i.id} className="flex items-center justify-between gap-2">
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-destructive" />
-                    <span className="truncate">{i.name}</span>
-                  </span>
-                  <span className="shrink-0 text-xs capitalize text-destructive">{i.status}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-      </div>
+      {institutes.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-4 py-3">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Plan mix
+          </span>
+          {Object.entries(byPlan).map(([name, n]) => (
+            <Badge key={name} variant="outline" className="tabular-nums">
+              {name} · {n} ({Math.round((n / institutes.length) * 100)}%)
+            </Badge>
+          ))}
+          <Button asChild size="sm" variant="ghost" className="ml-auto h-7 gap-1 px-2 text-xs">
+            <Link to="/app/platform/plans">
+              Pricing
+              <ArrowUpRight className="h-3 w-3" />
+            </Link>
+          </Button>
+        </div>
+      )}
 
       <div className="grid gap-3 lg:grid-cols-2">
         <Panel
-          title="Biggest institutes"
-          action={{ to: "/app/platform/institutes", label: "Manage" }}
+          title="Needs your attention"
+          action={{ to: "/app/platform/institutes", label: "Institutes" }}
         >
-          {top.length === 0 ? (
-            <Empty>{isLoading ? "Loading…" : "Nothing to show yet."}</Empty>
+          {attention.length === 0 ? (
+            <Empty>
+              {isLoading ? "Loading…" : "Nothing pending — no suspensions, everyone has room."}
+            </Empty>
           ) : (
-            <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th className="pb-2 font-medium">Institute</th>
-                  <th className="pb-2 font-medium">Plan</th>
-                  <th className="pb-2 text-right font-medium">Students</th>
-                  <th className="pb-2 text-right font-medium">Batches</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {top.map((i) => (
-                  <tr key={i.id}>
-                    <td className="py-2 pr-2">
-                      <span className="block truncate">{i.name}</span>
-                    </td>
-                    <td className="py-2 pr-2">
-                      <Badge variant="outline">{planFor(i.plan).name}</Badge>
-                    </td>
-                    <td className="py-2 text-right tabular-nums">{Number(i.students)}</td>
-                    <td className="py-2 text-right tabular-nums">{Number(i.batches)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <ul className="space-y-2 text-sm">
+              {attention.map((i) => (
+                <li key={i.id} className="flex items-center justify-between gap-2">
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    {i.status && i.status !== "active" && (
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-destructive" />
+                    )}
+                    <span className="truncate">{i.name}</span>
+                  </span>
+                  {i.status && i.status !== "active" ? (
+                    <span className="shrink-0 text-xs capitalize text-destructive">{i.status}</span>
+                  ) : (
+                    <Badge variant="secondary" className="shrink-0 tabular-nums">
+                      {Number(i.students)}/{i.student_limit} students
+                    </Badge>
+                  )}
+                </li>
+              ))}
+            </ul>
           )}
         </Panel>
 
