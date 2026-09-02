@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useMemo, useState } from "react";
+import { Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
 import { planFor } from "@/lib/plans";
 import { InstituteDetail, Usage } from "@/components/app/platform/institute-detail";
 import { usePlatformInstitutes } from "@/components/app/platform/shared";
@@ -14,34 +13,46 @@ export const Route = createFileRoute("/app/platform/institutes")({
 });
 
 function PlatformInstitutes() {
-  const qc = useQueryClient();
   const [openId, setOpenId] = useState<string | null>(null);
+  const [q, setQ] = useState("");
   const { data: institutes = [], isLoading } = usePlatformInstitutes();
 
-  async function setParent(id: string, parent: string) {
-    const { error } = await supabase.rpc("platform_set_parent", {
-      _id: id,
-      _parent_institute_id: (parent || null) as unknown as string,
-    });
-    if (error) return toast.error(error.message);
-    await qc.invalidateQueries({ queryKey: ["platform-institutes"] });
-    toast.success(parent ? "Linked as a branch" : "Set as head office");
-  }
+  const nameOf = (id: string | null) =>
+    id ? (institutes.find((o) => o.id === id)?.name ?? "another institute") : null;
+
+  const rows = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return institutes;
+    return institutes.filter(
+      (i) => i.name.toLowerCase().includes(term) || (i.slug ?? "").toLowerCase().includes(term),
+    );
+  }, [institutes, q]);
 
   const open = institutes.find((i) => i.id === openId) ?? null;
   if (open) return <InstituteDetail institute={open} onBack={() => setOpenId(null)} />;
 
   return (
     <>
+      <div className="relative mb-3 w-full sm:max-w-xs">
+        <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Find an institute…"
+          className="h-9 pl-8"
+        />
+      </div>
+
       {/* Mobile: one card per institute — tables do not survive small screens. */}
       <div className="space-y-3 md:hidden">
-        {institutes.map((i) => (
+        {rows.map((i) => (
           <div key={i.id} className="rounded-lg border border-border bg-card p-3">
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
               <div className="min-w-0">
                 <p className="truncate font-semibold">{i.name}</p>
                 <p className="truncate text-xs text-muted-foreground">
                   /{i.slug} · {planFor(i.plan).name}
+                  {i.parent_institute_id ? ` · branch of ${nameOf(i.parent_institute_id)}` : ""}
                 </p>
               </div>
               <Button size="sm" variant="outline" onClick={() => setOpenId(i.id)}>
@@ -70,24 +81,9 @@ function PlatformInstitutes() {
             <p className="mt-2 text-xs text-muted-foreground">
               {Number(i.staff_logins)} office · {Number(i.teacher_logins)} teacher logins
             </p>
-            <select
-              aria-label={`Parent institute for ${i.name}`}
-              value={i.parent_institute_id ?? ""}
-              onChange={(e) => void setParent(i.id, e.target.value)}
-              className="mt-2 h-9 w-full rounded-md border border-border bg-background px-2 text-xs"
-            >
-              <option value="">Head office (none)</option>
-              {institutes
-                .filter((o) => o.id !== i.id)
-                .map((o) => (
-                  <option key={o.id} value={o.id}>
-                    Branch of {o.name}
-                  </option>
-                ))}
-            </select>
           </div>
         ))}
-        {!isLoading && institutes.length === 0 && (
+        {!isLoading && rows.length === 0 && (
           <p className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
             No institutes yet.
           </p>
@@ -95,12 +91,11 @@ function PlatformInstitutes() {
       </div>
 
       <div className="hidden overflow-x-auto rounded-lg border border-border bg-card md:block">
-        <table className="w-full min-w-[760px] text-sm">
+        <table className="w-full min-w-[720px] text-sm">
           <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
             <tr>
               <th className="px-3 py-2">Institute</th>
               <th className="px-3 py-2">Plan</th>
-              <th className="px-3 py-2">Branch of</th>
               <th className="px-3 py-2">Students</th>
               <th className="px-3 py-2">Teachers</th>
               <th className="px-3 py-2">Batches</th>
@@ -109,36 +104,23 @@ function PlatformInstitutes() {
             </tr>
           </thead>
           <tbody>
-            {institutes.map((i) => (
+            {rows.map((i) => (
               <tr key={i.id} className="border-t border-border">
                 <td className="px-3 py-2">
                   <p className="font-medium">{i.name}</p>
-                  <p className="text-xs text-muted-foreground">/{i.slug}</p>
+                  <p className="text-xs text-muted-foreground">
+                    /{i.slug}
+                    {i.parent_institute_id ? ` · branch of ${nameOf(i.parent_institute_id)}` : ""}
+                  </p>
                 </td>
                 <td className="px-3 py-2">
-                  <p className="font-medium">{planFor(i.plan).name}</p>
-                  {i.status && i.status !== "active" && (
-                    <Badge variant="destructive" className="mt-0.5 text-[10px]">
-                      {i.status}
+                  {i.status && i.status !== "active" ? (
+                    <Badge variant="destructive" className="text-[10px]">
+                      {planFor(i.plan).name} · {i.status}
                     </Badge>
+                  ) : (
+                    <span className="font-medium">{planFor(i.plan).name}</span>
                   )}
-                </td>
-                <td className="px-3 py-2">
-                  <select
-                    aria-label={`Parent institute for ${i.name}`}
-                    value={i.parent_institute_id ?? ""}
-                    onChange={(e) => void setParent(i.id, e.target.value)}
-                    className="h-8 rounded-md border border-border bg-background px-2 text-xs"
-                  >
-                    <option value="">Head office (none)</option>
-                    {institutes
-                      .filter((o) => o.id !== i.id)
-                      .map((o) => (
-                        <option key={o.id} value={o.id}>
-                          {o.name}
-                        </option>
-                      ))}
-                  </select>
                 </td>
                 <td className="px-3 py-2">
                   <Usage used={Number(i.students)} limit={i.student_limit} />
@@ -159,9 +141,9 @@ function PlatformInstitutes() {
                 </td>
               </tr>
             ))}
-            {!isLoading && institutes.length === 0 && (
+            {!isLoading && rows.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-3 py-6 text-center text-muted-foreground">
+                <td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">
                   No institutes yet.
                 </td>
               </tr>
