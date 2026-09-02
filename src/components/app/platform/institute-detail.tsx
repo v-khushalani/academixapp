@@ -113,13 +113,7 @@ const LIMIT_FIELDS = [
   ["Teacher logins", "teacher_login_limit", "teacher_logins"],
 ] as const;
 
-export function PlanControl({
-  institute,
-  featuresOnly = false,
-}: {
-  institute: PlatformInstitute;
-  featuresOnly?: boolean;
-}) {
+export function PlanControl({ institute }: { institute: PlatformInstitute }) {
   const qc = useQueryClient();
   const { data: catalog = [] } = useQuery({ queryKey: ["pricing-plans"], queryFn: fetchPlans });
   const [saving, setSaving] = useState(false);
