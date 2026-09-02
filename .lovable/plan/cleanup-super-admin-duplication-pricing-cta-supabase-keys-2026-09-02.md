@@ -24,11 +24,13 @@ Net effect: Overview = numbers + what needs action; Institutes = the list and ev
 
 Nothing is missing in the editor/preview environment; all five values resolve here. The "Missing Supabase environment variable(s)" message appears when the **published** site is built without them. What the app uses:
 
-| Where | Variable |
-|---|---|
-| Browser (build-time) | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID` |
-| Server rendering / server functions | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` |
-| Privileged server work (admissions photo/provisioning, attendance punch API) | `SUPABASE_SERVICE_ROLE_KEY` |
+
+| Where                                                                        | Variable                                                                         |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Browser (build-time)                                                         | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID` |
+| Server rendering / server functions                                          | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`                                       |
+| Privileged server work (admissions photo/provisioning, attendance punch API) | `SUPABASE_SERVICE_ROLE_KEY`                                                      |
+
 
 Plan of action: re-bind the Supabase runtime secrets, republish, then load the published URL and confirm no missing-variable error. If it still appears there, the fix is on the Supabase side (project keys rotated) and I'll say so rather than patching around it.
 
@@ -37,3 +39,5 @@ Plan of action: re-bind the Supabase runtime secrets, republish, then load the p
 - Files touched: `src/routes/app.platform.index.tsx`, `app.platform.institutes.tsx`, `app.platform.features.tsx`, `src/components/app/platform/institute-detail.tsx`, `src/routes/pricing.tsx`, `src/components/app/pricing-admin.tsx` (label only).
 - No schema change, no RPC change; `platform_set_parent` keeps its single call site in institute detail.
 - Key binding uses the Supabase rebind tool; no key is ever written into code or `.env` by hand.
+
+Also check if custom branding works perfectly fine
