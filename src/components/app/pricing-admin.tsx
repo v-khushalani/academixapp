@@ -28,7 +28,7 @@ const FLAG_ROWS = [
   ["Attendance machines", "attendance_devices"],
   ["Popular badge", "highlight"],
   ["Visible on pricing page", "visible"],
-  ["Sales-led (Talk to us)", "contact_only"],
+  ["Sales-led (custom pricing)", "contact_only"],
 ] as const;
 
 /** Cycle: tick -> cross -> text -> tick */
@@ -107,7 +107,7 @@ export function PricingAdmin() {
         </p>
         <p className="mt-1 text-[11px] text-muted-foreground">
           Change a number or a module and every institute on that plan is updated instantly. 0 means
-          unlimited. Prices stay internal — the public page shows “Talk to us”.
+          unlimited. Prices stay internal — the public page shows “Custom pricing”.
         </p>
 
         <div className="mt-3 overflow-x-auto">

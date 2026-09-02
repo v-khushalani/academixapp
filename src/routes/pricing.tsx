@@ -53,7 +53,7 @@ const FAQ = [
   },
   {
     q: "Longer commitments?",
-    a: "Talk to us — multi-year institutes get a better rate, locked for the term.",
+    a: "Longer terms get a better rate, locked for the term.",
   },
 ];
 
@@ -122,7 +122,7 @@ function PricingPage() {
               <p className="mt-1 text-sm text-muted-foreground">{p.tagline}</p>
               <div className="mt-5 flex items-baseline gap-1.5">
                 <span className="text-3xl font-semibold">
-                  {p.price_yearly === 0 && !p.contact_only ? "Free" : "Talk to us"}
+                  {p.price_yearly === 0 && !p.contact_only ? "Free" : "Custom pricing"}
                 </span>
                 {p.price_yearly === 0 && !p.contact_only && (
                   <span className="text-xs text-muted-foreground">forever</span>
@@ -135,8 +135,8 @@ function PricingPage() {
                 {p.price_yearly === 0 && !p.contact_only ? (
                   <Link to="/signup">{p.cta}</Link>
                 ) : (
-                  <a href="mailto:hello@academix.website?subject=Academix%20plan%20enquiry">
-                    Talk to us
+                  <a href="mailto:hello@academix.website?subject=Academix%20walkthrough">
+                    Book a 10-min walkthrough
                   </a>
                 )}
               </Button>
@@ -145,13 +145,7 @@ function PricingPage() {
         </div>
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          No setup fee · No commission on your fees · Multi-branch or longer terms?{" "}
-          <a
-            href="mailto:hello@academix.website?subject=Academix%20plan%20enquiry"
-            className="text-primary hover:underline"
-          >
-            Talk to us
-          </a>
+          No setup fee · No commission on your fees · Cancel or export any time
         </p>
 
         <div className="mt-12">
@@ -230,11 +224,28 @@ function PricingPage() {
         <div className="mt-10 rounded-2xl border border-primary/30 bg-primary/5 p-7 text-center">
           <h2 className="text-lg font-semibold">Start free today.</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            No card, no sales call, no setup fee.
+            No card, no setup fee. Bigger institute or multi-branch? We&rsquo;ll walk you through it
+            in ten minutes.
           </p>
-          <Button asChild className="mt-5">
-            <Link to="/signup">Create your institute</Link>
-          </Button>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <Button asChild>
+              <Link to="/signup">Create your institute</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <a href="mailto:hello@academix.website?subject=Academix%20walkthrough">
+                Book a 10-min walkthrough
+              </a>
+            </Button>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            <a href="tel:+917066670222" className="hover:underline">
+              70666 70222
+            </a>{" "}
+            ·{" "}
+            <a href="mailto:hello@academix.website" className="hover:underline">
+              hello@academix.website
+            </a>
+          </p>
         </div>
       </section>
     </MarketingShell>
