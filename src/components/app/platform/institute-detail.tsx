@@ -185,9 +185,7 @@ export function PlanControl({ institute }: { institute: PlatformInstitute }) {
 
   return (
     <div className="rounded-lg border border-border bg-card p-3">
-      {!featuresOnly && (
-        <>
-          <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Plan &amp; limits
             </p>
