@@ -227,13 +227,11 @@ if (typeof window !== "undefined") {
 }
 
 /* ---------------- Branding entitlement ---------------------------------- */
-// Own-brand receipts / payment QRs / portal marks are a paid feature. Free
-// institutes get clean Academix branding instead.
-const BRANDED_PLANS = new Set(["growth", "campus", "chain", "pro", "multi", "unlimited"]);
-
-export function canUseOwnBranding(plan = getInstitute().plan): boolean {
-  const inst = getInstitute();
-  return inst.custom_branding && BRANDED_PLANS.has(String(plan || "free").toLowerCase());
+// Own-brand receipts / payment QRs / portal marks follow the institute's
+// `custom_branding` switch, which the plan sets by default and Team Academix
+// can override per institute. Everyone else gets clean Academix branding.
+export function canUseOwnBranding(): boolean {
+  return getInstitute().custom_branding === true;
 }
 
 /**
