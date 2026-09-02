@@ -241,6 +241,6 @@ export function canUseOwnBranding(): boolean {
  */
 export function getBrandedInstitute(): InstituteSettings {
   const inst = getInstitute();
-  if (canUseOwnBranding(inst.plan)) return inst;
+  if (canUseOwnBranding()) return inst;
   return { ...inst, name: "Academix", logo_url: "", tagline: "Institute management, simplified" };
 }
