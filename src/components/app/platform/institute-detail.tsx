@@ -116,6 +116,18 @@ const LIMIT_FIELDS = [
 export function PlanControl({ institute }: { institute: PlatformInstitute }) {
   const qc = useQueryClient();
   const { data: catalog = [] } = useQuery({ queryKey: ["pricing-plans"], queryFn: fetchPlans });
+  const { data: siblings = [] } = usePlatformInstitutes();
+
+  async function setParent(parent: string) {
+    const { error } = await supabase.rpc("platform_set_parent", {
+      _id: institute.id,
+      _parent_institute_id: (parent || null) as unknown as string,
+    });
+    if (error) return toast.error(error.message);
+    await qc.invalidateQueries({ queryKey: ["platform-institutes"] });
+    toast.success(parent ? "Linked as a branch" : "Set as head office");
+  }
+
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<PlanForm>(() => ({
     plan: institute.plan ?? "free",
