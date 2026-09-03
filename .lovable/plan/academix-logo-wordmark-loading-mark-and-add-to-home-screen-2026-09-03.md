@@ -1,13 +1,13 @@
 # Academix logo, wordmark, loading mark and "Add to home screen"
 
-Your uploaded artwork becomes the one official Academix identity: the mark (dashboard panel + orange X), the wordmark "ACADEMIX" with the enhanced X, and the tagline "SMARTER SYSTEM. EXTRA IMPACT."
+Your uploaded artwork becomes the one official Academix identity: the mark (dashboard panel + orange X), the wordmark "ACADEMIX" with the enhanced X.
 
 ## 1. Brand assets from your artwork
 
 From the uploaded image, prepare three clean pieces:
 
 - **App mark** — the square symbol (panel + X), white background removed, exported at 512 / 192 / 180 / 64 px.
-- **Full lockup** — mark + ACADEMIX wordmark + tagline, for the landing page hero and login card.
+- **Full lockup** — mark + ACADEMIX wordmark, for the landing page hero and login card.
 - **Wordmark only** — for headers and footers where space is tight.
 
 These are stored as CDN assets (pointer files in the repo, not heavy binaries), except the favicon, which must be a real file in `public/`.
