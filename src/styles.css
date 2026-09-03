@@ -33,6 +33,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+  --color-brand-accent: var(--brand-accent);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -67,6 +68,7 @@
 }
 
 :root {
+  --brand-accent: oklch(0.68 0.2 45);
   /* Academix brand tokens (light) */
   --radius: 0.75rem;
   --background: oklch(0.978 0.004 250); /* soft, slightly cool paper */
@@ -109,6 +111,7 @@
 }
 
 .dark {
+  --brand-accent: oklch(0.72 0.19 45);
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.208 0.042 265.755);
