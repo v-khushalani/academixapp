@@ -1,5 +1,74 @@
 import { useEffect, useState } from "react";
 import { getBrandedInstitute } from "@/lib/academy-settings";
+import academixMark from "@/assets/academix-mark.png.asset.json";
+import academixWordmark from "@/assets/academix-wordmark.png.asset.json";
+
+/** Official Academix symbol (dashboard + enhanced X). */
+export function AcademixLogo({
+  size = 32,
+  className = "",
+}: {
+  size?: number;
+  className?: string;
+}) {
+  return (
+    <img
+      src={academixMark.url}
+      alt="Academix"
+      style={{ height: size }}
+      className={`w-auto shrink-0 object-contain ${className}`}
+    />
+  );
+}
+
+/** Official ACADEMIX lockup image (wordmark + tagline-free). */
+export function AcademixWordmarkImage({
+  height = 24,
+  className = "",
+}: {
+  height?: number;
+  className?: string;
+}) {
+  return (
+    <img
+      src={academixWordmark.url}
+      alt="Academix"
+      style={{ height }}
+      className={`w-auto shrink-0 object-contain ${className}`}
+    />
+  );
+}
+
+/** Text rendering of the brand: ACADEMI in brand navy with the enhanced X accent. */
+export function AcademixWordmark({ className = "" }: { className?: string }) {
+  return (
+    <span className={`font-extrabold uppercase tracking-tight ${className}`}>
+      ACADEMI<span className="text-brand-accent">X</span>
+    </span>
+  );
+}
+
+/** Brand loading indicator — the Academix mark, pulsing. */
+export function AcademixLoader({
+  size = 44,
+  label,
+  className = "",
+}: {
+  size?: number;
+  label?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={`flex flex-col items-center justify-center gap-3 ${className}`}
+    >
+      <AcademixLogo size={size} className="animate-pulse" />
+      <span className="text-xs text-muted-foreground">{label ?? "Loading…"}</span>
+    </div>
+  );
+}
 
 export type Brand = { name: string; logo: string; initials: string };
 
