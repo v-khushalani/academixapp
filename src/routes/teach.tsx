@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { AcademixLoader } from "@/components/brand";
 import { useEffect } from "react";
 import { BookOpen, CalendarCheck, ClipboardList, Home, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -43,8 +44,8 @@ function TeachLayout() {
 
   if (loading || !session || isFamily) {
     return (
-      <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">
-        Loading…
+      <div className="grid min-h-screen place-items-center bg-background">
+        <AcademixLoader size={56} />
       </div>
     );
   }
