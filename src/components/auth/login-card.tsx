@@ -1,5 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
+import { AcademixLogo, AcademixWordmark } from "@/components/brand";
+import { InstallAcademix } from "@/components/install-academix";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,10 +60,8 @@ export function LoginCard() {
       <div className="flex items-center justify-center px-5 py-10 sm:px-6 sm:py-12">
         <div className="w-full max-w-sm">
           <Link to="/" className="mb-8 inline-flex items-center gap-2">
-            <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground">
-              <span className="text-sm font-bold">Ax</span>
-            </div>
-            <span className="text-sm font-semibold">Academix</span>
+            <AcademixLogo size={32} />
+            <AcademixWordmark className="text-sm" />
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -136,6 +136,7 @@ export function LoginCard() {
                 ← Back to Academix
               </Link>
             </p>
+            <InstallAcademix label="Install Academix" className="mt-1" />
           </div>
         </div>
       </div>

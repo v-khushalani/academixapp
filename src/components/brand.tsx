@@ -124,7 +124,7 @@ export function BrandMark({ brand, size = 36 }: { brand: Brand; size?: number })
 export function PoweredByAcademix({ className = "" }: { className?: string }) {
   return (
     <p className={`text-center text-[11px] text-muted-foreground ${className}`}>
-      Powered by <span className="font-semibold text-foreground/70">Academix</span>
+      Powered by <AcademixWordmark className="text-[11px] text-foreground/70" />
     </p>
   );
 }

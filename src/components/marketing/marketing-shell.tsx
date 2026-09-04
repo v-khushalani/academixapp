@@ -93,7 +93,10 @@ export function MarketingShell({ children }: { children: ReactNode }) {
 
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <span>© {new Date().getFullYear()} Academix</span>
+          <div className="flex items-center gap-3">
+            <span>© {new Date().getFullYear()} Academix</span>
+            <InstallAcademix label="Install app" />
+          </div>
           <div className="flex flex-wrap items-center gap-4 text-xs">
             <Link to="/for-institutes" className="hover:text-foreground">
               Features
