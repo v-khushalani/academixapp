@@ -83,7 +83,17 @@ function TeachMarks() {
     mutationFn: async () => {
       const rows = Object.entries(merged)
         .filter(([, v]) => v !== "" && v != null)
-        .map(([student_id, v]) => ({ test_id: testId, student_id, marks: Number(v) }));
+        .map(([student_id, v]) => {
+          const marksValue = Number(v);
+          if (
+            !Number.isFinite(marksValue) ||
+            marksValue < 0 ||
+            (test?.max_marks != null && marksValue > test.max_marks)
+          ) {
+            throw new Error(`Marks must be between 0 and ${test?.max_marks ?? "the maximum"}`);
+          }
+          return { test_id: testId, student_id, marks: marksValue };
+        });
       if (!rows.length) return;
       const { error } = await supabase
         .from("test_results")

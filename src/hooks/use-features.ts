@@ -40,7 +40,7 @@ export function useFeatures() {
   const superadmin = isSuperAdmin(roles);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["resolved-features"],
+    queryKey: ["resolved-features", session?.user.id],
     enabled: !!session && !superadmin,
     staleTime: 60_000,
     queryFn: async () => {

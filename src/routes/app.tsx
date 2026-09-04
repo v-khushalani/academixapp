@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useAccessGate } from "@/hooks/use-access-gate";
 import { FeatureGate } from "@/components/app/feature-gate";
 import { useLinkedRealtime } from "@/hooks/use-linked-realtime";
+import { canAccess, type ModuleKey } from "@/lib/rbac";
 
 export const Route = createFileRoute("/app")({
   ssr: false,
@@ -33,11 +34,15 @@ function AppLayout() {
   useLinkedRealtime(!!session);
   const pathname = useRouterState({ select: (r) => r.location.pathname });
 
+  const routeModule = moduleForPath(pathname);
+  const hasRouteAccess = !routeModule || canAccess(routeModule, roles);
+
   useEffect(() => {
     if (loading) return;
     if (!session) navigate({ to: "/login" });
     else if (isFamilyOnly) navigate({ to: "/portal" });
-  }, [loading, session, isFamilyOnly, navigate]);
+    else if (!hasRouteAccess) navigate({ to: "/app" });
+  }, [loading, session, isFamilyOnly, hasRouteAccess, navigate]);
 
   if (loading || !session || isFamilyOnly) {
     return (
@@ -63,4 +68,26 @@ function AppLayout() {
       </div>
     </SidebarProvider>
   );
+}
+
+function moduleForPath(pathname: string): ModuleKey | null {
+  const segment = pathname.replace(/^\/app\/?/, "").split("/")[0];
+  const modules: Partial<Record<string, ModuleKey>> = {
+    students: "students",
+    admissions: "admissions",
+    batches: "batches",
+    attendance: "attendance",
+    fees: "fees",
+    expenses: "expenses",
+    messages: "messages",
+    tests: "tests",
+    syllabus: "syllabus",
+    timetable: "timetable",
+    faculty: "faculty",
+    reports: "reports",
+    settings: "settings",
+    group: "platform",
+    platform: "platform",
+  };
+  return modules[segment] ?? null;
 }

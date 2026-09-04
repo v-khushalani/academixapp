@@ -138,7 +138,6 @@ function writeCache(s: InstituteSettings) {
 export async function saveInstitute(s: InstituteSettings) {
   const { data: instituteId } = await supabase.rpc("current_institute_id");
   if (!instituteId) throw new Error("No institute is linked to this account.");
-  writeCache(s);
   const { error } = await supabase
     .from("institutes")
     .update({
@@ -161,6 +160,7 @@ export async function saveInstitute(s: InstituteSettings) {
     })
     .eq("id", instituteId);
   if (error) throw error;
+  writeCache(s);
 }
 
 /**
@@ -202,12 +202,14 @@ export async function hydrateInstitute() {
 }
 
 export function getTemplates(): Record<WhatsAppTemplateKey, string> {
-  const overrides = safeRead<Record<WhatsAppTemplateKey, string>>(KEY_TEMPLATES);
+  const overrides = safeRead<Record<WhatsAppTemplateKey, string>>(
+    `${KEY_TEMPLATES}:${activeUid()}`,
+  );
   return { ...WA_TEMPLATES, ...overrides };
 }
 
 export function saveTemplates(t: Record<WhatsAppTemplateKey, string>) {
-  window.localStorage.setItem(KEY_TEMPLATES, JSON.stringify(t));
+  window.localStorage.setItem(`${KEY_TEMPLATES}:${activeUid()}`, JSON.stringify(t));
   window.dispatchEvent(new Event("vk-templates-changed"));
 }
 

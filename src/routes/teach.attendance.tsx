@@ -41,7 +41,7 @@ function TeachAttendance() {
   const qc = useQueryClient();
   const [batchId, setBatchId] = useState<string>(batchParam ?? "");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [marks, setMarks] = useState<Record<string, "present" | "absent">>({});
+  const [marks, setMarks] = useState<Record<string, "present" | "absent" | "late" | "excused">>({});
 
   const { data: faculty } = useQuery({
     queryKey: ["my-faculty", user?.id],
@@ -69,9 +69,9 @@ function TeachAttendance() {
   });
 
   const initial = useMemo(() => {
-    const m: Record<string, "present" | "absent"> = {};
+    const m: Record<string, "present" | "absent" | "late" | "excused"> = {};
     existing.forEach((a) => {
-      m[a.student_id] = a.status === "absent" ? "absent" : "present";
+      m[a.student_id] = a.status;
     });
     return m;
   }, [existing]);
@@ -83,7 +83,7 @@ function TeachAttendance() {
         student_id: s.id,
         batch_id: batchId,
         date,
-        status: (merged[s.id] ?? "present") as "present" | "absent",
+        status: merged[s.id] ?? "present",
         marked_by: user?.id ?? null,
       }));
       await attendanceApi.upsertMany(rows);
@@ -96,7 +96,9 @@ function TeachAttendance() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save"),
   });
 
-  const presentCount = roster.filter((s) => (merged[s.id] ?? "present") === "present").length;
+  const presentCount = roster.filter((s) =>
+    ["present", "late"].includes(merged[s.id] ?? "present"),
+  ).length;
 
   return (
     <div className="mx-auto w-full max-w-3xl p-4 sm:p-6">

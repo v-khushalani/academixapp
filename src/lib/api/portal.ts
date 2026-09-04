@@ -120,8 +120,11 @@ export function attendanceStats(rows: { status: string }[]) {
   return { total, present, late, absent, pct };
 }
 
-export function feeStats(rows: { amount: number; amount_paid: number | null }[]) {
-  const billed = rows.reduce((s, f) => s + Number(f.amount), 0);
-  const paid = rows.reduce((s, f) => s + Number(f.amount_paid ?? 0), 0);
+export function feeStats(
+  rows: { amount: number; amount_paid: number | null; status?: string | null }[],
+) {
+  const liveRows = rows.filter((f) => f.status !== "cancelled" && f.status !== "waived");
+  const billed = liveRows.reduce((s, f) => s + Number(f.amount), 0);
+  const paid = liveRows.reduce((s, f) => s + Number(f.amount_paid ?? 0), 0);
   return { billed, paid, due: Math.max(0, billed - paid) };
 }

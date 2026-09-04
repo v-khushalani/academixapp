@@ -4,6 +4,12 @@ import { feeStats, portalApi } from "@/lib/api/portal";
 import { usePortalStudent, StatTile, PortalCard } from "@/components/portal/portal-shell";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/dates";
+import { QRCodeCanvas } from "qrcode.react";
+import { Copy, ExternalLink, QrCode } from "lucide-react";
+import { getInstitute } from "@/lib/academy-settings";
+import { inr, upiLink } from "@/lib/payments";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/portal/fees")({
   head: () => ({
@@ -22,8 +28,6 @@ export const Route = createFileRoute("/portal/fees")({
   component: PortalFees,
 });
 
-const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
-
 function PortalFees() {
   const { student, isParent } = usePortalStudent();
   const { data = [], isLoading } = useQuery({
@@ -36,6 +40,23 @@ function PortalFees() {
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
 
   const stats = feeStats(data);
+  const institute = getInstitute();
+  const payableFee = data.find(
+    (f) =>
+      f.status !== "cancelled" &&
+      f.status !== "waived" &&
+      Number(f.amount) > Number(f.amount_paid ?? 0),
+  );
+  const payableAmount = payableFee
+    ? Math.max(0, Number(payableFee.amount) - Number(payableFee.amount_paid ?? 0))
+    : 0;
+  const paymentLink = payableFee
+    ? upiLink({
+        amount: payableAmount,
+        note: `${student.full_name} · ${payableFee.description ?? "Fees"}`,
+        refId: payableFee.id,
+      })
+    : null;
 
   return (
     <div className="space-y-5">
@@ -75,6 +96,47 @@ function PortalFees() {
           </ul>
         )}
       </PortalCard>
+
+      {paymentLink && institute.upi_id && payableFee && (
+        <PortalCard title="Pay online by UPI">
+          <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:text-left">
+            <div className="rounded-lg border border-border bg-white p-2">
+              <QRCodeCanvas value={paymentLink} size={156} includeMargin />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">Pay {inr(payableAmount)} using any UPI app</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {institute.upi_name || institute.name}
+              </p>
+              <p className="mt-1 break-all font-mono text-xs text-muted-foreground">
+                {institute.upi_id}
+              </p>
+              <div className="mt-3 flex flex-wrap justify-center gap-2 sm:justify-start">
+                <Button size="sm" className="gap-1.5" asChild>
+                  <a href={paymentLink}>
+                    <ExternalLink className="h-3.5 w-3.5" /> Open UPI app
+                  </a>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(institute.upi_id);
+                    toast.success("UPI ID copied");
+                  }}
+                >
+                  <Copy className="h-3.5 w-3.5" /> Copy UPI ID
+                </Button>
+              </div>
+            </div>
+          </div>
+          <p className="mt-3 flex items-center justify-center gap-1 text-xs text-muted-foreground">
+            <QrCode className="h-3.5 w-3.5" /> After payment, the institute office will update your
+            receipt.
+          </p>
+        </PortalCard>
+      )}
 
       {isParent && stats.due > 0 && (
         <div className="rounded-lg border border-border bg-muted/40 p-3">
