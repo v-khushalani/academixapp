@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { AcademixLoader } from "@/components/brand";
 import { useEffect } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app/sidebar";
@@ -46,8 +47,8 @@ function AppLayout() {
 
   if (loading || !session || isFamilyOnly) {
     return (
-      <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">
-        Loading…
+      <div className="grid min-h-screen place-items-center bg-background">
+        <AcademixLoader size={56} />
       </div>
     );
   }

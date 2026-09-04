@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AcademixLogo, AcademixWordmark } from "@/components/brand";
+import { InstallAcademix } from "@/components/install-academix";
 
 const NAV = [
   { to: "/for-institutes" as const, label: "Features" },
@@ -11,13 +13,12 @@ const NAV = [
 export function Wordmark({ className = "" }: { className?: string }) {
   return (
     <Link to="/" className={`flex items-center gap-2 ${className}`}>
-      <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-        Ax
-      </span>
-      <span className="text-base font-semibold tracking-tight">Academix</span>
+      <AcademixLogo size={32} />
+      <AcademixWordmark className="text-base" />
     </Link>
   );
 }
+
 
 /**
  * Single public shell — same header, nav and footer on landing, features,
@@ -92,7 +93,10 @@ export function MarketingShell({ children }: { children: ReactNode }) {
 
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <span>© {new Date().getFullYear()} Academix</span>
+          <div className="flex items-center gap-3">
+            <span>© {new Date().getFullYear()} Academix</span>
+            <InstallAcademix label="Install app" />
+          </div>
           <div className="flex flex-wrap items-center gap-4 text-xs">
             <Link to="/for-institutes" className="hover:text-foreground">
               Features

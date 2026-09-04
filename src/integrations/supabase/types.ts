@@ -1260,6 +1260,7 @@ export type Database = {
           mother_phone: string | null
           notes: string | null
           onboarding_completed_at: string | null
+          onboarding_expires_at: string | null
           onboarding_token: string | null
           parent_name: string | null
           parent_phone: string | null
@@ -1300,6 +1301,7 @@ export type Database = {
           mother_phone?: string | null
           notes?: string | null
           onboarding_completed_at?: string | null
+          onboarding_expires_at?: string | null
           onboarding_token?: string | null
           parent_name?: string | null
           parent_phone?: string | null
@@ -1340,6 +1342,7 @@ export type Database = {
           mother_phone?: string | null
           notes?: string | null
           onboarding_completed_at?: string | null
+          onboarding_expires_at?: string | null
           onboarding_token?: string | null
           parent_name?: string | null
           parent_phone?: string | null
@@ -1837,29 +1840,44 @@ export type Database = {
         }
         Returns: undefined
       }
-      complete_student_onboarding: {
-        Args: {
-          _address: string
-          _class: string
-          _dob?: string
-          _email: string
-          _father_name?: string
-          _father_phone?: string
-          _full_name: string
-          _mother_name?: string
-          _mother_phone?: string
-          _parent_name: string
-          _parent_phone: string
-          _phone: string
-          _photo_path?: string
-          _preferred_contact?: string
-          _program?: string
-          _school: string
-          _stream?: string
-          _token: string
-        }
-        Returns: undefined
-      }
+      complete_student_onboarding:
+        | {
+            Args: {
+              _address: string
+              _class: string
+              _email: string
+              _full_name: string
+              _parent_name: string
+              _parent_phone: string
+              _phone: string
+              _school: string
+              _token: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _address: string
+              _class: string
+              _dob?: string
+              _email: string
+              _father_name?: string
+              _father_phone?: string
+              _full_name: string
+              _mother_name?: string
+              _mother_phone?: string
+              _parent_name: string
+              _parent_phone: string
+              _phone: string
+              _photo_path?: string
+              _preferred_contact?: string
+              _program?: string
+              _school: string
+              _stream?: string
+              _token: string
+            }
+            Returns: undefined
+          }
       create_institute_with_owner: {
         Args: { _name: string; _tagline?: string }
         Returns: string
