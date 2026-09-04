@@ -1,5 +1,4 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { AcademixLoader } from "@/components/brand";
 import { useEffect } from "react";
 import { BookOpen, CalendarCheck, ClipboardList, Home, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -7,7 +6,13 @@ import { useAccessGate } from "@/hooks/use-access-gate";
 import { useFeatures } from "@/hooks/use-features";
 import { TEACH_FEATURE } from "@/lib/features";
 import { FeatureLocked } from "@/components/app/feature-gate";
-import { BrandMark, PoweredByAcademix, useBrand, useBrandedTitle } from "@/components/brand";
+import {
+  AcademixLoader,
+  BrandMark,
+  PoweredByAcademix,
+  useBrand,
+  useBrandedTitle,
+} from "@/components/brand";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/teach")({
