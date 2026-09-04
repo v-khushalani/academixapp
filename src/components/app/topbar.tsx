@@ -8,6 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { InstallAcademix } from "@/components/install-academix";
 import { useAuth } from "@/hooks/use-auth";
 import { BranchSwitcher } from "@/components/app/branch-switcher";
 import { useNavigate } from "@tanstack/react-router";
@@ -64,6 +65,9 @@ export function TopBar() {
             </span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <div className="px-2 py-1.5">
+            <InstallAcademix label="Install Academix" className="w-full justify-start" />
+          </div>
           <DropdownMenuItem onClick={handleSignOut}>
             <LogOut className="mr-2 h-4 w-4" />
             Sign out

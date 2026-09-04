@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useFeatures } from "@/hooks/use-features";
 import { PORTAL_FEATURE } from "@/lib/features";
 import { BrandMark, PoweredByAcademix, useBrand, useBrandedTitle } from "@/components/brand";
+import { InstallAcademix } from "@/components/install-academix";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -168,7 +169,10 @@ export function PortalShell({ children }: { children: ReactNode }) {
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5">{children}</main>
 
         <footer className="mx-auto w-full max-w-5xl px-4 pb-4 pt-2">
-          <PoweredByAcademix />
+          <div className="flex flex-col items-center gap-2">
+            <InstallAcademix label="Install Academix" />
+            <PoweredByAcademix />
+          </div>
         </footer>
 
         <nav
