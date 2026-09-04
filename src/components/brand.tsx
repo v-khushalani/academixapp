@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { getBrandedInstitute } from "@/lib/academy-settings";
-import academixMark from "@/assets/academix-mark.png.asset.json";
-import academixWordmark from "@/assets/academix-wordmark.png.asset.json";
 
 /** Official Academix symbol (dashboard + enhanced X). */
 export function AcademixLogo({
@@ -13,7 +11,7 @@ export function AcademixLogo({
 }) {
   return (
     <img
-      src={academixMark.url}
+      src="/icon-512.png"
       alt="Academix"
       style={{ height: size }}
       className={`w-auto shrink-0 object-contain ${className}`}
@@ -31,7 +29,7 @@ export function AcademixWordmarkImage({
 }) {
   return (
     <img
-      src={academixWordmark.url}
+      src="/academix-wordmark.png"
       alt="Academix"
       style={{ height }}
       className={`w-auto shrink-0 object-contain ${className}`}
