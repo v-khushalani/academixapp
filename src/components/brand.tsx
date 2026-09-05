@@ -19,24 +19,6 @@ export function AcademixLogo({
   );
 }
 
-/** Official ACADEMIX lockup image (wordmark + tagline-free). */
-export function AcademixWordmarkImage({
-  height = 24,
-  className = "",
-}: {
-  height?: number;
-  className?: string;
-}) {
-  return (
-    <img
-      src="/academix-wordmark.png"
-      alt="Academix"
-      style={{ height }}
-      className={`w-auto shrink-0 object-contain ${className}`}
-    />
-  );
-}
-
 /** Text rendering of the brand: ACADEMI in brand navy with the enhanced X accent. */
 export function AcademixWordmark({ className = "" }: { className?: string }) {
   return (
