@@ -34,6 +34,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
+import { AcademixLogo, AcademixWordmark } from "@/components/brand";
 import { canAccess, isSuperAdmin, type ModuleKey } from "@/lib/rbac";
 import { MODULE_FEATURE } from "@/lib/features";
 import { useFeatures } from "@/hooks/use-features";
@@ -135,7 +136,9 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-1.5">
-          {logo ? (
+          {superadmin ? (
+            <AcademixLogo size={32} />
+          ) : logo ? (
             <img
               src={logo}
               alt={instituteName}
@@ -149,8 +152,9 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold leading-tight text-foreground">
-                {instituteName}
+                {superadmin ? <AcademixWordmark className="text-sm" /> : instituteName}
               </p>
+
               <p className="truncate text-[11px] leading-tight text-muted-foreground">
                 {superadmin ? "Platform team" : "Powered by Academix"}
               </p>
