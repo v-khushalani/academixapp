@@ -34,6 +34,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
+import { AcademixLogo, AcademixWordmark } from "@/components/brand";
 import { canAccess, isSuperAdmin, type ModuleKey } from "@/lib/rbac";
 import { MODULE_FEATURE } from "@/lib/features";
 import { useFeatures } from "@/hooks/use-features";
