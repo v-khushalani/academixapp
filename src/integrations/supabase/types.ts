@@ -902,8 +902,13 @@ export type Database = {
           id: string
           key: string
           name: string
+          price_1y: number | null
+          price_3y: number | null
+          price_5y: number | null
+          price_note: string | null
           price_yearly: number | null
           room_limit: number
+          show_price: boolean
           sort_order: number
           staff_login_limit: number
           student_limit: number
@@ -925,8 +930,13 @@ export type Database = {
           id?: string
           key: string
           name: string
+          price_1y?: number | null
+          price_3y?: number | null
+          price_5y?: number | null
+          price_note?: string | null
           price_yearly?: number | null
           room_limit?: number
+          show_price?: boolean
           sort_order?: number
           staff_login_limit?: number
           student_limit?: number
@@ -948,8 +958,13 @@ export type Database = {
           id?: string
           key?: string
           name?: string
+          price_1y?: number | null
+          price_3y?: number | null
+          price_5y?: number | null
+          price_note?: string | null
           price_yearly?: number | null
           room_limit?: number
+          show_price?: boolean
           sort_order?: number
           staff_login_limit?: number
           student_limit?: number
