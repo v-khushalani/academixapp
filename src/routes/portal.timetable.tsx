@@ -40,7 +40,10 @@ function PortalTimetable() {
     <div className="space-y-5">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Timetable</h1>
-        <p className="text-sm text-muted-foreground">{student.batch?.name ?? "No batch"}</p>
+        <p className="text-sm text-muted-foreground">
+          {Array.from(new Set(data.map((s) => s.batch?.name).filter(Boolean))).join(" · ") ||
+            "No batch"}
+        </p>
       </div>
 
       {data.length === 0 ? (
