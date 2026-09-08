@@ -46,6 +46,8 @@ function StudentDetail() {
       </PageBody>
     );
 
+  const batchNames = myBatches.length > 0 ? myBatches.map((b) => b.name).join(", ") : "—";
+
   const initials = s.full_name
     .split(" ")
     .map((n) => n[0])
@@ -108,7 +110,7 @@ function StudentDetail() {
             </div>
             <dl className="mt-6 space-y-3 text-sm">
               <Row k="Class" v={s.class ?? "—"} />
-              <Row k="Batch" v={s.batch?.name ?? "—"} />
+              <Row k="Batches" v={batchNames} />
               <Row k="Parent" v={s.parent_name ?? "—"} />
               <Row k="Phone" v={s.phone ?? "—"} />
               <Row k="Email" v={s.email ?? "—"} />
