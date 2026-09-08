@@ -1144,6 +1144,58 @@ export type Database = {
         }
         Relationships: []
       }
+      student_batches: {
+        Row: {
+          batch_id: string
+          created_at: string
+          id: string
+          institute_id: string
+          is_primary: boolean
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          id?: string
+          institute_id: string
+          is_primary?: boolean
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          id?: string
+          institute_id?: string
+          is_primary?: boolean
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_batches_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_batches_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_batches_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_device_ids: {
         Row: {
           created_at: string
@@ -2147,6 +2199,7 @@ export type Database = {
         Args: { _decision: string; _student_id: string }
         Returns: undefined
       }
+      student_batch_ids: { Args: { _student_id: string }; Returns: string[] }
       submit_admission_application: {
         Args: {
           _aadhaar_edited_fields?: string[]
