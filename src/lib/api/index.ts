@@ -157,14 +157,86 @@ export const batchesApi = {
     const { error } = await supabase.from("batches").delete().eq("id", id);
     if (error) throw error;
   },
+  /** Everyone in the batch — the main batch plus students who also joined it. */
   async roster(batchId: string) {
-    const { data, error } = await supabase
-      .from("students")
-      .select("*")
-      .eq("batch_id", batchId)
-      .order("full_name");
+    const [primary, extra] = await Promise.all([
+      supabase.from("students").select("*").eq("batch_id", batchId),
+      supabase.from("student_batches").select("student:students(*)").eq("batch_id", batchId),
+    ]);
+    if (primary.error) throw primary.error;
+    if (extra.error) throw extra.error;
+    const byId = new Map<string, Student>();
+    for (const s of primary.data ?? []) byId.set(s.id, s as Student);
+    for (const r of extra.data ?? []) {
+      const s = (r as { student: Student | null }).student;
+      if (s) byId.set(s.id, s);
+    }
+    return Array.from(byId.values()).sort((a, b) => a.full_name.localeCompare(b.full_name));
+  },
+};
+
+// ---------- Enrolments (a student can sit in more than one batch) ----------
+export const enrollmentsApi = {
+  /** Batch ids the student is enrolled in (main batch included). */
+  async batchIds(studentId: string): Promise<string[]> {
+    const { data, error } = await supabase.rpc("student_batch_ids", { _student_id: studentId });
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []) as string[];
+  },
+  async forStudent(studentId: string): Promise<Batch[]> {
+    const ids = await this.batchIds(studentId);
+    if (ids.length === 0) return [];
+    const { data, error } = await supabase.from("batches").select("*").in("id", ids).order("name");
+    if (error) throw error;
+    return (data ?? []) as Batch[];
+  },
+  /**
+   * Make the student's batches exactly `batchIds`. The first one becomes the
+   * main batch; fees for every batch are (re)built by the database.
+   */
+  async set(studentId: string, batchIds: string[]) {
+    const unique = Array.from(new Set(batchIds.filter(Boolean)));
+    const { data: student, error: e0 } = await supabase
+      .from("students")
+      .select("id, institute_id, batch_id")
+      .eq("id", studentId)
+      .single();
+    if (e0) throw e0;
+
+    const primary = unique[0] ?? null;
+    if (student.batch_id !== primary) {
+      const { error } = await supabase
+        .from("students")
+        .update({ batch_id: primary })
+        .eq("id", studentId);
+      if (error) throw error;
+    }
+
+    const { data: current, error: e1 } = await supabase
+      .from("student_batches")
+      .select("id, batch_id")
+      .eq("student_id", studentId);
+    if (e1) throw e1;
+
+    const have = new Set((current ?? []).map((r) => r.batch_id));
+    const remove = (current ?? []).filter((r) => !unique.includes(r.batch_id)).map((r) => r.id);
+    const add = unique.filter((id) => !have.has(id));
+
+    if (remove.length > 0) {
+      const { error } = await supabase.from("student_batches").delete().in("id", remove);
+      if (error) throw error;
+    }
+    if (add.length > 0) {
+      const { error } = await supabase.from("student_batches").insert(
+        add.map((batch_id) => ({
+          student_id: studentId,
+          batch_id,
+          institute_id: student.institute_id,
+          is_primary: batch_id === primary,
+        })),
+      );
+      if (error) throw error;
+    }
   },
 };
 
