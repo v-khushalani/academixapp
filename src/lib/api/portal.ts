@@ -79,18 +79,30 @@ export const portalApi = {
     return data ?? [];
   },
 
-  async timetable(batchId: string | null) {
-    if (!batchId) return [];
+  /** Batch ids the student sits in — a student can be in more than one batch. */
+  async batchIds(studentId: string | null): Promise<string[]> {
+    if (!studentId) return [];
+    const { data, error } = await supabase.rpc("student_batch_ids", { _student_id: studentId });
+    if (error) throw error;
+    return (data ?? []) as string[];
+  },
+
+  async timetable(studentId: string | null) {
+    const batchIds = await this.batchIds(studentId);
+    if (batchIds.length === 0) return [];
     const { data, error } = await supabase
       .from("timetable_slots")
-      .select("*, room_ref:rooms(id,name,capacity)")
-      .eq("batch_id", batchId)
+      .select("*, room_ref:rooms(id,name,capacity), batch:batches(id,name)")
+      .in("batch_id", batchIds)
       .order("day_of_week")
       .order("start_time");
     if (error) throw error;
     const slots = data ?? [];
-    const { data: names } = await supabase.rpc("batch_faculty_names", { _batch_id: batchId });
-    const byId = new Map((names ?? []).map((n) => [n.id, n.full_name]));
+    const byId = new Map<string, string | null>();
+    for (const batchId of batchIds) {
+      const { data: names } = await supabase.rpc("batch_faculty_names", { _batch_id: batchId });
+      for (const n of names ?? []) byId.set(n.id, n.full_name);
+    }
     return slots.map((s) => ({
       ...s,
       faculty: s.faculty_id
@@ -99,12 +111,13 @@ export const portalApi = {
     }));
   },
 
-  async homework(batchId: string | null) {
-    if (!batchId) return [];
+  async homework(studentId: string | null) {
+    const batchIds = await this.batchIds(studentId);
+    if (batchIds.length === 0) return [];
     const { data, error } = await supabase
       .from("homework")
-      .select("*")
-      .eq("batch_id", batchId)
+      .select("*, batch:batches(id,name)")
+      .in("batch_id", batchIds)
       .order("due_date", { ascending: false });
     if (error) throw error;
     return data ?? [];

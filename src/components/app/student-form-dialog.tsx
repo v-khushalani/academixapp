@@ -18,7 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { batchesApi, studentsApi, type Student, type StudentInsert } from "@/lib/api";
+import {
+  batchesApi,
+  enrollmentsApi,
+  studentsApi,
+  type Student,
+  type StudentInsert,
+} from "@/lib/api";
 import { Field } from "@/components/app/field";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { useAuth } from "@/hooks/use-auth";
@@ -115,6 +121,21 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
     }
   }, [student, open]);
 
+  /** every batch this student sits in — first one is the main batch */
+  const [batchIds, setBatchIds] = useState<string[]>([]);
+
+  const { data: enrolled } = useQuery({
+    queryKey: ["student-batches", student?.id],
+    queryFn: () => enrollmentsApi.batchIds(student!.id),
+    enabled: open && Boolean(student?.id),
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    if (student) setBatchIds(enrolled ?? (student.batch_id ? [student.batch_id] : []));
+    else setBatchIds([]);
+  }, [open, student, enrolled]);
+
   const { data: batches } = useQuery({
     queryKey: ["batches"],
     queryFn: () => batchesApi.list(),
@@ -142,8 +163,13 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
             ? (input.mother_phone ?? input.parent_phone ?? "")
             : (input.father_phone ?? input.parent_phone ?? ""),
       };
-      if (isEdit && student) return studentsApi.update(student.id, payload);
-      return studentsApi.create(payload);
+      const saved = (
+        isEdit && student
+          ? await studentsApi.update(student.id, { ...payload, batch_id: batchIds[0] ?? null })
+          : await studentsApi.create({ ...payload, batch_id: batchIds[0] ?? null })
+      ) as unknown as Student | null;
+      if (saved?.id) await enrollmentsApi.set(saved.id, batchIds);
+      return saved;
     },
     onSuccess: () => {
       toast.success(isEdit ? "Student updated" : "Student added");
@@ -317,23 +343,49 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
                 </Field>
               </>
             )}
-            <Field label="Batch">
-              <Select
-                value={form.batch_id ?? "none"}
-                onValueChange={(v) => setForm({ ...form, batch_id: v === "none" ? null : v })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Unassigned" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Unassigned</SelectItem>
-                  {batchOptions.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <Field label="Batches" className="sm:col-span-2">
+              <div className="rounded-md border border-border bg-background p-2">
+                {batchOptions.length === 0 ? (
+                  <p className="px-1 py-2 text-xs text-muted-foreground">
+                    No batch matches this class yet.
+                  </p>
+                ) : (
+                  <div className="grid gap-1 sm:grid-cols-2">
+                    {batchOptions.map((b) => {
+                      const checked = batchIds.includes(b.id);
+                      return (
+                        <label
+                          key={b.id}
+                          className="flex cursor-pointer items-center gap-2 rounded px-2 py-2 text-sm hover:bg-muted/60"
+                        >
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 accent-[var(--primary)]"
+                            checked={checked}
+                            onChange={() =>
+                              setBatchIds((prev) =>
+                                prev.includes(b.id)
+                                  ? prev.filter((x) => x !== b.id)
+                                  : [...prev, b.id],
+                              )
+                            }
+                          />
+                          <span className="flex-1">{b.name}</span>
+                          {checked && batchIds[0] === b.id && (
+                            <span className="text-[10px] uppercase tracking-wide text-primary">
+                              Main
+                            </span>
+                          )}
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+                <p className="mt-1 px-1 text-[11px] text-muted-foreground">
+                  Tick every batch the student attends — schooling and regular both, if needed. Each
+                  batch bills its own fees, and the timetable shows all of them.
+                </p>
+              </div>
             </Field>
             <Field label="Scholarship (%)">
               <Input

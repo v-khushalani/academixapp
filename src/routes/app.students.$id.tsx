@@ -6,7 +6,7 @@ import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { studentsApi } from "@/lib/api";
+import { enrollmentsApi, studentsApi } from "@/lib/api";
 import { StudentFormDialog } from "@/components/app/student-form-dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
@@ -28,6 +28,10 @@ function StudentDetail() {
     queryKey: ["student", id],
     queryFn: () => studentsApi.get(id),
   });
+  const { data: myBatches = [] } = useQuery({
+    queryKey: ["student-batches", id],
+    queryFn: () => enrollmentsApi.forStudent(id),
+  });
   const [editOpen, setEditOpen] = useState(false);
 
   if (isLoading)
@@ -46,6 +50,8 @@ function StudentDetail() {
       </PageBody>
     );
 
+  const batchNames = myBatches.length > 0 ? myBatches.map((b) => b.name).join(", ") : "—";
+
   const initials = s.full_name
     .split(" ")
     .map((n) => n[0])
@@ -56,7 +62,7 @@ function StudentDetail() {
     <>
       <PageHeader
         title={s.full_name}
-        description={`${s.admission_no} · ${s.batch?.name ?? "No batch"}${s.school ? ` · ${s.school}` : ""}`}
+        description={`${s.admission_no} · ${myBatches.map((b) => b.name).join(", ") || "No batch"}${s.school ? ` · ${s.school}` : ""}`}
         actions={
           <>
             <Button asChild variant="ghost" size="sm" className="gap-1.5">
@@ -108,7 +114,7 @@ function StudentDetail() {
             </div>
             <dl className="mt-6 space-y-3 text-sm">
               <Row k="Class" v={s.class ?? "—"} />
-              <Row k="Batch" v={s.batch?.name ?? "—"} />
+              <Row k="Batches" v={batchNames} />
               <Row k="Parent" v={s.parent_name ?? "—"} />
               <Row k="Phone" v={s.phone ?? "—"} />
               <Row k="Email" v={s.email ?? "—"} />

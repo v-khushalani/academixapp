@@ -26,8 +26,8 @@ const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", 
 function PortalTimetable() {
   const { student } = usePortalStudent();
   const { data = [], isLoading } = useQuery({
-    queryKey: ["portal-timetable", student?.batch_id],
-    queryFn: () => portalApi.timetable(student?.batch_id ?? null),
+    queryKey: ["portal-timetable", student?.id],
+    queryFn: () => portalApi.timetable(student?.id ?? null),
     enabled: !!student,
   });
 
@@ -40,7 +40,10 @@ function PortalTimetable() {
     <div className="space-y-5">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Timetable</h1>
-        <p className="text-sm text-muted-foreground">{student.batch?.name ?? "No batch"}</p>
+        <p className="text-sm text-muted-foreground">
+          {Array.from(new Set(data.map((s) => s.batch?.name).filter(Boolean))).join(" · ") ||
+            "No batch"}
+        </p>
       </div>
 
       {data.length === 0 ? (

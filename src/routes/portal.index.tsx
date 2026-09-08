@@ -46,8 +46,8 @@ function PortalHome() {
     enabled: !!id,
   });
   const slots = useQuery({
-    queryKey: ["portal-timetable", student?.batch_id],
-    queryFn: () => portalApi.timetable(student?.batch_id ?? null),
+    queryKey: ["portal-timetable", student?.id],
+    queryFn: () => portalApi.timetable(student?.id ?? null),
     enabled: !!student,
   });
 
