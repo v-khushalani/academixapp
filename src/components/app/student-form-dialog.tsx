@@ -163,12 +163,15 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
             ? (input.mother_phone ?? input.parent_phone ?? "")
             : (input.father_phone ?? input.parent_phone ?? ""),
       };
-      const target =
+      const saved =
         isEdit && student
-          ? await studentsApi.update(student.id, { ...payload, batch_id: batchIds[0] ?? null })
-          : await studentsApi.create({ ...payload, batch_id: batchIds[0] ?? null });
-      if (target) await enrollmentsApi.set(target.id, batchIds);
-      return target;
+          ? ((await studentsApi.update(student.id, {
+              ...payload,
+              batch_id: batchIds[0] ?? null,
+            })) as Student)
+          : ((await studentsApi.create({ ...payload, batch_id: batchIds[0] ?? null })) as Student);
+      await enrollmentsApi.set(saved.id, batchIds);
+      return saved;
     },
     onSuccess: () => {
       toast.success(isEdit ? "Student updated" : "Student added");
