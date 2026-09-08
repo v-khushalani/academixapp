@@ -6,7 +6,7 @@ import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { studentsApi } from "@/lib/api";
+import { enrollmentsApi, studentsApi } from "@/lib/api";
 import { StudentFormDialog } from "@/components/app/student-form-dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
@@ -27,6 +27,10 @@ function StudentDetail() {
   } = useQuery({
     queryKey: ["student", id],
     queryFn: () => studentsApi.get(id),
+  });
+  const { data: myBatches = [] } = useQuery({
+    queryKey: ["student-batches", id],
+    queryFn: () => enrollmentsApi.forStudent(id),
   });
   const [editOpen, setEditOpen] = useState(false);
 
@@ -58,7 +62,7 @@ function StudentDetail() {
     <>
       <PageHeader
         title={s.full_name}
-        description={`${s.admission_no} · ${s.batch?.name ?? "No batch"}${s.school ? ` · ${s.school}` : ""}`}
+        description={`${s.admission_no} · ${myBatches.map((b) => b.name).join(", ") || "No batch"}${s.school ? ` · ${s.school}` : ""}`}
         actions={
           <>
             <Button asChild variant="ghost" size="sm" className="gap-1.5">
