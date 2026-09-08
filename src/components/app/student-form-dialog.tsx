@@ -167,7 +167,7 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
         isEdit && student
           ? await studentsApi.update(student.id, { ...payload, batch_id: batchIds[0] ?? null })
           : await studentsApi.create({ ...payload, batch_id: batchIds[0] ?? null });
-      await enrollmentsApi.set(target.id, batchIds);
+      if (target) await enrollmentsApi.set(target.id, batchIds);
       return target;
     },
     onSuccess: () => {
