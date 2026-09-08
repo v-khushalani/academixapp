@@ -23,8 +23,8 @@ export const Route = createFileRoute("/portal/homework")({
 function PortalHomework() {
   const { student } = usePortalStudent();
   const { data = [], isLoading } = useQuery({
-    queryKey: ["portal-homework", student?.batch_id],
-    queryFn: () => portalApi.homework(student?.batch_id ?? null),
+    queryKey: ["portal-homework", student?.id],
+    queryFn: () => portalApi.homework(student?.id ?? null),
     enabled: !!student,
   });
 

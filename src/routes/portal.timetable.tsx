@@ -26,8 +26,8 @@ const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", 
 function PortalTimetable() {
   const { student } = usePortalStudent();
   const { data = [], isLoading } = useQuery({
-    queryKey: ["portal-timetable", student?.batch_id],
-    queryFn: () => portalApi.timetable(student?.batch_id ?? null),
+    queryKey: ["portal-timetable", student?.id],
+    queryFn: () => portalApi.timetable(student?.id ?? null),
     enabled: !!student,
   });
 
