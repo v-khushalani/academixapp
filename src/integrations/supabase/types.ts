@@ -1452,6 +1452,7 @@ export type Database = {
           institute_id: string
           planned_sessions: number
           position: number
+          section: string | null
           started_on: string | null
           status: string
           subject: string
@@ -1467,6 +1468,7 @@ export type Database = {
           institute_id?: string
           planned_sessions?: number
           position?: number
+          section?: string | null
           started_on?: string | null
           status?: string
           subject: string
@@ -1482,6 +1484,7 @@ export type Database = {
           institute_id?: string
           planned_sessions?: number
           position?: number
+          section?: string | null
           started_on?: string | null
           status?: string
           subject?: string
