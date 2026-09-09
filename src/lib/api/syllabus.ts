@@ -23,17 +23,38 @@ export const syllabusApi = {
     return (data ?? []) as Chapter[];
   },
 
-  /** Add one or many chapters to a batch + subject, appended after the last one. */
+  /**
+   * Add chapters to a batch + subject. A line starting with `#` (or `--`) starts a
+   * new section — numbering restarts at 1 inside every section, like textbooks do.
+   */
   async addChapters(batchId: string, subject: string, titles: string[], startAt: number) {
-    const rows: ChapterInsert[] = titles
-      .map((t) => t.trim())
-      .filter(Boolean)
-      .map((title, i) => ({ batch_id: batchId, subject, title, position: startAt + i }));
+    const rows: ChapterInsert[] = [];
+    let section: string | null = null;
+    let n = startAt;
+    let seq = startAt;
+    for (const raw of titles) {
+      const line = raw.trim();
+      if (!line) continue;
+      const header = line.match(/^(?:#+|--)\s*(.+?):?$/);
+      if (header) {
+        section = header[1].trim();
+        seq = 1;
+        continue;
+      }
+      rows.push({
+        batch_id: batchId,
+        subject,
+        title: line,
+        section,
+        position: section ? seq++ : n++,
+      });
+    }
     if (!rows.length) return [];
     const { data, error } = await supabase.from("syllabus_chapters").insert(rows).select();
     if (error) throw error;
     return data ?? [];
   },
+
 
   async updateChapter(id: string, patch: Partial<ChapterInsert>) {
     const { data, error } = await supabase
