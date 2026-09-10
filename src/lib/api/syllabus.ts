@@ -16,12 +16,18 @@ export const STATUS_LABEL: Record<ChapterStatus, string> = {
 export const syllabusApi = {
   /** Chapters for one batch (or the whole institute when no batch is given). */
   async chapters(batchId?: string) {
-    let q = supabase.from("syllabus_chapters").select("*").order("subject").order("position");
+    let q = supabase
+      .from("syllabus_chapters")
+      .select("*")
+      .order("subject")
+      .order("section", { nullsFirst: true })
+      .order("position");
     if (batchId) q = q.eq("batch_id", batchId);
     const { data, error } = await q;
     if (error) throw error;
     return (data ?? []) as Chapter[];
   },
+
 
   /**
    * Add chapters to a batch + subject. A line starting with `#` (or `--`) starts a
