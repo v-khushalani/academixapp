@@ -27,7 +27,9 @@ import { batchesApi } from "@/lib/api";
 import {
   groupBySubject,
   overallPct,
+  splitSections,
   syllabusApi,
+
   STATUS_LABEL,
   type Chapter,
   type ChapterStatus,
