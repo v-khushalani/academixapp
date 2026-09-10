@@ -309,9 +309,15 @@ function SyllabusPage() {
                 rows={8}
                 value={titles}
                 onChange={(e) => setTitles(e.target.value)}
-                placeholder={"Units and Measurements\nKinematics\nLaws of Motion"}
+                placeholder={
+                  "# Part A: Mechanics\nUnits and Measurements\nKinematics\n# Part B: Optics\nRay Optics"
+                }
               />
+              <p className="text-[11px] text-muted-foreground">
+                Start a line with # to begin a new section — numbering restarts at 1 inside it.
+              </p>
             </F>
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddOpen(false)}>
