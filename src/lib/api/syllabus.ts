@@ -143,9 +143,11 @@ export const syllabusApi = {
       batch_id: toBatchId,
       subject: c.subject,
       title: c.title,
+      section: c.section,
       position: c.position,
       planned_sessions: c.planned_sessions,
     }));
+
     const { error } = await supabase.from("syllabus_chapters").insert(rows);
     if (error) throw error;
     return rows.length;
