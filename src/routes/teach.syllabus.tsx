@@ -8,7 +8,9 @@ import { myBatches, myFaculty } from "@/lib/api/teach";
 import {
   groupBySubject,
   overallPct,
+  splitSections,
   syllabusApi,
+
   type Chapter,
   type ChapterStatus,
 } from "@/lib/api/syllabus";
