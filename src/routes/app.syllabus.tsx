@@ -27,7 +27,9 @@ import { batchesApi } from "@/lib/api";
 import {
   groupBySubject,
   overallPct,
+  splitSections,
   syllabusApi,
+
   STATUS_LABEL,
   type Chapter,
   type ChapterStatus,
@@ -204,38 +206,48 @@ function SyllabusPage() {
                     </div>
                     <span className="shrink-0 text-sm font-semibold tabular-nums">{g.pct}%</span>
                   </div>
-                  <ul className="divide-y divide-border">
-                    {g.chapters.map((c) => (
-                      <li key={c.id} className="flex items-center gap-3 px-4 py-2.5">
-                        <span className="w-6 shrink-0 text-xs text-muted-foreground tabular-nums">
-                          {c.position}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm">{c.title}</p>
-                          {c.completed_on ? (
-                            <p className="text-xs text-muted-foreground">
-                              Completed {c.completed_on}
-                            </p>
-                          ) : null}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => cycle.mutate(c)}
-                          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${TONE[c.status as ChapterStatus]}`}
-                        >
-                          {STATUS_LABEL[c.status as ChapterStatus]}
-                        </button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 shrink-0"
-                          onClick={() => remove.mutate(c.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-muted-foreground" />
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
+                  {splitSections(g.chapters).map((sec, si) => (
+                    <div key={sec.section ?? `plain-${si}`}>
+                      {sec.section && (
+                        <p className="border-b border-border bg-muted/40 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          {sec.section}
+                        </p>
+                      )}
+                      <ul className="divide-y divide-border">
+                        {sec.chapters.map((c, i) => (
+                          <li key={c.id} className="flex items-center gap-3 px-4 py-2.5">
+                            <span className="w-6 shrink-0 text-xs text-muted-foreground tabular-nums">
+                              {sec.section ? i + 1 : c.position}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm">{c.title}</p>
+                              {c.completed_on ? (
+                                <p className="text-xs text-muted-foreground">
+                                  Completed {c.completed_on}
+                                </p>
+                              ) : null}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => cycle.mutate(c)}
+                              className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${TONE[c.status as ChapterStatus]}`}
+                            >
+                              {STATUS_LABEL[c.status as ChapterStatus]}
+                            </button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 shrink-0"
+                              onClick={() => remove.mutate(c.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+
                 </div>
               ))}
             </div>
@@ -297,9 +309,15 @@ function SyllabusPage() {
                 rows={8}
                 value={titles}
                 onChange={(e) => setTitles(e.target.value)}
-                placeholder={"Units and Measurements\nKinematics\nLaws of Motion"}
+                placeholder={
+                  "# Part A: Mechanics\nUnits and Measurements\nKinematics\n# Part B: Optics\nRay Optics"
+                }
               />
+              <p className="text-[11px] text-muted-foreground">
+                Start a line with # to begin a new section — numbering restarts at 1 inside it.
+              </p>
             </F>
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddOpen(false)}>

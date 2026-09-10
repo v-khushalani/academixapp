@@ -16,12 +16,18 @@ export const STATUS_LABEL: Record<ChapterStatus, string> = {
 export const syllabusApi = {
   /** Chapters for one batch (or the whole institute when no batch is given). */
   async chapters(batchId?: string) {
-    let q = supabase.from("syllabus_chapters").select("*").order("subject").order("position");
+    let q = supabase
+      .from("syllabus_chapters")
+      .select("*")
+      .order("subject")
+      .order("section", { nullsFirst: true })
+      .order("position");
     if (batchId) q = q.eq("batch_id", batchId);
     const { data, error } = await q;
     if (error) throw error;
     return (data ?? []) as Chapter[];
   },
+
 
   /**
    * Add chapters to a batch + subject. A line starting with `#` (or `--`) starts a
@@ -137,9 +143,11 @@ export const syllabusApi = {
       batch_id: toBatchId,
       subject: c.subject,
       title: c.title,
+      section: c.section,
       position: c.position,
       planned_sessions: c.planned_sessions,
     }));
+
     const { error } = await supabase.from("syllabus_chapters").insert(rows);
     if (error) throw error;
     return rows.length;
@@ -190,4 +198,18 @@ export function overallPct(chapters: Chapter[]) {
   const groups = groupBySubject(chapters);
   if (!groups.length) return 0;
   return Math.round(groups.reduce((s, g) => s + g.pct, 0) / groups.length);
+}
+
+export type SectionGroup = { section: string | null; chapters: Chapter[] };
+
+/** Split a subject's chapters into its sections; numbering restarts inside each one. */
+export function splitSections(chapters: Chapter[]): SectionGroup[] {
+  const out: SectionGroup[] = [];
+  for (const c of chapters) {
+    const key = c.section?.trim() || null;
+    const last = out[out.length - 1];
+    if (last && last.section === key) last.chapters.push(c);
+    else out.push({ section: key, chapters: [c] });
+  }
+  return out;
 }
