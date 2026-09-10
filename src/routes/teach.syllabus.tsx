@@ -140,45 +140,58 @@ function TeachSyllabus() {
                 {g.done}/{g.total} · {g.pct}%
               </span>
             </div>
-            <ul className="divide-y divide-border">
-              {g.chapters.map((c) => (
-                <li key={c.id} className="flex items-center gap-2 px-3 py-2.5">
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className={`truncate text-sm ${c.status === "done" ? "text-muted-foreground line-through" : ""}`}
-                    >
-                      {c.title}
-                    </p>
-                    {c.status === "in_progress" && (
-                      <p className="text-xs text-primary">Currently teaching</p>
-                    )}
-                  </div>
-                  <Button
-                    size="sm"
-                    variant={c.status === "in_progress" ? "default" : "outline"}
-                    className="h-8 gap-1 px-2 text-xs"
-                    disabled={setStatus.isPending}
-                    onClick={() => setStatus.mutate({ chapter: c, status: "in_progress" })}
-                  >
-                    <Play className="h-3.5 w-3.5" /> Teaching
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={c.status === "done" ? "default" : "outline"}
-                    className="h-8 gap-1 px-2 text-xs"
-                    disabled={setStatus.isPending}
-                    onClick={() =>
-                      setStatus.mutate({
-                        chapter: c,
-                        status: c.status === "done" ? "in_progress" : "done",
-                      })
-                    }
-                  >
-                    <Check className="h-3.5 w-3.5" /> Done
-                  </Button>
-                </li>
-              ))}
-            </ul>
+            {splitSections(g.chapters).map((sec, si) => (
+              <div key={sec.section ?? `plain-${si}`}>
+                {sec.section && (
+                  <p className="border-b border-border bg-muted/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {sec.section}
+                  </p>
+                )}
+                <ul className="divide-y divide-border">
+                  {sec.chapters.map((c, i) => (
+                    <li key={c.id} className="flex items-center gap-2 px-3 py-2.5">
+                      <span className="w-5 shrink-0 text-xs tabular-nums text-muted-foreground">
+                        {sec.section ? i + 1 : c.position}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={`truncate text-sm ${c.status === "done" ? "text-muted-foreground line-through" : ""}`}
+                        >
+                          {c.title}
+                        </p>
+                        {c.status === "in_progress" && (
+                          <p className="text-xs text-primary">Currently teaching</p>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={c.status === "in_progress" ? "default" : "outline"}
+                        className="h-8 gap-1 px-2 text-xs"
+                        disabled={setStatus.isPending}
+                        onClick={() => setStatus.mutate({ chapter: c, status: "in_progress" })}
+                      >
+                        <Play className="h-3.5 w-3.5" /> Teaching
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={c.status === "done" ? "default" : "outline"}
+                        className="h-8 gap-1 px-2 text-xs"
+                        disabled={setStatus.isPending}
+                        onClick={() =>
+                          setStatus.mutate({
+                            chapter: c,
+                            status: c.status === "done" ? "in_progress" : "done",
+                          })
+                        }
+                      >
+                        <Check className="h-3.5 w-3.5" /> Done
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+
           </div>
         ))}
       </div>
