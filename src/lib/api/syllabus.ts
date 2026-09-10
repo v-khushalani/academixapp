@@ -199,3 +199,17 @@ export function overallPct(chapters: Chapter[]) {
   if (!groups.length) return 0;
   return Math.round(groups.reduce((s, g) => s + g.pct, 0) / groups.length);
 }
+
+export type SectionGroup = { section: string | null; chapters: Chapter[] };
+
+/** Split a subject's chapters into its sections; numbering restarts inside each one. */
+export function splitSections(chapters: Chapter[]): SectionGroup[] {
+  const out: SectionGroup[] = [];
+  for (const c of chapters) {
+    const key = c.section?.trim() || null;
+    const last = out[out.length - 1];
+    if (last && last.section === key) last.chapters.push(c);
+    else out.push({ section: key, chapters: [c] });
+  }
+  return out;
+}
