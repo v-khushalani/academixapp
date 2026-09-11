@@ -20,7 +20,7 @@ export const syllabusApi = {
       .from("syllabus_chapters")
       .select("*")
       .order("subject")
-      .order("section", { nullsFirst: true })
+      .order("section_pos")
       .order("position");
     if (batchId) q = q.eq("batch_id", batchId);
     const { data, error } = await q;
