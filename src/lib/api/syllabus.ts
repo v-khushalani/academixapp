@@ -1,7 +1,35 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
 
 type Tables = Database["public"]["Tables"];
+
+export type OrderItem = {
+  id: string;
+  section: string | null;
+  section_pos: number;
+  position: number;
+};
+
+/**
+ * Turn a visual chapter order into storable numbers: every run of chapters that
+ * share a section becomes one section, and numbering restarts at 1 inside it.
+ */
+export function computeOrder(list: Chapter[]): OrderItem[] {
+  const out: OrderItem[] = [];
+  let sectionKey: string | null | undefined = undefined;
+  let sectionPos = 0;
+  let pos = 1;
+  for (const c of list) {
+    const key = c.section?.trim() || null;
+    if (sectionKey === undefined || key !== sectionKey) {
+      sectionKey = key;
+      sectionPos += 1;
+      pos = 1;
+    }
+    out.push({ id: c.id, section: key, section_pos: sectionPos, position: pos++ });
+  }
+  return out;
+}
 export type Chapter = Tables["syllabus_chapters"]["Row"];
 export type ChapterInsert = Tables["syllabus_chapters"]["Insert"];
 export type ChapterStatus = "pending" | "in_progress" | "done";
