@@ -1,7 +1,35 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
 
 type Tables = Database["public"]["Tables"];
+
+export type OrderItem = {
+  id: string;
+  section: string | null;
+  section_pos: number;
+  position: number;
+};
+
+/**
+ * Turn a visual chapter order into storable numbers: every run of chapters that
+ * share a section becomes one section, and numbering restarts at 1 inside it.
+ */
+export function computeOrder(list: Chapter[]): OrderItem[] {
+  const out: OrderItem[] = [];
+  let sectionKey: string | null | undefined = undefined;
+  let sectionPos = 0;
+  let pos = 1;
+  for (const c of list) {
+    const key = c.section?.trim() || null;
+    if (sectionKey === undefined || key !== sectionKey) {
+      sectionKey = key;
+      sectionPos += 1;
+      pos = 1;
+    }
+    out.push({ id: c.id, section: key, section_pos: sectionPos, position: pos++ });
+  }
+  return out;
+}
 export type Chapter = Tables["syllabus_chapters"]["Row"];
 export type ChapterInsert = Tables["syllabus_chapters"]["Insert"];
 export type ChapterStatus = "pending" | "in_progress" | "done";
@@ -20,7 +48,7 @@ export const syllabusApi = {
       .from("syllabus_chapters")
       .select("*")
       .order("subject")
-      .order("section", { nullsFirst: true })
+      .order("section_pos")
       .order("position");
     if (batchId) q = q.eq("batch_id", batchId);
     const { data, error } = await q;
@@ -61,6 +89,24 @@ export const syllabusApi = {
     return data ?? [];
   },
 
+
+  /** Persist a new drag order (section grouping + numbering) for one subject. */
+  async setOrder(items: OrderItem[]) {
+    if (!items.length) return;
+    const { error } = await supabase.rpc("set_syllabus_order", {
+      _items: items as unknown as Json,
+    });
+    if (error) throw error;
+  },
+
+  /** Put the chosen chapters into a (new or existing) named section. */
+  async moveToSection(subjectChapters: Chapter[], ids: string[], section: string | null) {
+    const picked = new Set(ids);
+    const rest = subjectChapters.filter((c) => !picked.has(c.id));
+    const moved = subjectChapters.filter((c) => picked.has(c.id));
+    const ordered = [...rest, ...moved.map((c) => ({ ...c, section }))];
+    await syllabusApi.setOrder(computeOrder(ordered as Chapter[]));
+  },
 
   async updateChapter(id: string, patch: Partial<ChapterInsert>) {
     const { data, error } = await supabase

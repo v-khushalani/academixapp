@@ -1453,6 +1453,7 @@ export type Database = {
           planned_sessions: number
           position: number
           section: string | null
+          section_pos: number
           started_on: string | null
           status: string
           subject: string
@@ -1469,6 +1470,7 @@ export type Database = {
           planned_sessions?: number
           position?: number
           section?: string | null
+          section_pos?: number
           started_on?: string | null
           status?: string
           subject: string
@@ -1485,6 +1487,7 @@ export type Database = {
           planned_sessions?: number
           position?: number
           section?: string | null
+          section_pos?: number
           started_on?: string | null
           status?: string
           subject?: string
@@ -2181,6 +2184,7 @@ export type Database = {
         Args: {
           _carry_forward?: boolean
           _fee_id: string
+          _mode?: string
           _new_amount: number
           _new_due_date?: string
           _reason?: string
@@ -2202,6 +2206,7 @@ export type Database = {
         Args: { _decision: string; _student_id: string }
         Returns: undefined
       }
+      set_syllabus_order: { Args: { _items: Json }; Returns: undefined }
       student_batch_ids: { Args: { _student_id: string }; Returns: string[] }
       submit_admission_application: {
         Args: {
