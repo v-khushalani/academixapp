@@ -62,6 +62,24 @@ export const syllabusApi = {
   },
 
 
+  /** Persist a new drag order (section grouping + numbering) for one subject. */
+  async setOrder(items: OrderItem[]) {
+    if (!items.length) return;
+    const { error } = await supabase.rpc("set_syllabus_order", {
+      _items: items as unknown as Json,
+    });
+    if (error) throw error;
+  },
+
+  /** Put the chosen chapters into a (new or existing) named section. */
+  async moveToSection(subjectChapters: Chapter[], ids: string[], section: string | null) {
+    const picked = new Set(ids);
+    const rest = subjectChapters.filter((c) => !picked.has(c.id));
+    const moved = subjectChapters.filter((c) => picked.has(c.id));
+    const ordered = [...rest, ...moved.map((c) => ({ ...c, section }))];
+    await syllabusApi.setOrder(computeOrder(ordered as Chapter[]));
+  },
+
   async updateChapter(id: string, patch: Partial<ChapterInsert>) {
     const { data, error } = await supabase
       .from("syllabus_chapters")
