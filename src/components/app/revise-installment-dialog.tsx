@@ -38,13 +38,13 @@ export function ReviseInstallmentDialog({
   const refresh = useRefreshLinked();
   const [amount, setAmount] = useState("");
   const [due, setDue] = useState("");
-  const [carry, setCarry] = useState(true);
+  const [mode, setMode] = useState<"next" | "new" | "none">("next");
   const [reason, setReason] = useState("");
 
   useEffect(() => {
     setAmount(target ? String(Math.round(target.amount)) : "");
     setDue(target?.due_date ?? "");
-    setCarry(true);
+    setMode("next");
     setReason("");
   }, [target?.id, target?.amount, target?.due_date]);
 
@@ -54,8 +54,9 @@ export function ReviseInstallmentDialog({
         _fee_id: target!.id,
         _new_amount: Number(amount || 0),
         _new_due_date: due || undefined,
-        _carry_forward: carry,
+        _carry_forward: mode === "next",
         _reason: reason || undefined,
+        _mode: mode,
       });
       if (error) throw error;
     },
