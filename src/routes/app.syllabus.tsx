@@ -24,13 +24,11 @@ import {
 } from "@/components/ui/select";
 import { Field as F } from "@/components/app/field";
 import { batchesApi } from "@/lib/api";
+import { SubjectCard } from "@/components/app/syllabus-chapters";
 import {
   groupBySubject,
   overallPct,
-  splitSections,
   syllabusApi,
-
-  STATUS_LABEL,
   type Chapter,
   type ChapterStatus,
 } from "@/lib/api/syllabus";
