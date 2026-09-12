@@ -120,8 +120,15 @@ function SyllabusPage() {
   });
   const add = useMutation({
     mutationFn: () => {
-      const existing = chapters.filter((c) => c.subject === subject.trim()).length;
-      return syllabusApi.addChapters(batchId, subject.trim(), titles.split("\n"), existing + 1);
+      const mine = chapters.filter((c) => c.subject === subject.trim());
+      const lastSection = mine.reduce((m, c) => Math.max(m, c.section_pos ?? 0), 0);
+      return syllabusApi.addChapters(
+        batchId,
+        subject.trim(),
+        titles.split("\n"),
+        mine.length + 1,
+        Math.max(1, lastSection),
+      );
     },
     onSuccess: (rows) => {
       toast.success(`${rows.length} chapter(s) added`);
