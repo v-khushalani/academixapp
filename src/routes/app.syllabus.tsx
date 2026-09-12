@@ -24,13 +24,11 @@ import {
 } from "@/components/ui/select";
 import { Field as F } from "@/components/app/field";
 import { batchesApi } from "@/lib/api";
+import { SubjectCard } from "@/components/app/syllabus-chapters";
 import {
   groupBySubject,
   overallPct,
-  splitSections,
   syllabusApi,
-
-  STATUS_LABEL,
   type Chapter,
   type ChapterStatus,
 } from "@/lib/api/syllabus";
@@ -99,6 +97,14 @@ function SyllabusPage() {
     qc.invalidateQueries({ queryKey: ["syllabus-logs"] });
   };
 
+  /** Show the new drag order instantly; the server call runs alongside it. */
+  const reorderLocally = (subject: string, next: Chapter[]) => {
+    qc.setQueryData<Chapter[]>(["syllabus", batchId], (old) => [
+      ...(old ?? []).filter((c) => c.subject !== subject),
+      ...next,
+    ]);
+  };
+
   const cycle = useMutation({
     mutationFn: (c: Chapter) => syllabusApi.setStatus(c, NEXT[c.status as ChapterStatus]),
     onSuccess: refresh,
@@ -114,8 +120,15 @@ function SyllabusPage() {
   });
   const add = useMutation({
     mutationFn: () => {
-      const existing = chapters.filter((c) => c.subject === subject.trim()).length;
-      return syllabusApi.addChapters(batchId, subject.trim(), titles.split("\n"), existing + 1);
+      const mine = chapters.filter((c) => c.subject === subject.trim());
+      const lastSection = mine.reduce((m, c) => Math.max(m, c.section_pos ?? 0), 0);
+      return syllabusApi.addChapters(
+        batchId,
+        subject.trim(),
+        titles.split("\n"),
+        mine.length + 1,
+        Math.max(1, lastSection),
+      );
     },
     onSuccess: (rows) => {
       toast.success(`${rows.length} chapter(s) added`);
@@ -195,60 +208,13 @@ function SyllabusPage() {
                 </div>
               )}
               {groups.map((g) => (
-                <div key={g.subject} className="rounded-lg border border-border bg-card">
-                  <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">{g.subject}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {g.done} of {g.total} chapters done
-                        {g.current ? ` · now: ${g.current.title}` : ""}
-                      </p>
-                    </div>
-                    <span className="shrink-0 text-sm font-semibold tabular-nums">{g.pct}%</span>
-                  </div>
-                  {splitSections(g.chapters).map((sec, si) => (
-                    <div key={sec.section ?? `plain-${si}`}>
-                      {sec.section && (
-                        <p className="border-b border-border bg-muted/40 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          {sec.section}
-                        </p>
-                      )}
-                      <ul className="divide-y divide-border">
-                        {sec.chapters.map((c, i) => (
-                          <li key={c.id} className="flex items-center gap-3 px-4 py-2.5">
-                            <span className="w-6 shrink-0 text-xs text-muted-foreground tabular-nums">
-                              {sec.section ? i + 1 : c.position}
-                            </span>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm">{c.title}</p>
-                              {c.completed_on ? (
-                                <p className="text-xs text-muted-foreground">
-                                  Completed {c.completed_on}
-                                </p>
-                              ) : null}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => cycle.mutate(c)}
-                              className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${TONE[c.status as ChapterStatus]}`}
-                            >
-                              {STATUS_LABEL[c.status as ChapterStatus]}
-                            </button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 shrink-0"
-                              onClick={() => remove.mutate(c.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-
-                </div>
+                <SubjectCard
+                  key={g.subject}
+                  group={g}
+                  onCycle={(c) => cycle.mutate(c)}
+                  onRemove={(id) => remove.mutate(id)}
+                  onReordered={reorderLocally}
+                />
               ))}
             </div>
 

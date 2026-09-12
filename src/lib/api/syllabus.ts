@@ -61,9 +61,16 @@ export const syllabusApi = {
    * Add chapters to a batch + subject. A line starting with `#` (or `--`) starts a
    * new section — numbering restarts at 1 inside every section, like textbooks do.
    */
-  async addChapters(batchId: string, subject: string, titles: string[], startAt: number) {
+  async addChapters(
+    batchId: string,
+    subject: string,
+    titles: string[],
+    startAt: number,
+    sectionStart = 1,
+  ) {
     const rows: ChapterInsert[] = [];
     let section: string | null = null;
+    let sectionPos = sectionStart;
     let n = startAt;
     let seq = startAt;
     for (const raw of titles) {
@@ -72,6 +79,7 @@ export const syllabusApi = {
       const header = line.match(/^(?:#+|--)\s*(.+?):?$/);
       if (header) {
         section = header[1].trim();
+        sectionPos += 1;
         seq = 1;
         continue;
       }
@@ -80,6 +88,7 @@ export const syllabusApi = {
         subject,
         title: line,
         section,
+        section_pos: sectionPos,
         position: section ? seq++ : n++,
       });
     }

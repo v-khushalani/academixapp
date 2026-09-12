@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { inr } from "@/lib/payments";
@@ -38,13 +38,13 @@ export function ReviseInstallmentDialog({
   const refresh = useRefreshLinked();
   const [amount, setAmount] = useState("");
   const [due, setDue] = useState("");
-  const [carry, setCarry] = useState(true);
+  const [mode, setMode] = useState<"next" | "new" | "none">("next");
   const [reason, setReason] = useState("");
 
   useEffect(() => {
     setAmount(target ? String(Math.round(target.amount)) : "");
     setDue(target?.due_date ?? "");
-    setCarry(true);
+    setMode("next");
     setReason("");
   }, [target?.id, target?.amount, target?.due_date]);
 
@@ -54,8 +54,9 @@ export function ReviseInstallmentDialog({
         _fee_id: target!.id,
         _new_amount: Number(amount || 0),
         _new_due_date: due || undefined,
-        _carry_forward: carry,
+        _carry_forward: mode === "next",
         _reason: reason || undefined,
+        _mode: mode,
       });
       if (error) throw error;
     },
@@ -102,19 +103,36 @@ export function ReviseInstallmentDialog({
             <Label htmlFor="rev-due">Due date</Label>
             <Input id="rev-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} />
           </div>
-          <label className="flex items-start gap-2 rounded-md border border-border p-3 text-sm">
-            <Checkbox checked={carry} onCheckedChange={(v) => setCarry(Boolean(v))} />
-            <span>
-              Move the difference to the next installment
+          <div className="space-y-1.5">
+            <Label>
+              What happens to the difference
               {diff !== 0 ? (
-                <span className="block text-xs text-muted-foreground">
-                  {diff > 0
-                    ? `${inr(diff)} will be added there`
-                    : `${inr(-diff)} will be reduced there`}
+                <span className="ml-1 text-xs font-normal text-muted-foreground">
+                  ({diff > 0 ? inr(diff) : inr(-diff)})
                 </span>
               ) : null}
-            </span>
-          </label>
+            </Label>
+            <RadioGroup value={mode} onValueChange={(v) => setMode(v as typeof mode)}>
+              {[
+                { v: "next", label: "Move it to the next installment" },
+                { v: "new", label: "Create a new installment for it" },
+                { v: "none", label: "Reduce the total — nothing carried forward" },
+              ].map((o) => (
+                <label
+                  key={o.v}
+                  className="flex items-center gap-2 rounded-md border border-border p-2.5 text-sm"
+                >
+                  <RadioGroupItem value={o.v} />
+                  <span>{o.label}</span>
+                </label>
+              ))}
+            </RadioGroup>
+            {mode === "new" && diff <= 0 ? (
+              <p className="text-xs text-muted-foreground">
+                A new installment is only created when this one is reduced.
+              </p>
+            ) : null}
+          </div>
           <div className="space-y-1.5">
             <Label htmlFor="rev-reason">Reason</Label>
             <Textarea
