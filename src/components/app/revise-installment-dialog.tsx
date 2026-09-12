@@ -103,19 +103,36 @@ export function ReviseInstallmentDialog({
             <Label htmlFor="rev-due">Due date</Label>
             <Input id="rev-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} />
           </div>
-          <label className="flex items-start gap-2 rounded-md border border-border p-3 text-sm">
-            <Checkbox checked={carry} onCheckedChange={(v) => setCarry(Boolean(v))} />
-            <span>
-              Move the difference to the next installment
+          <div className="space-y-1.5">
+            <Label>
+              What happens to the difference
               {diff !== 0 ? (
-                <span className="block text-xs text-muted-foreground">
-                  {diff > 0
-                    ? `${inr(diff)} will be added there`
-                    : `${inr(-diff)} will be reduced there`}
+                <span className="ml-1 text-xs font-normal text-muted-foreground">
+                  ({diff > 0 ? inr(diff) : inr(-diff)})
                 </span>
               ) : null}
-            </span>
-          </label>
+            </Label>
+            <RadioGroup value={mode} onValueChange={(v) => setMode(v as typeof mode)}>
+              {[
+                { v: "next", label: "Move it to the next installment" },
+                { v: "new", label: "Create a new installment for it" },
+                { v: "none", label: "Reduce the total — nothing carried forward" },
+              ].map((o) => (
+                <label
+                  key={o.v}
+                  className="flex items-center gap-2 rounded-md border border-border p-2.5 text-sm"
+                >
+                  <RadioGroupItem value={o.v} />
+                  <span>{o.label}</span>
+                </label>
+              ))}
+            </RadioGroup>
+            {mode === "new" && diff <= 0 ? (
+              <p className="text-xs text-muted-foreground">
+                A new installment is only created when this one is reduced.
+              </p>
+            ) : null}
+          </div>
           <div className="space-y-1.5">
             <Label htmlFor="rev-reason">Reason</Label>
             <Textarea
