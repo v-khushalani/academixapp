@@ -341,7 +341,7 @@ export function SubjectCard({
               {createSection.isPending ? "Saving…" : "Create section"}
             </Button>
           </DialogFooter>
-        </DialogFooter>
+        </DialogContent>
       </Dialog>
     </div>
   );
