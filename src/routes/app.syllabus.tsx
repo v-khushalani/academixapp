@@ -97,6 +97,14 @@ function SyllabusPage() {
     qc.invalidateQueries({ queryKey: ["syllabus-logs"] });
   };
 
+  /** Show the new drag order instantly; the server call runs alongside it. */
+  const reorderLocally = (subject: string, next: Chapter[]) => {
+    qc.setQueryData<Chapter[]>(["syllabus", batchId], (old) => [
+      ...(old ?? []).filter((c) => c.subject !== subject),
+      ...next,
+    ]);
+  };
+
   const cycle = useMutation({
     mutationFn: (c: Chapter) => syllabusApi.setStatus(c, NEXT[c.status as ChapterStatus]),
     onSuccess: refresh,
