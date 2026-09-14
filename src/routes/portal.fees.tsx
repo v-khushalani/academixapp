@@ -62,10 +62,18 @@ function PortalFees() {
     <div className="space-y-5">
       <h1 className="text-xl font-semibold tracking-tight">Fees</h1>
 
-      <div className="grid grid-cols-3 gap-3">
-        <StatTile label="Billed" value={inr(stats.billed)} />
-        <StatTile label="Paid" value={inr(stats.paid)} tone="success" />
-        <StatTile label="Due" value={inr(stats.due)} tone={stats.due > 0 ? "warning" : "success"} />
+      {/* Families see only what is still pending — never the billed total, so a
+          scholarship or discount given to one student is not visible to anyone. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <StatTile
+          label="Pending"
+          value={inr(stats.due)}
+          tone={stats.due > 0 ? "warning" : "success"}
+        />
+        <StatTile
+          label="Next due date"
+          value={payableFee?.due_date ? formatDate(payableFee.due_date) : "—"}
+        />
       </div>
 
       <PortalCard title="Instalments">
@@ -73,26 +81,32 @@ function PortalFees() {
           <p className="text-sm text-muted-foreground">No fees have been raised yet.</p>
         ) : (
           <ul className="divide-y divide-border">
-            {data.map((f) => (
-              <li key={f.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{f.description ?? "Fee"}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Due {formatDate(f.due_date)}
-                    {f.receipt_no ? ` · Receipt ${f.receipt_no}` : ""}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <div className="text-right">
-                    <p className="font-semibold">{inr(Number(f.amount))}</p>
+            {data.map((f) => {
+              const pending = Math.max(0, Number(f.amount) - Number(f.amount_paid ?? 0));
+              const settled = pending === 0 || f.status === "waived" || f.status === "cancelled";
+              return (
+                <li key={f.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{f.description ?? "Fee"}</p>
                     <p className="text-xs text-muted-foreground">
-                      {inr(Number(f.amount_paid ?? 0))} paid
+                      Due {formatDate(f.due_date)}
+                      {f.receipt_no ? ` · Receipt ${f.receipt_no}` : ""}
                     </p>
                   </div>
-                  <Badge variant={f.status === "paid" ? "secondary" : "outline"}>{f.status}</Badge>
-                </div>
-              </li>
-            ))}
+                  <div className="flex shrink-0 items-center gap-2">
+                    <div className="text-right">
+                      <p className="font-semibold">{settled ? "—" : inr(pending)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {settled ? "Nothing pending" : "pending"}
+                      </p>
+                    </div>
+                    <Badge variant={settled ? "secondary" : "outline"}>
+                      {f.status === "paid" ? "paid" : settled ? f.status : "pending"}
+                    </Badge>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </PortalCard>

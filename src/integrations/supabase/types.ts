@@ -2066,6 +2066,7 @@ export type Database = {
           parent_institute_id: string
         }[]
       }
+      platform_delete_user: { Args: { _user_id: string }; Returns: undefined }
       platform_institute_detail: {
         Args: { _institute_id: string }
         Returns: {
@@ -2161,6 +2162,19 @@ export type Database = {
           _teacher_login_limit: number
         }
         Returns: undefined
+      }
+      platform_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          institutes: string[]
+          last_sign_in_at: string
+          roles: string[]
+          student_names: string[]
+          user_id: string
+        }[]
       }
       process_faculty_salaries: {
         Args: { _date?: string; _institute_id: string }
