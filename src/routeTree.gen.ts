@@ -56,6 +56,7 @@ import { Route as AppAdmissionsRouteImport } from './routes/app.admissions'
 import { Route as AppPlatformIndexRouteImport } from './routes/app.platform.index'
 import { Route as AppTestsIdRouteImport } from './routes/app.tests.$id'
 import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
+import { Route as AppPlatformUsersRouteImport } from './routes/app.platform.users'
 import { Route as AppPlatformPlansRouteImport } from './routes/app.platform.plans'
 import { Route as AppPlatformInstitutesRouteImport } from './routes/app.platform.institutes'
 import { Route as AppPlatformFeaturesRouteImport } from './routes/app.platform.features'
@@ -297,6 +298,11 @@ const AppStudentsIdRoute = AppStudentsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AppStudentsRoute,
 } as any)
+const AppPlatformUsersRoute = AppPlatformUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AppPlatformRoute,
+} as any)
 const AppPlatformPlansRoute = AppPlatformPlansRouteImport.update({
   id: '/plans',
   path: '/plans',
@@ -373,6 +379,7 @@ export interface FileRoutesByFullPath {
   '/app/platform/features': typeof AppPlatformFeaturesRoute
   '/app/platform/institutes': typeof AppPlatformInstitutesRoute
   '/app/platform/plans': typeof AppPlatformPlansRoute
+  '/app/platform/users': typeof AppPlatformUsersRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
   '/app/platform/': typeof AppPlatformIndexRoute
@@ -423,6 +430,7 @@ export interface FileRoutesByTo {
   '/app/platform/features': typeof AppPlatformFeaturesRoute
   '/app/platform/institutes': typeof AppPlatformInstitutesRoute
   '/app/platform/plans': typeof AppPlatformPlansRoute
+  '/app/platform/users': typeof AppPlatformUsersRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
   '/app/platform': typeof AppPlatformIndexRoute
@@ -478,6 +486,7 @@ export interface FileRoutesById {
   '/app/platform/features': typeof AppPlatformFeaturesRoute
   '/app/platform/institutes': typeof AppPlatformInstitutesRoute
   '/app/platform/plans': typeof AppPlatformPlansRoute
+  '/app/platform/users': typeof AppPlatformUsersRoute
   '/app/students/$id': typeof AppStudentsIdRoute
   '/app/tests/$id': typeof AppTestsIdRoute
   '/app/platform/': typeof AppPlatformIndexRoute
@@ -534,6 +543,7 @@ export interface FileRouteTypes {
     | '/app/platform/features'
     | '/app/platform/institutes'
     | '/app/platform/plans'
+    | '/app/platform/users'
     | '/app/students/$id'
     | '/app/tests/$id'
     | '/app/platform/'
@@ -584,6 +594,7 @@ export interface FileRouteTypes {
     | '/app/platform/features'
     | '/app/platform/institutes'
     | '/app/platform/plans'
+    | '/app/platform/users'
     | '/app/students/$id'
     | '/app/tests/$id'
     | '/app/platform'
@@ -638,6 +649,7 @@ export interface FileRouteTypes {
     | '/app/platform/features'
     | '/app/platform/institutes'
     | '/app/platform/plans'
+    | '/app/platform/users'
     | '/app/students/$id'
     | '/app/tests/$id'
     | '/app/platform/'
@@ -996,6 +1008,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStudentsIdRouteImport
       parentRoute: typeof AppStudentsRoute
     }
+    '/app/platform/users': {
+      id: '/app/platform/users'
+      path: '/users'
+      fullPath: '/app/platform/users'
+      preLoaderRoute: typeof AppPlatformUsersRouteImport
+      parentRoute: typeof AppPlatformRoute
+    }
     '/app/platform/plans': {
       id: '/app/platform/plans'
       path: '/plans'
@@ -1050,6 +1069,7 @@ interface AppPlatformRouteChildren {
   AppPlatformFeaturesRoute: typeof AppPlatformFeaturesRoute
   AppPlatformInstitutesRoute: typeof AppPlatformInstitutesRoute
   AppPlatformPlansRoute: typeof AppPlatformPlansRoute
+  AppPlatformUsersRoute: typeof AppPlatformUsersRoute
   AppPlatformIndexRoute: typeof AppPlatformIndexRoute
 }
 
@@ -1057,6 +1077,7 @@ const AppPlatformRouteChildren: AppPlatformRouteChildren = {
   AppPlatformFeaturesRoute: AppPlatformFeaturesRoute,
   AppPlatformInstitutesRoute: AppPlatformInstitutesRoute,
   AppPlatformPlansRoute: AppPlatformPlansRoute,
+  AppPlatformUsersRoute: AppPlatformUsersRoute,
   AppPlatformIndexRoute: AppPlatformIndexRoute,
 }
 

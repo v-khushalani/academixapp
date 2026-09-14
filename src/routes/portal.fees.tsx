@@ -62,10 +62,18 @@ function PortalFees() {
     <div className="space-y-5">
       <h1 className="text-xl font-semibold tracking-tight">Fees</h1>
 
-      <div className="grid grid-cols-3 gap-3">
-        <StatTile label="Billed" value={inr(stats.billed)} />
-        <StatTile label="Paid" value={inr(stats.paid)} tone="success" />
-        <StatTile label="Due" value={inr(stats.due)} tone={stats.due > 0 ? "warning" : "success"} />
+      {/* Families see only what is still pending — never the billed total, so a
+          scholarship or discount given to one student is not visible to anyone. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <StatTile
+          label="Pending"
+          value={inr(stats.due)}
+          tone={stats.due > 0 ? "warning" : "success"}
+        />
+        <StatTile
+          label="Next due date"
+          value={payableFee?.due_date ? formatDate(payableFee.due_date) : "—"}
+        />
       </div>
 
       <PortalCard title="Instalments">
