@@ -92,9 +92,9 @@ function PortalHome() {
           sub={last?.test?.title ?? "No tests yet"}
         />
         <StatTile
-          label="Fees due"
+          label="Fees pending"
           value={inr(fee.due)}
-          sub={`${inr(fee.paid)} paid of ${inr(fee.billed)}`}
+          sub={fee.due > 0 ? "Payable at the office or by UPI" : "Nothing pending"}
           tone={fee.due > 0 ? "warning" : "success"}
         />
         <StatTile label="Classes today" value={String(today.length)} sub={DAYS[todayIdx]} />

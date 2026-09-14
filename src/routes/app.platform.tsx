@@ -25,6 +25,7 @@ export const Route = createFileRoute("/app/platform")({
 const TABS = [
   { to: "/app/platform", label: "Overview", exact: true },
   { to: "/app/platform/institutes", label: "Institutes" },
+  { to: "/app/platform/users", label: "Accounts" },
   { to: "/app/platform/plans", label: "Plans & pricing" },
   { to: "/app/platform/features", label: "Features" },
 ];
