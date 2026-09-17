@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Check, Play } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { myBatches, myFaculty } from "@/lib/api/teach";
+import { myBatches, myFaculty, mySubjectsByBatch } from "@/lib/api/teach";
 import {
   groupBySubject,
   overallPct,
@@ -73,10 +73,21 @@ function TeachSyllabus() {
     enabled: Boolean(batchId),
   });
 
+  const { data: subjectMap } = useQuery({
+    queryKey: ["my-subjects", faculty?.id],
+    queryFn: () => mySubjectsByBatch(faculty!.id),
+    enabled: Boolean(faculty?.id),
+  });
+
+  /** A teacher only sees and updates the subjects they are timetabled for in this batch. */
+  const mySubjects = useMemo(() => subjectMap?.get(batchId) ?? null, [subjectMap, batchId]);
+
   const groups = useMemo(() => {
-    const all = groupBySubject(chapters);
+    let all = groupBySubject(chapters);
+    if (mySubjects && mySubjects.size)
+      all = all.filter((g) => mySubjects.has(g.subject.trim().toLowerCase()));
     return search.subject ? all.filter((g) => g.subject === search.subject) : all;
-  }, [chapters, search.subject]);
+  }, [chapters, search.subject, mySubjects]);
 
   const setStatus = useMutation({
     mutationFn: ({ chapter, status }: { chapter: Chapter; status: ChapterStatus }) =>
@@ -131,7 +142,8 @@ function TeachSyllabus() {
         )}
         {!isLoading && faculty && groups.length === 0 && (
           <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-            The office hasn't added a chapter list for this batch yet.
+            Nothing here for your subjects in this batch yet — you only update the subjects you are
+            timetabled to teach.
           </p>
         )}
         {groups.map((g) => (

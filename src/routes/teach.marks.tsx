@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { myBatches, myFaculty } from "@/lib/api/teach";
+import { myBatches, myFaculty, mySubjectsByBatch } from "@/lib/api/teach";
 import { batchesApi, testsApi } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -49,10 +49,25 @@ function TeachMarks() {
   });
   const { data: allTests = [] } = useQuery({ queryKey: ["tests"], queryFn: () => testsApi.list() });
 
+  const { data: subjectMap } = useQuery({
+    queryKey: ["my-subjects", faculty?.id],
+    queryFn: () => mySubjectsByBatch(faculty!.id),
+    enabled: Boolean(faculty?.id),
+  });
+
+  /** Only tests of the batches AND subjects this teacher is timetabled for. */
   const tests = useMemo(() => {
     const ids = new Set(myBatchList.map((b) => b.id));
-    return ids.size ? allTests.filter((t) => t.batch_id && ids.has(t.batch_id)) : allTests;
-  }, [allTests, myBatchList]);
+    let list = ids.size ? allTests.filter((t) => t.batch_id && ids.has(t.batch_id)) : allTests;
+    if (subjectMap?.size) {
+      list = list.filter((t) => {
+        const mine = t.batch_id ? subjectMap.get(t.batch_id) : null;
+        if (!mine || !mine.size) return false;
+        return t.subject ? mine.has(t.subject.trim().toLowerCase()) : true;
+      });
+    }
+    return list;
+  }, [allTests, myBatchList, subjectMap]);
 
   useEffect(() => {
     if (!testId && tests[0]) setTestId(tests[0].id);
