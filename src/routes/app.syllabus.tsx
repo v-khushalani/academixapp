@@ -93,6 +93,21 @@ function SyllabusPage() {
   });
 
   const groups = useMemo(() => groupBySubject(chapters), [chapters]);
+
+  /** Subject list for the dropdown: what the timetable schedules plus what already exists. */
+  const { data: timetableSubjects = [] } = useQuery({
+    queryKey: ["batch-subjects", batchId],
+    queryFn: () => batchSubjects(batchId),
+    enabled: Boolean(batchId),
+  });
+  const subjectOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const s of [...timetableSubjects, ...chapters.map((c) => c.subject)]) {
+      const key = s?.trim().toLowerCase();
+      if (key && !seen.has(key)) seen.set(key, s.trim());
+    }
+    return Array.from(seen.values()).sort((a, b) => a.localeCompare(b));
+  }, [timetableSubjects, chapters]);
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["syllabus"] });
     qc.invalidateQueries({ queryKey: ["syllabus-logs"] });
