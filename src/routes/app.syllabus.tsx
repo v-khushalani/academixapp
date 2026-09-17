@@ -72,6 +72,7 @@ function SyllabusPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
   const [subject, setSubject] = useState("");
+  const [customSubject, setCustomSubject] = useState(false);
   const [titles, setTitles] = useState("");
   const [copyFrom, setCopyFrom] = useState("");
 
