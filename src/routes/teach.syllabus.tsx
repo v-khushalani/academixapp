@@ -73,10 +73,21 @@ function TeachSyllabus() {
     enabled: Boolean(batchId),
   });
 
+  const { data: subjectMap } = useQuery({
+    queryKey: ["my-subjects", faculty?.id],
+    queryFn: () => mySubjectsByBatch(faculty!.id),
+    enabled: Boolean(faculty?.id),
+  });
+
+  /** A teacher only sees and updates the subjects they are timetabled for in this batch. */
+  const mySubjects = useMemo(() => subjectMap?.get(batchId) ?? null, [subjectMap, batchId]);
+
   const groups = useMemo(() => {
-    const all = groupBySubject(chapters);
+    let all = groupBySubject(chapters);
+    if (mySubjects && mySubjects.size)
+      all = all.filter((g) => mySubjects.has(g.subject.trim().toLowerCase()));
     return search.subject ? all.filter((g) => g.subject === search.subject) : all;
-  }, [chapters, search.subject]);
+  }, [chapters, search.subject, mySubjects]);
 
   const setStatus = useMutation({
     mutationFn: ({ chapter, status }: { chapter: Chapter; status: ChapterStatus }) =>
