@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Field as F } from "@/components/app/field";
 import { batchesApi } from "@/lib/api";
+import { batchSubjects } from "@/lib/api/teach";
 import { SubjectCard } from "@/components/app/syllabus-chapters";
 import {
   groupBySubject,
