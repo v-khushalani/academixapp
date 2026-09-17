@@ -142,7 +142,8 @@ function TeachSyllabus() {
         )}
         {!isLoading && faculty && groups.length === 0 && (
           <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-            The office hasn't added a chapter list for this batch yet.
+            Nothing here for your subjects in this batch yet — you only update the subjects you are
+            timetabled to teach.
           </p>
         )}
         {groups.map((g) => (

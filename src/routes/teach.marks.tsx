@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { myBatches, myFaculty } from "@/lib/api/teach";
+import { myBatches, myFaculty, mySubjectsByBatch } from "@/lib/api/teach";
 import { batchesApi, testsApi } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
