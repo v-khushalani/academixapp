@@ -258,17 +258,43 @@ function SyllabusPage() {
           </DialogHeader>
           <div className="space-y-3">
             <F label="Subject">
-              <Input
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="Physics"
-                list="syllabus-subjects"
-              />
-              <datalist id="syllabus-subjects">
-                {Array.from(new Set(chapters.map((c) => c.subject))).map((s) => (
-                  <option key={s} value={s} />
-                ))}
-              </datalist>
+              <Select
+                value={customSubject ? "__other" : subject}
+                onValueChange={(v) => {
+                  if (v === "__other") {
+                    setCustomSubject(true);
+                    setSubject("");
+                  } else {
+                    setCustomSubject(false);
+                    setSubject(v);
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subjectOptions.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="__other">Other subject…</SelectItem>
+                </SelectContent>
+              </Select>
+              {customSubject && (
+                <Input
+                  className="mt-2"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Type the subject name"
+                />
+              )}
+              {subjectOptions.length === 0 && !customSubject && (
+                <p className="text-[11px] text-muted-foreground">
+                  No subjects yet for this batch — add the timetable, or pick "Other subject".
+                </p>
+              )}
             </F>
             <F label="Chapters (one per line)">
               <Textarea
