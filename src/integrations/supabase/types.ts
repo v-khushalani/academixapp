@@ -840,6 +840,83 @@ export type Database = {
           },
         ]
       }
+      notification_reads: {
+        Row: {
+          notification_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          notification_id: string
+          read_at?: string
+          user_id?: string
+        }
+        Update: {
+          notification_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_reads_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          batch_id: string | null
+          body: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          institute_id: string
+          kind: string
+          link: string | null
+          title: string
+        }
+        Insert: {
+          batch_id?: string | null
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          institute_id?: string
+          kind?: string
+          link?: string | null
+          title: string
+        }
+        Update: {
+          batch_id?: string | null
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          institute_id?: string
+          kind?: string
+          link?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_students: {
         Row: {
           created_at: string
@@ -1700,6 +1777,96 @@ export type Database = {
             columns: ["institute_id"]
             isOneToOne: false
             referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timetable_changes: {
+        Row: {
+          batch_id: string | null
+          created_at: string
+          created_by: string | null
+          date: string
+          end_time: string | null
+          faculty_id: string | null
+          id: string
+          institute_id: string
+          kind: string
+          note: string | null
+          room_id: string | null
+          slot_id: string | null
+          start_time: string | null
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          end_time?: string | null
+          faculty_id?: string | null
+          id?: string
+          institute_id?: string
+          kind?: string
+          note?: string | null
+          room_id?: string | null
+          slot_id?: string | null
+          start_time?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          end_time?: string | null
+          faculty_id?: string | null
+          id?: string
+          institute_id?: string
+          kind?: string
+          note?: string | null
+          room_id?: string | null
+          slot_id?: string | null
+          start_time?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_changes_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_changes_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_changes_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_changes_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_changes_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "timetable_slots"
             referencedColumns: ["id"]
           },
         ]
