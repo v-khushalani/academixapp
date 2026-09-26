@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { attendanceStats, feeStats, portalApi } from "@/lib/api/portal";
 import { usePortalStudent, StatTile, PortalCard } from "@/components/portal/portal-shell";
+import { formatDate } from "@/lib/dates";
+
 
 export const Route = createFileRoute("/portal/")({
   head: () => ({
@@ -79,7 +81,40 @@ function PortalHome() {
   const rows = results.data ?? [];
   const last = rows[rows.length - 1];
   const todayIdx = new Date().getDay();
-  const today = (slots.data ?? []).filter((s) => s.day_of_week === todayIdx);
+  const dayChanges = changes.data ?? [];
+  const bySlot = new Map(dayChanges.filter((c) => c.slot_id).map((c) => [c.slot_id as string, c]));
+  const regular = (slots.data ?? [])
+    .filter((s) => s.day_of_week === todayIdx)
+    .map((s) => {
+      const c = bySlot.get(s.id);
+      return {
+        id: s.id,
+        subject: c?.subject || s.subject || "Class",
+        teacher: s.faculty?.full_name ?? null,
+        room: c?.room_ref?.name ?? s.room ?? null,
+        start: (c?.start_time ?? s.start_time)?.slice(0, 5) ?? "",
+        end: (c?.end_time ?? s.end_time)?.slice(0, 5) ?? "",
+        tag: c?.kind === "cancelled" ? "Cancelled" : c ? "Time changed" : null,
+        note: c?.note ?? null,
+        cancelled: c?.kind === "cancelled",
+      };
+    });
+  const extra = dayChanges
+    .filter((c) => c.kind === "extra")
+    .map((c) => ({
+      id: c.id,
+      subject: c.subject || "Extra class",
+      teacher: null as string | null,
+      room: c.room_ref?.name ?? null,
+      start: c.start_time?.slice(0, 5) ?? "",
+      end: c.end_time?.slice(0, 5) ?? "",
+      tag: "Extra class",
+      note: c.note,
+      cancelled: false,
+    }));
+  const today = [...regular, ...extra].sort((a, b) => a.start.localeCompare(b.start));
+  const upcoming = tests.data ?? [];
+
 
   return (
     <div className="space-y-5">
@@ -125,22 +160,57 @@ function PortalHome() {
         ) : (
           <ul className="divide-y divide-border">
             {today.map((s) => (
-              <li key={s.id} className="flex items-center justify-between py-2 text-sm">
-                <div>
-                  <p className="font-medium">{s.subject ?? "Class"}</p>
+              <li key={s.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                <div className="min-w-0">
+                  <p className={`font-medium ${s.cancelled ? "line-through" : ""}`}>
+                    {s.subject}
+                    {s.tag && (
+                      <span
+                        className={`ml-2 rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                          s.cancelled
+                            ? "bg-destructive/10 text-destructive"
+                            : "bg-primary/10 text-primary"
+                        }`}
+                      >
+                        {s.tag}
+                      </span>
+                    )}
+                  </p>
                   <p className="text-xs text-muted-foreground">
-                    {s.faculty?.full_name ?? "—"}
+                    {s.teacher ?? "—"}
                     {s.room ? ` · Room ${s.room}` : ""}
+                    {s.note ? ` · ${s.note}` : ""}
                   </p>
                 </div>
                 <span className="shrink-0 text-xs text-muted-foreground">
-                  {s.start_time?.slice(0, 5)}–{s.end_time?.slice(0, 5)}
+                  {s.start}–{s.end}
                 </span>
               </li>
             ))}
           </ul>
         )}
       </PortalCard>
+
+      <PortalCard title="Upcoming tests">
+        {upcoming.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No tests scheduled yet.</p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {upcoming.map((t) => (
+              <li key={t.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{t.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t.subject ?? t.type} · {t.batch?.name ?? "—"} · Max {t.max_marks}
+                  </p>
+                </div>
+                <span className="shrink-0 text-xs font-medium">{formatDate(t.date)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </PortalCard>
+
 
       <PortalCard
         title="Recent tests"
