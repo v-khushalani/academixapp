@@ -9,6 +9,8 @@ import { useFeatures } from "@/hooks/use-features";
 import { PORTAL_FEATURE } from "@/lib/features";
 import { BrandMark, PoweredByAcademix, useBrand, useBrandedTitle } from "@/components/brand";
 import { InstallAcademix } from "@/components/install-academix";
+import { NotificationBell } from "@/components/app/notification-bell";
+
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -138,7 +140,9 @@ export function PortalShell({ children }: { children: ReactNode }) {
                 </SelectContent>
               </Select>
             )}
+            <NotificationBell />
             <Button
+
               variant="ghost"
               size="icon"
               aria-label="Sign out"
