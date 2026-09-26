@@ -50,6 +50,18 @@ function PortalHome() {
     queryFn: () => portalApi.timetable(student?.id ?? null),
     enabled: !!student,
   });
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const changes = useQuery({
+    queryKey: ["portal-day-changes", student?.id, todayIso],
+    queryFn: () => portalApi.dayChanges(student?.id ?? null, todayIso, todayIso),
+    enabled: !!student,
+  });
+  const tests = useQuery({
+    queryKey: ["portal-upcoming-tests", student?.id],
+    queryFn: () => portalApi.upcomingTests(student?.id ?? null),
+    enabled: !!student,
+  });
+
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (!student)
