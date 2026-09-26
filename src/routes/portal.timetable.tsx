@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { portalApi } from "@/lib/api/portal";
 import { usePortalStudent, PortalCard } from "@/components/portal/portal-shell";
 import { formatTime12 } from "@/lib/time";
+import { formatDate } from "@/lib/dates";
+
 
 export const Route = createFileRoute("/portal/timetable")({
   head: () => ({
@@ -30,6 +32,13 @@ function PortalTimetable() {
     queryFn: () => portalApi.timetable(student?.id ?? null),
     enabled: !!student,
   });
+  const from = new Date().toISOString().slice(0, 10);
+  const to = new Date(Date.now() + 13 * 86400000).toISOString().slice(0, 10);
+  const { data: changes = [] } = useQuery({
+    queryKey: ["portal-day-changes", student?.id, from, to],
+    queryFn: () => portalApi.dayChanges(student?.id ?? null, from, to),
+    enabled: !!student,
+  });
 
   if (!student) return <p className="text-sm text-muted-foreground">No student linked.</p>;
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
@@ -45,6 +54,43 @@ function PortalTimetable() {
             "No batch"}
         </p>
       </div>
+
+      {changes.length > 0 && (
+        <PortalCard title="Changes coming up">
+          <ul className="divide-y divide-border">
+            {changes.map((c) => (
+              <li key={c.id} className="flex items-start justify-between gap-3 py-2.5">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">
+                    {c.subject || c.slot?.subject || "Class"}
+                    <span
+                      className={`ml-2 rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                        c.kind === "cancelled"
+                          ? "bg-destructive/10 text-destructive"
+                          : "bg-primary/10 text-primary"
+                      }`}
+                    >
+                      {c.kind === "cancelled"
+                        ? "Cancelled"
+                        : c.kind === "extra"
+                          ? "Extra class"
+                          : "Time changed"}
+                    </span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDate(c.date)}
+                    {c.start_time ? ` · ${formatTime12(c.start_time)}` : ""}
+                    {c.end_time ? ` – ${formatTime12(c.end_time)}` : ""}
+                    {c.room_ref?.name ? ` · ${c.room_ref.name}` : ""}
+                  </p>
+                  {c.note && <p className="mt-0.5 text-xs">{c.note}</p>}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </PortalCard>
+      )}
+
 
       {data.length === 0 ? (
         <PortalCard title="This week">

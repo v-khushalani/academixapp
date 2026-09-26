@@ -111,6 +111,39 @@ export const portalApi = {
     }));
   },
 
+  /** Tests scheduled from today onwards for the student's batches. */
+  async upcomingTests(studentId: string | null) {
+    const batchIds = await this.batchIds(studentId);
+    if (batchIds.length === 0) return [];
+    const { data, error } = await supabase
+      .from("tests")
+      .select("id, title, type, subject, date, max_marks, status, batch:batches(id,name)")
+      .in("batch_id", batchIds)
+      .neq("status", "cancelled")
+      .gte("date", new Date().toISOString().slice(0, 10))
+      .order("date", { ascending: true });
+    if (error) throw error;
+    return data ?? [];
+  },
+
+  /** Day-specific timetable changes (cancelled / changed / extra classes). */
+  async dayChanges(studentId: string | null, from: string, to: string) {
+    const batchIds = await this.batchIds(studentId);
+    if (batchIds.length === 0) return [];
+    const { data, error } = await supabase
+      .from("timetable_changes")
+      .select(
+        "*, batch:batches(id,name), room_ref:rooms(id,name), slot:timetable_slots(id,subject,start_time,end_time)",
+      )
+      .in("batch_id", batchIds)
+      .gte("date", from)
+      .lte("date", to)
+      .order("date")
+      .order("start_time");
+    if (error) throw error;
+    return data ?? [];
+  },
+
   async homework(studentId: string | null) {
     const batchIds = await this.batchIds(studentId);
     if (batchIds.length === 0) return [];
@@ -122,6 +155,7 @@ export const portalApi = {
     if (error) throw error;
     return data ?? [];
   },
+
 };
 
 export function attendanceStats(rows: { status: string }[]) {

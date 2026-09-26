@@ -14,6 +14,8 @@ import {
   type DropTarget,
 } from "@/components/app/timetable/drag";
 import { TeacherDaySheet } from "@/components/app/timetable/teacher-day-sheet";
+import { DayChanges } from "@/components/app/timetable/day-changes";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -76,12 +78,14 @@ const DAY_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frida
 const DAY_ORDER = [1, 2, 3, 4, 5, 6];
 const UNASSIGNED = "__none__";
 
-type Mode = "plan" | "today" | "class";
+type Mode = "plan" | "day" | "today" | "class";
 const MODE_LABEL: Record<Mode, string> = {
   plan: "Plan the week",
+  day: "Day changes",
   today: "Today — teachers",
   class: "Class timetable",
 };
+
 
 function TimetablePage() {
   const qc = useQueryClient();
@@ -414,7 +418,18 @@ function TimetablePage() {
           />
         )}
 
+        {mode === "day" && (
+          <DayChanges
+            slots={slots}
+            faculty={faculty.map((f) => ({ id: f.id, full_name: f.full_name }))}
+            rooms={rooms.map((r) => ({ id: r.id, name: r.name }))}
+            batches={batches.map((b) => ({ id: b.id, name: b.name }))}
+            canWrite={canWrite}
+          />
+        )}
+
         {mode === "class" && <ClassTimetable slots={slots} batches={batches} />}
+
 
         {mode === "plan" && (
           <>
