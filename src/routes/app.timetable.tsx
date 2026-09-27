@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, CopyPlus, GripVertical, Image, Plus, Users } from "lucide-react";
+import { AlertTriangle, CopyPlus, GripVertical, Image, Plus, Send, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { ClassTimetable } from "@/components/app/timetable/class-timetable";
 import { PeriodGrid, type GridCell } from "@/components/app/timetable/period-grid";
@@ -177,6 +178,45 @@ function TimetablePage() {
 
   const { clashes, badIds } = useMemo(() => reconcile(slots), [slots]);
 
+  // Draft vs what teachers/students currently see.
+  const { data: published = [] } = useQuery({
+    queryKey: ["timetable-published"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("timetable_published").select("*");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const unpublished = useMemo(() => {
+    const sig = (s: {
+      id: string;
+      batch_id: string | null;
+      faculty_id: string | null;
+      room_id: string | null;
+      subject: string | null;
+      day_of_week: number;
+      start_time: string;
+      end_time: string;
+    }) =>
+      [s.id, s.batch_id, s.faculty_id, s.room_id, s.subject ?? "", s.day_of_week, s.start_time.slice(0, 5), s.end_time.slice(0, 5)].join("|");
+    const a = new Set(slots.map(sig));
+    const b = new Set(published.map(sig));
+    if (a.size !== b.size) return true;
+    for (const x of a) if (!b.has(x)) return true;
+    return false;
+  }, [slots, published]);
+  const publishMut = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc("publish_timetable");
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Timetable published — teachers, students and parents notified");
+      qc.invalidateQueries({ queryKey: ["timetable-published"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const columns = useMemo(() => {
     const cols = rooms.map((r) => ({ id: r.id, label: r.name, sub: `${r.capacity} seats` }));
     return cols.length
@@ -283,12 +323,26 @@ function TimetablePage() {
       return;
     }
     if (p.facultyId) {
-      if (findConflicts({ ...slot, faculty_id: p.facultyId }, slots).length) {
-        toast.error("That teacher already has a class at this time.");
-        return;
+      // A teacher dropped on a room covers every class in that room for this day.
+      const sameRoom = slots.filter(
+        (s) => s.day_of_week === slot.day_of_week && (s.room_id ?? null) === (slot.room_id ?? null),
+      );
+      const others = slots.filter((s) => !sameRoom.some((r) => r.id === s.id));
+      let done = 0;
+      let skipped = 0;
+      for (const s of sameRoom) {
+        if (findConflicts({ ...s, faculty_id: p.facultyId }, others).length) {
+          skipped += 1;
+          continue;
+        }
+        updateMut.mutate({ id: s.id, patch: { faculty_id: p.facultyId } });
+        done += 1;
       }
-      updateMut.mutate({ id: slot.id, patch: { faculty_id: p.facultyId } });
-      toast.success("Teacher assigned");
+      if (done)
+        toast.success(
+          `Teacher assigned to ${done} class(es) in this room${skipped ? ` · ${skipped} skipped (teacher busy)` : ""}`,
+        );
+      else toast.error("That teacher already has classes at these times.");
       return;
     }
     if (p.batchId) {
@@ -384,12 +438,32 @@ function TimetablePage() {
         title="Timetable"
         description="Build the week once. Teachers get their day sheet, students get their class timetable — both from the same plan."
         actions={
-          mode === "plan" ? (
-            <Button size="sm" variant="outline" className="gap-1.5" onClick={sharePlanImage}>
-              <Image className="h-4 w-4" />
-              Share as image
-            </Button>
-          ) : null
+          <div className="flex flex-wrap items-center gap-2">
+            {canWrite && (
+              <>
+                <span
+                  className={`text-[11px] font-medium ${unpublished ? "text-destructive" : "text-muted-foreground"}`}
+                >
+                  {unpublished ? "Unpublished changes" : "All changes published"}
+                </span>
+                <Button
+                  size="sm"
+                  className="gap-1.5"
+                  disabled={!unpublished || publishMut.isPending}
+                  onClick={() => publishMut.mutate()}
+                >
+                  <Send className="h-4 w-4" />
+                  {publishMut.isPending ? "Publishing…" : "Publish"}
+                </Button>
+              </>
+            )}
+            {mode === "plan" && (
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={sharePlanImage}>
+                <Image className="h-4 w-4" />
+                Share as image
+              </Button>
+            )}
+          </div>
         }
       />
       <PageBody>
