@@ -16,7 +16,7 @@ export async function myFaculty(userId?: string, email?: string | null) {
 /** Timetable slots for a faculty on a given weekday (0=Sun). */
 export async function mySlots(facultyId: string, dayOfWeek: number) {
   const { data, error } = await supabase
-    .from("timetable_slots")
+    .from("timetable_published")
     .select("*, batch:batches(id,name), room_ref:rooms(id,name,capacity)")
     .eq("faculty_id", facultyId)
     .eq("day_of_week", dayOfWeek)
@@ -28,7 +28,7 @@ export async function mySlots(facultyId: string, dayOfWeek: number) {
 /** Distinct batches a faculty teaches, derived from the timetable. */
 export async function myBatches(facultyId: string) {
   const { data, error } = await supabase
-    .from("timetable_slots")
+    .from("timetable_published")
     .select("batch:batches(id,name)")
     .eq("faculty_id", facultyId);
   if (error) throw error;
@@ -46,7 +46,7 @@ export async function myBatches(facultyId: string) {
  */
 export async function mySubjectsByBatch(facultyId: string) {
   const { data, error } = await supabase
-    .from("timetable_slots")
+    .from("timetable_published")
     .select("batch_id, subject")
     .eq("faculty_id", facultyId);
   if (error) throw error;
@@ -63,7 +63,7 @@ export async function mySubjectsByBatch(facultyId: string) {
 /** Subjects scheduled for a batch (timetable), for subject dropdowns. */
 export async function batchSubjects(batchId: string) {
   const { data, error } = await supabase
-    .from("timetable_slots")
+    .from("timetable_published")
     .select("subject")
     .eq("batch_id", batchId);
   if (error) throw error;

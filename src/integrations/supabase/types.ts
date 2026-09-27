@@ -1945,6 +1945,77 @@ export type Database = {
           },
         ]
       }
+      timetable_published: {
+        Row: {
+          batch_id: string | null
+          day_of_week: number
+          end_time: string
+          faculty_id: string | null
+          id: string
+          institute_id: string
+          published_at: string
+          room: string | null
+          room_id: string | null
+          start_time: string
+          subject: string | null
+        }
+        Insert: {
+          batch_id?: string | null
+          day_of_week: number
+          end_time: string
+          faculty_id?: string | null
+          id: string
+          institute_id: string
+          published_at?: string
+          room?: string | null
+          room_id?: string | null
+          start_time: string
+          subject?: string | null
+        }
+        Update: {
+          batch_id?: string | null
+          day_of_week?: number
+          end_time?: string
+          faculty_id?: string | null
+          id?: string
+          institute_id?: string
+          published_at?: string
+          room?: string | null
+          room_id?: string | null
+          start_time?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_published_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_published_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_published_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_published_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       timetable_slots: {
         Row: {
           batch_id: string | null
@@ -2357,6 +2428,7 @@ export type Database = {
           primary_color: string
         }[]
       }
+      publish_timetable: { Args: never; Returns: number }
       reorder_syllabus_chapters: {
         Args: { _ids: string[] }
         Returns: undefined

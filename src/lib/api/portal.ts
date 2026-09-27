@@ -91,7 +91,7 @@ export const portalApi = {
     const batchIds = await this.batchIds(studentId);
     if (batchIds.length === 0) return [];
     const { data, error } = await supabase
-      .from("timetable_slots")
+      .from("timetable_published")
       .select("*, room_ref:rooms(id,name,capacity), batch:batches(id,name)")
       .in("batch_id", batchIds)
       .order("day_of_week")
