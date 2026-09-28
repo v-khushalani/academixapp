@@ -59,7 +59,15 @@ export function PeriodGrid({
               Time
             </th>
             {columns.map((c) => (
-              <th key={c.id} className="border-l border-border px-2 py-2 text-left">
+              <th
+                key={c.id}
+                data-drop-room={canWrite ? c.id : undefined}
+                className={`border-l border-border px-2 py-2 text-left transition-colors ${
+                  drag?.active?.facultyId && drag.hoverKey === `room:${c.id}`
+                    ? "bg-primary/20 ring-2 ring-inset ring-primary"
+                    : ""
+                }`}
+              >
                 {canWrite && onEditCol ? (
                   <button
                     type="button"

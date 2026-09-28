@@ -20,7 +20,7 @@ export type DragPayload = {
 };
 
 /** Where it landed: on an existing class card, an empty period cell, or back on the rail. */
-export type DropTarget = { cardId: string } | { colId: string; bandStart: string } | { rail: true };
+export type DropTarget = { cardId: string } | { colId: string; bandStart: string } | { rail: true } | { roomId: string };
 
 type Ctx = {
   begin: (payload: DragPayload, e: ReactPointerEvent) => void;
@@ -43,6 +43,10 @@ function resolve(x: number, y: number): { key: string; target: DropTarget } | nu
   const card = el.closest<HTMLElement>("[data-drop-card]");
   if (card?.dataset.dropCard) {
     return { key: cardKey(card.dataset.dropCard), target: { cardId: card.dataset.dropCard } };
+  }
+  const room = el.closest<HTMLElement>("[data-drop-room]");
+  if (room?.dataset.dropRoom) {
+    return { key: `room:${room.dataset.dropRoom}`, target: { roomId: room.dataset.dropRoom } };
   }
   const cell = el.closest<HTMLElement>("[data-drop-col]");
   if (cell?.dataset.dropCol && cell.dataset.dropBand) {
