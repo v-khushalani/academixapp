@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, CopyPlus, GripVertical, Image, Plus, Send, Users } from "lucide-react";
+import { AlertTriangle, CopyPlus, Eraser, GripVertical, Image, Plus, Send, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { ClassTimetable } from "@/components/app/timetable/class-timetable";
@@ -187,7 +187,19 @@ function TimetablePage() {
       return data ?? [];
     },
   });
+  const { data: pendingChanges = 0 } = useQuery({
+    queryKey: ["day-changes", "pending"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("timetable_changes")
+        .select("id", { count: "exact", head: true })
+        .is("published_at", null);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
   const unpublished = useMemo(() => {
+    if (pendingChanges > 0) return true;
     const sig = (s: {
       id: string;
       batch_id: string | null;
@@ -204,7 +216,7 @@ function TimetablePage() {
     if (a.size !== b.size) return true;
     for (const x of a) if (!b.has(x)) return true;
     return false;
-  }, [slots, published]);
+  }, [slots, published, pendingChanges]);
   const publishMut = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.rpc("publish_timetable");
@@ -213,6 +225,24 @@ function TimetablePage() {
     onSuccess: () => {
       toast.success("Timetable published — teachers, students and parents notified");
       qc.invalidateQueries({ queryKey: ["timetable-published"] });
+      qc.invalidateQueries({ queryKey: ["day-changes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const [confirmClear, setConfirmClear] = useState(false);
+  const clearMut = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("timetable_slots")
+        .delete()
+        .in("id", slots.map((s) => s.id));
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setConfirmClear(false);
+      toast.success("Schedule cleared — press Publish to show it to everyone");
+      qc.invalidateQueries({ queryKey: ["timetable"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -323,26 +353,12 @@ function TimetablePage() {
       return;
     }
     if (p.facultyId) {
-      // A teacher dropped on a room covers every class in that room for this day.
-      const sameRoom = slots.filter(
-        (s) => s.day_of_week === slot.day_of_week && (s.room_id ?? null) === (slot.room_id ?? null),
-      );
-      const others = slots.filter((s) => !sameRoom.some((r) => r.id === s.id));
-      let done = 0;
-      let skipped = 0;
-      for (const s of sameRoom) {
-        if (findConflicts({ ...s, faculty_id: p.facultyId }, others).length) {
-          skipped += 1;
-          continue;
-        }
-        updateMut.mutate({ id: s.id, patch: { faculty_id: p.facultyId } });
-        done += 1;
+      if (findConflicts({ ...slot, faculty_id: p.facultyId }, slots).length) {
+        toast.error("That teacher already has a class at this time.");
+        return;
       }
-      if (done)
-        toast.success(
-          `Teacher assigned to ${done} class(es) in this room${skipped ? ` · ${skipped} skipped (teacher busy)` : ""}`,
-        );
-      else toast.error("That teacher already has classes at these times.");
+      updateMut.mutate({ id: slot.id, patch: { faculty_id: p.facultyId } });
+      toast.success("Teacher assigned");
       return;
     }
     if (p.batchId) {
@@ -355,13 +371,43 @@ function TimetablePage() {
     }
   }
 
+  function dropOnRoom(roomId: string, p: DragPayload) {
+    if (!canWrite) return;
+    if (!p.facultyId) {
+      if (p.batchId || p.subject) toast.info("Only a teacher can be dropped on a room name.");
+      return;
+    }
+    const sameRoom = daySlots.filter((s) => (s.room_id ?? UNASSIGNED) === roomId);
+    if (!sameRoom.length) {
+      toast.info("This room has no classes on this day yet.");
+      return;
+    }
+    const others = slots.filter((s) => !sameRoom.some((r) => r.id === s.id));
+    let done = 0;
+    let skipped = 0;
+    for (const s of sameRoom) {
+      if (findConflicts({ ...s, faculty_id: p.facultyId }, others).length) {
+        skipped += 1;
+        continue;
+      }
+      updateMut.mutate({ id: s.id, patch: { faculty_id: p.facultyId } });
+      done += 1;
+    }
+    if (done)
+      toast.success(
+        `Teacher assigned to ${done} class(es) in this room${skipped ? ` · ${skipped} skipped (teacher busy)` : ""}`,
+      );
+    else toast.error("That teacher already has classes at these times.");
+  }
+
   function handleDrop(payload: DragPayload, target: DropTarget) {
     if ("rail" in target) {
       if (!canWrite || !payload.slotId) return;
       removeMut.mutate(payload.slotId);
       return;
     }
-    if ("cardId" in target) dropOnCard(target.cardId, payload);
+    if ("roomId" in target) dropOnRoom(target.roomId, payload);
+    else if ("cardId" in target) dropOnCard(target.cardId, payload);
     else void dropOnCell(target.colId, target.bandStart, payload);
   }
 
@@ -455,6 +501,39 @@ function TimetablePage() {
                   <Send className="h-4 w-4" />
                   {publishMut.isPending ? "Publishing…" : "Publish"}
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5"
+                  disabled={!slots.length || clearMut.isPending}
+                  onClick={() => setConfirmClear(true)}
+                >
+                  <Eraser className="h-4 w-4" />
+                  Clear
+                </Button>
+                <Dialog open={confirmClear} onOpenChange={setConfirmClear}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Clear the whole schedule?</DialogTitle>
+                    </DialogHeader>
+                    <p className="text-sm text-muted-foreground">
+                      Every class on every day will be removed from the draft. Teachers and students
+                      keep seeing the last published timetable until you press Publish.
+                    </p>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setConfirmClear(false)}>
+                        Keep it
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        disabled={clearMut.isPending}
+                        onClick={() => clearMut.mutate()}
+                      >
+                        {clearMut.isPending ? "Clearing…" : "Clear schedule"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </>
             )}
             {mode === "plan" && (
@@ -622,7 +701,7 @@ function TimetablePage() {
                           caption={
                             <p className="border-b border-border bg-muted/30 px-3 py-1.5 text-[11px] text-muted-foreground">
                               {DAY_FULL[day]} · drag a <b>batch</b> into an empty period, then drop
-                              a <b>teacher</b> and a <b>subject</b> on it. Clashes are blocked.
+                              a <b>teacher</b> and a <b>subject</b> on it. Drop a teacher on a <b>room name</b> to give them every class in that room. Clashes are blocked.
                             </p>
                           }
                         />

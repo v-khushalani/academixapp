@@ -1793,6 +1793,7 @@ export type Database = {
           institute_id: string
           kind: string
           note: string | null
+          published_at: string | null
           room_id: string | null
           slot_id: string | null
           start_time: string | null
@@ -1810,6 +1811,7 @@ export type Database = {
           institute_id?: string
           kind?: string
           note?: string | null
+          published_at?: string | null
           room_id?: string | null
           slot_id?: string | null
           start_time?: string | null
@@ -1827,6 +1829,7 @@ export type Database = {
           institute_id?: string
           kind?: string
           note?: string | null
+          published_at?: string | null
           room_id?: string | null
           slot_id?: string | null
           start_time?: string | null
