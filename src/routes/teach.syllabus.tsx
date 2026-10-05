@@ -129,8 +129,8 @@ function TeachSyllabus() {
             ))}
           </SelectContent>
         </Select>
-        {chapters.length > 0 && (
-          <span className="text-sm text-muted-foreground">{overallPct(chapters)}% covered</span>
+        {myChapters.length > 0 && (
+          <span className="text-sm text-muted-foreground">{overallPct(myChapters)}% covered</span>
         )}
       </div>
 
@@ -150,8 +150,8 @@ function TeachSyllabus() {
         )}
         {!isLoading && faculty && groups.length === 0 && (
           <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-            Nothing here for your subjects in this batch yet — you only update the subjects you are
-            timetabled to teach.
+            No class of yours is timetabled today, or no chapters are added for today's subject. You only update the subject you are
+            timetabled to teach today.
           </p>
         )}
         {groups.map((g) => (
