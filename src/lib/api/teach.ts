@@ -44,11 +44,13 @@ export async function myBatches(facultyId: string) {
  * Subjects a faculty actually teaches, per batch, taken from the timetable.
  * Used to keep a teacher inside their own subjects instead of the whole batch.
  */
-export async function mySubjectsByBatch(facultyId: string) {
-  const { data, error } = await supabase
+export async function mySubjectsByBatch(facultyId: string, dayOfWeek?: number) {
+  let q = supabase
     .from("timetable_published")
     .select("batch_id, subject")
     .eq("faculty_id", facultyId);
+  if (dayOfWeek !== undefined) q = q.eq("day_of_week", dayOfWeek);
+  const { data, error } = await q;
   if (error) throw error;
   const map = new Map<string, Set<string>>();
   for (const row of data ?? []) {
