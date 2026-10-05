@@ -57,14 +57,27 @@ function TeachSyllabus() {
     queryFn: () => myFaculty(user?.id, user?.email),
     enabled: Boolean(user),
   });
-  const { data: batches = [] } = useQuery({
+  const today = new Date().getDay();
+  const { data: allBatches = [] } = useQuery({
     queryKey: ["my-batches", faculty?.id],
     queryFn: () => myBatches(faculty!.id),
     enabled: Boolean(faculty?.id),
   });
 
+  /** Only today's timetabled subjects, per batch. */
+  const { data: subjectMap } = useQuery({
+    queryKey: ["my-subjects", faculty?.id, today],
+    queryFn: () => mySubjectsByBatch(faculty!.id, today),
+    enabled: Boolean(faculty?.id),
+  });
+
+  const batches = useMemo(
+    () => allBatches.filter((b) => subjectMap?.has(b.id)),
+    [allBatches, subjectMap],
+  );
+
   useEffect(() => {
-    if (!batchId && batches[0]) setBatchId(batches[0].id);
+    if (batches.length && !batches.some((b) => b.id === batchId)) setBatchId(batches[0].id);
   }, [batches, batchId]);
 
   const { data: chapters = [], isLoading } = useQuery({
@@ -73,21 +86,16 @@ function TeachSyllabus() {
     enabled: Boolean(batchId),
   });
 
-  const { data: subjectMap } = useQuery({
-    queryKey: ["my-subjects", faculty?.id],
-    queryFn: () => mySubjectsByBatch(faculty!.id),
-    enabled: Boolean(faculty?.id),
-  });
-
-  /** A teacher only sees and updates the subjects they are timetabled for in this batch. */
-  const mySubjects = useMemo(() => subjectMap?.get(batchId) ?? null, [subjectMap, batchId]);
+  const mySubjects = useMemo(() => subjectMap?.get(batchId) ?? new Set<string>(), [subjectMap, batchId]);
+  const myChapters = useMemo(
+    () => chapters.filter((c) => mySubjects.has(c.subject.trim().toLowerCase())),
+    [chapters, mySubjects],
+  );
 
   const groups = useMemo(() => {
-    let all = groupBySubject(chapters);
-    if (mySubjects && mySubjects.size)
-      all = all.filter((g) => mySubjects.has(g.subject.trim().toLowerCase()));
+    const all = groupBySubject(myChapters);
     return search.subject ? all.filter((g) => g.subject === search.subject) : all;
-  }, [chapters, search.subject, mySubjects]);
+  }, [myChapters, search.subject]);
 
   const setStatus = useMutation({
     mutationFn: ({ chapter, status }: { chapter: Chapter; status: ChapterStatus }) =>
@@ -121,8 +129,8 @@ function TeachSyllabus() {
             ))}
           </SelectContent>
         </Select>
-        {chapters.length > 0 && (
-          <span className="text-sm text-muted-foreground">{overallPct(chapters)}% covered</span>
+        {myChapters.length > 0 && (
+          <span className="text-sm text-muted-foreground">{overallPct(myChapters)}% covered</span>
         )}
       </div>
 
@@ -142,8 +150,8 @@ function TeachSyllabus() {
         )}
         {!isLoading && faculty && groups.length === 0 && (
           <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-            Nothing here for your subjects in this batch yet — you only update the subjects you are
-            timetabled to teach.
+            No class of yours is timetabled today, or no chapters are added for today's subject. You only update the subject you are
+            timetabled to teach today.
           </p>
         )}
         {groups.map((g) => (
