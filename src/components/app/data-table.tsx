@@ -51,15 +51,20 @@ export function DataTable<T extends { id: string | number }>({
   const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
-    if (!q) return rows;
-    const term = q.toLowerCase();
+    const norm = (v: string) =>
+      v.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\u0900-\u097f]+/g, " ").trim();
+    const words = norm(q).split(" ").filter(Boolean);
+    if (!words.length) return rows;
     const keys = searchKeys ?? columns.map((c) => c.key);
-    return rows.filter((r) =>
-      keys.some((k) => {
-        const v = (r as Record<string, unknown>)[k as string];
-        return v != null && String(v).toLowerCase().includes(term);
-      }),
-    );
+    return rows.filter((r) => {
+      const hay = " " + keys
+        .map((k) => (r as Record<string, unknown>)[k as string])
+        .filter((v) => v != null)
+        .map((v) => norm(String(v)))
+        .join(" ") + " ";
+      const compact = hay.replace(/ /g, "");
+      return words.every((w) => hay.includes(w) || compact.includes(w));
+    });
   }, [rows, q, searchKeys, columns]);
 
   const sorted = useMemo(() => {
