@@ -14,6 +14,7 @@ export type FeatureKey =
   | "timetable"
   | "homework"
   | "fees"
+  | "fee_ledger"
   | "expenses"
   | "salaries"
   | "receipts"
@@ -66,6 +67,12 @@ export const FEATURES: { key: FeatureKey; label: string; hint: string; group: Fe
     group: "Academics",
   },
   { key: "fees", label: "Fees & collections", hint: "Fee plans, payments, dues", group: "Money" },
+  {
+    key: "fee_ledger",
+    label: "Batch-wise fee ledger",
+    hint: "Per-student total, discount, paid, pending by batch + follow-ups",
+    group: "Money",
+  },
   {
     key: "expenses",
     label: "Expenses",
