@@ -27,6 +27,9 @@ import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
 import { logMessage } from "@/lib/api/messages";
 import { getTemplates, getInstitute } from "@/lib/academy-settings";
 import { supabase } from "@/integrations/supabase/client";
+import { FeeLedger } from "@/components/app/fee-ledger";
+import { useFeatures } from "@/hooks/use-features";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDate } from "@/lib/dates";
 import { displayFeeStatus, feeFollowUpState, FOLLOW_UP_LABEL, isOverdue } from "@/lib/fees";
 import {
@@ -54,6 +57,10 @@ function FeesPage() {
   const [correcting, setCorrecting] = useState<CorrectionTarget | null>(null);
   const [revising, setRevising] = useState<ReviseTarget | null>(null);
   const [followUp, setFollowUp] = useState("all");
+  const { isOn } = useFeatures();
+  const ledgerOn = isOn("fee_ledger");
+  const [view, setView] = useState<"ledger" | "bills">("ledger");
+  const tab = ledgerOn ? view : "bills";
 
   const filtered = useMemo(() => {
     let rows = data;
@@ -348,7 +355,30 @@ function FeesPage() {
           <KpiCard label="Collected" value={inr(collected)} icon={Wallet} tone="success" />
           <KpiCard label="Overdue" value={overdue} icon={Bell} tone="danger" />
         </div>
-        <div className="mt-6">
+        {ledgerOn && (
+          <Tabs value={tab} onValueChange={(v) => setView(v as "ledger" | "bills")} className="mt-6">
+            <TabsList>
+              <TabsTrigger value="ledger">Student &amp; batch ledger</TabsTrigger>
+              <TabsTrigger value="bills">Installment bills</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
+        {tab === "ledger" && (
+          <div className="mt-4">
+            <FeeLedger
+              fees={data.map((f) => ({
+                ...f,
+                amount: Number(f.amount),
+                amount_paid: Number(f.amount_paid),
+              }))}
+              onCollect={(f) => {
+                const row = data.find((d) => d.id === f.id);
+                if (row) openCollect(row);
+              }}
+            />
+          </div>
+        )}
+        <div className={tab === "bills" ? "mt-6" : "hidden"}>
           <DataTable
             rows={filtered}
             columns={columns}
