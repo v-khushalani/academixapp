@@ -28,6 +28,8 @@ import { openWhatsApp } from "@/lib/whatsapp";
 import { brandedQrFile } from "@/lib/branded-qr";
 import { logMessage } from "@/lib/api/messages";
 import { feesApi } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 
 export type PaymentTarget = {
@@ -72,11 +74,24 @@ export function PaymentDialog({
     setCollected(null);
   }, [target?.id, dueDefault]);
 
+  const [carry, setCarry] = useState(true);
+  const [settled, setSettled] = useState(false);
   const collect = useMutation({
-    mutationFn: (v: { id: string; received: number }) => feesApi.collect(v.id, v.received, mode),
+    mutationFn: async (v: { id: string; received: number; carry: boolean }) => {
+      await feesApi.collect(v.id, v.received, mode);
+      if (v.carry) {
+        const { error } = await supabase.rpc("settle_partial_fee" as never, { _fee_id: v.id } as never);
+        if (error) throw error;
+      }
+    },
     onSuccess: (_d, v) => {
-      toast.success("Payment recorded");
+      toast.success(
+        v.carry
+          ? `Payment recorded · balance ${inr(dueDefault - v.received)} moved forward`
+          : "Payment recorded",
+      );
       refresh();
+      setSettled(v.carry);
       setCollected(v.received);
     },
     onError: (e: Error) => toast.error(e.message),
