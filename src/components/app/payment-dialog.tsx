@@ -72,6 +72,8 @@ export function PaymentDialog({
     setAmount(dueDefault ? String(dueDefault) : "");
     setMode("Cash");
     setCollected(null);
+    setCarry(true);
+    setSettled(false);
   }, [target?.id, dueDefault]);
 
   const [carry, setCarry] = useState(true);
@@ -118,7 +120,7 @@ export function PaymentDialog({
     class_name: target.class_name,
     batch_name: target.batch_name,
     description: target.description,
-    amount: Number(target.amount),
+    amount: settled ? Number(target.amount_paid) + (collected ?? 0) : Number(target.amount),
     amount_paid: Number(target.amount_paid) + (collected ?? 0),
     due_date: target.due_date,
     paid_date: new Date().toISOString().slice(0, 10),
@@ -368,10 +370,28 @@ export function PaymentDialog({
             </p>
           )}
 
+          {value > 0 && value < dueDefault ? (
+            <label className="flex items-start gap-2 rounded-md border border-border bg-muted/40 p-3 text-sm">
+              <Checkbox checked={carry} onCheckedChange={(v) => setCarry(v === true)} />
+              <span>
+                Baaki <strong>{inr(dueDefault - value)}</strong> agli installment me jod do
+                <span className="block text-xs text-muted-foreground">
+                  Ye installment {inr(Number(target.amount_paid) + value)} par paid ho jayegi. Agar
+                  aage koi installment nahi hai to nayi balance installment banegi.
+                </span>
+              </span>
+            </label>
+          ) : null}
           <Button
             className="w-full gap-1.5"
             disabled={collect.isPending || value <= 0}
-            onClick={() => collect.mutate({ id: target.id, received: value })}
+            onClick={() =>
+              collect.mutate({
+                id: target.id,
+                received: value,
+                carry: carry && value > 0 && value < dueDefault,
+              })
+            }
           >
             <Check className="h-4 w-4" />
             {collect.isPending ? "Saving…" : `Mark ${inr(value)} received`}
