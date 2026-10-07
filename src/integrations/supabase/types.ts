@@ -2130,6 +2130,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _settle_partial_fee_core: {
+        Args: { _fee_id: string }
+        Returns: undefined
+      }
       accept_faculty_invite: { Args: { _token: string }; Returns: undefined }
       accept_student_invite: { Args: { _token: string }; Returns: undefined }
       apply_plan_catalog_to_members: { Args: { _key: string }; Returns: number }
@@ -2463,6 +2467,7 @@ export type Database = {
         Returns: undefined
       }
       set_syllabus_order: { Args: { _items: Json }; Returns: undefined }
+      settle_partial_fee: { Args: { _fee_id: string }; Returns: undefined }
       student_batch_ids: { Args: { _student_id: string }; Returns: string[] }
       submit_admission_application: {
         Args: {
