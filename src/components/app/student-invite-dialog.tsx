@@ -54,10 +54,12 @@ export function StudentInviteDialog({
   function send(kind: InviteKind, phone: string | null | undefined) {
     const url = links[kind];
     if (!url || !student) return;
+    const site = typeof window !== "undefined" ? window.location.origin : "";
+    const steps = `\n\nStep 1: Open this link in Chrome or Safari (tap ⋮ → "Open in browser" if it opens inside WhatsApp):\n${url}\nStep 2: Tap "Continue with Google".\nStep 3: You'll see "Welcome onboard" — tap "Go to my dashboard".\n\nAfter that, open ${site}/portal any time to reach your dashboard.\nThis activation link works once and expires in 30 days.`;
     const msg =
       kind === "student"
-        ? `Hello ${student.full_name},\n\nYour ${academy} student portal is ready. Open the link below and sign in with Google to see your attendance, marks, fees and timetable:\n${url}\n\nThis link works once and expires in 30 days.`
-        : `Hello,\n\nThe ${academy} parent portal for ${student.full_name} is ready. Open the link below and sign in with Google to follow attendance, test scores and fees:\n${url}\n\nThis link works once and expires in 30 days.`;
+        ? `Hello ${student.full_name},\n\nYour admission at ${academy} is confirmed and your student portal is ready.${steps}`
+        : `Hello,\n\nThe ${academy} parent portal for ${student.full_name} is ready.${steps}`;
     if (!openWhatsApp(phone ?? null, msg)) toast.error("No phone number on file");
   }
 

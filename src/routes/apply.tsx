@@ -178,6 +178,19 @@ function ApplyPage() {
                 ? "Your enquiry has been received. Our team will call you shortly with batch, timing and fee details."
                 : "Your application has been received. The office will verify the details and confirm your batch."}
             </p>
+            {mode !== "enquiry" && (
+              <ol className="mx-auto mt-5 max-w-sm space-y-2 rounded-lg border border-border bg-muted/40 p-4 text-left text-sm">
+                <li>
+                  <b>1.</b> The office assigns your batch.
+                </li>
+                <li>
+                  <b>2.</b> You get a portal link on WhatsApp.
+                </li>
+                <li>
+                  <b>3.</b> Open it, tap “Continue with Google” — you land on your dashboard.
+                </li>
+              </ol>
+            )}
           </div>
         ) : mode === "enquiry" ? (
           <EnquiryForm saving={saving} onSubmit={submitEnquiry} slug={instituteSlug} />
