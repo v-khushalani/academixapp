@@ -44,6 +44,7 @@ import { EnquiryRecords } from "@/components/app/enquiry-records";
 import type { Database } from "@/integrations/supabase/types";
 import { formatDate } from "@/lib/dates";
 import { downloadAdmissionPoster, printAdmissionPoster } from "@/lib/admission-poster";
+import { StudentInviteDialog } from "@/components/app/student-invite-dialog";
 
 type Stage = Database["public"]["Enums"]["lead_stage"];
 const STAGES: { key: Stage; label: string }[] = [
@@ -308,6 +309,7 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
   const [preview, setPreview] = useState<Student | null>(null);
   const [credentials, setCredentials] = useState<ProvisionedAccount[] | null>(null);
   const [admitting, setAdmitting] = useState<Student | null>(null);
+  const [inviteFor, setInviteFor] = useState<Student | null>(null);
   const [batchId, setBatchId] = useState("");
   const [token, setToken] = useState(0);
   const provision = useServerFn(provisionPortalAccounts);
@@ -336,13 +338,15 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
     onSuccess: (accounts, v) => {
       toast.success(
         v.decision === "approved"
-          ? "Admitted — batch assigned and fees created"
+          ? "Admitted — now send the portal link on WhatsApp"
           : "Moved to enquiry records",
       );
       refresh();
       qc.invalidateQueries({ queryKey: ["students", "pending"] });
+      const s = data.find((x) => x.id === v.id) ?? admitting;
       setAdmitting(null);
       if (accounts && accounts.length > 0) setCredentials(accounts);
+      if (v.decision === "approved" && s) setInviteFor(s);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -439,7 +443,15 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
         </tbody>
       </table>
       <ApplicantPreview student={preview} onClose={() => setPreview(null)} />
-      <CredentialsDialog accounts={credentials} onClose={() => setCredentials(null)} />
+      <CredentialsDialog
+        accounts={inviteFor ? null : credentials}
+        onClose={() => setCredentials(null)}
+      />
+      <StudentInviteDialog
+        open={!!inviteFor}
+        onOpenChange={(v) => !v && setInviteFor(null)}
+        student={inviteFor}
+      />
 
       <Dialog open={Boolean(admitting)} onOpenChange={(v) => !v && setAdmitting(null)}>
         <DialogContent className="max-w-md">
