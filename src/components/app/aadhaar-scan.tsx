@@ -452,9 +452,29 @@ export function AadhaarScan({ value, onVerified, onSkip }: Props) {
             </Button>
           </>
         ) : (
-          <Button type="button" size="sm" onClick={() => void startCamera()}>
-            <Camera className="mr-1.5 h-4 w-4" /> Scan with camera
-          </Button>
+          <>
+            <label>
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = "";
+                  if (f) void onFile(f);
+                }}
+              />
+              <Button type="button" size="sm" asChild>
+                <span>
+                  <Camera className="mr-1.5 h-4 w-4" /> Take photo of QR
+                </span>
+              </Button>
+            </label>
+            <Button type="button" variant="outline" size="sm" onClick={() => void startCamera()}>
+              Live scan
+            </Button>
+          </>
         )}
 
         <label>

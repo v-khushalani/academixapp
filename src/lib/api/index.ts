@@ -169,10 +169,11 @@ export const batchesApi = {
     if (primary.error) throw primary.error;
     if (extra.error) throw extra.error;
     const byId = new Map<string, Student>();
-    for (const s of primary.data ?? []) byId.set(s.id, s as Student);
+    const isActive = (s: Student) => s.status !== "dropped" && s.status !== "inactive";
+    for (const s of primary.data ?? []) if (isActive(s as Student)) byId.set(s.id, s as Student);
     for (const r of extra.data ?? []) {
       const s = (r as { student: Student | null }).student;
-      if (s) byId.set(s.id, s);
+      if (s && isActive(s)) byId.set(s.id, s);
     }
     return Array.from(byId.values()).sort((a, b) => a.full_name.localeCompare(b.full_name));
   },
