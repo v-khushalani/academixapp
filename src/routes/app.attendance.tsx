@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { batchesApi, attendanceApi } from "@/lib/api";
+import { absentBatchLabel, batchesApi, attendanceApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 import type { Database } from "@/integrations/supabase/types";
