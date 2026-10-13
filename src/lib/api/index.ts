@@ -465,6 +465,14 @@ export const leadsApi = {
 };
 
 // ---------- Attendance ----------
+/** "8th SSC & 8th Foundation" (+ "(attended X)" when present elsewhere). */
+export function absentBatchLabel(absent: string[], present: string[]) {
+  const join = (a: string[]) =>
+    a.length <= 1 ? (a[0] ?? "class") : `${a.slice(0, -1).join(", ")} & ${a[a.length - 1]}`;
+  const base = join([...new Set(absent)]);
+  return present.length ? `${base} (attended ${join([...new Set(present)])})` : base;
+}
+
 export const attendanceApi = {
   async listForBatchDate(batchId: string, date: string) {
     const { data, error } = await supabase
@@ -478,7 +486,7 @@ export const attendanceApi = {
   async upsertMany(rows: Tables["attendance"]["Insert"][]) {
     const { error } = await supabase
       .from("attendance")
-      .upsert(rows, { onConflict: "student_id,date" });
+      .upsert(rows, { onConflict: "student_id,batch_id,date" });
     if (error) throw error;
   },
   /** Absentees for a day that the office has not messaged yet. */
@@ -505,6 +513,62 @@ export const attendanceApi = {
         phone: string | null;
       } | null;
     }[];
+  },
+  /**
+   * One entry per student per day: every batch they were absent in, plus the
+   * batches they attended — so parents get a single combined message.
+   */
+  async absenteesGrouped(date: string) {
+    const { data, error } = await supabase
+      .from("attendance")
+      .select(
+        "id, date, status, notified_at, batch:batches(name), student:students(id, full_name, parent_name, parent_phone, phone)",
+      )
+      .eq("date", date)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    type Row = {
+      id: string;
+      date: string;
+      status: string;
+      notified_at: string | null;
+      batch?: { name?: string } | null;
+      student?: {
+        id: string;
+        full_name: string;
+        parent_name: string | null;
+        parent_phone: string | null;
+        phone: string | null;
+      } | null;
+    };
+    const map = new Map<
+      string,
+      {
+        date: string;
+        student: NonNullable<Row["student"]>;
+        absentIds: string[];
+        absentBatches: string[];
+        presentBatches: string[];
+        notified: boolean;
+      }
+    >();
+    for (const r of (data ?? []) as Row[]) {
+      if (!r.student) continue;
+      let g = map.get(r.student.id);
+      if (!g) {
+        g = { date: r.date, student: r.student, absentIds: [], absentBatches: [], presentBatches: [], notified: true };
+        map.set(r.student.id, g);
+      }
+      const name = r.batch?.name ?? "class";
+      if (r.status === "absent") {
+        g.absentIds.push(r.id);
+        g.absentBatches.push(name);
+        if (!r.notified_at) g.notified = false;
+      } else if (r.status === "present" || r.status === "late") {
+        g.presentBatches.push(name);
+      }
+    }
+    return [...map.values()].filter((g) => g.absentIds.length > 0);
   },
   async markNotified(ids: string[]) {
     if (!ids.length) return;

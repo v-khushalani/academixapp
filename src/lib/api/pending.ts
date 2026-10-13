@@ -4,7 +4,7 @@
 // been sent or ignored — tracked in notification_logs.queue_key.
 
 import { supabase } from "@/integrations/supabase/client";
-import { attendanceApi, feesApi, outstandingOf, studentsApi } from "@/lib/api";
+import { absentBatchLabel, attendanceApi, feesApi, outstandingOf, studentsApi } from "@/lib/api";
 import { feeFollowUpState, type FollowUpState } from "@/lib/fees";
 import { getInstitute, getTemplates } from "@/lib/academy-settings";
 import { renderTemplate } from "@/lib/whatsapp";
@@ -28,7 +28,7 @@ export type PendingItem = {
   detail: string;
   date: string;
   feeId?: string;
-  attendanceId?: string;
+  attendanceIds?: string[];
 };
 
 export const PENDING_LABEL: Record<PendingKind, string> = {
@@ -69,7 +69,7 @@ export const pendingApi = {
       handledKeys(),
       studentsApi.list(),
       feesApi.list(),
-      Promise.all(dates.map((d) => attendanceApi.absentees(d))),
+      Promise.all(dates.map((d) => attendanceApi.absenteesGrouped(d))),
     ]);
 
     const phoneOf = new Map(
@@ -82,29 +82,30 @@ export const pendingApi = {
     const items: PendingItem[] = [];
 
     for (const list of absentLists) {
-      for (const a of list) {
-        if (a.notified_at || !a.student) continue;
-        const key = `absent:${a.id}`;
+      for (const g of list) {
+        if (g.notified) continue;
+        const key = `absent:${g.student.id}:${g.date}`;
         if (handled.has(key)) continue;
-        const parent = a.student.parent_name || parentOf.get(a.student.id) || "Parent";
+        const parent = g.student.parent_name || parentOf.get(g.student.id) || "Parent";
+        const label = absentBatchLabel(g.absentBatches, g.presentBatches);
         items.push({
           key,
           kind: "attendance_absent",
           messageKind: "attendance_absent",
           label: PENDING_LABEL.attendance_absent,
           urgency: "high",
-          studentId: a.student.id,
-          studentName: a.student.full_name,
+          studentId: g.student.id,
+          studentName: g.student.full_name,
           recipientName: parent,
-          phone: a.student.parent_phone || a.student.phone || phoneOf.get(a.student.id) || null,
-          detail: `Absent on ${formatDate(a.date)}${a.batch?.name ? ` · ${a.batch.name}` : ""}`,
-          date: a.date,
-          attendanceId: a.id,
+          phone: g.student.parent_phone || g.student.phone || phoneOf.get(g.student.id) || null,
+          detail: `Absent on ${formatDate(g.date)} · ${label}`,
+          date: g.date,
+          attendanceIds: g.absentIds,
           message: renderTemplate(tpl.attendance_absent, {
             parent_name: parent,
-            student_name: a.student.full_name,
-            batch_name: a.batch?.name ?? "class",
-            date: formatDate(a.date),
+            student_name: g.student.full_name,
+            batch_name: label,
+            date: formatDate(g.date),
             academy_name: academy.name,
           }),
         });
@@ -171,7 +172,7 @@ export const pendingApi = {
       })),
     );
     if (error) throw error;
-    const attendanceIds = items.filter((i) => i.attendanceId).map((i) => i.attendanceId!);
+    const attendanceIds = items.flatMap((i) => i.attendanceIds ?? []);
     if (attendanceIds.length) await attendanceApi.markNotified(attendanceIds);
   },
 
@@ -197,7 +198,7 @@ export const pendingApi = {
       })),
     );
     if (error) throw error;
-    const attendanceIds = items.filter((i) => i.attendanceId).map((i) => i.attendanceId!);
+    const attendanceIds = items.flatMap((i) => i.attendanceIds ?? []);
     if (attendanceIds.length) await attendanceApi.markNotified(attendanceIds);
   },
 };
