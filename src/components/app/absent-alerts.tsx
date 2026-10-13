@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { attendanceApi } from "@/lib/api";
+import { absentBatchLabel, attendanceApi } from "@/lib/api";
 import { getInstitute, getTemplates } from "@/lib/academy-settings";
 import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
 import { logMessage } from "@/lib/api/messages";
@@ -26,7 +26,7 @@ export function AbsentAlerts() {
 
   const { data: rows = [] } = useQuery({
     queryKey: ["absent-today", today],
-    queryFn: () => attendanceApi.absentees(today),
+    queryFn: () => attendanceApi.absenteesGrouped(today),
     refetchInterval: 60_000,
   });
 
@@ -35,7 +35,7 @@ export function AbsentAlerts() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["absent-today", today] }),
   });
 
-  const pending = rows.filter((r) => !r.notified_at);
+  const pending = rows.filter((r) => !r.notified);
   const open = !dismissed && pending.length > 0;
 
   function send(row: (typeof rows)[number]) {
@@ -43,7 +43,7 @@ export function AbsentAlerts() {
     const msg = renderTemplate(getTemplates().attendance_absent, {
       student_name: row.student?.full_name,
       parent_name: row.student?.parent_name ?? "Parent",
-      batch_name: row.batch?.name ?? "—",
+      batch_name: absentBatchLabel(row.absentBatches, row.presentBatches),
       date: row.date,
       academy_name: inst.name,
     });
@@ -64,7 +64,7 @@ export function AbsentAlerts() {
       toast.error(`No phone number on file for ${row.student?.full_name ?? "this student"}.`);
       return;
     }
-    notify.mutate([row.id]);
+    notify.mutate(row.absentIds);
   }
 
   return (
@@ -81,12 +81,12 @@ export function AbsentAlerts() {
         </DialogHeader>
         <ul className="max-h-[50vh] divide-y divide-border overflow-y-auto">
           {pending.map((r) => (
-            <li key={r.id} className="flex items-center gap-2 py-2">
+            <li key={r.student.id} className="flex items-center gap-2 py-2">
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium">
                   {r.student?.full_name ?? "Student"}
                 </span>
-                <span className="text-xs text-muted-foreground">{r.batch?.name ?? "—"}</span>
+                <span className="text-xs text-muted-foreground">{absentBatchLabel(r.absentBatches, r.presentBatches)}</span>
               </span>
               <Button size="sm" variant="outline" className="gap-1.5" onClick={() => send(r)}>
                 <MessageCircle className="h-3.5 w-3.5 text-success" /> Send
@@ -101,7 +101,7 @@ export function AbsentAlerts() {
           <Button
             className="flex-1"
             onClick={() => {
-              notify.mutate(pending.map((r) => r.id));
+              notify.mutate(pending.flatMap((r) => r.absentIds));
               setDismissed(true);
             }}
           >

@@ -112,7 +112,10 @@ function AttendancePage() {
 
   const batchName = batches.find((b) => b.id === batchId)?.name ?? "—";
 
-  function sendAbsentReminder(s: (typeof roster)[number]) {
+  async function sendAbsentReminder(s: (typeof roster)[number]) {
+    const groups = await attendanceApi.absenteesGrouped(date).catch(() => []);
+    const g = groups.find((x) => x.student.id === s.id);
+    const label = g ? absentBatchLabel(g.absentBatches, g.presentBatches) : batchName;
     const useMother = s.preferred_contact === "mother";
     const phone = useMother
       ? (s.mother_phone ?? s.parent_phone ?? s.father_phone ?? s.phone ?? null)
@@ -123,7 +126,7 @@ function AttendancePage() {
     const msg = renderTemplate(getTemplates().attendance_absent, {
       student_name: s.full_name,
       parent_name: parentName,
-      batch_name: batchName,
+      batch_name: label,
       date,
       academy_name: getInstitute().name,
     });
@@ -140,6 +143,7 @@ function AttendancePage() {
       },
     ]);
     if (!ok) toast.error("No parent/student phone on file.");
+    else if (g) attendanceApi.markNotified(g.absentIds).catch(() => {});
   }
 
   return (

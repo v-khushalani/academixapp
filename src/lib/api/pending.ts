@@ -4,7 +4,7 @@
 // been sent or ignored — tracked in notification_logs.queue_key.
 
 import { supabase } from "@/integrations/supabase/client";
-import { attendanceApi, feesApi, outstandingOf, studentsApi } from "@/lib/api";
+import { absentBatchLabel, attendanceApi, feesApi, outstandingOf, studentsApi } from "@/lib/api";
 import { feeFollowUpState, type FollowUpState } from "@/lib/fees";
 import { getInstitute, getTemplates } from "@/lib/academy-settings";
 import { renderTemplate } from "@/lib/whatsapp";
