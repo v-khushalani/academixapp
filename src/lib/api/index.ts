@@ -474,6 +474,22 @@ export function absentBatchLabel(absent: string[], present: string[]) {
 }
 
 export const attendanceApi = {
+  /** Per-batch status for a date: scheduled (published timetable) and marked counts. */
+  async dayStatus(date: string) {
+    const dow = new Date(date + "T00:00:00").getDay();
+    const [slots, att] = await Promise.all([
+      supabase.from("timetable_published").select("batch_id").eq("day_of_week", dow),
+      supabase.from("attendance").select("batch_id").eq("date", date),
+    ]);
+    if (slots.error) throw slots.error;
+    if (att.error) throw att.error;
+    const scheduled = new Set<string>();
+    for (const s of slots.data ?? []) if (s.batch_id) scheduled.add(s.batch_id);
+    const marked = new Map<string, number>();
+    for (const a of att.data ?? [])
+      if (a.batch_id) marked.set(a.batch_id, (marked.get(a.batch_id) ?? 0) + 1);
+    return { scheduled, marked };
+  },
   async listForBatchDate(batchId: string, date: string) {
     const { data, error } = await supabase
       .from("attendance")
