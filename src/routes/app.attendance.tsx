@@ -25,6 +25,9 @@ import { getTemplates, getInstitute } from "@/lib/academy-settings";
 type Status = Database["public"]["Enums"]["attendance_status"];
 
 export const Route = createFileRoute("/app/attendance")({
+  validateSearch: (s: Record<string, unknown>): { batch?: string } => ({
+    batch: typeof s.batch === "string" ? s.batch : undefined,
+  }),
   component: AttendancePage,
 });
 
@@ -37,18 +40,31 @@ const STATUS_COLORS: Record<Status, string> = {
 
 function AttendancePage() {
   const qc = useQueryClient();
+  const { batch: batchParam } = Route.useSearch();
   const { user, roles } = useAuth();
   const canWrite = can("attendance:write", roles);
   const { data: batches = [] } = useQuery({
     queryKey: ["batches"],
     queryFn: () => batchesApi.list(),
   });
-  const [batchId, setBatchId] = useState<string>("");
+  const [batchId, setBatchId] = useState<string>(batchParam ?? "");
   const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
 
+  const { data: dayStatus } = useQuery({
+    queryKey: ["attendance-day-status", date],
+    queryFn: () => attendanceApi.dayStatus(date),
+  });
+  const scheduledBatches = batches.filter((b) => dayStatus?.scheduled.has(b.id));
+  const pendingBatches = scheduledBatches.filter((b) => !dayStatus?.marked.get(b.id));
+  const markedBatches = batches.filter((b) => dayStatus?.marked.get(b.id));
+  const otherBatches = batches.filter(
+    (b) => !dayStatus?.scheduled.has(b.id) && !dayStatus?.marked.get(b.id),
+  );
+
   useEffect(() => {
-    if (!batchId && batches[0]) setBatchId(batches[0].id);
-  }, [batches, batchId]);
+    if (batchId || !batches[0] || !dayStatus) return;
+    setBatchId((pendingBatches[0] ?? scheduledBatches[0] ?? batches[0]).id);
+  }, [batches, batchId, dayStatus, pendingBatches, scheduledBatches]);
 
   const { data: roster = [] } = useQuery({
     queryKey: ["batch-roster", batchId],
