@@ -9,7 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { PageBody, PageHeader } from "@/components/app/page-header";
-import { dashboardApi } from "@/lib/api";
+import { attendanceApi, batchesApi, dashboardApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { canAccess } from "@/lib/rbac";
 import { getInstitute } from "@/lib/academy-settings";
@@ -31,6 +31,18 @@ function DashboardPage() {
     queryFn: () => dashboardApi.overview(),
   });
 
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const { data: dayStatus } = useQuery({
+    queryKey: ["attendance-day-status", todayIso],
+    queryFn: () => attendanceApi.dayStatus(todayIso),
+  });
+  const { data: allBatches = [] } = useQuery({
+    queryKey: ["batches"],
+    queryFn: () => batchesApi.list(),
+  });
+  const pendingNames = allBatches
+    .filter((b) => dayStatus?.scheduled.has(b.id) && !dayStatus?.marked.get(b.id))
+    .map((b) => b.name);
   const name = user?.user_metadata?.full_name || user?.email || "there";
   const institute = getInstitute().name || "your institute";
   const money = data?.money;
@@ -66,7 +78,11 @@ function DashboardPage() {
             label="Attendance today"
             value={dash ?? `${today?.batchesMarked ?? 0}/${today?.batchesScheduled ?? 0}`}
             sub={
-              unmarked > 0 ? `${unmarked} batch${unmarked === 1 ? "" : "es"} left` : "All marked"
+              pendingNames.length > 0
+                ? `Left: ${pendingNames.join(", ")}`
+                : unmarked > 0
+                  ? `${unmarked} batch${unmarked === 1 ? "" : "es"} left`
+                  : "All marked"
             }
             to="/app/attendance"
             tone={unmarked > 0 ? "warning" : "success"}
@@ -116,7 +132,11 @@ function DashboardPage() {
             ) : null}
             <ActionRow
               icon={CalendarCheck}
-              label="Batches still unmarked today"
+              label={
+                pendingNames.length > 0
+                  ? `Unmarked today: ${pendingNames.join(", ")}`
+                  : "Batches still unmarked today"
+              }
               count={unmarked}
               to="/app/attendance"
               tone={unmarked > 0 ? "warning" : "default"}

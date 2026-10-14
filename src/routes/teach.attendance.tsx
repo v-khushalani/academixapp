@@ -4,14 +4,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Check, Save, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { myBatches, myFaculty } from "@/lib/api/teach";
+import { myBatches, myFaculty, mySlots } from "@/lib/api/teach";
 import { attendanceApi, batchesApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -53,9 +55,28 @@ function TeachAttendance() {
     queryFn: () => myBatches(faculty!.id),
     enabled: Boolean(faculty?.id),
   });
+  const { data: dayStatus } = useQuery({
+    queryKey: ["attendance-day-status", date],
+    queryFn: () => attendanceApi.dayStatus(date),
+    enabled: Boolean(faculty?.id),
+  });
+  const { data: todaySlots = [] } = useQuery({
+    queryKey: ["my-slots-dow", faculty?.id, date],
+    queryFn: () => mySlots(faculty!.id, new Date(date + "T00:00:00").getDay()),
+    enabled: Boolean(faculty?.id),
+  });
+  const todayIds = new Set(todaySlots.map((s) => s.batch_id).filter(Boolean) as string[]);
+  const todayBatches = batches.filter((b) => todayIds.has(b.id));
+  const otherBatches = batches.filter((b) => !todayIds.has(b.id));
+  const label = (b: { id: string; name: string }) => {
+    const n = dayStatus?.marked.get(b.id) ?? 0;
+    return n > 0 ? `${b.name} · ✓ Marked` : todayIds.has(b.id) ? `${b.name} · Pending` : b.name;
+  };
   useEffect(() => {
-    if (!batchId && batches[0]) setBatchId(batches[0].id);
-  }, [batches, batchId]);
+    if (batchId || !batches[0] || !dayStatus) return;
+    const pending = todayBatches.find((b) => !dayStatus.marked.get(b.id));
+    setBatchId((pending ?? todayBatches[0] ?? batches[0]).id);
+  }, [batches, batchId, dayStatus, todayBatches]);
 
   const { data: roster = [] } = useQuery({
     queryKey: ["teach-roster", batchId],
@@ -91,6 +112,7 @@ function TeachAttendance() {
     onSuccess: () => {
       toast.success("Attendance saved");
       qc.invalidateQueries({ queryKey: ["teach-att", batchId, date] });
+      qc.invalidateQueries({ queryKey: ["attendance-day-status", date] });
       setMarks({});
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save"),
@@ -109,11 +131,26 @@ function TeachAttendance() {
             <SelectValue placeholder="Select batch" />
           </SelectTrigger>
           <SelectContent>
-            {batches.map((b) => (
-              <SelectItem key={b.id} value={b.id}>
-                {b.name}
-              </SelectItem>
-            ))}
+            {todayBatches.length > 0 ? (
+              <SelectGroup>
+                <SelectLabel>Today's classes</SelectLabel>
+                {todayBatches.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {label(b)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ) : null}
+            {otherBatches.length > 0 ? (
+              <SelectGroup>
+                <SelectLabel>Not scheduled this day</SelectLabel>
+                {otherBatches.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {label(b)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ) : null}
           </SelectContent>
         </Select>
         <Input
