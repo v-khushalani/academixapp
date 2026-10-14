@@ -25,6 +25,9 @@ import { getTemplates, getInstitute } from "@/lib/academy-settings";
 type Status = Database["public"]["Enums"]["attendance_status"];
 
 export const Route = createFileRoute("/app/attendance")({
+  validateSearch: (s: Record<string, unknown>): { batch?: string } => ({
+    batch: typeof s.batch === "string" ? s.batch : undefined,
+  }),
   component: AttendancePage,
 });
 
@@ -37,18 +40,31 @@ const STATUS_COLORS: Record<Status, string> = {
 
 function AttendancePage() {
   const qc = useQueryClient();
+  const { batch: batchParam } = Route.useSearch();
   const { user, roles } = useAuth();
   const canWrite = can("attendance:write", roles);
   const { data: batches = [] } = useQuery({
     queryKey: ["batches"],
     queryFn: () => batchesApi.list(),
   });
-  const [batchId, setBatchId] = useState<string>("");
+  const [batchId, setBatchId] = useState<string>(batchParam ?? "");
   const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
 
+  const { data: dayStatus } = useQuery({
+    queryKey: ["attendance-day-status", date],
+    queryFn: () => attendanceApi.dayStatus(date),
+  });
+  const scheduledBatches = batches.filter((b) => dayStatus?.scheduled.has(b.id));
+  const pendingBatches = scheduledBatches.filter((b) => !dayStatus?.marked.get(b.id));
+  const markedBatches = batches.filter((b) => dayStatus?.marked.get(b.id));
+  const otherBatches = batches.filter(
+    (b) => !dayStatus?.scheduled.has(b.id) && !dayStatus?.marked.get(b.id),
+  );
+
   useEffect(() => {
-    if (!batchId && batches[0]) setBatchId(batches[0].id);
-  }, [batches, batchId]);
+    if (batchId || !batches[0] || !dayStatus) return;
+    setBatchId((pendingBatches[0] ?? scheduledBatches[0] ?? batches[0]).id);
+  }, [batches, batchId, dayStatus, pendingBatches, scheduledBatches]);
 
   const { data: roster = [] } = useQuery({
     queryKey: ["batch-roster", batchId],
@@ -94,6 +110,8 @@ function AttendancePage() {
     onSuccess: () => {
       toast.success("Attendance saved");
       qc.invalidateQueries({ queryKey: ["attendance", batchId, date] });
+      qc.invalidateQueries({ queryKey: ["attendance-day-status", date] });
+      qc.invalidateQueries({ queryKey: ["dashboard-summary"] });
       setMarks({});
     },
     onError: (e: Error) => toast.error(e.message),
@@ -174,11 +192,16 @@ function AttendancePage() {
                 <SelectValue placeholder="Select batch" />
               </SelectTrigger>
               <SelectContent>
-                {batches.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.name}
-                  </SelectItem>
-                ))}
+                {batches.map((b) => {
+                  const n = dayStatus?.marked.get(b.id) ?? 0;
+                  const sched = dayStatus?.scheduled.has(b.id);
+                  return (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                      {n > 0 ? ` · ✓ Marked (${n})` : sched ? " · Pending" : ""}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -201,6 +224,39 @@ function AttendancePage() {
               </Button>
             </div>
           )}
+        </div>
+
+        <div className="mb-4 rounded-lg border border-border bg-card p-4">
+          <p className="text-sm font-semibold">Batch status for this date</p>
+          <StatusGroup
+            title={`Pending (${pendingBatches.length})`}
+            empty="No pending batches — all scheduled batches are marked."
+            items={pendingBatches.map((b) => ({ id: b.id, name: b.name }))}
+            tone="warning"
+            selected={batchId}
+            onPick={setBatchId}
+          />
+          <StatusGroup
+            title={`Marked (${markedBatches.length})`}
+            empty="Nothing marked yet."
+            items={markedBatches.map((b) => ({
+              id: b.id,
+              name: `${b.name} · ${dayStatus?.marked.get(b.id) ?? 0}`,
+            }))}
+            tone="success"
+            selected={batchId}
+            onPick={setBatchId}
+          />
+          {otherBatches.length > 0 ? (
+            <StatusGroup
+              title={`Not in timetable today (${otherBatches.length})`}
+              empty=""
+              items={otherBatches.map((b) => ({ id: b.id, name: b.name }))}
+              tone="muted"
+              selected={batchId}
+              onPick={setBatchId}
+            />
+          ) : null}
         </div>
 
         <div className="mb-4 grid gap-3 sm:grid-cols-3">
@@ -273,6 +329,51 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="rounded-lg border border-border bg-card p-4">
       <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="mt-1.5 text-lg font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function StatusGroup({
+  title,
+  empty,
+  items,
+  tone,
+  selected,
+  onPick,
+}: {
+  title: string;
+  empty: string;
+  items: { id: string; name: string }[];
+  tone: "warning" | "success" | "muted";
+  selected: string;
+  onPick: (id: string) => void;
+}) {
+  const cls = {
+    warning: "border-warning/40 bg-warning/10 text-warning",
+    success: "border-success/40 bg-success/10 text-success",
+    muted: "border-border bg-muted/40 text-muted-foreground",
+  }[tone];
+  return (
+    <div className="mt-3">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
+      {items.length === 0 ? (
+        <p className="mt-1 text-xs text-muted-foreground">{empty}</p>
+      ) : (
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {items.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => onPick(b.id)}
+              className={`rounded-md border px-2.5 py-1 text-xs font-medium ${cls} ${
+                selected === b.id ? "ring-2 ring-primary" : ""
+              }`}
+            >
+              {b.name}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
