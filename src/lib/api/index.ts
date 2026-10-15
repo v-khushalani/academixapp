@@ -671,7 +671,7 @@ export const dashboardApi = {
         .select("id", { count: "exact", head: true })
         .eq("approval_status", "enquiry")
         .gte("created_at", monthStart),
-      supabase.from("timetable_slots").select("id, batch_id").eq("day_of_week", dow),
+      supabase.from("timetable_published").select("batch_id").eq("day_of_week", dow),
       supabase.from("attendance").select("status, batch_id, student_id").eq("date", today),
       supabase
         .from("tests")
