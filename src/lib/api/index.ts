@@ -480,7 +480,7 @@ export const attendanceApi = {
     const [slots, att] = await Promise.all([
       supabase
         .from("timetable_published")
-        .select("batch_id, subject, start_time, end_time, faculty:faculty(full_name)")
+        .select("batch_id, subject, start_time, end_time")
         .eq("day_of_week", dow)
         .order("start_time"),
       supabase.from("attendance").select("batch_id").eq("date", date),
@@ -497,7 +497,7 @@ export const attendanceApi = {
     }[]) {
       if (!s.batch_id) continue;
       scheduled.add(s.batch_id);
-      const label = [s.start_time?.slice(0, 5), s.subject, s.faculty?.full_name]
+      const label = [s.start_time?.slice(0, 5), s.subject]
         .filter(Boolean)
         .join(" ");
       slotInfo.set(s.batch_id, [...(slotInfo.get(s.batch_id) ?? []), { label }]);
