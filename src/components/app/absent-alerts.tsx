@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { todayISO } from "@/lib/dates";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MessageCircle, UserX } from "lucide-react";
@@ -20,7 +21,7 @@ import { logMessage } from "@/lib/api/messages";
  * one-tap list to WhatsApp each parent. Rows remember who has been messaged.
  */
 export function AbsentAlerts() {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   const qc = useQueryClient();
   const [dismissed, setDismissed] = useState(false);
 

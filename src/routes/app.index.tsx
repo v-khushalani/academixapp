@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { todayISO } from "@/lib/dates";
 import { useQuery } from "@tanstack/react-query";
 import {
   CalendarCheck,
@@ -31,7 +32,7 @@ function DashboardPage() {
     queryFn: () => dashboardApi.overview(),
   });
 
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = todayISO();
   const { data: dayStatus } = useQuery({
     queryKey: ["attendance-day-status", todayIso],
     queryFn: () => attendanceApi.dayStatus(todayIso),
@@ -40,9 +41,11 @@ function DashboardPage() {
     queryKey: ["batches"],
     queryFn: () => batchesApi.list(),
   });
-  const pendingNames = allBatches
-    .filter((b) => dayStatus?.scheduled.has(b.id) && !dayStatus?.marked.get(b.id))
-    .map((b) => b.name);
+  const pendingList = allBatches.filter(
+    (b) => dayStatus?.scheduled.has(b.id) && !dayStatus?.marked.get(b.id),
+  );
+  const pendingNames = pendingList.map((b) => b.name);
+  const attSearch = pendingList[0] ? { batch: pendingList[0].id } : undefined;
   const name = user?.user_metadata?.full_name || user?.email || "there";
   const institute = getInstitute().name || "your institute";
   const money = data?.money;
@@ -85,6 +88,7 @@ function DashboardPage() {
                   : "All marked"
             }
             to="/app/attendance"
+            search={attSearch}
             tone={unmarked > 0 ? "warning" : "success"}
           />
           <StatCard
@@ -137,8 +141,9 @@ function DashboardPage() {
                   ? `Unmarked today: ${pendingNames.join(", ")}`
                   : "Batches still unmarked today"
               }
-              count={unmarked}
+              count={pendingNames.length || unmarked}
               to="/app/attendance"
+              search={attSearch}
               tone={unmarked > 0 ? "warning" : "default"}
             />
             {showMessages ? (
@@ -169,17 +174,20 @@ function StatCard({
   value,
   sub,
   to,
+  search,
   tone,
 }: {
   label: string;
   value: string;
   sub?: string;
   to: string;
+  search?: Record<string, string>;
   tone?: "default" | "success" | "warning" | "danger";
 }) {
   return (
     <Link
       to={to}
+      search={search as never}
       className="rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40"
     >
       <Metric label={label} value={value} sub={sub} tone={tone} />
@@ -192,12 +200,14 @@ function ActionRow({
   label,
   count,
   to,
+  search,
   tone = "default",
 }: {
   icon: LucideIcon;
   label: string;
   count: number;
   to: string;
+  search?: Record<string, string>;
   tone?: "default" | "warning" | "danger";
 }) {
   const dot = {
@@ -208,6 +218,7 @@ function ActionRow({
   return (
     <Link
       to={to}
+      search={search as never}
       className="flex items-center gap-3 rounded-md border border-border px-3 py-2.5 transition-colors hover:border-primary/30"
     >
       <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-md ${dot}`}>
