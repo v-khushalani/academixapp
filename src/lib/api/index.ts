@@ -628,7 +628,7 @@ export const dashboardApi = {
   /** Everything the rebuilt dashboard needs, in one round trip. */
   async overview() {
     const now = new Date();
-    const today = now.toISOString().slice(0, 10);
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
       .toISOString()

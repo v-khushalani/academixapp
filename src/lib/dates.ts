@@ -38,4 +38,8 @@ export function formatDateTime(v?: string | number | Date | null, fallback = "â€
   return `${formatDate(d)}, ${d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })}`;
 }
 
-export const todayISO = () => new Date().toISOString().slice(0, 10);
+/** Today's date in the device's local timezone (not UTC) as YYYY-MM-DD. */
+export const todayISO = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};

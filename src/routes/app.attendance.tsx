@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { todayISO } from "@/lib/dates";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -48,7 +49,7 @@ function AttendancePage() {
     queryFn: () => batchesApi.list(),
   });
   const [batchId, setBatchId] = useState<string>(batchParam ?? "");
-  const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState<string>(todayISO());
 
   const { data: dayStatus } = useQuery({
     queryKey: ["attendance-day-status", date],

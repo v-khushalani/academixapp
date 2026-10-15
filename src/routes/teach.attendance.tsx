@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { todayISO } from "@/lib/dates";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -42,7 +43,7 @@ function TeachAttendance() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [batchId, setBatchId] = useState<string>(batchParam ?? "");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(todayISO());
   const [marks, setMarks] = useState<Record<string, "present" | "absent" | "late" | "excused">>({});
 
   const { data: faculty } = useQuery({

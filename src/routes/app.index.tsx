@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { todayISO } from "@/lib/dates";
 import { useQuery } from "@tanstack/react-query";
 import {
   CalendarCheck,
@@ -31,7 +32,7 @@ function DashboardPage() {
     queryFn: () => dashboardApi.overview(),
   });
 
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = todayISO();
   const { data: dayStatus } = useQuery({
     queryKey: ["attendance-day-status", todayIso],
     queryFn: () => attendanceApi.dayStatus(todayIso),
