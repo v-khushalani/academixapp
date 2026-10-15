@@ -478,17 +478,34 @@ export const attendanceApi = {
   async dayStatus(date: string) {
     const dow = new Date(date + "T00:00:00").getDay();
     const [slots, att] = await Promise.all([
-      supabase.from("timetable_published").select("batch_id").eq("day_of_week", dow),
+      supabase
+        .from("timetable_published")
+        .select("batch_id, subject, start_time, end_time, faculty:faculty(full_name)")
+        .eq("day_of_week", dow)
+        .order("start_time"),
       supabase.from("attendance").select("batch_id").eq("date", date),
     ]);
     if (slots.error) throw slots.error;
     if (att.error) throw att.error;
     const scheduled = new Set<string>();
-    for (const s of slots.data ?? []) if (s.batch_id) scheduled.add(s.batch_id);
+    const slotInfo = new Map<string, { label: string }[]>();
+    for (const s of (slots.data ?? []) as {
+      batch_id: string | null;
+      subject: string | null;
+      start_time: string | null;
+      faculty?: { full_name?: string | null } | null;
+    }[]) {
+      if (!s.batch_id) continue;
+      scheduled.add(s.batch_id);
+      const label = [s.start_time?.slice(0, 5), s.subject, s.faculty?.full_name]
+        .filter(Boolean)
+        .join(" ");
+      slotInfo.set(s.batch_id, [...(slotInfo.get(s.batch_id) ?? []), { label }]);
+    }
     const marked = new Map<string, number>();
     for (const a of att.data ?? [])
       if (a.batch_id) marked.set(a.batch_id, (marked.get(a.batch_id) ?? 0) + 1);
-    return { scheduled, marked };
+    return { scheduled, marked, slots: slotInfo };
   },
   async listForBatchDate(batchId: string, date: string) {
     const { data, error } = await supabase

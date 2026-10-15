@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { todayISO } from "@/lib/dates";
+import { formatDate, todayISO } from "@/lib/dates";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -61,6 +61,10 @@ function AttendancePage() {
   const otherBatches = batches.filter(
     (b) => !dayStatus?.scheduled.has(b.id) && !dayStatus?.marked.get(b.id),
   );
+
+  useEffect(() => {
+    if (batchParam) setBatchId(batchParam);
+  }, [batchParam]);
 
   useEffect(() => {
     if (batchId || !batches[0] || !dayStatus) return;
@@ -185,6 +189,45 @@ function AttendancePage() {
         }
       />
       <PageBody>
+        {dayStatus ? (
+          pendingBatches.length > 0 ? (
+            <div className="mb-4 rounded-lg border border-warning/50 bg-warning/10 p-4">
+              <p className="text-sm font-semibold text-warning">
+                {pendingBatches.length} batch{pendingBatches.length === 1 ? "" : "es"} still
+                pending for {formatDate(date)}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {pendingBatches.map((b) => {
+                  const slots = dayStatus.slots.get(b.id) ?? [];
+                  return (
+                    <Button
+                      key={b.id}
+                      size="sm"
+                      variant={batchId === b.id ? "default" : "outline"}
+                      onClick={() => setBatchId(b.id)}
+                      className="h-auto flex-col items-start gap-0 py-1.5"
+                    >
+                      <span className="font-semibold">Mark {b.name}</span>
+                      {slots[0] ? (
+                        <span className="text-[11px] font-normal opacity-80">
+                          {slots.map((s) => s.label).join(" · ")}
+                        </span>
+                      ) : null}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : scheduledBatches.length > 0 ? (
+            <div className="mb-4 rounded-lg border border-success/50 bg-success/10 p-3 text-sm font-medium text-success">
+              ✓ All {scheduledBatches.length} scheduled batches are marked for {formatDate(date)}.
+            </div>
+          ) : (
+            <div className="mb-4 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+              No classes in the published timetable for {formatDate(date)}.
+            </div>
+          )
+        ) : null}
         <div className="mb-4 flex flex-wrap items-end gap-3">
           <div className="space-y-1.5">
             <Label>Batch</Label>
@@ -193,7 +236,7 @@ function AttendancePage() {
                 <SelectValue placeholder="Select batch" />
               </SelectTrigger>
               <SelectContent>
-                {batches.map((b) => {
+                {[...pendingBatches, ...batches.filter((b) => !pendingBatches.includes(b))].map((b) => {
                   const n = dayStatus?.marked.get(b.id) ?? 0;
                   const sched = dayStatus?.scheduled.has(b.id);
                   return (
@@ -261,7 +304,10 @@ function AttendancePage() {
         </div>
 
         <div className="mb-4 grid gap-3 sm:grid-cols-3">
-          <Stat label="Roster" value={String(roster.length)} />
+          <Stat
+            label={`${batchName} · ${(dayStatus?.marked.get(batchId) ?? 0) > 0 ? "Saved" : "Not saved yet"}`}
+            value={String(roster.length)}
+          />
           <Stat label="Present" value={String(present)} />
           <Stat label="Absent" value={String(absent)} />
         </div>
