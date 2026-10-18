@@ -16,6 +16,7 @@ const ROUTE_FEATURE: [string, FeatureKey][] = [
   ["/app/reports", "reports"],
   ["/app/fees", "fees"],
   ["/app/group", "branches"],
+  ["/app/materials", "material_engine"],
 ];
 
 export function featureForPath(pathname: string): FeatureKey | null {
