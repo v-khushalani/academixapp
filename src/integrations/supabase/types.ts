@@ -723,6 +723,140 @@ export type Database = {
           },
         ]
       }
+      material_outputs: {
+        Row: {
+          chapter: string | null
+          class_level: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          institute_id: string
+          kind: string
+          source_id: string | null
+          status: string
+          subject: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          chapter?: string | null
+          class_level?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          institute_id: string
+          kind: string
+          source_id?: string | null
+          status?: string
+          subject?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          chapter?: string | null
+          class_level?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          institute_id?: string
+          kind?: string
+          source_id?: string | null
+          status?: string
+          subject?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_outputs_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_outputs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "material_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_sources: {
+        Row: {
+          chapter: string | null
+          checksum: string | null
+          class_level: string | null
+          created_at: string
+          created_by: string | null
+          extracted_text: string | null
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          file_type: string | null
+          id: string
+          institute_id: string
+          notes: string | null
+          programme: string | null
+          rights_status: string
+          subject: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          chapter?: string | null
+          checksum?: string | null
+          class_level?: string | null
+          created_at?: string
+          created_by?: string | null
+          extracted_text?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          institute_id: string
+          notes?: string | null
+          programme?: string | null
+          rights_status?: string
+          subject?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          chapter?: string | null
+          checksum?: string | null
+          class_level?: string | null
+          created_at?: string
+          created_by?: string | null
+          extracted_text?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          institute_id?: string
+          notes?: string | null
+          programme?: string | null
+          rights_status?: string
+          subject?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_sources_institute_id_fkey"
+            columns: ["institute_id"]
+            isOneToOne: false
+            referencedRelation: "institutes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_logs: {
         Row: {
           channel: Database["public"]["Enums"]["notification_channel"]
@@ -2293,6 +2427,10 @@ export type Database = {
       }
       institute_allows_attendance_devices: {
         Args: { _institute_id: string }
+        Returns: boolean
+      }
+      institute_has_material_engine: {
+        Args: { _iid: string }
         Returns: boolean
       }
       is_my_student: { Args: { _student_id: string }; Returns: boolean }
