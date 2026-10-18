@@ -195,6 +195,7 @@ export const PORTAL_FEATURE: Record<string, FeatureKey> = {
 };
 
 export function isFeatureOn(map: FeatureMap | null | undefined, key: FeatureKey): boolean {
+  if (OPT_IN.includes(key)) return map?.[key] === true;
   return map?.[key] !== false;
 }
 
