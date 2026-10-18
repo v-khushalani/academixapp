@@ -160,26 +160,21 @@ export function PaymentDialog({
   async function sendPaymentQr() {
     const caption = `Hello, please pay ${inr(value)} towards ${target!.student_name}'s fees.\n\nScan the attached QR with any UPI app.\nUPI ID: ${inst.upi_id}\n\n— ${brand.name}\n(Powered by Academix)`;
     const img = await qrImage();
-    const nav = navigator as Navigator & {
-      canShare?: (d: { files?: File[] }) => boolean;
-      share?: (d: { files?: File[]; text?: string; title?: string }) => Promise<void>;
-    };
-    if (img && nav.canShare?.({ files: [img] }) && nav.share) {
+    // No system share sheet: it can't pre-pick a contact. Save the QR, then open
+    // the father's chat directly so the office only attaches the saved image.
+    if (img && target!.phone) {
       try {
-        await nav.share({ files: [img], text: caption, title: "Payment QR" });
-        return;
+        await navigator.clipboard?.write?.([new ClipboardItem({ [img.type]: img })]);
       } catch {
-        /* cancelled — fall through */
+        /* clipboard images unsupported — download covers it */
       }
-    }
-    if (img) {
       const url = URL.createObjectURL(img);
       const a = document.createElement("a");
       a.href = url;
       a.download = img.name;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("QR image saved — attach it in WhatsApp");
+      toast.success("QR saved — attach it in the father's chat");
     }
     const okQr = openWhatsApp(target!.phone, caption);
     logMessage([
