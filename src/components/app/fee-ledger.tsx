@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { outstandingOf, isLiveBill } from "@/lib/api";
 import { formatDate } from "@/lib/dates";
 import { isOverdue, displayFeeStatus, daysToDue } from "@/lib/fees";
-import { openWhatsApp } from "@/lib/whatsapp";
+import { openWhatsApp, parentPhone } from "@/lib/whatsapp";
 import { logMessage } from "@/lib/api/messages";
 import { getInstitute } from "@/lib/academy-settings";
 
@@ -132,12 +132,11 @@ export function FeeLedger({ fees, onCollect }: Props) {
           .filter((f) => outstandingOf(f) > 0 && f.due_date)
           .map((f) => f.due_date as string)
           .sort()[0] ?? null;
-      const preferred = s.preferred_contact === "mother" ? s.mother_phone : s.father_phone;
       out.push({
         id: s.id,
         name: s.full_name,
         admission_no: s.admission_no,
-        phone: preferred ?? s.parent_phone ?? s.phone ?? null,
+        phone: parentPhone(s),
         parent_name: s.parent_name,
         batchIds: [...ids],
         batchNames: [...ids].map((id) => batchById.get(id)?.name ?? "—"),

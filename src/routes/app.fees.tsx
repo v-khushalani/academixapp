@@ -23,7 +23,7 @@ import { FeeCorrectionDialog, type CorrectionTarget } from "@/components/app/fee
 import { useAuth } from "@/hooks/use-auth";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { can } from "@/lib/rbac";
-import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
+import { openWhatsApp, parentPhone, renderTemplate } from "@/lib/whatsapp";
 import { logMessage } from "@/lib/api/messages";
 import { getTemplates, getInstitute } from "@/lib/academy-settings";
 import { supabase } from "@/integrations/supabase/client";
@@ -257,8 +257,6 @@ function FeesPage() {
       mother_phone?: string | null;
       batch?: { name?: string } | null;
     } | null;
-    const preferred =
-      s?.preferred_contact === "mother" ? s?.mother_phone : (s?.father_phone ?? null);
     setCollecting({
       id: r.id,
       student_name: s?.full_name ?? r.student?.full_name ?? "Student",
@@ -271,7 +269,7 @@ function FeesPage() {
       due_date: r.due_date,
       paid_date: r.paid_date,
       receipt_no: r.receipt_no,
-      phone: preferred ?? s?.parent_phone ?? s?.phone ?? null,
+      phone: parentPhone(s),
     });
   }
 
@@ -279,17 +277,19 @@ function FeesPage() {
     // Look up parent_phone if not on relation
     const { data: student } = await supabase
       .from("students")
-      .select("parent_phone, phone, parent_name, full_name, batch:batches(name)")
+      .select("father_phone, mother_phone, parent_phone, phone, parent_name, full_name, batch:batches(name)")
       .eq("id", r.student_id)
       .maybeSingle();
     const s = student as {
+      father_phone?: string | null;
+      mother_phone?: string | null;
       parent_phone?: string | null;
       phone?: string | null;
       parent_name?: string | null;
       full_name?: string;
       batch?: { name?: string } | null;
     } | null;
-    const phone = s?.parent_phone ?? s?.phone ?? null;
+    const phone = parentPhone(s);
     const isPaid = r.status === "paid" || Number(r.amount_paid) >= Number(r.amount);
     const state = feeFollowUpState(r);
     const tpl =
