@@ -27,7 +27,8 @@ export type FeatureKey =
   | "devices"
   | "branding"
   | "branches"
-  | "bulk_import";
+  | "bulk_import"
+  | "material_engine";
 
 export type FeatureMap = Partial<Record<FeatureKey, boolean>>;
 
@@ -141,7 +142,16 @@ export const FEATURES: { key: FeatureKey; label: string; hint: string; group: Fe
     group: "Extras",
   },
   { key: "bulk_import", label: "Bulk import", hint: "Excel/CSV student import", group: "Extras" },
+  {
+    key: "material_engine",
+    label: "Study Material Engine",
+    hint: "Paid add-on: source library + AI notes, questions, formula sheets. Off unless switched on; never on Free.",
+    group: "Extras",
+  },
 ];
+
+/** Paid add-ons: OFF unless Team Academix switches them on for the institute. */
+export const OPT_IN: FeatureKey[] = ["material_engine"];
 
 /** Shown in the console so the whole surface is visible, but never switchable. */
 export const ALWAYS_ON: { label: string; hint: string }[] = [
@@ -167,6 +177,7 @@ export const MODULE_FEATURE: Partial<Record<ModuleKey, FeatureKey>> = {
   messages: "messages",
   reports: "reports",
   fees: "fees",
+  materials: "material_engine",
 };
 
 /** Teacher portal nav → feature. */
@@ -184,6 +195,7 @@ export const PORTAL_FEATURE: Record<string, FeatureKey> = {
 };
 
 export function isFeatureOn(map: FeatureMap | null | undefined, key: FeatureKey): boolean {
+  if (OPT_IN.includes(key)) return map?.[key] === true;
   return map?.[key] !== false;
 }
 
@@ -204,7 +216,8 @@ export function resolveFeatures(
     ) {
       own = false;
     }
-    out[f.key] = globalOff.includes(f.key) ? false : own !== false;
+    const on = OPT_IN.includes(f.key) ? own === true : own !== false;
+    out[f.key] = globalOff.includes(f.key) ? false : on;
   }
   return out;
 }

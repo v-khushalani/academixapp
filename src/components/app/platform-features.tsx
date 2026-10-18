@@ -9,6 +9,7 @@ import {
   FEATURES,
   type FeatureKey,
   type FeatureMap,
+  OPT_IN,
 } from "@/lib/features";
 
 type Flag = { key: string; enabled: boolean; note: string | null };
@@ -117,7 +118,7 @@ export function FeatureMatrix({
   defaults?: FeatureMap;
   onChange: (next: FeatureMap) => void;
 }) {
-  const isOn = (k: FeatureKey) => value[k] !== false;
+  const isOn = (k: FeatureKey) => (OPT_IN.includes(k) ? value[k] === true : value[k] !== false);
   return (
     <div className="space-y-3">
       {FEATURE_GROUPS.map((g) => (

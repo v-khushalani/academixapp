@@ -19,6 +19,7 @@ import {
   Building2,
   Tags,
   ToggleRight,
+  Library,
 } from "lucide-react";
 import {
   Sidebar,
@@ -62,6 +63,7 @@ export const nav: NavItem[] = [
   { title: "Faculty", url: "/app/faculty", icon: GraduationCap, key: "faculty" },
   { title: "Expenses", url: "/app/expenses", icon: IndianRupee, key: "expenses" },
   { title: "Reports", url: "/app/reports", icon: BarChart3, key: "reports" },
+  { title: "Material Engine", url: "/app/materials", icon: Library, key: "materials" },
   { title: "Settings", url: "/app/settings", icon: Settings, key: "settings" },
 ];
 
