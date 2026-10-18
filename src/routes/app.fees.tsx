@@ -23,7 +23,7 @@ import { FeeCorrectionDialog, type CorrectionTarget } from "@/components/app/fee
 import { useAuth } from "@/hooks/use-auth";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { can } from "@/lib/rbac";
-import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
+import { openWhatsApp, parentPhone, renderTemplate } from "@/lib/whatsapp";
 import { logMessage } from "@/lib/api/messages";
 import { getTemplates, getInstitute } from "@/lib/academy-settings";
 import { supabase } from "@/integrations/supabase/client";
