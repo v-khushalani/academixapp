@@ -9,6 +9,7 @@ import {
   FEATURES,
   type FeatureKey,
   type FeatureMap,
+  OPT_IN,
 } from "@/lib/features";
 
 type Flag = { key: string; enabled: boolean; note: string | null };
