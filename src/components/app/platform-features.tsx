@@ -117,7 +117,7 @@ export function FeatureMatrix({
   defaults?: FeatureMap;
   onChange: (next: FeatureMap) => void;
 }) {
-  const isOn = (k: FeatureKey) => value[k] !== false;
+  const isOn = (k: FeatureKey) => (OPT_IN.includes(k) ? value[k] === true : value[k] !== false);
   return (
     <div className="space-y-3">
       {FEATURE_GROUPS.map((g) => (
