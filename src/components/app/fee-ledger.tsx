@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { outstandingOf, isLiveBill } from "@/lib/api";
 import { formatDate } from "@/lib/dates";
 import { isOverdue, displayFeeStatus, daysToDue } from "@/lib/fees";
-import { openWhatsApp } from "@/lib/whatsapp";
+import { openWhatsApp, parentPhone } from "@/lib/whatsapp";
 import { logMessage } from "@/lib/api/messages";
 import { getInstitute } from "@/lib/academy-settings";
 
