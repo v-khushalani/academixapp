@@ -64,44 +64,47 @@ export const generateMaterial = createServerFn({ method: "POST" })
         .join("\n\n"),
     });
 
-    const apiKey = process.env["LOVABLE_API_KEY"];
-    if (!apiKey) return { ok: false as const, error: "AI is not configured." };
-    const { createOpenAI } = await import("@ai-sdk/openai");
-    const { streamText } = await import("ai");
-    const provider = createOpenAI({
-      baseURL: "https://ai.gateway.lovable.dev/v1",
-      apiKey,
-      headers: { "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
+    const apiKey = process.env["GOOGLE_GENERATIVE_AI_API_KEY"];
+    if (!apiKey) return { ok: false as const, error: "Gemini API key is not configured." };
+
+    const toB64 = (u: Uint8Array) => {
+      let s = "";
+      for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode(...u.subarray(i, i + 0x8000));
+      return btoa(s);
+    };
+    const geminiParts = parts.map((p) =>
+      p.type === "file" ? { inline_data: { mime_type: p.mediaType, data: toB64(p.data) } } : { text: p.text },
+    );
+    const body = JSON.stringify({
+      system_instruction: {
+        parts: [{ text: `You are a senior ${src.subject ?? ""} content author producing accurate, complete, exam-ready study material for ${brand}. Always produce the full requested output; never stop midway or ask questions.` }],
+      },
+      contents: [{ role: "user", parts: geminiParts }],
+      generationConfig: { temperature: 0.4, maxOutputTokens: 16384 },
     });
+
     let failure: string | null = null;
-    const result = streamText({
-      model: provider.responses("openai/gpt-6-astra"),
-      system: `You are a senior ${src.subject ?? ""} content author producing accurate, exam-ready study material for ${brand}.`,
-      messages: [{ role: "user", content: parts }],
-      providerOptions: {
-        openai: {
-          forceReasoning: true,
-          reasoningEffort: "medium",
-          reasoningSummary: "auto",
-          store: false,
-          include: ["reasoning.encrypted_content"],
-        },
-      },
-      onError: ({ error: e }) => {
-        const any = e as { statusCode?: number; message?: string };
-        failure =
-          any.statusCode === 402
-            ? "AI credits exhausted. Top up in workspace settings."
-            : any.statusCode === 429
-              ? "Too many requests. Try again in a minute."
-              : any.message ?? "AI generation failed.";
-      },
-    });
     let text = "";
-    try {
-      text = await result.text;
-    } catch (e) {
-      failure ??= (e as Error).message;
+    for (const model of ["gemini-2.5-flash", "gemini-2.0-flash"]) {
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          { method: "POST", headers: { "Content-Type": "application/json" }, body },
+        );
+        const json = (await res.json()) as {
+          candidates?: { content?: { parts?: { text?: string }[] } }[];
+          error?: { message?: string };
+        };
+        if (!res.ok) {
+          failure = res.status === 429 ? "Gemini rate limit reached. Try again in a minute." : json.error?.message ?? `Gemini error ${res.status}`;
+          continue;
+        }
+        text = (json.candidates?.[0]?.content?.parts ?? []).map((x) => x.text ?? "").join("");
+        if (text.trim()) { failure = null; break; }
+        failure = "AI returned no content.";
+      } catch (e) {
+        failure = (e as Error).message;
+      }
     }
     if (failure || !text.trim()) return { ok: false as const, error: failure ?? "AI returned no content." };
 
