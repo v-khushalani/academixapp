@@ -28,6 +28,7 @@ import { Route as AppExpensesRouteImport } from './routes/app.expenses'
 import { Route as AppFacultyRouteImport } from './routes/app.faculty'
 import { Route as AppFeesRouteImport } from './routes/app.fees'
 import { Route as AppGroupRouteImport } from './routes/app.group'
+import { Route as AppMaterialsRouteImport } from './routes/app.materials'
 import { Route as AppMessagesRouteImport } from './routes/app.messages'
 import { Route as AppPlatformRouteImport } from './routes/app.platform'
 import { Route as AppReportsRouteImport } from './routes/app.reports'
@@ -156,6 +157,11 @@ const AppFeesRoute = AppFeesRouteImport.update({
 const AppGroupRoute = AppGroupRouteImport.update({
   id: '/group',
   path: '/group',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMaterialsRoute = AppMaterialsRouteImport.update({
+  id: '/materials',
+  path: '/materials',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMessagesRoute = AppMessagesRouteImport.update({
@@ -349,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
   '/app/group': typeof AppGroupRoute
+  '/app/materials': typeof AppMaterialsRoute
   '/app/messages': typeof AppMessagesRoute
   '/app/platform': typeof AppPlatformRouteWithChildren
   '/app/reports': typeof AppReportsRoute
@@ -401,6 +408,7 @@ export interface FileRoutesByTo {
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
   '/app/group': typeof AppGroupRoute
+  '/app/materials': typeof AppMaterialsRoute
   '/app/messages': typeof AppMessagesRoute
   '/app/reports': typeof AppReportsRoute
   '/app/salaries': typeof AppSalariesRoute
@@ -456,6 +464,7 @@ export interface FileRoutesById {
   '/app/faculty': typeof AppFacultyRoute
   '/app/fees': typeof AppFeesRoute
   '/app/group': typeof AppGroupRoute
+  '/app/materials': typeof AppMaterialsRoute
   '/app/messages': typeof AppMessagesRoute
   '/app/platform': typeof AppPlatformRouteWithChildren
   '/app/reports': typeof AppReportsRoute
@@ -513,6 +522,7 @@ export interface FileRouteTypes {
     | '/app/faculty'
     | '/app/fees'
     | '/app/group'
+    | '/app/materials'
     | '/app/messages'
     | '/app/platform'
     | '/app/reports'
@@ -565,6 +575,7 @@ export interface FileRouteTypes {
     | '/app/faculty'
     | '/app/fees'
     | '/app/group'
+    | '/app/materials'
     | '/app/messages'
     | '/app/reports'
     | '/app/salaries'
@@ -619,6 +630,7 @@ export interface FileRouteTypes {
     | '/app/faculty'
     | '/app/fees'
     | '/app/group'
+    | '/app/materials'
     | '/app/messages'
     | '/app/platform'
     | '/app/reports'
@@ -810,6 +822,13 @@ declare module '@tanstack/react-router' {
       path: '/group'
       fullPath: '/app/group'
       preLoaderRoute: typeof AppGroupRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/materials': {
+      id: '/app/materials'
+      path: '/materials'
+      fullPath: '/app/materials'
+      preLoaderRoute: typeof AppMaterialsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/messages': {
@@ -1117,6 +1136,7 @@ interface AppRouteChildren {
   AppFacultyRoute: typeof AppFacultyRoute
   AppFeesRoute: typeof AppFeesRoute
   AppGroupRoute: typeof AppGroupRoute
+  AppMaterialsRoute: typeof AppMaterialsRoute
   AppMessagesRoute: typeof AppMessagesRoute
   AppPlatformRoute: typeof AppPlatformRouteWithChildren
   AppReportsRoute: typeof AppReportsRoute
@@ -1137,6 +1157,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppFacultyRoute: AppFacultyRoute,
   AppFeesRoute: AppFeesRoute,
   AppGroupRoute: AppGroupRoute,
+  AppMaterialsRoute: AppMaterialsRoute,
   AppMessagesRoute: AppMessagesRoute,
   AppPlatformRoute: AppPlatformRouteWithChildren,
   AppReportsRoute: AppReportsRoute,
