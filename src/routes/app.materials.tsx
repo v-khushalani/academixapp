@@ -15,6 +15,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { generateMaterial } from "@/lib/materials.functions";
 import { getInstitute } from "@/lib/academy-settings";
+import { materialCss, materialDocument, materialPrintHtml, type MaterialBrand } from "@/lib/material-render";
+import "katex/dist/katex.min.css";
+import katexCssUrl from "katex/dist/katex.min.css?url";
+
+type MatOut = { id: string; title: string; content: string; status: string; kind: string; subject?: string | null; chapter?: string | null; class_level?: string | null };
+
+function brandFor(o: MatOut): MaterialBrand {
+  const i = getInstitute();
+  return {
+    name: i.name || "Institute", logo: i.logo_url || "", color: i.primary_color || "#013062",
+    address: i.address || "", phone: i.phone || "", email: i.email || "",
+    subject: o.subject, chapter: o.chapter, classLevel: o.class_level, title: o.title,
+  };
+}
 
 export const Route = createFileRoute("/app/materials")({
   head: () => ({
@@ -142,12 +156,10 @@ function MaterialsPage() {
     qc.invalidateQueries({ queryKey: ["material-outputs"] });
   }
 
-  function print(title: string, content: string) {
-    const inst = getInstitute();
+  function print(o: MatOut, content: string) {
     const w = window.open("", "_blank");
-    if (!w) return;
-    const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-    w.document.write(`<html><head><title>${esc(title)}</title><style>body{font-family:Saira,system-ui,sans-serif;max-width:780px;margin:24px auto;line-height:1.55;color:#111}header{display:flex;gap:12px;align-items:center;border-bottom:3px solid #013062;padding-bottom:8px;margin-bottom:16px}header img{height:44px}h1{font-size:18px;color:#013062;margin:0}pre{white-space:pre-wrap;font-family:inherit}footer{margin-top:24px;font-size:11px;color:#666;border-top:1px solid #ddd;padding-top:6px}</style></head><body><header>${inst.logo_url ? `<img src="${inst.logo_url}"/>` : ""}<div><h1>${esc(inst.name || "")}</h1><div>${esc(title)}</div></div></header><pre>${esc(content)}</pre><footer>© ${esc(inst.name || "")} — for enrolled students only</footer><script>onload=()=>print()</script></body></html>`);
+    if (!w) return toast.error("Allow pop-ups to print.");
+    w.document.write(materialPrintHtml(brandFor(o), content, new URL(katexCssUrl, location.href).href));
     w.document.close();
   }
 
@@ -224,7 +236,7 @@ function MaterialsPage() {
             {outputs.data?.length === 0 && <p className="text-sm text-muted-foreground">Generate from a source to see drafts here.</p>}
             {outputs.data?.map((o) => (
               <OutputCard key={o.id} o={o} open={open === o.id} onToggle={() => setOpen(open === o.id ? null : o.id)}
-                onSave={(c) => save(o.id, c)} onApprove={() => approve(o)} onPrint={(c) => print(o.title, c)} onDelete={() => del("material_outputs", o.id)} />
+                onSave={(c) => save(o.id, c)} onApprove={() => approve(o)} onPrint={(c) => print(o, c)} onDelete={() => del("material_outputs", o.id)} />
             ))}
           </TabsContent>
         </Tabs>
@@ -234,10 +246,11 @@ function MaterialsPage() {
 }
 
 function OutputCard({ o, open, onToggle, onSave, onApprove, onPrint, onDelete }: {
-  o: { id: string; title: string; content: string; status: string; kind: string };
+  o: MatOut;
   open: boolean; onToggle: () => void; onSave: (c: string) => void; onApprove: () => void; onPrint: (c: string) => void; onDelete: () => void;
 }) {
   const [text, setText] = useState(o.content);
+  const brand = brandFor(o);
   return (
     <div className="rounded-lg border border-border bg-card p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -252,10 +265,21 @@ function OutputCard({ o, open, onToggle, onSave, onApprove, onPrint, onDelete }:
         </div>
       </div>
       {open && (
-        <div className="mt-3 space-y-2">
-          <Textarea rows={18} value={text} onChange={(e) => setText(e.target.value)} className="font-mono text-xs" />
-          <div className="flex justify-end"><Button size="sm" onClick={() => onSave(text)}>Save edits</Button></div>
-        </div>
+        <Tabs defaultValue="preview" className="mt-3">
+          <TabsList>
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+            <TabsTrigger value="edit">Edit</TabsTrigger>
+          </TabsList>
+          <TabsContent value="preview">
+            <style>{materialCss(brand.color)}</style>
+            <div className="overflow-hidden rounded-md border border-border bg-background p-4 sm:p-8" style={{ background: "#fff" }}
+              dangerouslySetInnerHTML={{ __html: materialDocument(brand, text) }} />
+          </TabsContent>
+          <TabsContent value="edit" className="space-y-2">
+            <Textarea rows={18} value={text} onChange={(e) => setText(e.target.value)} className="font-mono text-xs" />
+            <div className="flex justify-end"><Button size="sm" onClick={() => onSave(text)}>Save edits</Button></div>
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
