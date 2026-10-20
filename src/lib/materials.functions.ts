@@ -64,7 +64,7 @@ export const generateMaterial = createServerFn({ method: "POST" })
         .join("\n\n"),
     });
 
-    const apiKey = process.env["GOOGLE_GENERATIVE_AI_API_KEY"];
+    const apiKey = (process.env["GOOGLE_GENERATIVE_AI_API_KEY"] || process.env["GEMINI_API_KEY"])?.trim();
     if (!apiKey) return { ok: false as const, error: "Gemini API key is not configured." };
 
     const toB64 = (u: Uint8Array) => {
