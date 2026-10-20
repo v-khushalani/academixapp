@@ -64,8 +64,23 @@ export const generateMaterial = createServerFn({ method: "POST" })
         .join("\n\n"),
     });
 
-    const apiKey = (process.env["GOOGLE_GENERATIVE_AI_API_KEY"] || process.env["GEMINI_API_KEY"])?.trim();
-    if (!apiKey) return { ok: false as const, error: "Gemini API key is not configured." };
+    // Worker secrets may live on process.env, Nitro's globalThis.__env__, or the request's cloudflare env.
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const req = getRequest() as unknown as { runtime?: { cloudflare?: { env?: Record<string, unknown> } } } | undefined;
+    const sources: Record<string, unknown>[] = [
+      (typeof process !== "undefined" ? (process.env as Record<string, unknown>) : {}) ?? {},
+      ((globalThis as unknown as { __env__?: Record<string, unknown> }).__env__) ?? {},
+      req?.runtime?.cloudflare?.env ?? {},
+    ];
+    let apiKey = "";
+    for (const s of sources) {
+      const v = s["GOOGLE_GENERATIVE_AI_API_KEY"] ?? s["GEMINI_API_KEY"];
+      if (typeof v === "string" && v.trim()) { apiKey = v.trim(); break; }
+    }
+    if (!apiKey) {
+      console.error("[materials] Gemini key missing in all env sources");
+      return { ok: false as const, error: "Gemini API key is not configured." };
+    }
 
     const toB64 = (u: Uint8Array) => {
       let s = "";
