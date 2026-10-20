@@ -236,7 +236,7 @@ function MaterialsPage() {
             {outputs.data?.length === 0 && <p className="text-sm text-muted-foreground">Generate from a source to see drafts here.</p>}
             {outputs.data?.map((o) => (
               <OutputCard key={o.id} o={o} open={open === o.id} onToggle={() => setOpen(open === o.id ? null : o.id)}
-                onSave={(c) => save(o.id, c)} onApprove={() => approve(o)} onPrint={(c) => print(o.title, c)} onDelete={() => del("material_outputs", o.id)} />
+                onSave={(c) => save(o.id, c)} onApprove={() => approve(o)} onPrint={(c) => print(o, c)} onDelete={() => del("material_outputs", o.id)} />
             ))}
           </TabsContent>
         </Tabs>
@@ -246,10 +246,11 @@ function MaterialsPage() {
 }
 
 function OutputCard({ o, open, onToggle, onSave, onApprove, onPrint, onDelete }: {
-  o: { id: string; title: string; content: string; status: string; kind: string };
+  o: MatOut;
   open: boolean; onToggle: () => void; onSave: (c: string) => void; onApprove: () => void; onPrint: (c: string) => void; onDelete: () => void;
 }) {
   const [text, setText] = useState(o.content);
+  const brand = brandFor(o);
   return (
     <div className="rounded-lg border border-border bg-card p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -264,10 +265,21 @@ function OutputCard({ o, open, onToggle, onSave, onApprove, onPrint, onDelete }:
         </div>
       </div>
       {open && (
-        <div className="mt-3 space-y-2">
-          <Textarea rows={18} value={text} onChange={(e) => setText(e.target.value)} className="font-mono text-xs" />
-          <div className="flex justify-end"><Button size="sm" onClick={() => onSave(text)}>Save edits</Button></div>
-        </div>
+        <Tabs defaultValue="preview" className="mt-3">
+          <TabsList>
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+            <TabsTrigger value="edit">Edit</TabsTrigger>
+          </TabsList>
+          <TabsContent value="preview">
+            <style>{materialCss(brand.color)}</style>
+            <div className="overflow-hidden rounded-md border border-border bg-background p-4 sm:p-8" style={{ background: "#fff" }}
+              dangerouslySetInnerHTML={{ __html: materialDocument(brand, text) }} />
+          </TabsContent>
+          <TabsContent value="edit" className="space-y-2">
+            <Textarea rows={18} value={text} onChange={(e) => setText(e.target.value)} className="font-mono text-xs" />
+            <div className="flex justify-end"><Button size="sm" onClick={() => onSave(text)}>Save edits</Button></div>
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );

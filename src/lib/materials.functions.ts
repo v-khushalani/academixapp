@@ -58,7 +58,7 @@ export const generateMaterial = createServerFn({ method: "POST" })
         KIND_PROMPT[data.kind],
         src.extracted_text ? `Reference notes/text:\n${src.extracted_text.slice(0, 40000)}` : "",
         data.extra ? `Extra instructions: ${data.extra}` : "",
-        "Output clean Markdown. Use LaTeX in $...$ for maths. Never mention any other coaching institute's name.",
+        "Output clean Markdown only (no code fences around the document). Use ## and ### headings, bullet lists, tables for comparisons, and > blockquotes for key points/tips. Write ALL maths, chemistry formulae, units with symbols, Greek letters (\\alpha, \\theta, \\lambda, \\Omega…) in LaTeX: inline as $...$ and important/standalone equations as $$...$$ on their own line. Never use Unicode math look-alikes or plain-text equations. Do not start with a title line (the header already shows it). Never mention any other coaching institute's name.",
       ]
         .filter(Boolean)
         .join("\n\n"),
