@@ -88,8 +88,8 @@ export const generateMaterial = createServerFn({ method: "POST" })
     for (const model of ["gemini-2.5-flash", "gemini-2.0-flash"]) {
       try {
         const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-          { method: "POST", headers: { "Content-Type": "application/json" }, body },
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+          { method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey }, body },
         );
         const json = (await res.json()) as {
           candidates?: { content?: { parts?: { text?: string }[] } }[];
