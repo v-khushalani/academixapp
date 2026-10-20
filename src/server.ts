@@ -47,6 +47,13 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      // Bridge Worker string bindings (secrets) into process.env.
+      if (env && typeof env === "object" && typeof process !== "undefined") {
+        process.env = process.env || ({} as NodeJS.ProcessEnv);
+        for (const [k, v] of Object.entries(env as Record<string, unknown>)) {
+          if (typeof v === "string" && !process.env[k]) process.env[k] = v;
+        }
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
