@@ -5,10 +5,24 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const KIND_PROMPT = {
   notes:
     "Write complete, original chapter study notes: concept explanations, key definitions, step-by-step derivations, 3-5 solved examples, common mistakes, and a quick revision summary.",
-  questions:
-    "Write an original question bank: 10 MCQs, 5 short-answer, 3 long-answer questions, graded easy→hard, followed by an answer key with full step-by-step solutions.",
+  questions: [
+    "Write an original ENTRANCE-EXAM MCQ question bank. ONLY single-correct MCQs with exactly four options (A) (B) (C) (D). NO short-answer, long-answer, descriptive or fill-in-the-blank questions.",
+    "Organise into four level sections, in this order, each a ## heading:",
+    "## Level 1 — CET (MHT-CET / state CET level and slightly above): 10 questions, direct concept + one-step application.",
+    "## Level 2 — JEE Main / NEET: 10 questions, multi-concept, 2–3 step numericals, typical PYQ style.",
+    "## Level 3 — JEE Main (advanced) / NEET (tough): 8 questions, tricky traps, graph/case based, combined concepts.",
+    "## Level 4 — JEE Advanced: 6 questions, deep multi-concept reasoning, non-standard situations.",
+    "Format every question as: **Q<n>.** question text, then each option on its own line as (A) …, (B) …, (C) …, (D) …. Make distractors plausible (common mistakes). Cover the whole chapter, no repeated ideas.",
+    "End with ## Answer Key & Solutions: for each Q give **Q<n> — (X)** then a concise step-by-step solution and the key concept/trap in one line.",
+  ].join("\n"),
   formula_sheet:
     "Write a one-glance formula sheet: every important formula, its meaning, units and conditions of use, grouped by topic.",
+  concept_map: [
+    "Write a ONE-SHOT REVISION CONCEPT MAP of the whole chapter that fits on ONE A4 page (use TWO pages — front and back — only if the chapter is genuinely long; then put a line containing only <!-- pagebreak --> between the two pages).",
+    "Structure it like a mind map a student can picture: start with a short ## Chapter at a glance line (the central idea), then one ### block per major sub-topic (the branches). Under each branch, use tight nested bullets (max 3 levels) for: key definitions, core formulae ($...$), laws/rules, graphs/trends to remember, exceptions and exam traps. Use → to show flow/cause-effect and links between branches.",
+    "Add a compact table where comparison helps (e.g. types, cases, sign conventions). Finish with ## Links & Exam Focus: how sub-topics connect, most-asked JEE/NEET/CET areas, and 5 must-remember one-liners.",
+    "Follow the standard concept-map flow used by top JEE/NEET revision resources for this chapter. Be dense and crisp: keywords, not paragraphs. No solved examples, no long explanations.",
+  ].join("\n"),
 } as const;
 
 export const generateMaterial = createServerFn({ method: "POST" })
@@ -17,7 +31,7 @@ export const generateMaterial = createServerFn({ method: "POST" })
     z
       .object({
         sourceId: z.string().uuid(),
-        kind: z.enum(["notes", "questions", "formula_sheet"]),
+        kind: z.enum(["notes", "questions", "formula_sheet", "concept_map"]),
         extra: z.string().max(2000).optional(),
       })
       .parse(d),

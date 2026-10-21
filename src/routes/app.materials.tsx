@@ -52,7 +52,8 @@ const RIGHTS: Record<string, string> = {
 };
 const KINDS = [
   { k: "notes", label: "Notes" },
-  { k: "questions", label: "Question bank" },
+  { k: "questions", label: "MCQ bank (CET→JEE Adv)" },
+  { k: "concept_map", label: "Concept map" },
   { k: "formula_sheet", label: "Formula sheet" },
 ] as const;
 
