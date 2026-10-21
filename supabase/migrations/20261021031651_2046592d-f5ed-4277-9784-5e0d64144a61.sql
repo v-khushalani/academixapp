@@ -1,0 +1,2 @@
+ALTER TABLE public.material_outputs DROP CONSTRAINT IF EXISTS material_outputs_kind_check;
+ALTER TABLE public.material_outputs ADD CONSTRAINT material_outputs_kind_check CHECK (kind IN ('notes','questions','formula_sheet','concept_map'));
