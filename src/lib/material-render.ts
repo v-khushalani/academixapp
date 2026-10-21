@@ -21,7 +21,9 @@ export function renderMaterial(md: string): string {
     .replace(/\\\(([\s\S]+?)\\\)/g, (_, t) => keep(t, false))
     .replace(/(^|[^\\$])\$(?!\s)([^$\n]+?)(?<!\s)\$(?!\d)/g, (_, p, t) => p + keep(t, false));
   const html = marked.parse(src, { async: false, gfm: true, breaks: false }) as string;
-  return html.replace(/@@MATH(\d+)@@/g, (_, i) => math[Number(i)]);
+  return html
+    .replace(/<!--\s*pagebreak\s*-->/gi, '<div class="mx-pb"></div>')
+    .replace(/@@MATH(\d+)@@/g, (_, i) => math[Number(i)]);
 }
 
 export type MaterialBrand = {
@@ -46,6 +48,8 @@ export function materialCss(color: string) {
 .mx pre{background:#f6f6f6;padding:10px;border-radius:6px;overflow-x:auto;white-space:pre-wrap}
 .mx .mx-eq{margin:.7em 0;overflow-x:auto;overflow-y:hidden;break-inside:avoid;text-align:center}
 .mx .katex{font-size:1.08em}
+.mx .mx-pb{break-after:page;border-top:2px dashed #ccc;margin:1.5em 0}
+@media print{.mx .mx-pb{border:0;margin:0}}
 .mx-wm{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;pointer-events:none;z-index:0}
 .mx-wm img{position:sticky;top:30%;width:55%;max-width:380px;opacity:.06;margin-top:120px}
 .mx-body{position:relative;z-index:1}
