@@ -137,7 +137,7 @@ export const generateMaterial = createServerFn({ method: "POST" })
     }
     if (failure || !text.trim()) return { ok: false as const, error: failure ?? "AI returned no content." };
 
-    const titleMap = { notes: "Notes", questions: "Question bank", formula_sheet: "Formula sheet" };
+    const titleMap = { notes: "Notes", questions: "MCQ bank (CET → JEE Adv)", formula_sheet: "Formula sheet", concept_map: "Concept map" };
     const { data: out, error: insErr } = await context.supabase
       .from("material_outputs")
       .insert({
