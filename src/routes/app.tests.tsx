@@ -27,6 +27,7 @@ import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { batchesApi, testsApi, type TestInsert } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
+import { EXAM_TYPES, examLabel } from "@/lib/exam-types";
 
 export const Route = createFileRoute("/app/tests")({
   component: TestsPage,
@@ -67,7 +68,7 @@ function TestsPage() {
       key: "type",
       header: "Type",
       value: (r) => r.type,
-      cell: (r) => <span className="uppercase text-muted-foreground">{r.type}</span>,
+      cell: (r) => <span className="text-muted-foreground">{examLabel(r.type)}</span>,
     },
     {
       key: "subject",
@@ -164,7 +165,8 @@ function TestDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: b
   const qc = useQueryClient();
   const [f, setF] = useState<TestInsert>({
     title: "",
-    type: "quiz",
+    type: "ut1" as TestInsert["type"],
+    max_marks: 40,
     max_marks: 100,
     date: new Date().toISOString().slice(0, 10),
     status: "scheduled",
@@ -207,16 +209,19 @@ function TestDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: b
           <div className="space-y-1.5">
             <Label>Type</Label>
             <Select
-              value={f.type ?? "quiz"}
-              onValueChange={(v) => setF({ ...f, type: v as TestInsert["type"] })}
+              value={f.type ?? "ut1"}
+              onValueChange={(v) => {
+                const t = EXAM_TYPES.find((x) => x.value === v);
+                setF({ ...f, type: v as TestInsert["type"], max_marks: t?.max ?? f.max_marks });
+              }}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {["quiz", "unit", "midterm", "final", "mock", "practice"].map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
+                {EXAM_TYPES.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.label} · {t.term}
                   </SelectItem>
                 ))}
               </SelectContent>
