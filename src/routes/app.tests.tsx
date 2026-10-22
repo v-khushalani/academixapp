@@ -167,7 +167,6 @@ function TestDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: b
     title: "",
     type: "ut1" as TestInsert["type"],
     max_marks: 40,
-    max_marks: 100,
     date: new Date().toISOString().slice(0, 10),
     status: "scheduled",
   });

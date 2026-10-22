@@ -255,6 +255,7 @@ function NewTestDialog({
         max_marks: maxMarks,
         status: "scheduled",
       });
+      if (!t) throw new Error("Could not create test");
       return t.id as string;
     },
     onSuccess: (id) => {
