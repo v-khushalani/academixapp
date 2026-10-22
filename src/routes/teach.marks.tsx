@@ -125,16 +125,33 @@ function TeachMarks() {
 
   return (
     <div className="mx-auto w-full max-w-3xl p-4 sm:p-6">
-      <h1 className="text-xl font-semibold">Enter marks</h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold">Enter marks</h1>
+        <NewTestDialog
+          batches={myBatchList}
+          subjectMap={subjectMap}
+          onCreated={(id) => {
+            qc.invalidateQueries({ queryKey: ["tests"] });
+            setTestId(id);
+            setMarks({});
+          }}
+        />
+      </div>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Select value={testId} onValueChange={setTestId}>
-          <SelectTrigger className="h-9 w-full sm:w-[240px]">
+        <Select
+          value={testId}
+          onValueChange={(v) => {
+            setTestId(v);
+            setMarks({});
+          }}
+        >
+          <SelectTrigger className="h-9 w-full sm:w-[280px]">
             <SelectValue placeholder="Select test" />
           </SelectTrigger>
           <SelectContent>
             {tests.map((t) => (
               <SelectItem key={t.id} value={t.id}>
-                {t.title} · {t.date}
+                {t.title} · {examLabel(t.type)} · {t.date}
               </SelectItem>
             ))}
           </SelectContent>
