@@ -2685,7 +2685,18 @@ export type Database = {
         | "ignored"
       student_status: "active" | "inactive" | "alumni" | "dropped"
       test_status: "scheduled" | "ongoing" | "completed" | "cancelled"
-      test_type: "quiz" | "unit" | "midterm" | "final" | "mock" | "practice"
+      test_type:
+        | "quiz"
+        | "unit"
+        | "midterm"
+        | "final"
+        | "mock"
+        | "practice"
+        | "ut1"
+        | "term1"
+        | "ut2"
+        | "term2"
+        | "weekly"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2863,7 +2874,19 @@ export const Constants = {
       ],
       student_status: ["active", "inactive", "alumni", "dropped"],
       test_status: ["scheduled", "ongoing", "completed", "cancelled"],
-      test_type: ["quiz", "unit", "midterm", "final", "mock", "practice"],
+      test_type: [
+        "quiz",
+        "unit",
+        "midterm",
+        "final",
+        "mock",
+        "practice",
+        "ut1",
+        "term1",
+        "ut2",
+        "term2",
+        "weekly",
+      ],
     },
   },
 } as const

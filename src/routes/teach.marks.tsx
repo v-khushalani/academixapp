@@ -2,10 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Save } from "lucide-react";
+import { Plus, Save } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { myBatches, myFaculty, mySubjectsByBatch } from "@/lib/api/teach";
-import { batchesApi, testsApi } from "@/lib/api";
+import { batchesApi, testsApi, type TestInsert } from "@/lib/api";
+import { EXAM_TYPES, examLabel } from "@/lib/exam-types";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -125,16 +135,33 @@ function TeachMarks() {
 
   return (
     <div className="mx-auto w-full max-w-3xl p-4 sm:p-6">
-      <h1 className="text-xl font-semibold">Enter marks</h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold">Enter marks</h1>
+        <NewTestDialog
+          batches={myBatchList}
+          subjectMap={subjectMap}
+          onCreated={(id) => {
+            qc.invalidateQueries({ queryKey: ["tests"] });
+            setTestId(id);
+            setMarks({});
+          }}
+        />
+      </div>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Select value={testId} onValueChange={setTestId}>
-          <SelectTrigger className="h-9 w-full sm:w-[240px]">
+        <Select
+          value={testId}
+          onValueChange={(v) => {
+            setTestId(v);
+            setMarks({});
+          }}
+        >
+          <SelectTrigger className="h-9 w-full sm:w-[280px]">
             <SelectValue placeholder="Select test" />
           </SelectTrigger>
           <SelectContent>
             {tests.map((t) => (
               <SelectItem key={t.id} value={t.id}>
-                {t.title} · {t.date}
+                {t.title} · {examLabel(t.type)} · {t.date}
               </SelectItem>
             ))}
           </SelectContent>
@@ -180,5 +207,156 @@ function TeachMarks() {
         ))}
       </div>
     </div>
+  );
+}
+
+function titleCase(s: string) {
+  return s.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Teacher creates a test only for batch + subject they are timetabled for. */
+function NewTestDialog({
+  batches,
+  subjectMap,
+  onCreated,
+}: {
+  batches: { id: string; name: string }[];
+  subjectMap?: Map<string, Set<string>>;
+  onCreated: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [batchId, setBatchId] = useState("");
+  const [subject, setSubject] = useState("");
+  const [type, setType] = useState<string>("ut1");
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [max, setMax] = useState("40");
+
+  const subjects = useMemo(
+    () => Array.from(subjectMap?.get(batchId) ?? []).map(titleCase),
+    [subjectMap, batchId],
+  );
+  useEffect(() => {
+    if (subjects.length && !subjects.includes(subject)) setSubject(subjects[0]);
+  }, [subjects, subject]);
+
+  const create = useMutation({
+    mutationFn: async () => {
+      if (!batchId || !subject) throw new Error("Pick your batch and subject");
+      const maxMarks = Number(max);
+      if (!Number.isFinite(maxMarks) || maxMarks <= 0) throw new Error("Enter max marks");
+      const label = EXAM_TYPES.find((t) => t.value === type)?.label ?? "Test";
+      const t = await testsApi.create({
+        title: title.trim() || `${label} — ${subject}`,
+        type: type as TestInsert["type"],
+        subject,
+        batch_id: batchId,
+        date,
+        max_marks: maxMarks,
+        status: "scheduled",
+      });
+      if (!t) throw new Error("Could not create test");
+      return (t as { id: string }).id;
+    },
+    onSuccess: (id) => {
+      toast.success("Test created — enter marks below");
+      setOpen(false);
+      setTitle("");
+      onCreated(id);
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not create"),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="gap-1.5" disabled={!batches.length}>
+          <Plus className="h-4 w-4" /> New test
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>New test</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-3">
+          <div className="space-y-1.5">
+            <Label>Batch</Label>
+            <Select value={batchId} onValueChange={setBatchId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Your batch" />
+              </SelectTrigger>
+              <SelectContent>
+                {batches.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Subject</Label>
+            <Select value={subject} onValueChange={setSubject} disabled={!subjects.length}>
+              <SelectTrigger>
+                <SelectValue placeholder={batchId ? "No subject assigned" : "Pick batch first"} />
+              </SelectTrigger>
+              <SelectContent>
+                {subjects.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Exam</Label>
+            <Select
+              value={type}
+              onValueChange={(v) => {
+                setType(v);
+                const t = EXAM_TYPES.find((x) => x.value === v);
+                if (t) setMax(String(t.max));
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EXAM_TYPES.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.label} · {t.term}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Date</Label>
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Max marks</Label>
+              <Input
+                type="number"
+                inputMode="numeric"
+                value={max}
+                onChange={(e) => setMax(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Title (optional)</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Auto" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button disabled={create.isPending} onClick={() => create.mutate()}>
+            {create.isPending ? "Creating…" : "Create test"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -233,15 +233,14 @@ function TimetablePage() {
   const [confirmClear, setConfirmClear] = useState(false);
   const clearMut = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("timetable_slots")
-        .delete()
-        .in("id", slots.map((s) => s.id));
+      const ids = slots.filter((s) => s.day_of_week === day).map((s) => s.id);
+      if (!ids.length) return;
+      const { error } = await supabase.from("timetable_slots").delete().in("id", ids);
       if (error) throw error;
     },
     onSuccess: () => {
       setConfirmClear(false);
-      toast.success("Schedule cleared — press Publish to show it to everyone");
+      toast.success("Day cleared — other days untouched. Press Publish to show it to everyone");
       qc.invalidateQueries({ queryKey: ["timetable"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -505,20 +504,22 @@ function TimetablePage() {
                   size="sm"
                   variant="outline"
                   className="gap-1.5"
-                  disabled={!slots.length || clearMut.isPending}
+                  disabled={!daySlots.length || clearMut.isPending}
                   onClick={() => setConfirmClear(true)}
                 >
                   <Eraser className="h-4 w-4" />
-                  Clear
+                  Clear day
                 </Button>
                 <Dialog open={confirmClear} onOpenChange={setConfirmClear}>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Clear the whole schedule?</DialogTitle>
+                      <DialogTitle>Clear this day only?</DialogTitle>
                     </DialogHeader>
                     <p className="text-sm text-muted-foreground">
-                      Every class on every day will be removed from the draft. Teachers and students
-                      keep seeing the last published timetable until you press Publish.
+                      {daySlots.length} class{daySlots.length === 1 ? "" : "es"} on the selected day
+                      will be removed from the draft. Other days stay as they are. Attendance,
+                      syllabus logs and past records are never deleted. Students keep seeing the last
+                      published timetable until you press Publish.
                     </p>
                     <DialogFooter>
                       <Button variant="outline" onClick={() => setConfirmClear(false)}>
@@ -529,7 +530,7 @@ function TimetablePage() {
                         disabled={clearMut.isPending}
                         onClick={() => clearMut.mutate()}
                       >
-                        {clearMut.isPending ? "Clearing…" : "Clear schedule"}
+                        {clearMut.isPending ? "Clearing…" : "Clear day"}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
