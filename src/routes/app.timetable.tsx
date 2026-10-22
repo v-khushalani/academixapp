@@ -233,15 +233,14 @@ function TimetablePage() {
   const [confirmClear, setConfirmClear] = useState(false);
   const clearMut = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("timetable_slots")
-        .delete()
-        .in("id", slots.map((s) => s.id));
+      const ids = slots.filter((s) => s.day_of_week === day).map((s) => s.id);
+      if (!ids.length) return;
+      const { error } = await supabase.from("timetable_slots").delete().in("id", ids);
       if (error) throw error;
     },
     onSuccess: () => {
       setConfirmClear(false);
-      toast.success("Schedule cleared — press Publish to show it to everyone");
+      toast.success("Day cleared — other days untouched. Press Publish to show it to everyone");
       qc.invalidateQueries({ queryKey: ["timetable"] });
     },
     onError: (e: Error) => toast.error(e.message),
