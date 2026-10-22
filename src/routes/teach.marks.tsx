@@ -256,7 +256,7 @@ function NewTestDialog({
         status: "scheduled",
       });
       if (!t) throw new Error("Could not create test");
-      return t.id as string;
+      return (t as { id: string }).id;
     },
     onSuccess: (id) => {
       toast.success("Test created — enter marks below");
