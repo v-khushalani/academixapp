@@ -114,7 +114,7 @@ export const generateMaterial = createServerFn({ method: "POST" })
 
     let failure: string | null = null;
     let text = "";
-    for (const model of ["gemini-2.5-flash", "gemini-2.0-flash"]) {
+    for (const model of ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-flash-latest"]) {
       try {
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
