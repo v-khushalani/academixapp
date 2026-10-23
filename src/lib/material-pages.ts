@@ -92,6 +92,7 @@ export function paginateMaterial() {
   source.remove();
   const fit = () => {
     pages.style.zoom = String(Math.min(1, (document.documentElement.clientWidth - 24) / 794));
+    window.parent.postMessage({ type: 'material-pages-height', height: document.body.getBoundingClientRect().height }, '*');
   };
   fit();
   window.addEventListener('resize', fit);
