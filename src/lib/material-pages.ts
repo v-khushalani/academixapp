@@ -48,7 +48,8 @@ export function paginateMaterial() {
       mounted?.remove();
     }
     if (node instanceof Element && node.children.length && !node.classList.contains('katex') && !node.classList.contains('mx-eq')) {
-      const children = Array.from(node.childNodes).filter(n => !(n instanceof Element && n.tagName === 'THEAD'));
+      const children = Array.from(node.childNodes).filter(n =>
+        (n.nodeType !== Node.TEXT_NODE || n.textContent?.trim()) && !(n instanceof Element && n.tagName === 'THEAD'));
       children.forEach(child => add(child, [...wrappers, node]));
     } else if (node.nodeType === Node.TEXT_NODE && (node.textContent ?? '').trim()) {
       const words = (node.textContent ?? '').split(/(\s+)/);
@@ -73,11 +74,22 @@ export function paginateMaterial() {
     }
   };
   const nodes = Array.from(source.childNodes).filter(n => n.nodeType !== Node.TEXT_NODE || n.textContent?.trim());
-  // Keep section headings with their following block when possible.
+  // Keep headings with their next block and MCQ stems with all their options/equations.
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i];
     const next = nodes[i + 1];
-    if (node instanceof Element && /^H[1-6]$/.test(node.tagName) && next && !(next instanceof Element && next.classList.contains('mx-pb'))) {
+    const isQuestion = (n: Node) => n instanceof Element && /^Q\s*\d+[.\s]/i.test(n.textContent?.trim() ?? '');
+    if (isQuestion(node)) {
+      const group = document.createElement('div');
+      group.append(node.cloneNode(true));
+      while (nodes[i + 1]) {
+        const following = nodes[i + 1];
+        if (isQuestion(following) || (following instanceof Element && (/^H[1-6]$/.test(following.tagName) || following.classList.contains('mx-pb')))) break;
+        group.append(following.cloneNode(true));
+        i++;
+      }
+      add(group);
+    } else if (node instanceof Element && /^H[1-6]$/.test(node.tagName) && next && !isQuestion(next) && !(next instanceof Element && next.classList.contains('mx-pb'))) {
       const group = document.createElement('div');
       group.append(node.cloneNode(true), next.cloneNode(true));
       add(group);
