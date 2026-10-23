@@ -94,7 +94,7 @@ export function materialDocument(b: MaterialBrand, content: string) {
 
 /** Same measured A4 pages in the embedded preview and browser print/PDF. */
 export function materialPrintHtml(b: MaterialBrand, content: string, katexCssHref: string, autoPrint = true) {
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(b.title)}</title>
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>&#8203;</title>
 <link rel="stylesheet" href="${esc(katexCssHref)}">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700&display=swap">
 <style>${materialCss(b.color)}</style></head><body>
