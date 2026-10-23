@@ -1,0 +1,4 @@
+- [x] Center study material headers with class, subject and chapter.
+- [x] Share A4 pagination between preview and print; repeat bottom footer and logo watermark.
+- [x] Remove difficulty adjectives from new and existing MCQ level headings.
+- [x] Verify multi-page content and printing with browser/PDF fixtures and front/back regression test; actual institute drafts remain unverified because hosted account access is unavailable.

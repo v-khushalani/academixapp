@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { generateMaterial } from "@/lib/materials.functions";
 import { getInstitute } from "@/lib/academy-settings";
-import { materialCss, materialDocument, materialPrintHtml, type MaterialBrand } from "@/lib/material-render";
+import { materialPrintHtml, type MaterialBrand } from "@/lib/material-render";
 import "katex/dist/katex.min.css";
 import katexCssUrl from "katex/dist/katex.min.css?url";
 
@@ -255,9 +255,9 @@ function OutputCard({ o, open, onToggle, onSave, onApprove, onPrint, onDelete }:
   return (
     <div className="rounded-lg border border-border bg-card p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <button className="min-w-0 text-left" onClick={onToggle}>
+        <Button variant="ghost" className="min-w-0 justify-start text-left" onClick={onToggle}>
           <p className="truncate font-medium">{o.title}</p>
-        </button>
+        </Button>
         <div className="flex items-center gap-2">
           <Badge variant={o.status === "approved" ? "default" : "secondary"}>{o.status}</Badge>
           {o.status !== "approved" && <Button size="sm" variant="outline" onClick={onApprove}><CheckCircle2 className="h-3.5 w-3.5" /> Approve</Button>}
@@ -272,9 +272,7 @@ function OutputCard({ o, open, onToggle, onSave, onApprove, onPrint, onDelete }:
             <TabsTrigger value="edit">Edit</TabsTrigger>
           </TabsList>
           <TabsContent value="preview">
-            <style>{materialCss(brand.color)}</style>
-            <div className="overflow-hidden rounded-md border border-border bg-background p-4 sm:p-8" style={{ background: "#fff" }}
-              dangerouslySetInnerHTML={{ __html: materialDocument(brand, text) }} />
+            <MaterialPreview brand={brand} content={text} />
           </TabsContent>
           <TabsContent value="edit" className="space-y-2">
             <Textarea rows={18} value={text} onChange={(e) => setText(e.target.value)} className="font-mono text-xs" />
@@ -284,4 +282,19 @@ function OutputCard({ o, open, onToggle, onSave, onApprove, onPrint, onDelete }:
       )}
     </div>
   );
+}
+
+function MaterialPreview({ brand, content }: { brand: MaterialBrand; content: string }) {
+  const frame = useRef<HTMLIFrameElement>(null);
+  useEffect(() => {
+    const receive = (event: MessageEvent) => {
+      if (event.source !== frame.current?.contentWindow || event.data?.type !== "material-pages-height") return;
+      const height = Number(event.data.height);
+      if (frame.current && Number.isFinite(height) && height > 0) frame.current.height = String(Math.ceil(height + 4));
+    };
+    window.addEventListener("message", receive);
+    return () => window.removeEventListener("message", receive);
+  }, []);
+  return <iframe ref={frame} title={`${brand.title} — page preview`} className="w-full border-0" height="1100"
+    sandbox="allow-scripts" srcDoc={materialPrintHtml(brand, content, new URL(katexCssUrl, typeof location === "undefined" ? "http://localhost" : location.href).href, false)} />;
 }

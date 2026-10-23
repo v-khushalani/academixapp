@@ -8,10 +8,11 @@ const KIND_PROMPT = {
   questions: [
     "Write an original ENTRANCE-EXAM MCQ question bank. ONLY single-correct MCQs with exactly four options (A) (B) (C) (D). NO short-answer, long-answer, descriptive or fill-in-the-blank questions.",
     "Organise into four level sections, in this order, each a ## heading:",
-    "## Level 1 — CET (MHT-CET / state CET level and slightly above): 10 questions, direct concept + one-step application.",
+    "## Level 1 — CET: 10 questions, MHT-CET/state CET level and slightly above, direct concept + one-step application.",
     "## Level 2 — JEE Main / NEET: 10 questions, multi-concept, 2–3 step numericals, typical PYQ style.",
-    "## Level 3 — JEE Main (advanced) / NEET (tough): 8 questions, tricky traps, graph/case based, combined concepts.",
+    "## Level 3 — JEE Main / NEET: 8 questions, higher difficulty, tricky traps, graph/case based, combined concepts.",
     "## Level 4 — JEE Advanced: 6 questions, deep multi-concept reasoning, non-standard situations.",
+    "Use these exact level headings. Never add difficulty adjectives such as tough, hard, easy or advanced in parentheses to a heading; JEE Advanced is the exam name and must stay.",
     "Format every question as: **Q<n>.** question text, then each option on its own line as (A) …, (B) …, (C) …, (D) …. Make distractors plausible (common mistakes). Cover the whole chapter, no repeated ideas.",
     "End with ## Answer Key & Solutions: for each Q give **Q<n> — (X)** then a concise step-by-step solution and the key concept/trap in one line.",
   ].join("\n"),

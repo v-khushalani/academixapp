@@ -11,3 +11,4 @@
 
 <!-- LOVABLE:END -->
 - Paid add-ons (e.g. material_engine) are listed in OPT_IN in src/lib/features.ts: OFF unless the institute features map is explicitly true; DB RLS re-checks via institute_has_material_engine() (also blocks Free plan). Why: paid features must never leak to free/unflagged tenants.
+- Study material preview and print use the same browser-measured A4 page shells and isolated document styles; keep pagination in the browser-safe material-pages module so fonts, equations, headers and footers use identical measurements.
