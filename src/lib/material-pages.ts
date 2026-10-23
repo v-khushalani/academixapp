@@ -79,7 +79,18 @@ export function paginateMaterial() {
     const node = nodes[i];
     const next = nodes[i + 1];
     const isQuestion = (n: Node) => n instanceof Element && /^Q\s*\d+[.\s]/i.test(n.textContent?.trim() ?? '');
-    if (isQuestion(node)) {
+    if (node instanceof Element && /^H[1-6]$/.test(node.tagName) && next && isQuestion(next)) {
+      const group = document.createElement('div');
+      group.append(node.cloneNode(true), next.cloneNode(true));
+      i++;
+      while (nodes[i + 1]) {
+        const following = nodes[i + 1];
+        if (isQuestion(following) || (following instanceof Element && (/^H[1-6]$/.test(following.tagName) || following.classList.contains('mx-pb')))) break;
+        group.append(following.cloneNode(true));
+        i++;
+      }
+      add(group);
+    } else if (isQuestion(node)) {
       const group = document.createElement('div');
       group.append(node.cloneNode(true));
       while (nodes[i + 1]) {
