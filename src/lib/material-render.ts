@@ -64,17 +64,17 @@ export function materialCss(color: string) {
 .mx .mx-eq{margin:.7em 0;overflow-x:auto;overflow-y:hidden;text-align:center}
 .mx .katex{font-size:1.08em}.mx img{max-width:100%;object-fit:contain}.mx .mx-pb{display:none}
 .mx-wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0}
-.mx-wm img{width:55%;max-height:55%;opacity:.065}
-.mx-head{position:relative;z-index:1;text-align:center;flex:none;border-bottom:3px solid var(--c);padding-bottom:10px;margin-bottom:14px;overflow-wrap:anywhere}
-.mx-head img{height:42px;width:auto;margin:0 auto 5px;display:block}
+.mx-wm img{width:50%;height:auto;max-height:none;opacity:.07}
+.mx-head{position:relative;z-index:1;text-align:center;flex:none;width:100%;display:flex;flex-direction:column;align-items:center;border-bottom:3px solid var(--c);padding-bottom:10px;margin-bottom:14px;overflow-wrap:anywhere}
+.mx-head img{height:42px;max-height:42px;width:auto;margin:0 auto 5px;display:block}
 .mx-head .n{font-size:21px;font-weight:700;color:var(--c);margin:0;line-height:1.25}
 .mx-head .m{font-size:13px;color:var(--paper-muted);margin-top:3px}
 .mx-tags{font-size:12px;color:var(--c);margin-top:5px;font-weight:600}
 .mx-foot{position:relative;z-index:1;flex:none;border-top:2px solid var(--c);margin-top:12px;padding-top:6px;font-size:11px;line-height:1.4;color:var(--paper-muted);text-align:center;overflow-wrap:anywhere}
 .mx-page-number{margin-top:3px;font-size:10px}.mx-long-page .mx-oversized{max-height:200mm;max-width:100%;overflow:auto}
 #material-source{position:absolute;left:-10000px;width:182mm}#material-pages{padding:12px 0}
-@page{size:A4;margin:0}
-@media print{body{background:var(--paper);-webkit-print-color-adjust:exact;print-color-adjust:exact}#material-pages{padding:0;zoom:1!important}.mx-page{margin:0;break-after:page;break-inside:avoid}.mx-page:last-child{break-after:auto}}
+@page{size:A4 portrait;margin:0}
+@media print{html,body{width:210mm;margin:0;padding:0;background:var(--paper);-webkit-print-color-adjust:exact;print-color-adjust:exact}#material-pages{padding:0;zoom:1!important;width:210mm}.mx-page{margin:0;height:296.5mm;overflow:hidden;break-after:page;page-break-after:always;break-inside:avoid}.mx-page:last-child{break-after:auto;page-break-after:auto}}
 `;
 }
 
@@ -94,7 +94,7 @@ export function materialDocument(b: MaterialBrand, content: string) {
 
 /** Same measured A4 pages in the embedded preview and browser print/PDF. */
 export function materialPrintHtml(b: MaterialBrand, content: string, katexCssHref: string, autoPrint = true) {
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(b.title)}</title>
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>&#8203;</title>
 <link rel="stylesheet" href="${esc(katexCssHref)}">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700&display=swap">
 <style>${materialCss(b.color)}</style></head><body>
