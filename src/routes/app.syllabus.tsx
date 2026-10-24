@@ -76,6 +76,8 @@ function SyllabusPage() {
   const [customSubject, setCustomSubject] = useState(false);
   const [titles, setTitles] = useState("");
   const [copyFrom, setCopyFrom] = useState("");
+  const [renameFrom, setRenameFrom] = useState<string | null>(null);
+  const [renameTo, setRenameTo] = useState("");
 
   const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: batchesApi.list });
   useEffect(() => {
@@ -151,6 +153,15 @@ function SyllabusPage() {
       toast.success(`${rows.length} chapter(s) added`);
       setTitles("");
       setAddOpen(false);
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const rename = useMutation({
+    mutationFn: () => syllabusApi.renameSubject(batchId, renameFrom!, renameTo),
+    onSuccess: () => {
+      toast.success("Subject renamed");
+      setRenameFrom(null);
       refresh();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -231,6 +242,10 @@ function SyllabusPage() {
                   onCycle={(c) => cycle.mutate(c)}
                   onRemove={(id) => remove.mutate(id)}
                   onReordered={reorderLocally}
+                  onRename={(s) => {
+                    setRenameFrom(s);
+                    setRenameTo(s);
+                  }}
                 />
               ))}
             </div>
@@ -337,6 +352,33 @@ function SyllabusPage() {
               onClick={() => add.mutate()}
             >
               {add.isPending ? "Saving…" : "Add"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={renameFrom !== null} onOpenChange={(v) => !v && setRenameFrom(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Rename subject</DialogTitle>
+          </DialogHeader>
+          <F label="Subject name">
+            <Input
+              value={renameTo}
+              onChange={(e) => setRenameTo(e.target.value)}
+              placeholder="e.g. Physics"
+              autoFocus
+            />
+          </F>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameFrom(null)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!renameTo.trim() || renameTo.trim() === renameFrom || rename.isPending}
+              onClick={() => rename.mutate()}
+            >
+              {rename.isPending ? "Saving…" : "Rename"}
             </Button>
           </DialogFooter>
         </DialogContent>
