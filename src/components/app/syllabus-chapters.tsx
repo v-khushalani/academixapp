@@ -247,6 +247,17 @@ export function SubjectCard({
           </div>
         </button>
         <div className="flex shrink-0 items-center gap-1">
+          {onRename && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title="Rename subject"
+              onClick={() => onRename(group.subject)}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
