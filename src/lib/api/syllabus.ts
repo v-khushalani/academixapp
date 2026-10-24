@@ -117,6 +117,16 @@ export const syllabusApi = {
     await syllabusApi.setOrder(computeOrder(ordered as Chapter[]));
   },
 
+  /** Rename a subject across every chapter in a batch. */
+  async renameSubject(batchId: string, from: string, to: string) {
+    const { error } = await supabase
+      .from("syllabus_chapters")
+      .update({ subject: to.trim() })
+      .eq("batch_id", batchId)
+      .eq("subject", from);
+    if (error) throw error;
+  },
+
   async updateChapter(id: string, patch: Partial<ChapterInsert>) {
     const { data, error } = await supabase
       .from("syllabus_chapters")
