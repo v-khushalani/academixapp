@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight, FolderPlus, GripVertical, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderPlus, GripVertical, Pencil, Trash2 } from "lucide-react";
 import {
   DndContext,
   PointerSensor,
@@ -139,13 +139,15 @@ export function SubjectCard({
   onCycle,
   onRemove,
   onReordered,
+  onRename,
 }: {
   group: SubjectProgress;
   onCycle: (c: Chapter) => void;
   onRemove: (id: string) => void;
   onReordered: (subject: string, next: Chapter[]) => void;
+  onRename?: (subject: string) => void;
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [closedSections, setClosedSections] = useState<Set<string>>(new Set());
   const [sectionOpen, setSectionOpen] = useState(false);
   const [sectionName, setSectionName] = useState("");
@@ -245,6 +247,17 @@ export function SubjectCard({
           </div>
         </button>
         <div className="flex shrink-0 items-center gap-1">
+          {onRename && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title="Rename subject"
+              onClick={() => onRename(group.subject)}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
