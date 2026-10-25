@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { FileText, Plus, Trash2 } from "lucide-react";
+import { ReportCardDialog } from "@/components/app/report-card-dialog";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,8 @@ function TestsPage() {
   });
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState<Row | null>(null);
+  const [batchFilter, setBatchFilter] = useState<string | null>(null);
+  const [cardOpen, setCardOpen] = useState(false);
 
   const removeMut = useMutation({
     mutationFn: (id: string) => testsApi.remove(id),
@@ -122,23 +125,53 @@ function TestsPage() {
     },
   ];
 
+  const batchList = Array.from(
+    new Map(data.filter((r) => r.batch).map((r) => [r.batch_id!, r.batch!.name])).entries(),
+  ).sort((a, b) => a[1].localeCompare(b[1]));
+  const rows = batchFilter ? data.filter((r) => r.batch_id === batchFilter) : data;
+
   return (
     <>
       <PageHeader
         title="Tests"
-        description={`${data.length} tests`}
+        description={`${rows.length} tests`}
         actions={
-          canWrite ? (
-            <Button size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
-              <Plus className="h-4 w-4" />
-              Create test
+          <>
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setCardOpen(true)}>
+              <FileText className="h-4 w-4" />
+              Report card
             </Button>
-          ) : null
+            {canWrite ? (
+              <Button size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Create test
+              </Button>
+            ) : null}
+          </>
         }
       />
       <PageBody>
+        <div className="mb-4 flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant={batchFilter ? "outline" : "default"}
+            onClick={() => setBatchFilter(null)}
+          >
+            All batches
+          </Button>
+          {batchList.map(([id, name]) => (
+            <Button
+              key={id}
+              size="sm"
+              variant={batchFilter === id ? "default" : "outline"}
+              onClick={() => setBatchFilter(id)}
+            >
+              {name}
+            </Button>
+          ))}
+        </div>
         <DataTable
-          rows={data}
+          rows={rows}
           columns={columns}
           searchKeys={["title", "subject"]}
           searchPlaceholder="Search tests…"
@@ -149,6 +182,14 @@ function TestsPage() {
         />
       </PageBody>
       <TestDialog open={open} onOpenChange={setOpen} />
+      {cardOpen && (
+        <ReportCardDialog
+          open={cardOpen}
+          onOpenChange={setCardOpen}
+          batches={batchList.map(([id, name]) => ({ id, name }))}
+          initialBatchId={batchFilter}
+        />
+      )}
       <ConfirmDialog
         open={Boolean(deleting)}
         onOpenChange={(v) => !v && setDeleting(null)}
