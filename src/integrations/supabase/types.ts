@@ -1863,6 +1863,8 @@ export type Database = {
           date: string
           id: string
           institute_id: string
+          locked_at: string | null
+          locked_by: string | null
           max_marks: number
           status: Database["public"]["Enums"]["test_status"]
           subject: string | null
@@ -1877,6 +1879,8 @@ export type Database = {
           date?: string
           id?: string
           institute_id?: string
+          locked_at?: string | null
+          locked_by?: string | null
           max_marks?: number
           status?: Database["public"]["Enums"]["test_status"]
           subject?: string | null
@@ -1891,6 +1895,8 @@ export type Database = {
           date?: string
           id?: string
           institute_id?: string
+          locked_at?: string | null
+          locked_by?: string | null
           max_marks?: number
           status?: Database["public"]["Enums"]["test_status"]
           subject?: string | null
