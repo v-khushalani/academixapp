@@ -72,6 +72,22 @@ export function parentPhone(s: {
   );
 }
 
+/** The parent chosen at admission as the one who follows the child's studies. */
+export function preferredParentPhone(s: {
+  preferred_contact?: string | null;
+  father_phone?: string | null;
+  parent_phone?: string | null;
+  mother_phone?: string | null;
+  phone?: string | null;
+} | null | undefined): string | null {
+  if (!s) return null;
+  const order =
+    s.preferred_contact === "mother"
+      ? [s.mother_phone, s.parent_phone, s.father_phone, s.phone]
+      : [s.father_phone, s.parent_phone, s.mother_phone, s.phone];
+  return order.find((p) => normalisePhone(p)) ?? null;
+}
+
 export function openWhatsApp(phone: string | null | undefined, message: string): boolean {
   const url = whatsappUrl(phone, message);
   if (!url) return false;
