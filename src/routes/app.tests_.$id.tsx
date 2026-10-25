@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
 
-export const Route = createFileRoute("/app/tests/$id")({
+export const Route = createFileRoute("/app/tests_/$id")({
   component: TestDetail,
 });
 

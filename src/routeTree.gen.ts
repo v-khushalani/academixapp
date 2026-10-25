@@ -61,7 +61,7 @@ import { Route as AppPlatformInstitutesRouteImport } from './routes/app.platform
 import { Route as AppPlatformPlansRouteImport } from './routes/app.platform.plans'
 import { Route as AppPlatformUsersRouteImport } from './routes/app.platform.users'
 import { Route as AppStudentsIdRouteImport } from './routes/app.students.$id'
-import { Route as AppTestsIdRouteImport } from './routes/app.tests.$id'
+import { Route as AppTestsIdRouteImport } from './routes/app.tests_.$id'
 import { Route as ApiPublicAttendancePunchRouteImport } from './routes/api/public/attendance.punch'
 
 const IndexRoute = IndexRouteImport.update({
@@ -325,9 +325,9 @@ const AppStudentsIdRoute = AppStudentsIdRouteImport.update({
   getParentRoute: () => AppStudentsRoute,
 } as any)
 const AppTestsIdRoute = AppTestsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AppTestsRoute,
+  id: '/tests_/$id',
+  path: '/tests/$id',
+  getParentRoute: () => AppRoute,
 } as any)
 const ApiPublicAttendancePunchRoute =
   ApiPublicAttendancePunchRouteImport.update({
@@ -363,7 +363,7 @@ export interface FileRoutesByFullPath {
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/syllabus': typeof AppSyllabusRoute
-  '/app/tests': typeof AppTestsRouteWithChildren
+  '/app/tests': typeof AppTestsRoute
   '/app/timetable': typeof AppTimetableRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
@@ -415,7 +415,7 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/syllabus': typeof AppSyllabusRoute
-  '/app/tests': typeof AppTestsRouteWithChildren
+  '/app/tests': typeof AppTestsRoute
   '/app/timetable': typeof AppTimetableRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
@@ -472,7 +472,7 @@ export interface FileRoutesById {
   '/app/settings': typeof AppSettingsRoute
   '/app/students': typeof AppStudentsRouteWithChildren
   '/app/syllabus': typeof AppSyllabusRoute
-  '/app/tests': typeof AppTestsRouteWithChildren
+  '/app/tests': typeof AppTestsRoute
   '/app/timetable': typeof AppTimetableRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
@@ -497,7 +497,7 @@ export interface FileRoutesById {
   '/app/platform/plans': typeof AppPlatformPlansRoute
   '/app/platform/users': typeof AppPlatformUsersRoute
   '/app/students/$id': typeof AppStudentsIdRoute
-  '/app/tests/$id': typeof AppTestsIdRoute
+  '/app/tests_/$id': typeof AppTestsIdRoute
   '/app/platform/': typeof AppPlatformIndexRoute
   '/api/public/attendance/punch': typeof ApiPublicAttendancePunchRoute
 }
@@ -663,7 +663,7 @@ export interface FileRouteTypes {
     | '/app/platform/plans'
     | '/app/platform/users'
     | '/app/students/$id'
-    | '/app/tests/$id'
+    | '/app/tests_/$id'
     | '/app/platform/'
     | '/api/public/attendance/punch'
   fileRoutesById: FileRoutesById
@@ -1055,12 +1055,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStudentsIdRouteImport
       parentRoute: typeof AppStudentsRoute
     }
-    '/app/tests/$id': {
-      id: '/app/tests/$id'
-      path: '/$id'
+    '/app/tests_/$id': {
+      id: '/app/tests_/$id'
+      path: '/tests/$id'
       fullPath: '/app/tests/$id'
       preLoaderRoute: typeof AppTestsIdRouteImport
-      parentRoute: typeof AppTestsRoute
+      parentRoute: typeof AppRoute
     }
     '/api/public/attendance/punch': {
       id: '/api/public/attendance/punch'
@@ -1116,18 +1116,6 @@ const AppStudentsRouteWithChildren = AppStudentsRoute._addFileChildren(
   AppStudentsRouteChildren,
 )
 
-interface AppTestsRouteChildren {
-  AppTestsIdRoute: typeof AppTestsIdRoute
-}
-
-const AppTestsRouteChildren: AppTestsRouteChildren = {
-  AppTestsIdRoute: AppTestsIdRoute,
-}
-
-const AppTestsRouteWithChildren = AppTestsRoute._addFileChildren(
-  AppTestsRouteChildren,
-)
-
 interface AppRouteChildren {
   AppAdmissionsRoute: typeof AppAdmissionsRoute
   AppAttendanceRoute: typeof AppAttendanceRoute
@@ -1144,9 +1132,10 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppStudentsRoute: typeof AppStudentsRouteWithChildren
   AppSyllabusRoute: typeof AppSyllabusRoute
-  AppTestsRoute: typeof AppTestsRouteWithChildren
+  AppTestsRoute: typeof AppTestsRoute
   AppTimetableRoute: typeof AppTimetableRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppTestsIdRoute: typeof AppTestsIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -1165,9 +1154,10 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
   AppStudentsRoute: AppStudentsRouteWithChildren,
   AppSyllabusRoute: AppSyllabusRoute,
-  AppTestsRoute: AppTestsRouteWithChildren,
+  AppTestsRoute: AppTestsRoute,
   AppTimetableRoute: AppTimetableRoute,
   AppIndexRoute: AppIndexRoute,
+  AppTestsIdRoute: AppTestsIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
