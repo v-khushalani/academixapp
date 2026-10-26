@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { MessageCircle } from "lucide-react";
+import { Download, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { batchesApi } from "@/lib/api";
 import { examLabel } from "@/lib/exam-types";
-import { openWhatsApp, parentPhone } from "@/lib/whatsapp";
+import { openWhatsApp, preferredParentPhone } from "@/lib/whatsapp";
+import { buildReportCardPdf } from "@/lib/report-card-pdf";
 
 type Batch = { id: string; name: string };
 
@@ -48,7 +49,7 @@ export function ReportCardDialog({
       if (!iid) return null;
       const { data } = await supabase
         .from("institutes")
-        .select("name, phone")
+        .select("name, phone, address, email, logo_url, primary_color, tagline")
         .eq("id", iid as string)
         .maybeSingle();
       return data;
@@ -69,7 +70,7 @@ export function ReportCardDialog({
           supabase.from("test_results").select("test_id, marks").eq("student_id", studentId),
           supabase
             .from("students")
-            .select("full_name, father_phone, parent_phone, mother_phone, phone")
+            .select("full_name, admission_no, class, preferred_contact, father_phone, parent_phone, mother_phone, phone")
             .eq("id", studentId)
             .maybeSingle(),
         ]);
@@ -77,7 +78,32 @@ export function ReportCardDialog({
       if (e2) throw e2;
       const m = new Map((res ?? []).map((r) => [r.test_id, r.marks]));
       const rows = (tests ?? []).map((t) => ({ ...t, marks: m.get(t.id) ?? null }));
-      return { rows, student: stu };
+      // rank in batch by overall % across these tests
+      let rank: number | null = null;
+      const ids = (tests ?? []).map((t) => t.id);
+      if (ids.length) {
+        const { data: all } = await supabase
+          .from("test_results")
+          .select("test_id, student_id, marks")
+          .in("test_id", ids);
+        const maxBy = new Map((tests ?? []).map((t) => [t.id, t.max_marks]));
+        const agg = new Map<string, { g: number; m: number }>();
+        for (const r of all ?? []) {
+          if (r.marks == null) continue;
+          const a = agg.get(r.student_id) ?? { g: 0, m: 0 };
+          a.g += Number(r.marks);
+          a.m += Number(maxBy.get(r.test_id) ?? 0);
+          agg.set(r.student_id, a);
+        }
+        const pcts = [...agg.entries()].map(([sid, a]) => [sid, a.m ? a.g / a.m : 0] as const);
+        pcts.sort((a, b) => b[1] - a[1]);
+        const mine = agg.get(studentId);
+        if (mine) {
+          const p = mine.m ? mine.g / mine.m : 0;
+          rank = pcts.filter(([, x]) => x > p).length + 1;
+        }
+      }
+      return { rows, student: stu, rank };
     },
   });
 
@@ -87,23 +113,57 @@ export function ReportCardDialog({
   const pct = max > 0 ? ((got / max) * 100).toFixed(1) : null;
   const batchName = batches.find((b) => b.id === bid)?.name ?? "";
 
-  function send() {
+  const [busy, setBusy] = useState(false);
+
+  async function makePdf() {
+    if (!card?.student || !institute) return null;
+    const blob = await buildReportCardPdf({
+      institute,
+      student: card.student,
+      batchName,
+      rows: card.rows,
+      rank: card.rank,
+    });
+    const name = `Report-${card.student.full_name.replace(/\s+/g, "-")}.pdf`;
+    return new File([blob], name, { type: "application/pdf" });
+  }
+
+  function download(file: File) {
+    const url = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  async function onDownload() {
+    setBusy(true);
+    try {
+      const f = await makePdf();
+      if (f) download(f);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function send() {
     if (!card?.student) return;
-    const lines = scored.map(
-      (r) =>
-        `• ${r.subject || r.title} (${examLabel(r.type)}): ${r.marks}/${r.max_marks} — ${((Number(r.marks) / r.max_marks) * 100).toFixed(0)}%`,
-    );
-    const msg = [
-      `*${institute?.name ?? "Report Card"}* — Report Card`,
-      `Student: *${card.student.full_name}*`,
-      `Batch: ${batchName}`,
-      "",
-      ...lines,
-      "",
-      `*Total: ${got}/${max}${pct ? ` (${pct}%)` : ""}*`,
-      institute?.phone ? `\nFor queries: ${institute.phone}` : "",
-    ].join("\n");
-    if (!openWhatsApp(parentPhone(card.student), msg)) toast.error("No parent phone number saved");
+    setBusy(true);
+    try {
+      const file = await makePdf();
+      if (!file) return;
+      const phone = preferredParentPhone(card.student);
+      const msg = `Dear Parent,\n\nPlease find the report card of *${card.student.full_name}* (${batchName}).\nOverall: ${got}/${max}${pct ? ` (${pct}%)` : ""}${card.rank ? ` · Rank ${card.rank}` : ""}\n\n${institute?.name ?? ""}${institute?.phone ? `\n${institute.phone}` : ""}`;
+      download(file);
+      if (!openWhatsApp(phone, msg)) {
+        toast.error("No parent phone number saved");
+        return;
+      }
+      toast.success("PDF downloaded — attach it in the WhatsApp chat");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -203,9 +263,13 @@ export function ReportCardDialog({
               </table>
             )}
             <div className="flex justify-end border-t border-border p-3">
-              <Button size="sm" className="gap-1.5" onClick={send} disabled={!scored.length}>
+              <Button size="sm" variant="outline" className="mr-2 gap-1.5" onClick={onDownload} disabled={!scored.length || busy}>
+                <Download className="h-4 w-4" />
+                Download PDF
+              </Button>
+              <Button size="sm" className="gap-1.5" onClick={send} disabled={!scored.length || busy}>
                 <MessageCircle className="h-4 w-4" />
-                Send on WhatsApp
+                Send PDF on WhatsApp
               </Button>
             </div>
           </div>
