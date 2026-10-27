@@ -911,18 +911,26 @@ function TemplatesPanel() {
         <div className="flex justify-end gap-2">
           <Button
             variant="outline"
-            onClick={() => {
-              setTpls(WA_TEMPLATES);
-              saveTemplates(WA_TEMPLATES);
-              toast.success("Reset to defaults");
+            onClick={async () => {
+              try {
+                await saveTemplates(WA_TEMPLATES);
+                setTpls(WA_TEMPLATES);
+                toast.success("Reset to defaults");
+              } catch (e) {
+                toast.error((e as Error).message);
+              }
             }}
           >
             Reset
           </Button>
           <Button
-            onClick={() => {
-              saveTemplates(tpls);
-              toast.success("Templates saved");
+            onClick={async () => {
+              try {
+                await saveTemplates(tpls);
+                toast.success("Templates saved");
+              } catch (e) {
+                toast.error((e as Error).message);
+              }
             }}
           >
             Save

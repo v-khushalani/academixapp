@@ -190,14 +190,24 @@ export async function hydrateInstitute() {
   const { data } = await supabase
     .from("institutes")
     .select(
-      "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan, receipt_template, receipt_paper, plan, custom_branding, attendance_devices",
+      "name, slug, tagline, address, phone, email, academic_year, primary_color, logo_url, upi_id, upi_name, shifts, installment_plan, receipt_template, receipt_paper, plan, custom_branding, attendance_devices, wa_templates",
     )
     .eq("id", instituteId)
     .maybeSingle();
   if (!data) return;
+  const { wa_templates, ...rest } = data as typeof data & { wa_templates: unknown };
+  const tpl =
+    wa_templates && typeof wa_templates === "object" && !Array.isArray(wa_templates)
+      ? (wa_templates as Record<string, unknown>)
+      : {};
+  cacheTemplates(
+    Object.fromEntries(
+      Object.entries(tpl).filter(([, v]) => typeof v === "string" && v.trim()),
+    ) as Partial<Record<WhatsAppTemplateKey, string>>,
+  );
   writeCache({
     ...DEFAULT_INSTITUTE,
-    ...Object.fromEntries(Object.entries(data).filter(([, v]) => v !== null)),
+    ...Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== null)),
   } as InstituteSettings);
 }
 
@@ -208,9 +218,21 @@ export function getTemplates(): Record<WhatsAppTemplateKey, string> {
   return { ...WA_TEMPLATES, ...overrides };
 }
 
-export function saveTemplates(t: Record<WhatsAppTemplateKey, string>) {
+function cacheTemplates(t: Partial<Record<WhatsAppTemplateKey, string>>) {
   window.localStorage.setItem(`${KEY_TEMPLATES}:${activeUid()}`, JSON.stringify(t));
   window.dispatchEvent(new Event("vk-templates-changed"));
+}
+
+/** Save to the institute row (shared by every staff device) and the local cache. */
+export async function saveTemplates(t: Record<WhatsAppTemplateKey, string>) {
+  const { data: instituteId } = await supabase.rpc("current_institute_id");
+  if (!instituteId) throw new Error("No institute is linked to this account.");
+  const { error } = await supabase
+    .from("institutes")
+    .update({ wa_templates: t as unknown as never })
+    .eq("id", instituteId);
+  if (error) throw error;
+  cacheTemplates(t);
 }
 
 export function applyBranding(hex: string) {
