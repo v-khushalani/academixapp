@@ -16,9 +16,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { outstandingOf, isLiveBill } from "@/lib/api";
 import { formatDate } from "@/lib/dates";
 import { isOverdue, displayFeeStatus, daysToDue } from "@/lib/fees";
-import { openWhatsApp, parentPhone } from "@/lib/whatsapp";
+import { openWhatsApp, parentPhone, renderTemplate } from "@/lib/whatsapp";
 import { logMessage } from "@/lib/api/messages";
-import { getInstitute } from "@/lib/academy-settings";
+import { getInstitute, getTemplates } from "@/lib/academy-settings";
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 const norm = (s: string) =>
@@ -193,20 +193,14 @@ export function FeeLedger({ fees, onCollect }: Props) {
       toast.info("Nothing pending for this student.");
       return;
     }
-    const msg = [
-      `Dear ${r.parent_name || "Parent"},`,
-      ``,
-      `Fee update for *${r.name}* (${r.batchNames.join(" + ")}):`,
-      `Paid so far: ${inr(r.paid)}`,
-      `*Pending: ${inr(r.pending)}*`,
-      r.overdueAmt > 0 ? `Overdue now: ${inr(r.overdueAmt)}` : null,
-      r.nextDue ? `Next due date: ${formatDate(r.nextDue)}` : null,
-      ``,
-      `Kindly clear the dues at the earliest. Thank you!`,
-      `— ${getInstitute().name}`,
-    ]
-      .filter((l) => l !== null)
-      .join("\n");
+    const msg = renderTemplate(getTemplates().fee_pending, {
+      parent_name: r.parent_name || "Parent",
+      student_name: r.name,
+      batch_name: r.batchNames.join(" + "),
+      amount_due: r.pending.toLocaleString("en-IN"),
+      due_date: r.nextDue ? formatDate(r.nextDue) : "the earliest",
+      academy_name: getInstitute().name,
+    });
     const ok = openWhatsApp(r.phone, msg);
     logMessage([
       {

@@ -22,9 +22,9 @@ import {
 } from "@/components/ui/select";
 import { inr, upiLink } from "@/lib/payments";
 import { downloadReceipt, printReceipt, receiptFile, type ReceiptInput } from "@/lib/receipt";
-import { getInstitute, getBrandedInstitute } from "@/lib/academy-settings";
+import { getInstitute, getBrandedInstitute, getTemplates } from "@/lib/academy-settings";
 import { formatDate } from "@/lib/dates";
-import { openWhatsApp } from "@/lib/whatsapp";
+import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
 import { brandedQrFile } from "@/lib/branded-qr";
 import { logMessage } from "@/lib/api/messages";
 import { feesApi } from "@/lib/api";
@@ -193,7 +193,14 @@ export function PaymentDialog({
 
   async function sendReceipt() {
     const { file, no } = await receiptFile(receipt);
-    const text = `Receipt ${no} — ${inr(collected ?? 0)} received towards ${target!.student_name}'s fees. Thank you. — ${brand.name}`;
+    const text = renderTemplate(getTemplates().fee_received, {
+      parent_name: "Parent",
+      student_name: target!.student_name,
+      amount_paid: (collected ?? 0).toLocaleString("en-IN"),
+      paid_date: formatDate(new Date().toISOString()),
+      receipt_no: no,
+      academy_name: brand.name,
+    });
     const nav = navigator as Navigator & {
       canShare?: (d: { files?: File[] }) => boolean;
       share?: (d: { files?: File[]; text?: string; title?: string }) => Promise<void>;
