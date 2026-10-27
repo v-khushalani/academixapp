@@ -24,7 +24,7 @@ import { inr, upiLink } from "@/lib/payments";
 import { downloadReceipt, printReceipt, receiptFile, type ReceiptInput } from "@/lib/receipt";
 import { getInstitute, getBrandedInstitute, getTemplates } from "@/lib/academy-settings";
 import { formatDate } from "@/lib/dates";
-import { openWhatsApp } from "@/lib/whatsapp";
+import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
 import { brandedQrFile } from "@/lib/branded-qr";
 import { logMessage } from "@/lib/api/messages";
 import { feesApi } from "@/lib/api";
