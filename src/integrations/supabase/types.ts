@@ -586,6 +586,7 @@ export type Database = {
           student_limit: number
           tagline: string | null
           teacher_login_limit: number
+          timetable_published_at: string | null
           updated_at: string
           upi_id: string | null
           upi_name: string | null
@@ -619,6 +620,7 @@ export type Database = {
           student_limit?: number
           tagline?: string | null
           teacher_login_limit?: number
+          timetable_published_at?: string | null
           updated_at?: string
           upi_id?: string | null
           upi_name?: string | null
@@ -652,6 +654,7 @@ export type Database = {
           student_limit?: number
           tagline?: string | null
           teacher_login_limit?: number
+          timetable_published_at?: string | null
           updated_at?: string
           upi_id?: string | null
           upi_name?: string | null
@@ -2096,6 +2099,7 @@ export type Database = {
           faculty_id: string | null
           id: string
           institute_id: string
+          kind: string
           published_at: string
           room: string | null
           room_id: string | null
@@ -2109,6 +2113,7 @@ export type Database = {
           faculty_id?: string | null
           id: string
           institute_id: string
+          kind?: string
           published_at?: string
           room?: string | null
           room_id?: string | null
@@ -2122,6 +2127,7 @@ export type Database = {
           faculty_id?: string | null
           id?: string
           institute_id?: string
+          kind?: string
           published_at?: string
           room?: string | null
           room_id?: string | null
@@ -2168,6 +2174,7 @@ export type Database = {
           faculty_id: string | null
           id: string
           institute_id: string
+          kind: string
           room: string | null
           room_id: string | null
           start_time: string
@@ -2182,6 +2189,7 @@ export type Database = {
           faculty_id?: string | null
           id?: string
           institute_id?: string
+          kind?: string
           room?: string | null
           room_id?: string | null
           start_time: string
@@ -2196,6 +2204,7 @@ export type Database = {
           faculty_id?: string | null
           id?: string
           institute_id?: string
+          kind?: string
           room?: string | null
           room_id?: string | null
           start_time?: string
@@ -2613,6 +2622,10 @@ export type Database = {
       set_syllabus_order: { Args: { _items: Json }; Returns: undefined }
       settle_partial_fee: { Args: { _fee_id: string }; Returns: undefined }
       student_batch_ids: { Args: { _student_id: string }; Returns: string[] }
+      student_timetable_published_at: {
+        Args: { _student_id: string }
+        Returns: string
+      }
       submit_admission_application: {
         Args: {
           _aadhaar_edited_fields?: string[]

@@ -87,6 +87,16 @@ export const portalApi = {
     return (data ?? []) as string[];
   },
 
+  /** When the institute last pressed Publish on the timetable (null = never). */
+  async timetablePublishedAt(studentId: string | null): Promise<string | null> {
+    if (!studentId) return null;
+    const { data, error } = await supabase.rpc("student_timetable_published_at", {
+      _student_id: studentId,
+    });
+    if (error) throw error;
+    return (data as string | null) ?? null;
+  },
+
   async timetable(studentId: string | null) {
     const batchIds = await this.batchIds(studentId);
     if (batchIds.length === 0) return [];

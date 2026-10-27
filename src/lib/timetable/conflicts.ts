@@ -37,7 +37,16 @@ export type Candidate = {
   room_ref?: RoomRef | null;
   faculty_id?: string | null;
   batch_id?: string | null;
+  kind?: string | null;
 };
+
+/** Tests and self-study sessions can seat several batches in one room. */
+export function isSharedKind(kind?: string | null) {
+  return kind === "test" || kind === "self_study";
+}
+function roomShareable(a: { kind?: string | null }, b: { kind?: string | null }) {
+  return isSharedKind(a.kind) && isSharedKind(b.kind);
+}
 
 export function findConflicts(candidate: Candidate, all: SlotRow[]): SlotRow[] {
   const rk = roomKey(candidate);
@@ -45,7 +54,7 @@ export function findConflicts(candidate: Candidate, all: SlotRow[]): SlotRow[] {
     if (s.id === candidate.id) return false;
     if (s.day_of_week !== candidate.day_of_week) return false;
     if (!overlaps(s.start_time, s.end_time, candidate.start_time, candidate.end_time)) return false;
-    const sameRoom = Boolean(rk && roomKey(s) === rk);
+    const sameRoom = Boolean(rk && roomKey(s) === rk) && !roomShareable(candidate, s);
     const sameFaculty = Boolean(
       candidate.faculty_id && s.faculty_id && s.faculty_id === candidate.faculty_id,
     );
@@ -59,7 +68,7 @@ export function findConflicts(candidate: Candidate, all: SlotRow[]): SlotRow[] {
 export function conflictReason(a: Candidate, b: SlotRow): string {
   const reasons: string[] = [];
   const rk = roomKey(a);
-  if (rk && roomKey(b) === rk) reasons.push(`room ${roomLabel(b) ?? ""}`.trim());
+  if (rk && roomKey(b) === rk && !roomShareable(a, b)) reasons.push(`room ${roomLabel(b) ?? ""}`.trim());
   if (a.faculty_id && b.faculty_id === a.faculty_id)
     reasons.push(`teacher ${b.faculty?.full_name ?? ""}`.trim());
   if (a.batch_id && b.batch_id === a.batch_id) reasons.push(`batch ${b.batch?.name ?? ""}`.trim());
@@ -90,7 +99,7 @@ export function reconcile(slots: SlotRow[]): { clashes: Clash[]; badIds: Set<str
 
       const pairs: { kind: Clash["kind"]; who: string }[] = [];
       const rk = roomKey(a);
-      if (rk && roomKey(b) === rk) pairs.push({ kind: "room", who: roomLabel(a) ?? "room" });
+      if (rk && roomKey(b) === rk && !roomShareable(a, b)) pairs.push({ kind: "room", who: roomLabel(a) ?? "room" });
       if (a.faculty_id && a.faculty_id === b.faculty_id)
         pairs.push({ kind: "teacher", who: a.faculty?.full_name ?? "teacher" });
       if (a.batch_id && a.batch_id === b.batch_id)
