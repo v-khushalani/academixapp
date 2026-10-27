@@ -17,9 +17,8 @@ import { outstandingOf, isLiveBill } from "@/lib/api";
 import { formatDate } from "@/lib/dates";
 import { isOverdue, displayFeeStatus, daysToDue } from "@/lib/fees";
 import { openWhatsApp, parentPhone, renderTemplate } from "@/lib/whatsapp";
-import { getTemplates } from "@/lib/academy-settings";
 import { logMessage } from "@/lib/api/messages";
-import { getInstitute } from "@/lib/academy-settings";
+import { getInstitute, getTemplates } from "@/lib/academy-settings";
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 const norm = (s: string) =>
