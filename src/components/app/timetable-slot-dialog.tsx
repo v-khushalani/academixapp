@@ -71,6 +71,7 @@ export function TimetableSlotDialog({
         faculty_id: slot.faculty_id ?? undefined,
         room_id: slot.room_id ?? undefined,
         subject: slot.subject ?? "",
+        kind: (slot as { kind?: string }).kind ?? "class",
       });
     else if (open)
       setF({
@@ -80,9 +81,13 @@ export function TimetableSlotDialog({
         room_id: defaultRoomId ?? undefined,
         faculty_id: defaultFacultyId ?? undefined,
         subject: "",
+        kind: "class",
       });
+    setExtraBatches([]);
   }, [slot, open, defaultDay, defaultStart, defaultEnd, defaultRoomId, defaultFacultyId]);
 
+  const [extraBatches, setExtraBatches] = useState<string[]>([]);
+  const shared = f.kind === "test" || f.kind === "self_study";
   const { data: batches = [] } = useQuery({
     queryKey: ["batches"],
     queryFn: () => batchesApi.list(),
@@ -100,12 +105,18 @@ export function TimetableSlotDialog({
   });
 
   const mutation = useMutation({
-    mutationFn: (input: TimetableSlotInsert) => {
+    mutationFn: async (input: TimetableSlotInsert) => {
       const payload: TimetableSlotInsert = {
         ...input,
         room: input.room_id ? (rooms.find((r) => r.id === input.room_id)?.name ?? null) : null,
       };
-      return isEdit && slot ? timetableApi.update(slot.id, payload) : timetableApi.create(payload);
+      if (isEdit && slot) return timetableApi.update(slot.id, payload);
+      await timetableApi.create(payload);
+      if (shared) {
+        for (const b of extraBatches.filter((x) => x !== input.batch_id)) {
+          await timetableApi.create({ ...payload, batch_id: b });
+        }
+      }
     },
     onSuccess: () => {
       toast.success(isEdit ? "Slot updated" : "Slot added");
@@ -128,6 +139,21 @@ export function TimetableSlotDialog({
           }}
           className="grid gap-3 sm:grid-cols-2"
         >
+          <F label="Session type" cls="sm:col-span-2">
+            <Select
+              value={f.kind ?? "class"}
+              onValueChange={(v) => setF({ ...f, kind: v })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="class">Regular class</SelectItem>
+                <SelectItem value="test">Test</SelectItem>
+                <SelectItem value="self_study">Self-study / Doubt session</SelectItem>
+              </SelectContent>
+            </Select>
+          </F>
           <F label="Day">
             <Select
               value={String(f.day_of_week)}
@@ -215,7 +241,30 @@ export function TimetableSlotDialog({
               </SelectContent>
             </Select>
           </F>
-          <F label="Faculty">
+          {shared && !isEdit && (
+            <F label="Also seat these batches (same room & time)" cls="sm:col-span-2">
+              <div className="flex max-h-32 flex-wrap gap-2 overflow-y-auto rounded-md border border-border p-2">
+                {batches
+                  .filter((b) => b.id !== f.batch_id)
+                  .map((b) => {
+                    const on = extraBatches.includes(b.id);
+                    return (
+                      <button
+                        type="button"
+                        key={b.id}
+                        onClick={() =>
+                          setExtraBatches(on ? extraBatches.filter((x) => x !== b.id) : [...extraBatches, b.id])
+                        }
+                        className={`rounded-md border px-2 py-1 text-xs ${on ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"}`}
+                      >
+                        {b.name}
+                      </button>
+                    );
+                  })}
+              </div>
+            </F>
+          )}
+          <F label={shared ? "Faculty (optional)" : "Faculty"}>
             <Select
               value={f.faculty_id ?? "none"}
               onValueChange={(v) => setF({ ...f, faculty_id: v === "none" ? null : v })}
@@ -237,7 +286,7 @@ export function TimetableSlotDialog({
             <Input
               value={f.subject ?? ""}
               onChange={(e) => setF({ ...f, subject: e.target.value })}
-              placeholder="Physics"
+              placeholder={f.kind === "test" ? "Physics test" : f.kind === "self_study" ? "Doubt session" : "Physics"}
             />
           </F>
           <DialogFooter className="sm:col-span-2">
