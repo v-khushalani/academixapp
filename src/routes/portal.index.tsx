@@ -58,6 +58,11 @@ function PortalHome() {
     queryFn: () => portalApi.dayChanges(student?.id ?? null, todayIso, todayIso),
     enabled: !!student,
   });
+  const publishedAt = useQuery({
+    queryKey: ["portal-tt-published", student?.id],
+    queryFn: () => portalApi.timetablePublishedAt(student?.id ?? null),
+    enabled: !!student,
+  });
   const tests = useQuery({
     queryKey: ["portal-upcoming-tests", student?.id],
     queryFn: () => portalApi.upcomingTests(student?.id ?? null),
@@ -89,12 +94,18 @@ function PortalHome() {
       const c = bySlot.get(s.id);
       return {
         id: s.id,
-        subject: c?.subject || s.subject || "Class",
+        subject: c?.subject || s.subject || kindLabel((s as { kind?: string }).kind) || "Class",
+        kind: (s as { kind?: string }).kind ?? "class",
         teacher: s.faculty?.full_name ?? null,
         room: c?.room_ref?.name ?? s.room ?? null,
         start: (c?.start_time ?? s.start_time)?.slice(0, 5) ?? "",
         end: (c?.end_time ?? s.end_time)?.slice(0, 5) ?? "",
-        tag: c?.kind === "cancelled" ? "Cancelled" : c ? "Time changed" : null,
+        tag:
+          c?.kind === "cancelled"
+            ? "Cancelled"
+            : c
+              ? "Time changed"
+              : kindLabel((s as { kind?: string }).kind),
         note: c?.note ?? null,
         cancelled: c?.kind === "cancelled",
       };
@@ -104,6 +115,7 @@ function PortalHome() {
     .map((c) => ({
       id: c.id,
       subject: c.subject || "Extra class",
+      kind: "class",
       teacher: null as string | null,
       room: c.room_ref?.name ?? null,
       start: c.start_time?.slice(0, 5) ?? "",
@@ -114,6 +126,8 @@ function PortalHome() {
     }));
   const today = [...regular, ...extra].sort((a, b) => a.start.localeCompare(b.start));
   const upcoming = tests.data ?? [];
+  const pubIso = publishedAt.data ? localIso(new Date(publishedAt.data)) : null;
+  const publishedToday = pubIso === localIso(new Date());
 
 
   return (
@@ -156,7 +170,13 @@ function PortalHome() {
         }
       >
         {today.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No classes scheduled today.</p>
+          <p className="text-sm text-muted-foreground">
+            {publishedAt.isLoading
+              ? "Loading…"
+              : publishedToday
+                ? "Batch off today."
+                : "Today's timetable will be updated soon."}
+          </p>
         ) : (
           <ul className="divide-y divide-border">
             {today.map((s) => (
@@ -245,4 +265,11 @@ function PortalHome() {
       </PortalCard>
     </div>
   );
+}
+
+function localIso(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function kindLabel(kind?: string | null) {
+  return kind === "test" ? "Test" : kind === "self_study" ? "Self-study" : null;
 }

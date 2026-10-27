@@ -40,10 +40,20 @@ function PortalTimetable() {
     enabled: !!student,
   });
 
+  const { data: publishedAt } = useQuery({
+    queryKey: ["portal-tt-published", student?.id],
+    queryFn: () => portalApi.timetablePublishedAt(student?.id ?? null),
+    enabled: !!student,
+  });
+
   if (!student) return <p className="text-sm text-muted-foreground">No student linked.</p>;
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
 
   const today = new Date().getDay();
+  const d = publishedAt ? new Date(publishedAt) : null;
+  const n = new Date();
+  const publishedToday =
+    !!d && d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
 
   return (
     <div className="space-y-5">
@@ -54,6 +64,12 @@ function PortalTimetable() {
             "No batch"}
         </p>
       </div>
+
+      {!publishedToday && (
+        <div className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-primary">
+          Today's timetable will be updated soon.
+        </div>
+      )}
 
       {changes.length > 0 && (
         <PortalCard title="Changes coming up">
@@ -94,13 +110,20 @@ function PortalTimetable() {
 
       {data.length === 0 ? (
         <PortalCard title="This week">
-          <p className="text-sm text-muted-foreground">No timetable published for your batch.</p>
+          <p className="text-sm text-muted-foreground">Timetable will be updated soon.</p>
         </PortalCard>
       ) : (
         <div className="space-y-4">
           {DAYS.map((day, idx) => {
             const slots = data.filter((s) => s.day_of_week === idx);
-            if (slots.length === 0) return null;
+            if (slots.length === 0) {
+              if (idx !== today || !publishedToday) return null;
+              return (
+                <PortalCard key={day} title={day}>
+                  <p className="text-sm text-muted-foreground">Batch off today.</p>
+                </PortalCard>
+              );
+            }
             return (
               <PortalCard
                 key={day}
@@ -117,7 +140,14 @@ function PortalTimetable() {
                   {slots.map((s) => (
                     <li key={s.id} className="flex items-center justify-between gap-3 py-2.5">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{s.subject ?? "Class"}</p>
+                        <p className="truncate text-sm font-medium">
+                          {s.subject ?? "Class"}
+                          {(s as { kind?: string }).kind === "test" || (s as { kind?: string }).kind === "self_study" ? (
+                            <span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                              {(s as { kind?: string }).kind === "test" ? "Test" : "Self-study"}
+                            </span>
+                          ) : null}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {s.faculty?.full_name ?? "—"}
                           {(s as { room_ref?: { name?: string } | null }).room_ref?.name
