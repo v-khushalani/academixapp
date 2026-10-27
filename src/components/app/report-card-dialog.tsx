@@ -56,9 +56,20 @@ export function ReportCardDialog({
     },
   });
 
+  const [examType, setExamType] = useState<string>("");
+  const { data: batchTypes = [] } = useQuery({
+    queryKey: ["report-types", bid],
+    enabled: open && Boolean(bid),
+    queryFn: async () => {
+      const { data } = await supabase.from("tests").select("type, date").eq("batch_id", bid).order("date");
+      return Array.from(new Set((data ?? []).map((t) => t.type as string)));
+    },
+  });
+  const et = examType || batchTypes[batchTypes.length - 1] || "";
+
   const { data: card, isLoading } = useQuery({
-    queryKey: ["report-card", bid, studentId],
-    enabled: open && Boolean(bid && studentId),
+    queryKey: ["report-card", bid, studentId, et],
+    enabled: open && Boolean(bid && studentId && et),
     queryFn: async () => {
       const [{ data: tests, error: e1 }, { data: res, error: e2 }, { data: stu }] =
         await Promise.all([
@@ -66,7 +77,8 @@ export function ReportCardDialog({
             .from("tests")
             .select("id, title, subject, type, date, max_marks")
             .eq("batch_id", bid)
-            .order("date"),
+            .eq("type", et as never)
+            .order("subject"),
           supabase.from("test_results").select("test_id, marks").eq("student_id", studentId),
           supabase
             .from("students")
@@ -80,6 +92,7 @@ export function ReportCardDialog({
       const rows = (tests ?? []).map((t) => ({ ...t, marks: m.get(t.id) ?? null }));
       // rank in batch by overall % across these tests
       let rank: number | null = null;
+      let outOf = 0;
       const ids = (tests ?? []).map((t) => t.id);
       if (ids.length) {
         const { data: all } = await supabase
