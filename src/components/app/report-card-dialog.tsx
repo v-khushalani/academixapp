@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { batchesApi } from "@/lib/api";
 import { examLabel } from "@/lib/exam-types";
 import { openWhatsApp, preferredParentPhone } from "@/lib/whatsapp";
-import { buildReportCardPdf } from "@/lib/report-card-pdf";
+import { buildReportCardPdf, grade } from "@/lib/report-card-pdf";
 
 type Batch = { id: string; name: string };
 
@@ -110,13 +110,14 @@ export function ReportCardDialog({
         }
         const pcts = [...agg.entries()].map(([sid, a]) => [sid, a.m ? a.g / a.m : 0] as const);
         pcts.sort((a, b) => b[1] - a[1]);
+        outOf = pcts.length;
         const mine = agg.get(studentId);
         if (mine) {
           const p = mine.m ? mine.g / mine.m : 0;
           rank = pcts.filter(([, x]) => x > p).length + 1;
         }
       }
-      return { rows, student: stu, rank };
+      return { rows, student: stu, rank, outOf };
     },
   });
 
@@ -134,10 +135,12 @@ export function ReportCardDialog({
       institute,
       student: card.student,
       batchName,
+      examName: examLabel(et),
       rows: card.rows,
       rank: card.rank,
+      outOf: card.outOf,
     });
-    const name = `Report-${card.student.full_name.replace(/\s+/g, "-")}.pdf`;
+    const name = `Report-${examLabel(et).replace(/\s+/g, "-")}-${card.student.full_name.replace(/\s+/g, "-")}.pdf`;
     return new File([blob], name, { type: "application/pdf" });
   }
 
@@ -193,6 +196,7 @@ export function ReportCardDialog({
               onValueChange={(v) => {
                 setBatchId(v);
                 setStudentId("");
+                setExamType("");
               }}
             >
               <SelectTrigger>
@@ -222,58 +226,82 @@ export function ReportCardDialog({
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Exam</Label>
+            <Select value={et} onValueChange={setExamType} disabled={!batchTypes.length}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select exam" />
+              </SelectTrigger>
+              <SelectContent>
+                {batchTypes.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {examLabel(t)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {studentId && (
-          <div className="mt-2 rounded-lg border border-border bg-card">
-            <div className="border-b border-border p-4 text-center">
-              <p className="text-base font-semibold">{institute?.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {card?.student?.full_name} · {batchName}
+          <div className="mt-2 overflow-hidden rounded-xl border border-border bg-card">
+            <div className="bg-primary p-4 text-center text-primary-foreground">
+              <p className="text-base font-bold tracking-wide">{institute?.name}</p>
+              <p className="text-xs uppercase tracking-[0.2em] opacity-90">
+                {examLabel(et)} · Report card
               </p>
+            </div>
+            <div className="flex items-center justify-between border-b border-border px-4 py-3 text-sm">
+              <span className="font-semibold">{card?.student?.full_name}</span>
+              <span className="text-muted-foreground">{batchName}</span>
             </div>
             {isLoading ? (
               <p className="p-6 text-center text-sm text-muted-foreground">Loading…</p>
             ) : (card?.rows.length ?? 0) === 0 ? (
               <p className="p-6 text-center text-sm text-muted-foreground">
-                No tests in this batch yet.
+                No tests for this exam yet.
               </p>
             ) : (
+              <>
+              <div className="grid grid-cols-4 gap-2 p-3">
+                {[
+                  ["Total", `${got}/${max}`],
+                  ["Percent", pct ? `${pct}%` : "—"],
+                  ["Grade", pct ? grade(Number(pct)) : "—"],
+                  ["Rank", card?.rank ? `${card.rank}/${card.outOf}` : "—"],
+                ].map(([k, v]) => (
+                  <div key={k} className="rounded-lg bg-muted/50 p-2 text-center">
+                    <p className="text-[10px] uppercase text-muted-foreground">{k}</p>
+                    <p className="text-sm font-bold text-primary">{v}</p>
+                  </div>
+                ))}
+              </div>
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
                   <tr>
-                    <th className="px-4 py-2">Subject / Test</th>
-                    <th className="px-4 py-2">Type</th>
+                    <th className="px-4 py-2">Subject</th>
                     <th className="px-4 py-2 text-right">Marks</th>
                     <th className="px-4 py-2 text-right">%</th>
+                    <th className="px-4 py-2 text-right">Grade</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {card!.rows.map((r) => (
-                    <tr key={r.id}>
-                      <td className="px-4 py-2 font-medium">{r.subject || r.title}</td>
-                      <td className="px-4 py-2 text-muted-foreground">{examLabel(r.type)}</td>
-                      <td className="px-4 py-2 text-right">
-                        {r.marks != null ? `${r.marks}/${r.max_marks}` : "Not entered"}
-                      </td>
-                      <td className="px-4 py-2 text-right">
-                        {r.marks != null
-                          ? `${((Number(r.marks) / r.max_marks) * 100).toFixed(0)}%`
-                          : "—"}
-                      </td>
-                    </tr>
-                  ))}
-                  <tr className="bg-muted/40 font-semibold">
-                    <td className="px-4 py-2" colSpan={2}>
-                      Total
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      {got}/{max}
-                    </td>
-                    <td className="px-4 py-2 text-right">{pct ? `${pct}%` : "—"}</td>
-                  </tr>
+                  {card!.rows.map((r) => {
+                    const p = r.marks != null ? (Number(r.marks) / r.max_marks) * 100 : null;
+                    return (
+                      <tr key={r.id}>
+                        <td className="px-4 py-2 font-medium">{r.subject || r.title}</td>
+                        <td className="px-4 py-2 text-right">
+                          {r.marks != null ? `${r.marks}/${r.max_marks}` : "Not entered"}
+                        </td>
+                        <td className="px-4 py-2 text-right">{p != null ? `${p.toFixed(0)}%` : "—"}</td>
+                        <td className="px-4 py-2 text-right font-semibold">{p != null ? grade(p) : "—"}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
+              </>
             )}
             <div className="flex justify-end border-t border-border p-3">
               <Button size="sm" variant="outline" className="mr-2 gap-1.5" onClick={onDownload} disabled={!scored.length || busy}>
