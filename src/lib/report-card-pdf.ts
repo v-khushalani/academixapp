@@ -2,7 +2,6 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useSaira } from "@/lib/pdf-font";
 import { examLabel } from "@/lib/exam-types";
-import { formatDate } from "@/lib/dates";
 
 export type ReportInstitute = {
   name: string;
