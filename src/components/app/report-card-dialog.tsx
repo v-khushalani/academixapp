@@ -110,13 +110,14 @@ export function ReportCardDialog({
         }
         const pcts = [...agg.entries()].map(([sid, a]) => [sid, a.m ? a.g / a.m : 0] as const);
         pcts.sort((a, b) => b[1] - a[1]);
+        outOf = pcts.length;
         const mine = agg.get(studentId);
         if (mine) {
           const p = mine.m ? mine.g / mine.m : 0;
           rank = pcts.filter(([, x]) => x > p).length + 1;
         }
       }
-      return { rows, student: stu, rank };
+      return { rows, student: stu, rank, outOf };
     },
   });
 
@@ -134,10 +135,12 @@ export function ReportCardDialog({
       institute,
       student: card.student,
       batchName,
+      examName: examLabel(et),
       rows: card.rows,
       rank: card.rank,
+      outOf: card.outOf,
     });
-    const name = `Report-${card.student.full_name.replace(/\s+/g, "-")}.pdf`;
+    const name = `Report-${examLabel(et).replace(/\s+/g, "-")}-${card.student.full_name.replace(/\s+/g, "-")}.pdf`;
     return new File([blob], name, { type: "application/pdf" });
   }
 
