@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { batchesApi } from "@/lib/api";
 import { examLabel } from "@/lib/exam-types";
 import { openWhatsApp, preferredParentPhone } from "@/lib/whatsapp";
-import { buildReportCardPdf } from "@/lib/report-card-pdf";
+import { buildReportCardPdf, grade } from "@/lib/report-card-pdf";
 
 type Batch = { id: string; name: string };
 
