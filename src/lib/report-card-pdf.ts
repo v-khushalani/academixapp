@@ -56,21 +56,42 @@ export function grade(pct: number) {
   return "E";
 }
 
+function remark(pct: number) {
+  if (pct >= 91) return "Outstanding performance. Keep it up!";
+  if (pct >= 81) return "Excellent work with strong understanding.";
+  if (pct >= 71) return "Very good. Consistent effort will take you higher.";
+  if (pct >= 61) return "Good. Focus on weaker subjects to improve.";
+  if (pct >= 51) return "Fair. Regular revision is recommended.";
+  if (pct >= 33) return "Needs improvement. Extra practice required.";
+  return "Needs serious attention. Please meet the teacher.";
+}
+
 export async function buildReportCardPdf(opts: {
   institute: ReportInstitute;
   student: { full_name: string; admission_no?: string | null; class?: string | null };
   batchName: string;
+  examName?: string;
   rows: ReportRow[];
   rank?: number | null;
+  outOf?: number;
 }): Promise<Blob> {
-  const { institute: inst, student, batchName, rows, rank } = opts;
+  const { institute: inst, student, batchName, rows, rank, outOf } = opts;
+  const examName = opts.examName || (rows[0] ? examLabel(rows[0].type) : "");
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
   const FONT = await useSaira(doc);
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
   const M = 14;
   const brand = hexToRgb(inst.primary_color);
+  const tint: [number, number, number] = brand.map((c) => Math.round(c + (255 - c) * 0.9)) as [number, number, number];
   const logo = inst.logo_url ? await toDataUrl(inst.logo_url) : null;
+
+  // outer border
+  doc.setDrawColor(...brand);
+  doc.setLineWidth(0.8);
+  doc.rect(6, 6, W - 12, H - 12);
+  doc.setLineWidth(0.2);
+  doc.rect(8, 8, W - 16, H - 16);
 
   // watermark
   if (logo) {
@@ -78,125 +99,184 @@ export async function buildReportCardPdf(opts: {
       const gs = (doc as unknown as { GState: new (o: object) => unknown }).GState;
       doc.saveGraphicsState();
       (doc as unknown as { setGState: (g: unknown) => void }).setGState(new gs({ opacity: 0.06 }));
-      const s = W * 0.5;
-      doc.addImage(logo, (W - s) / 2, (H - s) / 2, s, s, undefined, "FAST");
+      const s = W * 0.55;
+      doc.addImage(logo, (W - s) / 2, (H - s) / 2 + 10, s, s, undefined, "FAST");
       doc.restoreGraphicsState();
     } catch {
       /* ignore */
     }
   }
 
-  // header
-  let y = 14;
+  // header band
+  doc.setFillColor(...brand);
+  doc.rect(8, 8, W - 16, 36, "F");
+  let hx = W / 2;
   if (logo) {
     try {
-      doc.addImage(logo, (W - 20) / 2, y, 20, 20, undefined, "FAST");
-      y += 24;
+      doc.setFillColor(255, 255, 255);
+      doc.circle(M + 13, 26, 12, "F");
+      doc.addImage(logo, M + 4, 17, 18, 18, undefined, "FAST");
+      hx = W / 2 + 10;
     } catch {
       /* ignore */
     }
   }
-  doc.setTextColor(...brand);
+  doc.setTextColor(255, 255, 255);
   doc.setFont(FONT, "bold");
-  doc.setFontSize(18);
-  doc.text(inst.name || "Institute", W / 2, y + 4, { align: "center" });
-  y += 9;
+  doc.setFontSize(19);
+  doc.text(inst.name || "Institute", hx, 22, { align: "center" });
   doc.setFont(FONT, "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(90);
-  if (inst.address) {
-    const lines = doc.splitTextToSize(inst.address, W - 2 * M);
-    doc.text(lines, W / 2, y, { align: "center" });
-    y += lines.length * 4;
-  }
+  doc.setFontSize(8.5);
+  const sub = [inst.tagline, inst.address].filter(Boolean).join("  ·  ");
+  if (sub) doc.text(doc.splitTextToSize(sub, W - 70)[0], hx, 28.5, { align: "center" });
   const contact = [inst.phone, inst.email].filter(Boolean).join("  ·  ");
-  if (contact) {
-    doc.text(contact, W / 2, y, { align: "center" });
-    y += 4;
-  }
-  y += 2;
-  doc.setDrawColor(...brand);
-  doc.setLineWidth(0.6);
-  doc.line(M, y, W - M, y);
-  y += 8;
-  doc.setTextColor(...brand);
-  doc.setFont(FONT, "bold");
-  doc.setFontSize(13);
-  doc.text("PROGRESS REPORT CARD", W / 2, y, { align: "center" });
-  y += 8;
+  if (contact) doc.text(contact, hx, 34, { align: "center" });
 
-  // student block
-  doc.setTextColor(30);
-  doc.setFontSize(10);
+  // exam title ribbon
+  let y = 52;
+  const title = `${examName ? examName.toUpperCase() + " · " : ""}PROGRESS REPORT`;
+  doc.setFont(FONT, "bold");
+  doc.setFontSize(12);
+  const tw = doc.getTextWidth(title) + 16;
+  doc.setFillColor(...tint);
+  doc.setDrawColor(...brand);
+  doc.setLineWidth(0.4);
+  doc.roundedRect((W - tw) / 2, y - 6, tw, 10, 5, 5, "FD");
+  doc.setTextColor(...brand);
+  doc.text(title, W / 2, y + 0.8, { align: "center" });
+  y += 10;
+
+  // student info card
+  doc.setFillColor(250, 250, 250);
+  doc.setDrawColor(220);
+  doc.roundedRect(M, y, W - 2 * M, 20, 2, 2, "FD");
   const info: [string, string][] = [
     ["Student", student.full_name],
     ["Admission no.", student.admission_no || "—"],
     ["Batch", batchName || "—"],
     ["Class", student.class || "—"],
   ];
+  doc.setFontSize(9.5);
   info.forEach(([k, v], i) => {
-    const x = i % 2 === 0 ? M : W / 2 + 4;
-    const yy = y + Math.floor(i / 2) * 6;
+    const x = i % 2 === 0 ? M + 5 : W / 2 + 4;
+    const yy = y + 8 + Math.floor(i / 2) * 7;
     doc.setFont(FONT, "normal");
-    doc.text(`${k}:`, x, yy);
+    doc.setTextColor(110);
+    doc.text(k, x, yy);
     doc.setFont(FONT, "bold");
-    doc.text(v, x + 26, yy);
+    doc.setTextColor(25);
+    doc.text(v, x + 28, yy);
   });
-  y += 14;
+  y += 26;
 
   const scored = rows.filter((r) => r.marks != null);
   const got = scored.reduce((s, r) => s + Number(r.marks), 0);
   const max = scored.reduce((s, r) => s + Number(r.max_marks), 0);
   const pct = max > 0 ? (got / max) * 100 : 0;
 
+  // summary tiles
+  const tiles: [string, string][] = [
+    ["TOTAL", max ? `${got} / ${max}` : "—"],
+    ["PERCENTAGE", max ? `${pct.toFixed(1)}%` : "—"],
+    ["GRADE", max ? grade(pct) : "—"],
+    ["RANK", rank ? (outOf ? `${rank} / ${outOf}` : String(rank)) : "—"],
+  ];
+  const gap = 4;
+  const tW = (W - 2 * M - gap * 3) / 4;
+  tiles.forEach(([k, v], i) => {
+    const x = M + i * (tW + gap);
+    doc.setFillColor(...(i === 2 ? brand : tint));
+    doc.roundedRect(x, y, tW, 18, 2, 2, "F");
+    doc.setFont(FONT, "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...((i === 2 ? [255, 255, 255] : [100, 100, 100]) as [number, number, number]));
+    doc.text(k, x + tW / 2, y + 6, { align: "center" });
+    doc.setFont(FONT, "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(...((i === 2 ? [255, 255, 255] : brand) as [number, number, number]));
+    doc.text(v, x + tW / 2, y + 14, { align: "center" });
+  });
+  y += 24;
+
   autoTable(doc, {
     startY: y,
     margin: { left: M, right: M },
-    head: [["Subject", "Exam", "Date", "Marks", "Max", "%", "Grade"]],
-    body: rows.map((r) => {
+    head: [["#", "Subject", "Marks obtained", "Max marks", "%", "Grade"]],
+    body: rows.map((r, i) => {
       const p = r.marks != null ? (Number(r.marks) / r.max_marks) * 100 : null;
       return [
-        r.subject || r.title,
-        examLabel(r.type),
-        formatDate(r.date),
-        r.marks != null ? String(r.marks) : "Not entered",
+        String(i + 1),
+        (r.subject || r.title).trim(),
+        r.marks != null ? String(r.marks) : "Absent / NA",
         String(r.max_marks),
         p != null ? p.toFixed(1) : "—",
         p != null ? grade(p) : "—",
       ];
     }),
-    foot: [["Total", "", "", String(got), String(max), max ? pct.toFixed(1) : "—", max ? grade(pct) : "—"]],
-    styles: { font: FONT, fontSize: 9.5, cellPadding: 2.2 },
-    headStyles: { fillColor: brand, textColor: 255, fontStyle: "bold" },
-    footStyles: { fillColor: [240, 240, 240], textColor: 20, fontStyle: "bold" },
-    alternateRowStyles: { fillColor: [250, 250, 250] },
+    foot: [["", "Grand total", String(got), String(max), max ? pct.toFixed(1) : "—", max ? grade(pct) : "—"]],
+    styles: { font: FONT, fontSize: 10, cellPadding: 2.8, lineColor: [225, 225, 225], lineWidth: 0.1 },
+    headStyles: { fillColor: brand, textColor: 255, fontStyle: "bold", halign: "center" },
+    footStyles: { fillColor: tint, textColor: brand, fontStyle: "bold", halign: "center" },
+    columnStyles: {
+      0: { halign: "center", cellWidth: 10 },
+      1: { halign: "left", fontStyle: "bold" },
+      2: { halign: "center" },
+      3: { halign: "center" },
+      4: { halign: "center" },
+      5: { halign: "center", fontStyle: "bold" },
+    },
+    alternateRowStyles: { fillColor: [248, 248, 248] },
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  y = ((doc as any).lastAutoTable?.finalY ?? y) + 10;
-  doc.setFont(FONT, "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(...brand);
-  doc.text(`Overall: ${max ? pct.toFixed(1) + "%" : "—"}   Grade: ${max ? grade(pct) : "—"}${rank ? `   Rank in batch: ${rank}` : ""}`, M, y);
+  y = ((doc as any).lastAutoTable?.finalY ?? y) + 8;
+
+  // remarks
+  if (max) {
+    doc.setDrawColor(...brand);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(M, y, W - 2 * M, 14, 2, 2);
+    doc.setFont(FONT, "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...brand);
+    doc.text("Remarks", M + 4, y + 6);
+    doc.setFont(FONT, "normal");
+    doc.setTextColor(40);
+    doc.text(remark(pct), M + 4, y + 11);
+    y += 20;
+  }
+
+  // grade scale
+  doc.setFont(FONT, "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(110);
+  doc.text(
+    "Grade scale:  A1 91-100  ·  A2 81-90  ·  B1 71-80  ·  B2 61-70  ·  C1 51-60  ·  C2 41-50  ·  D 33-40  ·  E below 33",
+    W / 2,
+    y,
+    { align: "center" },
+  );
 
   // signatures
-  const sy = H - 34;
+  const sy = H - 36;
   doc.setDrawColor(150);
   doc.setLineWidth(0.3);
-  doc.line(M, sy, M + 50, sy);
-  doc.line(W - M - 50, sy, W - M, sy);
-  doc.setFont(FONT, "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(90);
-  doc.text("Class teacher", M, sy + 5);
-  doc.text("Director / Principal", W - M - 50, sy + 5);
+  const sw = 46;
+  const xs = [M + 4, (W - sw) / 2, W - M - 4 - sw];
+  ["Class teacher", "Parent", "Director / Principal"].forEach((l, i) => {
+    doc.line(xs[i], sy, xs[i] + sw, sy);
+    doc.setFontSize(9);
+    doc.setTextColor(90);
+    doc.text(l, xs[i] + sw / 2, sy + 5, { align: "center" });
+  });
 
   // footer
-  doc.setDrawColor(...brand);
-  doc.line(M, H - 16, W - M, H - 16);
+  doc.setFillColor(...brand);
+  doc.rect(8, H - 20, W - 16, 12, "F");
+  doc.setTextColor(255, 255, 255);
   doc.setFontSize(8.5);
   const foot = [inst.address, inst.phone, inst.email].filter(Boolean).join("  ·  ");
-  doc.text(doc.splitTextToSize(foot || inst.name, W - 2 * M), W / 2, H - 11, { align: "center" });
+  doc.text(doc.splitTextToSize(foot || inst.name, W - 2 * M)[0], W / 2, H - 13, { align: "center" });
 
   return doc.output("blob");
 }

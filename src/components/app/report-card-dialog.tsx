@@ -196,6 +196,7 @@ export function ReportCardDialog({
               onValueChange={(v) => {
                 setBatchId(v);
                 setStudentId("");
+                setExamType("");
               }}
             >
               <SelectTrigger>
