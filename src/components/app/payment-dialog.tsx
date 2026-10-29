@@ -158,23 +158,62 @@ export function PaymentDialog({
   }
 
   async function sendPaymentQr() {
-    const caption = `Hello, please pay ${inr(value)} towards ${target!.student_name}'s fees.\n\nScan the attached QR with any UPI app.\nUPI ID: ${inst.upi_id}\n\n— ${brand.name}\n(Powered by Academix)`;
+    // Same wording as the fee reminder template (edited in Communication),
+    // plus the UPI details so the QR photo and message travel together.
+    const base = renderTemplate(getTemplates().fee_pending, {
+      parent_name: "Parent",
+      student_name: target!.student_name,
+      batch_name: target!.batch_name ?? "—",
+      amount_due: value.toLocaleString("en-IN"),
+      due_date: target!.due_date ? formatDate(target!.due_date) : "the earliest",
+      academy_name: brand.name,
+    });
+    const caption = `${base}\n\nScan the attached QR with any UPI app to pay ${inr(value)}.\nUPI ID: ${inst.upi_id}`;
     const img = await qrImage();
-    // No system share sheet: it can't pre-pick a contact. Save the QR, then open
-    // the father's chat directly so the office only attaches the saved image.
-    if (img && target!.phone) {
+
+    // Phones: share the QR photo WITH the message as its caption in one go.
+    if (img && typeof navigator.share === "function" && navigator.canShare?.({ files: [img] })) {
+      try {
+        await navigator.clipboard?.writeText?.(caption).catch(() => {});
+        await navigator.share({ files: [img], text: caption });
+        logMessage([
+          {
+            kind: "fee_reminder",
+            title: "Payment QR",
+            message: caption,
+            status: "sent",
+            recipient_name: target!.student_name,
+            recipient_phone: target!.phone ?? null,
+            fee_id: target!.id,
+          },
+        ]);
+        toast.success("Pick WhatsApp → parent. Photo + message go together.");
+        return;
+      } catch (e) {
+        if ((e as Error)?.name === "AbortError") return;
+        /* fall through to direct chat */
+      }
+    }
+
+    // Desktop / unsupported: copy the QR photo, open the parent's chat with the message.
+    if (img) {
+      let copied = false;
       try {
         await navigator.clipboard?.write?.([new ClipboardItem({ [img.type]: img })]);
+        copied = true;
       } catch {
-        /* clipboard images unsupported — download covers it */
+        const url = URL.createObjectURL(img);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = img.name;
+        a.click();
+        URL.revokeObjectURL(url);
       }
-      const url = URL.createObjectURL(img);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = img.name;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("QR saved — attach it in the father's chat");
+      toast.success(
+        copied
+          ? "QR copied — press Ctrl+V in the chat to attach it, then send"
+          : "QR saved — attach it in the chat, then send",
+      );
     }
     const okQr = openWhatsApp(target!.phone, caption);
     logMessage([
