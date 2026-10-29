@@ -263,7 +263,7 @@ function EnquiryForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>Class</Label>
-          <Select value={klass} onValueChange={setKlass}>
+          <Select value={klass} onValueChange={(c) => { setKlass(c); setProgram(""); }}>
             <SelectTrigger>
               <SelectValue placeholder="Select class" />
             </SelectTrigger>
