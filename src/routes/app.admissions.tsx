@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { batchesForClass } from "@/lib/class-match";
+import { programLabel } from "@/lib/constants";
 import {
   batchesApi,
   leadsApi,
@@ -395,7 +396,7 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
               </td>
               <td className="px-4 py-3">{s.class ?? "—"}</td>
               <td className="px-4 py-3 capitalize">
-                {s.program ?? "—"}
+                {programLabel(s.program) || "—"}
                 {s.stream ? ` · ${s.stream.toUpperCase()}` : ""}
               </td>
               <td className="px-4 py-3">

@@ -1,3 +1,4 @@
+import { programLabel } from "@/lib/constants";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { studentsApi, type Student } from "@/lib/api";
@@ -63,7 +64,7 @@ export function ApplicantPreview({
             <Field k="Email" v={student.email} />
             <Field k="Date of birth" v={student.dob} />
             <Field k="Class" v={student.class} />
-            <Field k="Program" v={student.program} />
+            <Field k="Program" v={programLabel(student.program) || null} />
             <Field k="Stream" v={student.stream?.toUpperCase() ?? null} />
             <Field k="School" v={student.school} />
             <Field k="Father" v={student.father_name} />
