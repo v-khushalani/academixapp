@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CLASSES, PROGRAMS } from "@/lib/constants";
+import { CLASSES, programsForClass } from "@/lib/constants";
 
 export const Route = createFileRoute("/apply")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -263,7 +263,7 @@ function EnquiryForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>Class</Label>
-          <Select value={klass} onValueChange={setKlass}>
+          <Select value={klass} onValueChange={(c) => { setKlass(c); setProgram(""); }}>
             <SelectTrigger>
               <SelectValue placeholder="Select class" />
             </SelectTrigger>
@@ -278,14 +278,14 @@ function EnquiryForm({
         </div>
         <div className="space-y-1.5">
           <Label>Interested in</Label>
-          <Select value={program} onValueChange={setProgram}>
+          <Select value={program} onValueChange={setProgram} disabled={!klass}>
             <SelectTrigger>
-              <SelectValue placeholder="Optional" />
+              <SelectValue placeholder={klass ? "Optional" : "Select class first"} />
             </SelectTrigger>
             <SelectContent>
-              {PROGRAMS.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
+              {programsForClass(klass).map((p) => (
+                <SelectItem key={p.value} value={p.value}>
+                  {p.label}
                 </SelectItem>
               ))}
             </SelectContent>
