@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { FileUp, Loader2, Printer, Sparkles, Trash2, CheckCircle2 } from "lucide-react";
+import { FileUp, Loader2, Presentation, Printer, Sparkles, Trash2, CheckCircle2 } from "lucide-react";
 import { PageBody, PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { generateMaterial } from "@/lib/materials.functions";
 import { getInstitute } from "@/lib/academy-settings";
 import { materialPrintHtml, type MaterialBrand } from "@/lib/material-render";
+import { downloadSlidesPptx, isSlides, parseSlides } from "@/lib/material-pptx";
 import "katex/dist/katex.min.css";
 import katexCssUrl from "katex/dist/katex.min.css?url";
 
@@ -55,6 +56,7 @@ const KINDS = [
   { k: "questions", label: "MCQ bank (CET→JEE Adv)" },
   { k: "concept_map", label: "Concept map" },
   { k: "formula_sheet", label: "Formula sheet" },
+  { k: "slides", label: "PPT slides" },
 ] as const;
 
 async function sha256(file: File) {
@@ -251,6 +253,7 @@ function OutputCard({ o, open, onToggle, onSave, onApprove, onPrint, onDelete }:
   open: boolean; onToggle: () => void; onSave: (c: string) => void; onApprove: () => void; onPrint: (c: string) => void; onDelete: () => void;
 }) {
   const [text, setText] = useState(o.content);
+  const [pptBusy, setPptBusy] = useState(false);
   const brand = brandFor(o);
   return (
     <div className="rounded-lg border border-border bg-card p-3">
@@ -261,7 +264,14 @@ function OutputCard({ o, open, onToggle, onSave, onApprove, onPrint, onDelete }:
         <div className="flex items-center gap-2">
           <Badge variant={o.status === "approved" ? "default" : "secondary"}>{o.status}</Badge>
           {o.status !== "approved" && <Button size="sm" variant="outline" onClick={onApprove}><CheckCircle2 className="h-3.5 w-3.5" /> Approve</Button>}
-          <Button size="sm" variant="outline" onClick={() => onPrint(text)}><Printer className="h-3.5 w-3.5" /> Print / PDF</Button>
+          {isSlides(text) ? (
+            <Button size="sm" variant="outline" disabled={pptBusy} onClick={async () => {
+              setPptBusy(true);
+              try { await downloadSlidesPptx(brand, text); } catch (e) { toast.error((e as Error).message); } finally { setPptBusy(false); }
+            }}>{pptBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Presentation className="h-3.5 w-3.5" />} Download PPT</Button>
+          ) : (
+            <Button size="sm" variant="outline" onClick={() => onPrint(text)}><Printer className="h-3.5 w-3.5" /> Print / PDF</Button>
+          )}
           <Button size="icon" variant="ghost" onClick={onDelete} aria-label="Delete output"><Trash2 className="h-4 w-4" /></Button>
         </div>
       </div>
@@ -272,9 +282,10 @@ function OutputCard({ o, open, onToggle, onSave, onApprove, onPrint, onDelete }:
             <TabsTrigger value="edit">Edit</TabsTrigger>
           </TabsList>
           <TabsContent value="preview">
-            <MaterialPreview brand={brand} content={text} />
+            {isSlides(text) ? <SlidesPreview brand={brand} content={text} /> : <MaterialPreview brand={brand} content={text} />}
           </TabsContent>
           <TabsContent value="edit" className="space-y-2">
+            {isSlides(text) && <p className="text-xs text-muted-foreground">Each "## Title" line is one slide. "- " lines are points, "&gt; " is the highlighted tip. Save, then Download PPT — the file also opens fully editable in PowerPoint / Google Slides.</p>}
             <Textarea rows={18} value={text} onChange={(e) => setText(e.target.value)} className="font-mono text-xs" />
             <div className="flex justify-end"><Button size="sm" onClick={() => onSave(text)}>Save edits</Button></div>
           </TabsContent>
@@ -297,4 +308,24 @@ function MaterialPreview({ brand, content }: { brand: MaterialBrand; content: st
   }, []);
   return <iframe ref={frame} title={`${brand.title} — page preview`} className="w-full border-0" height="1100"
     sandbox="allow-scripts" srcDoc={materialPrintHtml(brand, content, new URL(katexCssUrl, typeof location === "undefined" ? "http://localhost" : location.href).href, false)} />;
+}
+
+function SlidesPreview({ brand, content }: { brand: MaterialBrand; content: string }) {
+  const slides = parseSlides(content);
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {slides.map((s, i) => (
+        <div key={i} className="aspect-video overflow-hidden rounded-md border border-border bg-background text-foreground">
+          <div className="flex items-center gap-2 bg-primary px-3 py-2 text-primary-foreground" style={{ background: brand.color }}>
+            {brand.logo && <img src={brand.logo} alt="" className="h-6 w-6 object-contain" />}
+            <p className="truncate text-sm font-semibold">{s.title}</p>
+          </div>
+          <ul className="list-disc space-y-0.5 px-6 py-2 text-xs">
+            {s.bullets.map((b, j) => <li key={j} style={{ marginLeft: b.level * 12 }}>{b.text}</li>)}
+          </ul>
+          {s.note.length > 0 && <p className="mx-3 border-l-4 border-primary pl-2 text-xs italic">{s.note.join(" ")}</p>}
+        </div>
+      ))}
+    </div>
+  );
 }
