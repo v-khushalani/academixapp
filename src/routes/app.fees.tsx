@@ -277,7 +277,7 @@ function FeesPage() {
     // Look up parent_phone if not on relation
     const { data: student } = await supabase
       .from("students")
-      .select("father_phone, mother_phone, parent_phone, phone, parent_name, full_name, batch:batches(name)")
+      .select("father_phone, mother_phone, parent_phone, phone, preferred_contact, parent_name, full_name, batch:batches(name)")
       .eq("id", r.student_id)
       .maybeSingle();
     const s = student as {

@@ -171,31 +171,7 @@ export function PaymentDialog({
     const caption = `${base}\n\nScan the attached QR with any UPI app to pay ${inr(value)}.\nUPI ID: ${inst.upi_id}`;
     const img = await qrImage();
 
-    // Phones: share the QR photo WITH the message as its caption in one go.
-    if (img && typeof navigator.share === "function" && navigator.canShare?.({ files: [img] })) {
-      try {
-        await navigator.clipboard?.writeText?.(caption).catch(() => {});
-        await navigator.share({ files: [img], text: caption });
-        logMessage([
-          {
-            kind: "fee_reminder",
-            title: "Payment QR",
-            message: caption,
-            status: "sent",
-            recipient_name: target!.student_name,
-            recipient_phone: target!.phone ?? null,
-            fee_id: target!.id,
-          },
-        ]);
-        toast.success("Pick WhatsApp → parent. Photo + message go together.");
-        return;
-      } catch (e) {
-        if ((e as Error)?.name === "AbortError") return;
-        /* fall through to direct chat */
-      }
-    }
-
-    // Desktop / unsupported: copy the QR photo, open the parent's chat with the message.
+    // Open the monitoring parent's chat directly (no contact picker); QR is copied/saved to attach.
     if (img) {
       let copied = false;
       try {
