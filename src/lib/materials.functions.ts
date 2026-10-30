@@ -24,6 +24,12 @@ const KIND_PROMPT = {
     "Add a compact table where comparison helps (e.g. types, cases, sign conventions). Finish with ## Links & Exam Focus: how sub-topics connect, most-asked JEE/NEET/CET areas, and 5 must-remember one-liners.",
     "Follow the standard concept-map flow used by top JEE/NEET revision resources for this chapter. Be dense and crisp: keywords, not paragraphs. No solved examples, no long explanations.",
   ].join("\n"),
+  slides: [
+    "Write a classroom PowerPoint deck for the whole chapter: 14-22 slides. Ignore any logos, watermarks, page numbers, teacher annotations, handwriting or other institute branding in the source.",
+    "Format STRICTLY: each slide starts with a line '## Slide title'. Under it 3-6 short bullets ('- ', sub-points indented two spaces), max ~14 words per bullet. Optionally ONE line starting with '> ' as a key takeaway/exam tip.",
+    "Order: Learning objectives, then concepts in teaching order (definitions, laws, formulae, solved example steps, diagrams described in words), then Common mistakes, Quick recap.",
+    "Write maths in plain Unicode (x², √, θ, λ, Ω, →, ≤, ½), NEVER LaTeX or $ signs. No tables, no images, no code fences.",
+  ].join("\n"),
 } as const;
 
 export const generateMaterial = createServerFn({ method: "POST" })
@@ -32,7 +38,7 @@ export const generateMaterial = createServerFn({ method: "POST" })
     z
       .object({
         sourceId: z.string().uuid(),
-        kind: z.enum(["notes", "questions", "formula_sheet", "concept_map"]),
+        kind: z.enum(["notes", "questions", "formula_sheet", "concept_map", "slides"]),
         extra: z.string().max(2000).optional(),
       })
       .parse(d),
@@ -73,7 +79,7 @@ export const generateMaterial = createServerFn({ method: "POST" })
         KIND_PROMPT[data.kind],
         src.extracted_text ? `Reference notes/text:\n${src.extracted_text.slice(0, 40000)}` : "",
         data.extra ? `Extra instructions: ${data.extra}` : "",
-        "Output clean Markdown only (no code fences around the document). Use ## and ### headings, bullet lists, tables for comparisons, and > blockquotes for key points/tips. Write ALL maths, chemistry formulae, units with symbols, Greek letters (\\alpha, \\theta, \\lambda, \\Omega…) in LaTeX: inline as $...$ and important/standalone equations as $$...$$ on their own line. Never use Unicode math look-alikes or plain-text equations. Do not start with a title line (the header already shows it). Never mention any other coaching institute's name.",
+        data.kind === "slides" ? "" : "Output clean Markdown only (no code fences around the document). Use ## and ### headings, bullet lists, tables for comparisons, and > blockquotes for key points/tips. Write ALL maths, chemistry formulae, units with symbols, Greek letters (\\alpha, \\theta, \\lambda, \\Omega…) in LaTeX: inline as $...$ and important/standalone equations as $$...$$ on their own line. Never use Unicode math look-alikes or plain-text equations. Do not start with a title line (the header already shows it). Never mention any other coaching institute's name.",
       ]
         .filter(Boolean)
         .join("\n\n"),
@@ -138,18 +144,19 @@ export const generateMaterial = createServerFn({ method: "POST" })
     }
     if (failure || !text.trim()) return { ok: false as const, error: failure ?? "AI returned no content." };
 
-    const titleMap = { notes: "Notes", questions: "MCQ bank (CET → JEE Adv)", formula_sheet: "Formula sheet", concept_map: "Concept map" };
+    const titleMap = { notes: "Notes", questions: "MCQ bank (CET → JEE Adv)", formula_sheet: "Formula sheet", concept_map: "Concept map", slides: "PPT slides" };
     const { data: out, error: insErr } = await context.supabase
       .from("material_outputs")
       .insert({
         institute_id: src.institute_id,
         source_id: src.id,
-        kind: data.kind,
+        // Slides are stored as notes (DB kind constraint) and tagged by a leading marker.
+        kind: data.kind === "slides" ? "notes" : data.kind,
         title: `${src.chapter || src.title} — ${titleMap[data.kind]}`,
         class_level: src.class_level,
         subject: src.subject,
         chapter: src.chapter,
-        content: text,
+        content: data.kind === "slides" ? `<!-- slides -->\n${text.replace(/^```\w*\n?|```\s*$/g, "")}` : text,
       })
       .select("id")
       .single();
