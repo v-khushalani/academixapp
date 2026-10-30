@@ -58,18 +58,15 @@ export function whatsappUrl(phone: string | null | undefined, message: string): 
   return `https://wa.me/${p}?text=${encodeURIComponent(message)}`;
 }
 
-/** Fee messages go to the father first, then any parent, then the student. */
+/** Messages go to the parent chosen at admission as the one monitoring studies. */
 export function parentPhone(s: {
+  preferred_contact?: string | null;
   father_phone?: string | null;
   parent_phone?: string | null;
   mother_phone?: string | null;
   phone?: string | null;
 } | null | undefined): string | null {
-  if (!s) return null;
-  return (
-    [s.father_phone, s.parent_phone, s.mother_phone, s.phone].find((p) => normalisePhone(p)) ??
-    null
-  );
+  return preferredParentPhone(s);
 }
 
 /** The parent chosen at admission as the one who follows the child's studies. */
