@@ -48,6 +48,7 @@ function ApplyPage() {
   const [name, setName] = useState("");
   // Branding comes from the slug in the QR link — never from this browser's
   // cache, which may still hold whichever institute last signed in here.
+  const [aadhaarScan, setAadhaarScan] = useState(true);
   const [brand, setBrand] = useState<{ name: string; logo: string }>({ name: "", logo: "" });
   useEffect(() => {
     let alive = true;
@@ -61,6 +62,16 @@ function ApplyPage() {
       .then(({ data }) => {
         if (!alive || !data) return;
         setBrand({ name: data.name ?? "", logo: data.custom_branding ? (data.logo_url ?? "") : "" });
+        if (data.plan)
+          void supabase
+            .from("plan_catalog")
+            .select("features")
+            .eq("key", data.plan)
+            .maybeSingle()
+            .then(({ data: p }) => {
+              const f = (p?.features ?? {}) as Record<string, boolean>;
+              if (alive) setAadhaarScan(f.aadhaar_ocr !== false);
+            });
       });
     return () => {
       alive = false;
@@ -199,7 +210,7 @@ function ApplyPage() {
             <p className="mb-4 text-sm text-muted-foreground">
               Takes about a minute — we ask a few questions at a time.
             </p>
-            <AdmissionForm onSubmit={onSubmit} saving={saving} />
+            <AdmissionForm onSubmit={onSubmit} saving={saving} aadhaarScan={aadhaarScan} />
           </>
         )}
       </div>
