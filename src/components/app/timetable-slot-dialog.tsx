@@ -55,7 +55,7 @@ export function TimetableSlotDialog({
   defaultFacultyId,
 }: Props) {
   const qc = useQueryClient();
-  const shared = useFeatures().isOn("study_sessions");
+  const sharedOn = useFeatures().isOn("study_sessions");
   const isEdit = Boolean(slot);
   const [f, setF] = useState<TimetableSlotInsert>({
     day_of_week: defaultDay,
@@ -151,8 +151,8 @@ export function TimetableSlotDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="class">Regular class</SelectItem>
-                {shared && <SelectItem value="test">Test</SelectItem>}
-                {shared && <SelectItem value="self_study">Self-study / Doubt session</SelectItem>}
+                {sharedOn && <SelectItem value="test">Test</SelectItem>}
+                {sharedOn && <SelectItem value="self_study">Self-study / Doubt session</SelectItem>}
               </SelectContent>
             </Select>
           </F>
