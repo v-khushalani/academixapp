@@ -1,3 +1,4 @@
+import { useFeatures } from "@/hooks/use-features";
 import { useEffect, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -54,6 +55,7 @@ export function TimetableSlotDialog({
   defaultFacultyId,
 }: Props) {
   const qc = useQueryClient();
+  const sharedOn = useFeatures().isOn("study_sessions");
   const isEdit = Boolean(slot);
   const [f, setF] = useState<TimetableSlotInsert>({
     day_of_week: defaultDay,
@@ -149,8 +151,8 @@ export function TimetableSlotDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="class">Regular class</SelectItem>
-                <SelectItem value="test">Test</SelectItem>
-                <SelectItem value="self_study">Self-study / Doubt session</SelectItem>
+                {sharedOn && <SelectItem value="test">Test</SelectItem>}
+                {sharedOn && <SelectItem value="self_study">Self-study / Doubt session</SelectItem>}
               </SelectContent>
             </Select>
           </F>

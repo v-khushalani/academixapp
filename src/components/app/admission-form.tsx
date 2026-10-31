@@ -39,6 +39,8 @@ type Props = {
     aadhaar: { hash: string; last4: string; editedFields: string[]; verified: boolean } | null,
   ) => void | Promise<void>;
   saving?: boolean;
+  /** Aadhaar scan step; off = straight to manual entry. */
+  aadhaarScan?: boolean;
 };
 
 const empty: AdmissionFormValues = {
@@ -87,11 +89,13 @@ const STEPS = [
  * Enquiry form shown on the public QR link. Asked one small frame at a time so a
  * parent on a phone never sees a wall of fields.
  */
-export function AdmissionForm({ initial, onSubmit, saving }: Props) {
+export function AdmissionForm({ initial, onSubmit, saving, aadhaarScan = true }: Props) {
   const [v, setV] = useState<AdmissionFormValues>({ ...empty, ...(initial ?? {}) });
   const [step, setStep] = useState(0);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [aadhaar, setAadhaar] = useState<AadhaarResult | null>(null);
+  const [aadhaar, setAadhaar] = useState<AadhaarResult | null>(
+    aadhaarScan ? null : ({ profile: { name: "", dob: "", gender: "", address: "", last4: "", photo: "" }, hash: "", source: "manual" } as AadhaarResult),
+  );
   const [autoFilled, setAutoFilled] = useState<Partial<AdmissionFormValues>>({});
   const [uploading, setUploading] = useState(false);
   const set = <K extends keyof AdmissionFormValues>(k: K, val: AdmissionFormValues[K]) =>
@@ -209,7 +213,7 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
       <div className="grid gap-4 sm:grid-cols-2">
         {step === 0 && (
           <Frame>
-            <div className="sm:col-span-2">
+            {aadhaarScan && <div className="sm:col-span-2">
               <AadhaarScan
                 value={aadhaar}
                 onVerified={(r) => {
@@ -237,7 +241,7 @@ export function AdmissionForm({ initial, onSubmit, saving }: Props) {
                   })
                 }
               />
-            </div>
+            </div>}
             {aadhaar ? (
               aadhaar.source === "qr" ? (
                 <>

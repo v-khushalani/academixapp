@@ -1,3 +1,4 @@
+import { useFeatures } from "@/hooks/use-features";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { todayISO } from "@/lib/dates";
 import { useQuery } from "@tanstack/react-query";
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/app/")({
 function DashboardPage() {
   const { user, roles } = useAuth();
   const showMoney = canAccess("fees", roles);
+  const { isOn } = useFeatures();
   const showMessages = canAccess("messages", roles);
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-summary"],
@@ -55,7 +57,7 @@ function DashboardPage() {
 
   return (
     <>
-      {showMoney ? <AbsentAlerts /> : null}
+      {showMoney && isOn("absentee_whatsapp") ? <AbsentAlerts /> : null}
       <PageHeader
         title={`${greeting()}, ${name.split(" ")[0]}`}
         description={`${institute} · ${formatDate(new Date())}`}

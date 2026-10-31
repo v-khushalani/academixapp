@@ -1,3 +1,4 @@
+import { useFeatures } from "@/hooks/use-features";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -43,6 +44,7 @@ type Props = {
 
 export function StudentFormDialog({ open, onOpenChange, student }: Props) {
   const refresh = useRefreshLinked();
+  const multi = useFeatures().isOn("multi_batch");
   const isEdit = Boolean(student);
   const { roles } = useAuth();
   const canEditDetails = can("student:edit", roles);
@@ -366,7 +368,7 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
                               setBatchIds((prev) =>
                                 prev.includes(b.id)
                                   ? prev.filter((x) => x !== b.id)
-                                  : [...prev, b.id],
+                                  : multi ? [...prev, b.id] : [b.id],
                               )
                             }
                           />
