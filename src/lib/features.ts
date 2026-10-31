@@ -28,7 +28,14 @@ export type FeatureKey =
   | "branding"
   | "branches"
   | "bulk_import"
-  | "material_engine";
+  | "material_engine"
+  | "report_cards"
+  | "ai_slides"
+  | "aadhaar_ocr"
+  | "upi_qr_collection"
+  | "absentee_whatsapp"
+  | "multi_batch"
+  | "study_sessions";
 
 export type FeatureMap = Partial<Record<FeatureKey, boolean>>;
 
@@ -146,6 +153,48 @@ export const FEATURES: { key: FeatureKey; label: string; hint: string; group: Fe
     key: "material_engine",
     label: "Study Material Engine",
     hint: "Paid add-on: source library + AI notes, questions, formula sheets. Off unless switched on; never on Free.",
+    group: "Extras",
+  },
+  {
+    key: "report_cards",
+    label: "Report cards & PTM kit",
+    hint: "Branded PDF report cards, ranks, WhatsApp to parent",
+    group: "Academics",
+  },
+  {
+    key: "study_sessions",
+    label: "Test & self-study slots",
+    hint: "Shared-room test / doubt sessions across batches in timetable",
+    group: "Academics",
+  },
+  {
+    key: "multi_batch",
+    label: "Multi-batch enrolment",
+    hint: "One student in several batches (e.g. schooling + foundation)",
+    group: "Academics",
+  },
+  {
+    key: "upi_qr_collection",
+    label: "UPI QR collection",
+    hint: "Fee UPI QR + message sent straight to the parent",
+    group: "Money",
+  },
+  {
+    key: "absentee_whatsapp",
+    label: "Absence alerts",
+    hint: "One consolidated WhatsApp absence alert per student per day",
+    group: "Extras",
+  },
+  {
+    key: "aadhaar_ocr",
+    label: "Aadhaar instant onboard",
+    hint: "Scan / upload Aadhaar QR to auto-fill admission form",
+    group: "Extras",
+  },
+  {
+    key: "ai_slides",
+    label: "AI PPT slides",
+    hint: "Branded editable PowerPoint from source PDFs (needs Study Material Engine)",
     group: "Extras",
   },
 ];
