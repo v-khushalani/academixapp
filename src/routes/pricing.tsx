@@ -31,7 +31,7 @@ export const Route = createFileRoute("/pricing")({
       {
         property: "og:description",
         content:
-          "Free forever for small institutes. Growth from ₹5,990 a year. Compare every feature at a glance.",
+          "Free forever for small institutes. Growth from ₹7,999 a year. Compare every feature at a glance.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
