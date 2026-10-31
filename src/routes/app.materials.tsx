@@ -1,3 +1,4 @@
+import { useFeatures } from "@/hooks/use-features";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -65,6 +66,7 @@ async function sha256(file: File) {
 }
 
 function MaterialsPage() {
+  const { isOn } = useFeatures();
   const qc = useQueryClient();
   const gen = useServerFn(generateMaterial);
   const sources = useQuery({
@@ -222,7 +224,7 @@ function MaterialsPage() {
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant={s.rights_status === "owned" || s.rights_status === "licensed" ? "default" : "secondary"}>{RIGHTS[s.rights_status]}</Badge>
-                      {KINDS.map((k) => (
+                      {KINDS.filter((k) => k.k !== "slides" || isOn("ai_slides")).map((k) => (
                         <Button key={k.k} size="sm" variant="outline" disabled={!!busy} onClick={() => run(s.id, k.k)}>
                           {busy === s.id + k.k ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} {k.label}
                         </Button>

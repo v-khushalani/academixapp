@@ -1,3 +1,4 @@
+import { useFeatures } from "@/hooks/use-features";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
@@ -42,6 +43,7 @@ function TestsPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { roles } = useAuth();
+  const { isOn } = useFeatures();
   const canWrite = can("test:write", roles);
   const { data = [], isLoading } = useQuery({
     queryKey: ["tests"],
@@ -160,10 +162,12 @@ function TestsPage() {
         description={`${rows.length} tests`}
         actions={
           <>
+            {isOn("report_cards") && (
             <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setCardOpen(true)}>
               <FileText className="h-4 w-4" />
               Report card
             </Button>
+            )}
             {canWrite ? (
               <Button size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
                 <Plus className="h-4 w-4" />
@@ -214,7 +218,7 @@ function TestsPage() {
           onOpenChange={(v) => !v && setEditing(null)}
         />
       )}
-      {cardOpen && (
+      {cardOpen && isOn("report_cards") && (
         <ReportCardDialog
           open={cardOpen}
           onOpenChange={setCardOpen}

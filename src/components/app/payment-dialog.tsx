@@ -1,3 +1,4 @@
+import { useFeatures } from "@/hooks/use-features";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { QRCodeCanvas } from "qrcode.react";
@@ -56,6 +57,7 @@ export function PaymentDialog({
   target: PaymentTarget | null;
   onOpenChange: (v: boolean) => void;
 }) {
+  const { isOn } = useFeatures();
   const dueDefault = target ? Math.max(Number(target.amount) - Number(target.amount_paid), 0) : 0;
   const [amount, setAmount] = useState<string>(dueDefault ? String(dueDefault) : "");
   const [mode, setMode] = useState<string>("Cash");
@@ -350,7 +352,7 @@ export function PaymentDialog({
             </div>
           </div>
 
-          {link ? (
+          {!isOn("upi_qr_collection") ? null : link ? (
             <div className="flex flex-col items-center gap-3 rounded-lg border border-border bg-card p-4">
               <div ref={qrRef}>
                 <QRCodeCanvas value={link} size={168} includeMargin />
