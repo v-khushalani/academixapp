@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { WhatsAppQueueDialog } from "@/components/app/whatsapp-queue-dialog";
 import { absentBatchLabel, batchesApi, attendanceApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { can } from "@/lib/rbac";
@@ -98,6 +99,7 @@ function AttendancePage() {
   }, [batchId, date]);
   const merged = { ...initial, ...marks };
 
+  const [queueIds, setQueueIds] = useState<string[] | null>(null);
   const saveMut = useMutation({
     mutationFn: async () => {
       const rows = roster
@@ -114,6 +116,8 @@ function AttendancePage() {
     },
     onSuccess: () => {
       toast.success("Attendance saved");
+      const absIds = roster.filter((s) => merged[s.id] === "absent").map((s) => s.id);
+      if (absIds.length) setQueueIds(absIds);
       qc.invalidateQueries({ queryKey: ["attendance", batchId, date] });
       qc.invalidateQueries({ queryKey: ["attendance-day-status", date] });
       qc.invalidateQueries({ queryKey: ["dashboard-summary"] });
@@ -167,6 +171,7 @@ function AttendancePage() {
     ]);
     if (!ok) toast.error("No parent/student phone on file.");
     else if (g) attendanceApi.markNotified(g.absentIds).catch(() => {});
+    return ok;
   }
 
   return (
@@ -367,6 +372,20 @@ function AttendancePage() {
           )}
         </div>
       </PageBody>
+      <WhatsAppQueueDialog
+        open={Boolean(queueIds)}
+        onOpenChange={(v) => !v && setQueueIds(null)}
+        title={`${queueIds?.length ?? 0} absent today`}
+        description="Notify parents on WhatsApp now? One tap per parent."
+        items={(queueIds ?? []).flatMap((id) => {
+          const s = roster.find((r) => r.id === id);
+          return s ? [{ id, name: s.full_name, sub: batchName }] : [];
+        })}
+        onSend={(it) => {
+          const s = roster.find((r) => r.id === it.id);
+          return s ? sendAbsentReminder(s) : false;
+        }}
+      />
     </>
   );
 }

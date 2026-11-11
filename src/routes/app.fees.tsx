@@ -374,7 +374,7 @@ function FeesPage() {
             value={inr(collectedToday)}
             icon={Wallet}
             tone="success"
-            sub={`${paidToday.length} bill(s) · ${inr(collected)} all-time`}
+            hint={`${paidToday.length} bill(s) · ${inr(collected)} all-time`}
           />
           <KpiCard label="Overdue" value={overdue} icon={Bell} tone="danger" />
         </div>
