@@ -226,7 +226,16 @@ function TestDetail() {
                             min={0}
                             max={test.max_marks}
                             className="h-8"
+                            data-marks-input
                             placeholder="Not entered"
+                            onKeyDown={(e) => {
+                              const dir = e.key === "Enter" || e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
+                              if (!dir) return;
+                              e.preventDefault();
+                              const all = Array.from(document.querySelectorAll<HTMLInputElement>("[data-marks-input]"));
+                              const next = all[all.indexOf(e.currentTarget) + dir];
+                              if (next) { next.focus(); next.select(); }
+                            }}
                             value={merged[s.id] ?? ""}
                             onChange={(e) => setMarks((m) => ({ ...m, [s.id]: e.target.value }))}
                           />
