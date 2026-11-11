@@ -43,6 +43,13 @@ function DashboardPage() {
     queryKey: ["batches"],
     queryFn: () => batchesApi.list(),
   });
+  const { data: leads = [] } = useQuery({ queryKey: ["leads"], queryFn: () => leadsApi.list() });
+  const followUpsDue = leads.filter(
+    (l) =>
+      l.next_followup &&
+      String(l.next_followup).slice(0, 10) <= todayIso &&
+      !["converted", "lost", "enrolled"].includes(String(l.stage)),
+  ).length;
   const pendingList = allBatches.filter(
     (b) => dayStatus?.scheduled.has(b.id) && !dayStatus?.marked.get(b.id),
   );
@@ -126,6 +133,13 @@ function DashboardPage() {
               count={data?.pendingApprovals ?? 0}
               to="/app/admissions"
               tone={(data?.pendingApprovals ?? 0) > 0 ? "warning" : "default"}
+            />
+            <ActionRow
+              icon={UserPlus}
+              label="Enquiries to call back today"
+              count={followUpsDue}
+              to="/app/admissions"
+              tone={followUpsDue > 0 ? "warning" : "default"}
             />
             {showMoney ? (
               <ActionRow
