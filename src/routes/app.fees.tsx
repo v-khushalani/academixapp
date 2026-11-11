@@ -17,6 +17,7 @@ import { KpiCard } from "@/components/app/kpi-card";
 import { DataTable, type DTColumn } from "@/components/app/data-table";
 import { FeeFormDialog } from "@/components/app/fee-form-dialog";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
+import { WhatsAppQueueDialog } from "@/components/app/whatsapp-queue-dialog";
 import { PaymentDialog, type PaymentTarget } from "@/components/app/payment-dialog";
 import { feesApi, outstandingOf, isLiveBill } from "@/lib/api";
 import { FeeCorrectionDialog, type CorrectionTarget } from "@/components/app/fee-correction-dialog";
@@ -57,6 +58,7 @@ function FeesPage() {
   const [correcting, setCorrecting] = useState<CorrectionTarget | null>(null);
   const [revising, setRevising] = useState<ReviseTarget | null>(null);
   const [followUp, setFollowUp] = useState("all");
+  const [queueOpen, setQueueOpen] = useState(false);
   const { isOn } = useFeatures();
   const ledgerOn = isOn("fee_ledger");
   const [view, setView] = useState<"ledger" | "bills">("ledger");
@@ -73,6 +75,12 @@ function FeesPage() {
   const outstanding = live.reduce((a, b) => a + outstandingOf(b), 0);
   const collected = data.reduce((a, b) => a + Number(b.amount_paid), 0);
   const overdue = live.filter((f) => isOverdue(f)).length;
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const paidToday = data.filter((f) => f.paid_date === todayIso);
+  const collectedToday = paidToday.reduce((a, b) => a + Number(b.amount_paid), 0);
+  const chaseRows = live
+    .filter((f) => outstandingOf(f) > 0 && feeFollowUpState(f) !== "none")
+    .sort((a, b) => String(a.due_date ?? "").localeCompare(String(b.due_date ?? "")));
 
   const removeMut = useMutation({
     mutationFn: (id: string) => feesApi.remove(id),
@@ -328,6 +336,7 @@ function FeesPage() {
       },
     ]);
     if (!ok) toast.error("No phone number on file for this parent/student.");
+    return ok;
   }
 
   return (
@@ -336,12 +345,20 @@ function FeesPage() {
         title="Fees"
         description="Collect faster. Chase smarter."
         actions={
-          canWrite ? (
-            <Button size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
-              <Plus className="h-4 w-4" />
-              Collect payment
-            </Button>
-          ) : null
+          <div className="flex gap-2">
+            {chaseRows.length > 0 && (
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setQueueOpen(true)}>
+                <MessageCircle className="h-4 w-4 text-success" />
+                Remind {chaseRows.length}
+              </Button>
+            )}
+            {canWrite && (
+              <Button size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Collect payment
+              </Button>
+            )}
+          </div>
         }
       />
       <PageBody>
@@ -352,7 +369,13 @@ function FeesPage() {
             icon={Wallet}
           />
           <KpiCard label="Outstanding" value={inr(outstanding)} icon={Wallet} tone="warning" />
-          <KpiCard label="Collected" value={inr(collected)} icon={Wallet} tone="success" />
+          <KpiCard
+            label="Collected today"
+            value={inr(collectedToday)}
+            icon={Wallet}
+            tone="success"
+            sub={`${paidToday.length} bill(s) · ${inr(collected)} all-time`}
+          />
           <KpiCard label="Overdue" value={overdue} icon={Bell} tone="danger" />
         </div>
         {ledgerOn && (
@@ -419,6 +442,22 @@ function FeesPage() {
           />
         </div>
       </PageBody>
+      <WhatsAppQueueDialog
+        open={queueOpen}
+        onOpenChange={setQueueOpen}
+        title="Fee reminder queue"
+        description="Due and overdue bills, oldest first. One tap per parent."
+        items={chaseRows.map((r) => ({
+          id: r.id,
+          name: r.student?.full_name ?? "Student",
+          sub: `${inr(outstandingOf(r))} due · ${formatDate(r.due_date)} · ${FOLLOW_UP_LABEL[feeFollowUpState(r)]}`,
+        }))}
+        onSend={async (it) => {
+          const r = data.find((d) => d.id === it.id);
+          if (!r) return false;
+          return sendReminder(r);
+        }}
+      />
       <PaymentDialog target={collecting} onOpenChange={(v) => !v && setCollecting(null)} />
       <ReviseInstallmentDialog target={revising} onOpenChange={(v) => !v && setRevising(null)} />
       <FeeCorrectionDialog target={correcting} onOpenChange={(v) => !v && setCorrecting(null)} />
