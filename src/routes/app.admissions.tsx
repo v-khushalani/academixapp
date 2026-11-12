@@ -45,6 +45,7 @@ import { EnquiryRecords } from "@/components/app/enquiry-records";
 import type { Database } from "@/integrations/supabase/types";
 import { formatDate } from "@/lib/dates";
 import { downloadAdmissionPoster, printAdmissionPoster } from "@/lib/admission-poster";
+import { WalkInDialog } from "@/components/app/walk-in-dialog";
 import { StudentInviteDialog } from "@/components/app/student-invite-dialog";
 
 type Stage = Database["public"]["Enums"]["lead_stage"];
@@ -66,13 +67,22 @@ function AdmissionsPage() {
   const { roles } = useAuth();
   const canWrite = can("lead:write", roles);
   const [tab, setTab] = useState("applications");
+  const [walkIn, setWalkIn] = useState(false);
 
   return (
     <>
       <PageHeader
         title="Admissions"
         description="One QR → parent fills the form → you approve and give a batch. Everything not admitted stays in follow-ups."
+        actions={
+          canWrite ? (
+            <Button size="sm" className="gap-1.5" onClick={() => setWalkIn(true)}>
+              <Plus className="h-4 w-4" /> Walk-in admission
+            </Button>
+          ) : null
+        }
       />
+      <WalkInDialog open={walkIn} onOpenChange={setWalkIn} />
       <PageBody>
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList>
