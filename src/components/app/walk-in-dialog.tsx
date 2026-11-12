@@ -39,6 +39,7 @@ export function WalkInDialog({ open, onOpenChange }: { open: boolean; onOpenChan
         parent_phone: phone,
         preferred_contact: "father",
       });
+      if (!s) throw new Error("Could not save student");
       if (f.batch) await enrollmentsApi.set(s.id, [f.batch]);
       const amount = Number(f.amount) || 0;
       if (amount > 0) {
@@ -49,6 +50,7 @@ export function WalkInDialog({ open, onOpenChange }: { open: boolean; onOpenChan
           description: "Admission / registration",
           due_date: today,
         } as never);
+        if (!fee) throw new Error("Could not create fee");
         await feesApi.collect(fee.id, amount, f.mode);
       }
       return { name: s.full_name, phone, amount, adm, batch: batches.find((b) => b.id === f.batch)?.name ?? "" };
