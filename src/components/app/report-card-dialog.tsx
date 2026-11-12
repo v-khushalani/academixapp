@@ -163,6 +163,71 @@ export function ReportCardDialog({
     }
   }
 
+  async function downloadAll() {
+    if (!institute || !bid || !et || !roster.length) return;
+    setBusy(true);
+    const t = toast.loading("Preparing report cards…");
+    try {
+      const { data: tests } = await supabase
+        .from("tests")
+        .select("id, title, subject, type, date, max_marks")
+        .eq("batch_id", bid)
+        .eq("type", et as never)
+        .order("subject");
+      const ids = (tests ?? []).map((x) => x.id);
+      if (!ids.length) return void toast.error("No tests for this exam");
+      const { data: all } = await supabase
+        .from("test_results")
+        .select("test_id, student_id, marks")
+        .in("test_id", ids);
+      const maxBy = new Map((tests ?? []).map((x) => [x.id, x.max_marks]));
+      const agg = new Map<string, { g: number; m: number }>();
+      for (const r of all ?? []) {
+        if (r.marks == null) continue;
+        const a = agg.get(r.student_id) ?? { g: 0, m: 0 };
+        a.g += Number(r.marks);
+        a.m += Number(maxBy.get(r.test_id) ?? 0);
+        agg.set(r.student_id, a);
+      }
+      const pctOf = (sid: string) => {
+        const a = agg.get(sid);
+        return a && a.m ? a.g / a.m : null;
+      };
+      const pcts = [...agg.keys()].map((k) => pctOf(k) ?? 0);
+      const { zipSync } = await import("fflate");
+      const files: Record<string, Uint8Array> = {};
+      for (const s of roster) {
+        const p = pctOf(s.id);
+        if (p == null) continue;
+        const marks = new Map((all ?? []).filter((r) => r.student_id === s.id).map((r) => [r.test_id, r.marks]));
+        const blob = await buildReportCardPdf({
+          institute,
+          student: s,
+          batchName,
+          examName: examLabel(et),
+          rows: (tests ?? []).map((x) => ({ ...x, marks: marks.get(x.id) ?? null })),
+          rank: pcts.filter((x) => x > p).length + 1,
+          outOf: pcts.length,
+        });
+        files[`${s.full_name.replace(/[^\w]+/g, "-")}.pdf`] = new Uint8Array(await blob.arrayBuffer());
+      }
+      const n = Object.keys(files).length;
+      if (!n) return void toast.error("No marks entered yet");
+      const zip = zipSync(files);
+      download(
+        new File([zip], `Report-cards-${batchName.replace(/\s+/g, "-")}-${examLabel(et).replace(/\s+/g, "-")}.zip`, {
+          type: "application/zip",
+        }),
+      );
+      toast.success(`${n} report cards downloaded`);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      toast.dismiss(t);
+      setBusy(false);
+    }
+  }
+
   async function send() {
     if (!card?.student) return;
     setBusy(true);
@@ -186,7 +251,12 @@ export function ReportCardDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Student report card</DialogTitle>
+          <DialogTitle className="flex items-center justify-between gap-2 pr-6">
+            Student report card
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={downloadAll} disabled={!bid || !et || busy}>
+              <Download className="h-4 w-4" /> Whole batch (ZIP)
+            </Button>
+          </DialogTitle>
         </DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
