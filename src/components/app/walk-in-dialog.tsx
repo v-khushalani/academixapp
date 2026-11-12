@@ -30,7 +30,7 @@ export function WalkInDialog({ open, onOpenChange }: { open: boolean; onOpenChan
     mutationFn: async () => {
       const phone = f.phone.replace(/\D/g, "").slice(-10);
       const adm = `ADM-${Date.now().toString().slice(-6)}`;
-      const s = await studentsApi.create({
+      const s = (await studentsApi.create({
         full_name: f.name.trim(),
         admission_no: adm,
         class: f.cls || null,
@@ -38,18 +38,18 @@ export function WalkInDialog({ open, onOpenChange }: { open: boolean; onOpenChan
         father_phone: phone,
         parent_phone: phone,
         preferred_contact: "father",
-      });
+      })) as { id: string; full_name: string } | null;
       if (!s) throw new Error("Could not save student");
       if (f.batch) await enrollmentsApi.set(s.id, [f.batch]);
       const amount = Number(f.amount) || 0;
       if (amount > 0) {
         const today = new Date().toISOString().slice(0, 10);
-        const fee = await feesApi.create({
+        const fee = (await feesApi.create({
           student_id: s.id,
           amount,
           description: "Admission / registration",
           due_date: today,
-        } as never);
+        } as never)) as { id: string } | null;
         if (!fee) throw new Error("Could not create fee");
         await feesApi.collect(fee.id, amount, f.mode);
       }
