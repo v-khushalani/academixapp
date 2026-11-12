@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { batchesApi, enrollmentsApi, feesApi, studentsApi } from "@/lib/api";
 import { batchesForClass } from "@/lib/class-match";
-import { GRADES } from "@/lib/constants";
+import { CLASSES as GRADES } from "@/lib/constants";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { getInstitute } from "@/lib/academy-settings";
