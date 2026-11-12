@@ -11,7 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { PageBody, PageHeader } from "@/components/app/page-header";
-import { attendanceApi, batchesApi, dashboardApi } from "@/lib/api";
+import { attendanceApi, batchesApi, dashboardApi, leadsApi } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { canAccess } from "@/lib/rbac";
 import { getInstitute } from "@/lib/academy-settings";
