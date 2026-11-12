@@ -67,6 +67,7 @@ function AdmissionsPage() {
   const { roles } = useAuth();
   const canWrite = can("lead:write", roles);
   const [tab, setTab] = useState("applications");
+  const [walkIn, setWalkIn] = useState(false);
 
   return (
     <>
