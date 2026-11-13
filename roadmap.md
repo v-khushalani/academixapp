@@ -1,3 +1,4 @@
+- [ ] Verify all 17 monitoring findings; fix bounded issues and prepare approval for risky data changes.
 - [x] Center study material headers with class, subject and chapter.
 - [x] Share A4 pagination between preview and print; repeat bottom footer and logo watermark.
 - [x] Remove difficulty adjectives from new and existing MCQ level headings.
