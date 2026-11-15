@@ -11,18 +11,16 @@ test("group overview allows owners and admins but not accountants or families", 
 });
 
 test("role assignment includes the active institute", async ({ page }) => {
+  let insertedRow;
+  await page.route("**/rest/v1/rpc/current_institute_id", r => r.fulfill({ json: "institute-a" }));
+  await page.route("**/rest/v1/user_roles", async r => { insertedRow = r.request().postDataJSON(); await r.fulfill({ json: null }); });
   await page.goto("/", { waitUntil: "networkidle" });
   await page.waitForTimeout(1000);
-  const inserted = await page.evaluate(async () => {
-    const { supabase } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
+  await page.evaluate(async () => {
     const { userRolesApi } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
-    let row;
-    supabase.rpc = async () => ({ data: "institute-a", error: null });
-    supabase.from = () => ({ insert: async value => { row = value; return { error: null }; } });
     await userRolesApi.addRole("staff-a", "accountant");
-    return row;
   });
-  expect(inserted).toEqual({ user_id: "staff-a", role: "accountant", institute_id: "institute-a" });
+  expect(insertedRow).toEqual({ user_id: "staff-a", role: "accountant", institute_id: "institute-a" });
 });
 
 test("admission remains usable when scanning is disabled after loading", async ({ page }) => {
@@ -76,15 +74,13 @@ test("next walk-in clears prior identity and payment", async ({ page }) => {
 });
 
 test("valid family invite returns to welcome before being claimed", async ({ page }) => {
+  await page.route("**/rest/v1/rpc/get_student_invite", r => r.fulfill({ json: [{ valid: true, kind: "student" }] }));
   await page.goto("/", { waitUntil: "networkidle" });
   await page.waitForTimeout(1000);
   const result = await page.evaluate(async () => {
-    const { supabase } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
     const auth = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
-    const calls: string[] = [];
-    supabase.rpc = async name => { calls.push(name); return { data: [{ valid: true, kind: "student" }], error: null }; };
     auth.rememberInvite("regression-invite");
-    return { destination: await auth.resolvePostAuthDestination(), calls };
+    return await auth.resolvePostAuthDestination();
   });
-  expect(result).toEqual({ destination: { to: "/welcome/regression-invite" }, calls: ["get_student_invite"] });
+  expect(result).toEqual({ to: "/welcome/regression-invite" });
 });
