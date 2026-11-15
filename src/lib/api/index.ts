@@ -889,14 +889,21 @@ export const userRolesApi = {
     return (profiles ?? []).map((p) => ({ ...p, roles: byUser.get(p.id) ?? [] }));
   },
   async addRole(user_id: string, role: AppRole) {
-    const { error } = await supabase.from("user_roles").insert({ user_id, role });
+    const { data: institute_id, error: instituteError } = await supabase.rpc("current_institute_id");
+    if (instituteError) throw instituteError;
+    if (!institute_id) throw new Error("Select an institute before assigning a role.");
+    const { error } = await supabase.from("user_roles").insert({ user_id, role, institute_id });
     if (error) throw error;
   },
   async removeRole(user_id: string, role: AppRole) {
+    const { data: institute_id, error: instituteError } = await supabase.rpc("current_institute_id");
+    if (instituteError) throw instituteError;
+    if (!institute_id) throw new Error("Select an institute before removing a role.");
     const { error } = await supabase
       .from("user_roles")
       .delete()
       .eq("user_id", user_id)
+      .eq("institute_id", institute_id)
       .eq("role", role);
     if (error) throw error;
   },

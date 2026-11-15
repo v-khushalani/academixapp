@@ -88,7 +88,7 @@ function moduleForPath(pathname: string): ModuleKey | null {
     reports: "reports",
     settings: "settings",
     materials: "materials",
-    group: "platform",
+    group: "group",
     platform: "platform",
   };
   return modules[segment] ?? null;

@@ -99,7 +99,7 @@ export function WalkInDialog({ open, onOpenChange }: { open: boolean; onOpenChan
             </p>
             <p className="text-xs text-muted-foreground">Add remaining details later from the Students page.</p>
             <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setDone(null)}>Next walk-in</Button>
+              <Button variant="outline" onClick={() => { setF(empty); setDone(null); mut.reset(); }}>Next walk-in</Button>
               <Button className="gap-1.5" onClick={sendReceipt}>
                 <MessageCircle className="h-4 w-4" /> Send receipt on WhatsApp
               </Button>
