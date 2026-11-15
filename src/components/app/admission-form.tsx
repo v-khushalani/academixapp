@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -97,6 +97,15 @@ export function AdmissionForm({ initial, onSubmit, saving, aadhaarScan = true }:
     aadhaarScan ? null : ({ profile: { name: "", dob: "", gender: "", address: "", last4: "", photo: "" }, hash: "", source: "manual" } as AadhaarResult),
   );
   const [autoFilled, setAutoFilled] = useState<Partial<AdmissionFormValues>>({});
+  useEffect(() => {
+    if (!aadhaarScan) {
+      setAadhaar((current) => current ?? {
+        profile: { name: "", dob: "", gender: "", address: "", last4: "", photo: "" },
+        hash: "",
+        source: "manual",
+      });
+    }
+  }, [aadhaarScan]);
   const [uploading, setUploading] = useState(false);
   const set = <K extends keyof AdmissionFormValues>(k: K, val: AdmissionFormValues[K]) =>
     setV((p) => ({ ...p, [k]: val }));

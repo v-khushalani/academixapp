@@ -65,6 +65,11 @@ export async function resolvePostAuthDestination(): Promise<{
 }> {
   const token = takePendingInvite();
   if (token) {
+    const { data: studentInvite } = await supabase.rpc("get_student_invite", { _token: token });
+    if (studentInvite?.[0]?.valid) {
+      // Claim on the welcome page so it can show the successful activation card.
+      return { to: `/welcome/${encodeURIComponent(token)}` };
+    }
     const { error } = await supabase.rpc("accept_faculty_invite", { _token: token });
     if (error) {
       // Same link shape is used for student/parent portal invites.

@@ -149,12 +149,16 @@ export const Route = createFileRoute("/api/public/attendance/punch")({
             if (when.getHours() * 60 + when.getMinutes() > cutoff) status = "late";
           }
 
-          const { data: existing, error: existingError } = await supabaseAdmin
+          let attendanceLookup = supabaseAdmin
             .from("attendance")
             .select("id")
+            .eq("institute_id", device.institute_id)
             .eq("student_id", studentId)
-            .eq("date", date)
-            .maybeSingle();
+            .eq("date", date);
+          attendanceLookup = batchId
+            ? attendanceLookup.eq("batch_id", batchId)
+            : attendanceLookup.is("batch_id", null);
+          const { data: existing, error: existingError } = await attendanceLookup.maybeSingle();
           if (existingError) {
             console.error("[attendance-device] attendance lookup failed", existingError);
             return Response.json({ error: "Attendance lookup failed" }, { status: 503 });

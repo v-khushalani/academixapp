@@ -16,6 +16,7 @@ export type ModuleKey =
   | "reports"
   | "settings"
   | "materials"
+  | "group"
   | "platform";
 
 /** Team Academix. Hidden from every institute-facing role picker. */
@@ -50,6 +51,7 @@ export const MODULE_ACCESS: Record<ModuleKey, AppRole[]> = {
   reports: ["owner", "admin", "accountant"],
   settings: ["owner", "admin"],
   materials: ["owner", "admin"],
+  group: ["owner", "admin"],
   platform: [],
 };
 
