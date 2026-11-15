@@ -1,4 +1,7 @@
-- [ ] Verify all 17 monitoring findings; fix bounded issues and prepare approval for risky data changes.
+- [x] Verify all 17 monitoring findings against current code and live database.
+- [x] Fix manual admission, active-institute role writes, group access, next walk-in reset, device attendance lookup and invite welcome flow; five browser regression tests pass.
+- [x] Close outdated findings 1, 5, 9, 14, 15, 16 and 17 without unnecessary changes.
+- [ ] Findings 3, 4, 8 and 13: coordinated payment/fee/plan migrations await approval of the plan; historical overwritten values require a trustworthy backup to restore.
 - [x] Center study material headers with class, subject and chapter.
 - [x] Share A4 pagination between preview and print; repeat bottom footer and logo watermark.
 - [x] Remove difficulty adjectives from new and existing MCQ level headings.
