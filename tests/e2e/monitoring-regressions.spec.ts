@@ -12,8 +12,8 @@ test("group overview allows owners and admins but not accountants or families", 
 test("role assignment includes the active institute", async ({ page }) => {
   await page.goto("/");
   const inserted = await page.evaluate(async () => {
-    const { supabase } = await new Function("return import('/src/integrations/supabase/client.ts')")();
-    const { userRolesApi } = await new Function("return import('/src/lib/api/index.ts')")();
+    const { supabase } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
+    const { userRolesApi } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
     let row;
     supabase.rpc = async () => ({ data: "institute-a", error: null });
     supabase.from = () => ({ insert: async value => { row = value; return { error: null }; } });
@@ -26,9 +26,9 @@ test("role assignment includes the active institute", async ({ page }) => {
 test("admission remains usable when scanning is disabled after loading", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(async () => {
-    const React = await new Function("return import('/node_modules/.vite/deps/react.js')")();
-    const { createRoot } = await new Function("return import('/node_modules/.vite/deps/react-dom_client.js')")();
-    const { AdmissionForm } = await new Function("return import('/src/components/app/admission-form.tsx')")();
+    const { React } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
+    const { createRoot } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
+    const { AdmissionForm } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
     const host = document.createElement("div"); document.body.replaceChildren(host);
     const root = createRoot(host);
     root.render(React.createElement(AdmissionForm, { aadhaarScan: true, onSubmit: () => {} }));
@@ -48,15 +48,15 @@ test("admission remains usable when scanning is disabled after loading", async (
 test("next walk-in clears prior identity and payment", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(async () => {
-    const React = await new Function("return import('/node_modules/.vite/deps/react.js')")();
-    const { createRoot } = await new Function("return import('/node_modules/.vite/deps/react-dom_client.js')")();
-    const { QueryClient, QueryClientProvider } = await new Function("return import('/node_modules/.vite/deps/@tanstack_react-query.js')")();
-    const api = await new Function("return import('/src/lib/api/index.ts')")();
+    const { React } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
+    const { createRoot } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
+    const { QueryClient, QueryClientProvider } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
+    const api = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
     api.batchesApi.list = async () => [];
     api.studentsApi.create = async input => ({ id: "regression-student", full_name: input.full_name });
     api.feesApi.create = async () => ({ id: "regression-fee" });
     api.feesApi.collect = async () => {};
-    const { WalkInDialog } = await new Function("return import('/src/components/app/walk-in-dialog.tsx')")();
+    const { WalkInDialog } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
     const host = document.createElement("div"); document.body.replaceChildren(host);
     createRoot(host).render(React.createElement(QueryClientProvider, { client: new QueryClient() }, React.createElement(WalkInDialog, { open: true, onOpenChange: () => {} })));
   });
@@ -74,8 +74,8 @@ test("next walk-in clears prior identity and payment", async ({ page }) => {
 test("valid family invite returns to welcome before being claimed", async ({ page }) => {
   await page.goto("/");
   const result = await page.evaluate(async () => {
-    const { supabase } = await new Function("return import('/src/integrations/supabase/client.ts')")();
-    const auth = await new Function("return import('/src/lib/post-auth.ts')")();
+    const { supabase } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
+    const auth = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
     const calls: string[] = [];
     supabase.rpc = async name => { calls.push(name); return { data: [{ valid: true, kind: "student" }], error: null }; };
     auth.rememberInvite("regression-invite");
