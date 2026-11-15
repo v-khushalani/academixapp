@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
 
 test("group overview allows owners and admins but not accountants or families", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.waitForTimeout(1000);
   const access = await page.evaluate(async () => {
     const { canAccess } = await new Function("return import('/src/lib/rbac.ts')")();
     return ["owner", "admin", "accountant", "student", "parent", "superadmin"].map(role => canAccess("group", [role]));
@@ -10,7 +11,8 @@ test("group overview allows owners and admins but not accountants or families", 
 });
 
 test("role assignment includes the active institute", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.waitForTimeout(1000);
   const inserted = await page.evaluate(async () => {
     const { supabase } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
     const { userRolesApi } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
@@ -24,7 +26,8 @@ test("role assignment includes the active institute", async ({ page }) => {
 });
 
 test("admission remains usable when scanning is disabled after loading", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.waitForTimeout(1000);
   await page.evaluate(async () => {
     const { React } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
     const { createRoot } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
@@ -46,7 +49,8 @@ test("admission remains usable when scanning is disabled after loading", async (
 });
 
 test("next walk-in clears prior identity and payment", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.waitForTimeout(1000);
   await page.evaluate(async () => {
     const { React } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
     const { createRoot } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
@@ -72,7 +76,8 @@ test("next walk-in clears prior identity and payment", async ({ page }) => {
 });
 
 test("valid family invite returns to welcome before being claimed", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.waitForTimeout(1000);
   const result = await page.evaluate(async () => {
     const { supabase } = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
     const auth = await new Function("return import('/tests/e2e/monitoring-harness.tsx')")();
