@@ -421,6 +421,45 @@ export type Database = {
           },
         ]
       }
+      fee_collection_requests: {
+        Row: {
+          actor: string
+          carry: boolean
+          created_at: string
+          fee_id: string
+          institute_id: string
+          method: string | null
+          received: number
+          request_id: string
+          result: Json | null
+          updated_at: string
+        }
+        Insert: {
+          actor: string
+          carry: boolean
+          created_at?: string
+          fee_id: string
+          institute_id: string
+          method?: string | null
+          received: number
+          request_id: string
+          result?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          actor?: string
+          carry?: boolean
+          created_at?: string
+          fee_id?: string
+          institute_id?: string
+          method?: string | null
+          received?: number
+          request_id?: string
+          result?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fees: {
         Row: {
           amount: number
@@ -2306,6 +2345,16 @@ export type Database = {
           _received: number
         }
         Returns: undefined
+      }
+      collect_fee_payment_atomic: {
+        Args: {
+          _carry?: boolean
+          _fee_id: string
+          _method?: string
+          _received: number
+          _request_id: string
+        }
+        Returns: Json
       }
       complete_student_onboarding:
         | {
