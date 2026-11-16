@@ -475,6 +475,7 @@ export type Database = {
           method: string | null
           paid_date: string | null
           receipt_no: string | null
+          schedule_protected: boolean
           status: Database["public"]["Enums"]["fee_status"]
           student_id: string
           updated_at: string
@@ -493,6 +494,7 @@ export type Database = {
           method?: string | null
           paid_date?: string | null
           receipt_no?: string | null
+          schedule_protected?: boolean
           status?: Database["public"]["Enums"]["fee_status"]
           student_id: string
           updated_at?: string
@@ -511,6 +513,7 @@ export type Database = {
           method?: string | null
           paid_date?: string | null
           receipt_no?: string | null
+          schedule_protected?: boolean
           status?: Database["public"]["Enums"]["fee_status"]
           student_id?: string
           updated_at?: string
