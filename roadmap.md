@@ -1,7 +1,10 @@
 - [x] Verify all 17 monitoring findings against current code and live database.
 - [x] Fix manual admission, active-institute role writes, group access, next walk-in reset, device attendance lookup and invite welcome flow; five browser regression tests pass.
 - [x] Close outdated findings 1, 5, 9, 14, 15, 16 and 17 without unnecessary changes.
-- [ ] Findings 3, 4, 8 and 13: coordinated payment/fee/plan migrations await approval of the plan; historical overwritten values require a trustworthy backup to restore.
+- [x] Apply atomic retry-safe fee collection, protect audited fee schedules, suppress new zero pending bills and stop automatic plan propagation.
+- [x] Verify compilation, five browser regressions and rollback-only database checks of schedule preservation, zero suppression and helper permissions.
+- [ ] Live accountant payment/receipt and staff plan-push verification need a permitted authenticated session; external Supabase sessions are unavailable through managed tooling.
+- [ ] Historical overwritten fee revisions and institute overrides require trustworthy backups or confirmed office records; none were invented or bulk restored.
 - [x] Center study material headers with class, subject and chapter.
 - [x] Share A4 pagination between preview and print; repeat bottom footer and logo watermark.
 - [x] Remove difficulty adjectives from new and existing MCQ level headings.
