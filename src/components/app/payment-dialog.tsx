@@ -67,6 +67,7 @@ export function PaymentDialog({
   const brand = getBrandedInstitute();
   const refresh = useRefreshLinked();
   const qrRef = useRef<HTMLDivElement>(null);
+  const paymentRequest = useRef<{ signature: string; id: string } | null>(null);
 
   // Pre-fill the pending amount whenever a new fee row is opened; after that the
   // field is fully the user's — they can clear it down to the last digit.
@@ -82,11 +83,16 @@ export function PaymentDialog({
   const [settled, setSettled] = useState(false);
   const collect = useMutation({
     mutationFn: async (v: { id: string; received: number; carry: boolean }) => {
-      await feesApi.collect(v.id, v.received, mode);
-      if (v.carry) {
-        const { error } = await supabase.rpc("settle_partial_fee" as never, { _fee_id: v.id } as never);
-        if (error) throw error;
+      const signature = `${v.id}:${v.received}:${mode}:${v.carry}`;
+      if (paymentRequest.current?.signature !== signature) {
+        paymentRequest.current = { signature, id: crypto.randomUUID() };
       }
+      const request = paymentRequest.current;
+      if (!request) throw new Error("Payment request unavailable.");
+      const { recordFeePayment } = await import("@/lib/payments.functions");
+      return recordFeePayment({ data: {
+        requestId: request.id, feeId: v.id, received: v.received, method: mode, carry: v.carry,
+      } });
     },
     onSuccess: (_d, v) => {
       toast.success(
