@@ -2356,6 +2356,17 @@ export type Database = {
         }
         Returns: Json
       }
+      collect_fee_payment_atomic_server: {
+        Args: {
+          _actor: string
+          _carry?: boolean
+          _fee_id: string
+          _method?: string
+          _received: number
+          _request_id: string
+        }
+        Returns: Json
+      }
       complete_student_onboarding:
         | {
             Args: {
