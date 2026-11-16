@@ -61,11 +61,14 @@ export function PricingAdmin() {
     const { error } = await supabase.from("plan_catalog").update(patch).eq("id", p.id);
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success(`${p.name} updated · institutes on this plan synced`);
+    toast.success(`${p.name} catalog updated · institute settings unchanged`);
     refresh();
   }
 
   async function pushPlan(p: CatalogPlan) {
+    const { data: members, error: previewError } = await supabase.from("institutes").select("name").eq("plan", p.key);
+    if (previewError) return toast.error(previewError.message);
+    if (!window.confirm(`Push ${p.name} defaults to ${(members ?? []).map(m => m.name).join(", ") || "no institutes"}? Existing limits and feature switches stay unchanged. Only missing feature defaults are added.`)) return;
     const { data, error } = await supabase.rpc("platform_push_plan", { _key: p.key });
     if (error) return toast.error(error.message);
     toast.success(`${p.name} pushed to ${data ?? 0} institute(s)`);
@@ -106,8 +109,7 @@ export function PricingAdmin() {
           Plan matrix — every value here is live
         </p>
         <p className="mt-1 text-[11px] text-muted-foreground">
-          Change a number or a module and every institute on that plan is updated instantly. 0 means
-          unlimited. Prices stay internal — the public page shows “Custom pricing”.
+          Institute agreements remain unchanged. 0 means unlimited.
         </p>
 
         <div className="mt-3 overflow-x-auto">
