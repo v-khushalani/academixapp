@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ogUrl, siteMeta } from "@/lib/site";
 import {
   ArrowRight,
   Users,
@@ -15,7 +16,9 @@ import { MarketingShell } from "@/components/marketing/marketing-shell";
 
 export const Route = createFileRoute("/for-institutes")({
   head: () => ({
+    ...siteMeta("/for-institutes"),
     meta: [
+      ...ogUrl("/for-institutes"),
       { title: "Features — Academix institute software" },
       {
         name: "description",

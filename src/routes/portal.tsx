@@ -11,6 +11,7 @@ import { FeatureLocked } from "@/components/app/feature-gate";
 export const Route = createFileRoute("/portal")({
   ssr: false,
   component: PortalLayout,
+  head: () => ({ meta: [{ name: "robots", content: "noindex" }] }),
 });
 
 const STAFF = ["owner", "admin", "receptionist", "counsellor", "accountant", "faculty"];

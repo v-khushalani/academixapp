@@ -1,12 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, CalendarCheck, IndianRupee, MessageCircle } from "lucide-react";
+import { ogUrl, siteMeta } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PostAuthGate } from "@/components/auth/post-auth-gate";
 
 export const Route = createFileRoute("/")({
   head: () => ({
+    ...siteMeta("/"),
     meta: [
+      ...ogUrl("/"),
       { title: "Academix — Run your coaching institute on one screen" },
       {
         name: "description",

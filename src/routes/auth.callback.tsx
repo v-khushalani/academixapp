@@ -7,6 +7,7 @@ export const Route = createFileRoute("/auth/callback")({
   ssr: false,
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex" },
       { title: "Signing you in — Academix" },
       { name: "description", content: "Completing your Academix sign-in." },
       { property: "og:title", content: "Signing you in — Academix" },

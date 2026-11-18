@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/teach")({
   ssr: false,
   component: TeachLayout,
+  head: () => ({ meta: [{ name: "robots", content: "noindex" }] }),
 });
 
 const NAV = [

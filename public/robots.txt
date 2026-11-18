@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /portal
+Disallow: /teach
+Disallow: /welcome
+Disallow: /join
+Disallow: /onboard
+Disallow: /pending
+Disallow: /auth
+
+Sitemap: https://academix.website/sitemap.xml

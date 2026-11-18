@@ -9,6 +9,7 @@ export const Route = createFileRoute("/pending")({
   ssr: false,
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex" },
       { title: "Waiting for approval — Academix" },
       {
         name: "description",

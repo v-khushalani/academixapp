@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Fragment, useState } from "react";
+import { ogUrl, siteMeta } from "@/lib/site";
 import { useQuery } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,9 @@ import { MarketingShell } from "@/components/marketing/marketing-shell";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
+    ...siteMeta("/pricing"),
     meta: [
+      ...ogUrl("/pricing"),
       { title: "Pricing — Academix coaching institute software" },
       {
         name: "description",

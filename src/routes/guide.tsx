@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { ogUrl, siteMeta } from "@/lib/site";
 import { Printer, ChevronDown } from "lucide-react";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,9 @@ import { GUIDE_SECTIONS } from "@/lib/guide-content";
 
 export const Route = createFileRoute("/guide")({
   head: () => ({
+    ...siteMeta("/guide"),
     meta: [
+      ...ogUrl("/guide"),
       { title: "Academix Operating Guide — Setup to Daily Use" },
       {
         name: "description",

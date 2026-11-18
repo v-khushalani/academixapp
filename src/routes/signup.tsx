@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { ogUrl, siteMeta } from "@/lib/site";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
@@ -7,7 +8,9 @@ import { GoogleButton, startGoogleSignIn } from "@/components/auth/google-button
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
+    ...siteMeta("/signup"),
     meta: [
+      ...ogUrl("/signup"),
       { title: "Create your institute — Academix" },
       {
         name: "description",

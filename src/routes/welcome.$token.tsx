@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/welcome/$token")({
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex" },
       { title: "Activate your Academix portal" },
       {
         name: "description",

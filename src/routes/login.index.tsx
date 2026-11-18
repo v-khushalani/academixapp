@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LoginCard } from "@/components/auth/login-card";
+import { ogUrl, siteMeta } from "@/lib/site";
 
 export const Route = createFileRoute("/login/")({
   head: () => ({
+    ...siteMeta("/login"),
     meta: [
+      ...ogUrl("/login"),
       { title: "Sign in — Academix" },
       {
         name: "description",

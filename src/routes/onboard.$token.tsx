@@ -9,6 +9,7 @@ import { getInstitute } from "@/lib/academy-settings";
 export const Route = createFileRoute("/onboard/$token")({
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex" },
       { title: "Complete your admission form — Academix" },
       {
         name: "description",

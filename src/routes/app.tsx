@@ -14,6 +14,7 @@ import { canAccess, type ModuleKey } from "@/lib/rbac";
 export const Route = createFileRoute("/app")({
   ssr: false,
   component: AppLayout,
+  head: () => ({ meta: [{ name: "robots", content: "noindex" }] }),
 });
 
 function AppLayout() {

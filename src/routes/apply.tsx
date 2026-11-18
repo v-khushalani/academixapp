@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
+import { ogUrl, siteMeta } from "@/lib/site";
 import { toast } from "sonner";
 import { CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +23,9 @@ export const Route = createFileRoute("/apply")({
     mode: search.mode === "enquiry" ? ("enquiry" as const) : ("admission" as const),
   }),
   head: () => ({
+    ...siteMeta("/apply"),
     meta: [
+      ...ogUrl("/apply"),
       { title: "Apply for admission — Academix" },
       {
         name: "description",

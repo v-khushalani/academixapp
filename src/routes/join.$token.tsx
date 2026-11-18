@@ -12,6 +12,7 @@ import { GoogleButton, OrDivider } from "@/components/auth/google-button";
 export const Route = createFileRoute("/join/$token")({
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex" },
       { title: "Teacher sign-up — Academix" },
       {
         name: "description",
