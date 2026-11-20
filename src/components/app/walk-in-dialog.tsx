@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { batchesApi, enrollmentsApi, feesApi, studentsApi } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
+import { Slider } from "@/components/ui/slider";
 import { batchesForClass } from "@/lib/class-match";
 import { CLASSES as GRADES } from "@/lib/constants";
 import { useRefreshLinked } from "@/hooks/use-refresh-linked";
@@ -16,7 +18,7 @@ import { getInstitute } from "@/lib/academy-settings";
 import { formatDate } from "@/lib/dates";
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
-const empty = { name: "", phone: "", cls: "", batch: "", amount: "", mode: "Cash" };
+const empty = { name: "", phone: "", cls: "", batch: "", amount: "", mode: "Cash", first: "" };
 
 /** Front-desk walk-in: 4 fields → student + batch + first payment + receipt. */
 export function WalkInDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
@@ -25,6 +27,8 @@ export function WalkInDialog({ open, onOpenChange }: { open: boolean; onOpenChan
   const [done, setDone] = useState<{ name: string; phone: string; amount: number; adm: string; batch: string } | null>(null);
   const { data: batches = [] } = useQuery({ queryKey: ["batches"], queryFn: () => batchesApi.list(), enabled: open });
   const options = useMemo(() => batchesForClass(batches, f.cls), [batches, f.cls]);
+  const batchFee = Number(batches.find((b) => b.id === f.batch)?.default_fee) || 0;
+  const firstAmt = Math.min(Number(f.first) || Math.round(batchFee / 2), batchFee);
 
   const mut = useMutation({
     mutationFn: async () => {
@@ -41,6 +45,25 @@ export function WalkInDialog({ open, onOpenChange }: { open: boolean; onOpenChan
       })) as { id: string; full_name: string } | null;
       if (!s) throw new Error("Could not save student");
       if (f.batch) await enrollmentsApi.set(s.id, [f.batch]);
+      // Custom split: set the 1st installment; the rest moves to the next one.
+      const first = Number(f.first) || 0;
+      if (f.batch && first > 0) {
+        const { data: bills } = await supabase
+          .from("fees")
+          .select("id, amount")
+          .eq("student_id", s.id)
+          .not("batch_id", "is", null)
+          .order("installment_no")
+          .limit(1);
+        const bill = bills?.[0];
+        if (bill && Number(bill.amount) !== first) {
+          const { error } = await supabase.rpc("revise_installment", {
+            _fee_id: bill.id, _new_amount: first, _carry_forward: true,
+            _reason: "Custom split at admission", _mode: "next",
+          });
+          if (error) toast.error(`Split not applied: ${error.message}`);
+        }
+      }
       const amount = Number(f.amount) || 0;
       if (amount > 0) {
         const today = new Date().toISOString().slice(0, 10);
@@ -135,6 +158,35 @@ export function WalkInDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                 </Select>
               </div>
             </div>
+            {batchFee > 0 ? (
+              <div className="space-y-2 rounded-md border border-border p-3">
+                <div className="flex justify-between text-sm">
+                  <Label>1st installment</Label>
+                  <span className="tabular-nums">
+                    {inr(firstAmt)} · 2nd {inr(batchFee - firstAmt)}
+                  </span>
+                </div>
+                <Slider
+                  min={0}
+                  max={batchFee}
+                  step={500}
+                  value={[firstAmt]}
+                  onValueChange={([v]) => setF({ ...f, first: String(v) })}
+                />
+                <Input
+                  type="number"
+                  min={0}
+                  max={batchFee}
+                  className="h-8"
+                  value={f.first}
+                  placeholder={String(Math.round(batchFee / 2))}
+                  onChange={(e) => setF({ ...f, first: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Batch fee {inr(batchFee)} before any discount. Default is the 50/50 plan.
+                </p>
+              </div>
+            ) : null}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Paid now (₹)</Label>

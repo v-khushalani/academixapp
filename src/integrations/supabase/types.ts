@@ -2684,6 +2684,15 @@ export type Database = {
       }
       set_syllabus_order: { Args: { _items: Json }; Returns: undefined }
       settle_partial_fee: { Args: { _fee_id: string }; Returns: undefined }
+      settle_student_full: {
+        Args: {
+          _discount: number
+          _method?: string
+          _reason?: string
+          _student_id: string
+        }
+        Returns: Json
+      }
       student_batch_ids: { Args: { _student_id: string }; Returns: string[] }
       student_timetable_published_at: {
         Args: { _student_id: string }

@@ -1,6 +1,6 @@
 import { useFeatures } from "@/hooks/use-features";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { QRCodeCanvas } from "qrcode.react";
 import { toast } from "sonner";
 import { Check, Copy, Download, MessageCircle, Printer, QrCode } from "lucide-react";
@@ -81,8 +81,74 @@ export function PaymentDialog({
 
   const [carry, setCarry] = useState(true);
   const [settled, setSettled] = useState(false);
+  const [fullMode, setFullMode] = useState(false);
+  const [discount, setDiscount] = useState("");
+  const [fullDone, setFullDone] = useState<{ received: number; discount: number } | null>(null);
+  useEffect(() => {
+    setFullMode(false);
+    setDiscount("");
+    setFullDone(null);
+  }, [target?.id]);
+
+  // Student's other open bills: needed for over-payment spillover and full settlement.
+  const { data: openBills = [] } = useQuery({
+    queryKey: ["fees", "open-for", target?.id],
+    enabled: !!target?.id,
+    queryFn: async () => {
+      const { data: me } = await supabase.from("fees").select("student_id").eq("id", target!.id).maybeSingle();
+      if (!me) return [];
+      const { data } = await supabase
+        .from("fees")
+        .select("id, amount, amount_paid, installment_no, status")
+        .eq("student_id", me.student_id)
+        .not("status", "in", "(paid,cancelled,waived)");
+      return (data ?? []).map((f) => ({ ...f, student_id: me.student_id }));
+    },
+  });
+  const studentId = openBills[0]?.student_id as string | undefined;
+  const totalBalance = openBills.reduce(
+    (s, f) => s + Math.max(Number(f.amount) - Number(f.amount_paid || 0), 0),
+    0,
+  );
+  const otherBalance = Math.max(totalBalance - dueDefault, 0);
+  const discountValue = Math.min(Number(discount) || 0, Math.max(totalBalance - 1, 0));
+  const overpay = value > dueDefault ? value - dueDefault : 0;
+
+  const settleFull = useMutation({
+    mutationFn: async () => {
+      if (!studentId) throw new Error("Student not found");
+      const { data, error } = await supabase.rpc("settle_student_full" as never, {
+        _student_id: studentId,
+        _discount: discountValue,
+        _method: mode,
+        _reason: discountValue ? "Full-payment discount" : null,
+      } as never);
+      if (error) throw new Error(error.message);
+      return data as unknown as { received: number; discount: number };
+    },
+    onSuccess: (r) => {
+      toast.success(`Full fee closed · ${inr(r.received)} received${r.discount ? ` · ${inr(r.discount)} discount` : ""}`);
+      refresh();
+      setFullDone(r);
+      setSettled(true);
+      setCollected(Number(r.received));
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const collect = useMutation({
     mutationFn: async (v: { id: string; received: number; carry: boolean }) => {
+      // Over-payment: grow this bill to the amount received; the extra comes off the next bill.
+      if (v.received > dueDefault) {
+        const { error } = await supabase.rpc("revise_installment", {
+          _fee_id: v.id,
+          _new_amount: Number(target!.amount_paid) + v.received,
+          _carry_forward: true,
+          _reason: "Extra paid — taken off the next installment",
+          _mode: "next",
+        });
+        if (error) throw new Error(error.message);
+      }
       const signature = `${v.id}:${v.received}:${mode}:${v.carry}`;
       if (paymentRequest.current?.signature !== signature) {
         paymentRequest.current = { signature, id: crypto.randomUUID() };
@@ -98,7 +164,9 @@ export function PaymentDialog({
       toast.success(
         v.carry
           ? `Payment recorded · balance ${inr(dueDefault - v.received)} moved forward`
-          : "Payment recorded",
+          : v.received > dueDefault
+            ? `Payment recorded · extra ${inr(v.received - dueDefault)} taken off the next installment`
+            : "Payment recorded",
       );
       refresh();
       setSettled(v.carry);
@@ -127,8 +195,10 @@ export function PaymentDialog({
     admission_no: target.admission_no,
     class_name: target.class_name,
     batch_name: target.batch_name,
-    description: target.description,
-    amount: settled ? Number(target.amount_paid) + (collected ?? 0) : Number(target.amount),
+    description: fullDone
+      ? `Full fee — all installments${fullDone.discount ? ` (discount ${inr(fullDone.discount)})` : ""}`
+      : target.description,
+    amount: settled || collected !== null && collected > dueDefault ? Number(target.amount_paid) + (collected ?? 0) : Number(target.amount),
     amount_paid: Number(target.amount_paid) + (collected ?? 0),
     due_date: target.due_date,
     paid_date: new Date().toISOString().slice(0, 10),
@@ -395,7 +465,56 @@ export function PaymentDialog({
             </p>
           )}
 
-          {value > 0 && value < dueDefault ? (
+          {otherBalance > 0 ? (
+            <div className="space-y-2 rounded-md border border-border p-3 text-sm">
+              <label className="flex items-start gap-2">
+                <Checkbox checked={fullMode} onCheckedChange={(v) => setFullMode(v === true)} />
+                <span>
+                  Pay full fee in one go <strong>({inr(totalBalance)})</strong>
+                  <span className="block text-xs text-muted-foreground">
+                    Closes every installment with one receipt.
+                  </span>
+                </span>
+              </label>
+              {fullMode ? (
+                <div className="space-y-1.5">
+                  <Label>One-time payment discount (₹)</Label>
+                  <Input
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={discount}
+                    onChange={(e) => setDiscount(e.target.value.replace(/[^\d]/g, ""))}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Collect <strong>{inr(totalBalance - discountValue)}</strong>
+                    {discountValue ? ` (${inr(discountValue)} off)` : ""}
+                  </p>
+                  <Button
+                    className="w-full gap-1.5"
+                    disabled={settleFull.isPending}
+                    onClick={() => settleFull.mutate()}
+                  >
+                    <Check className="h-4 w-4" />
+                    {settleFull.isPending ? "Saving…" : `Mark ${inr(totalBalance - discountValue)} received`}
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {!fullMode && overpay > 0 ? (
+            overpay <= otherBalance ? (
+              <p className="rounded-md border border-border bg-muted/40 p-3 text-sm">
+                Extra <strong>{inr(overpay)}</strong> will be taken off the next installment.
+              </p>
+            ) : (
+              <p className="rounded-md border border-destructive/40 p-3 text-sm text-destructive">
+                More than the total balance of {inr(totalBalance)}.
+              </p>
+            )
+          ) : null}
+
+          {!fullMode && value > 0 && value < dueDefault ? (
             <label className="flex items-start gap-2 rounded-md border border-border bg-muted/40 p-3 text-sm">
               <Checkbox checked={carry} onCheckedChange={(v) => setCarry(v === true)} />
               <span>
@@ -407,9 +526,9 @@ export function PaymentDialog({
               </span>
             </label>
           ) : null}
-          <Button
+          {fullMode ? null : <Button
             className="w-full gap-1.5"
-            disabled={collect.isPending || value <= 0}
+            disabled={collect.isPending || value <= 0 || overpay > otherBalance}
             onClick={() =>
               collect.mutate({
                 id: target.id,
@@ -420,7 +539,7 @@ export function PaymentDialog({
           >
             <Check className="h-4 w-4" />
             {collect.isPending ? "Saving…" : `Mark ${inr(value)} received`}
-          </Button>
+          </Button>}
           <p className="text-center text-xs text-muted-foreground">
             Receipt banega payment mark karne ke baad.
           </p>
