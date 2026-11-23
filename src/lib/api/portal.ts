@@ -27,7 +27,7 @@ export const portalApi = {
     if (!uid) return [];
 
     const [own, links] = await Promise.all([
-      supabase.from("students").select(PORTAL_COLS).eq("user_id", uid),
+      supabase.from("students").select(PORTAL_COLS).eq("user_id", uid).neq("status", "dropped"),
       supabase.from("parent_students").select("student_id").eq("parent_user_id", uid),
     ]);
     if (own.error) throw own.error;
@@ -36,7 +36,7 @@ export const portalApi = {
     const rows = [...(own.data ?? [])];
     const childIds = (links.data ?? []).map((r) => r.student_id).filter(Boolean);
     if (childIds.length > 0) {
-      const kids = await supabase.from("students").select(PORTAL_COLS).in("id", childIds);
+      const kids = await supabase.from("students").select(PORTAL_COLS).in("id", childIds).neq("status", "dropped");
       if (kids.error) throw kids.error;
       rows.push(...(kids.data ?? []));
     }

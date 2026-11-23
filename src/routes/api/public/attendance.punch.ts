@@ -88,6 +88,7 @@ export const Route = createFileRoute("/api/public/attendance/punch")({
           .from("students")
           .select("id, batch_id")
           .eq("institute_id", device.institute_id)
+          .not("status", "in", "(dropped,inactive)")
           .in("id", studentIds.length ? studentIds : ["00000000-0000-0000-0000-000000000000"]);
         if (studentsError) {
           console.error("[attendance-device] student lookup failed", studentsError);
@@ -121,7 +122,7 @@ export const Route = createFileRoute("/api/public/attendance/punch")({
 
         for (const p of parsed.punches) {
           const studentId = byUid.get(p.uid);
-          if (!studentId) {
+          if (!studentId || !batchOf.has(studentId)) {
             unknown++;
             continue;
           }

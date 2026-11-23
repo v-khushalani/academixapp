@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { KeyRound, Link2, MessageCircle, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
+import { KeyRound, Link2, LogOut, RotateCcw, MessageCircle, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import { StudentFormDialog } from "@/components/app/student-form-dialog";
 import { StudentInviteDialog } from "@/components/app/student-invite-dialog";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { BulkImportDialog } from "@/components/app/bulk-import-dialog";
+import { ExitStudentDialog } from "@/components/app/exit-student-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { studentsApi, batchesApi, type Student } from "@/lib/api";
 import { studentInvitesApi, portalStatus } from "@/lib/api/invites";
@@ -43,7 +44,19 @@ function StudentsPage() {
     queryFn: () => studentsApi.list(),
   });
 
-  const [status, setStatus] = useState<string>("all");
+  const [status, setStatus] = useState<string>("current");
+  const [exiting, setExiting] = useState<Row | null>(null);
+  const readmit = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.rpc("readmit_student" as never, { _student_id: id } as never);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      toast.success("Student re-admitted");
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const [cls, setCls] = useState<string>("all");
   const [batchId, setBatchId] = useState<string>("all");
   const [approval, setApproval] = useState<string>("all");
@@ -92,7 +105,7 @@ function StudentsPage() {
   const filtered = useMemo(
     () =>
       data.filter((s) => {
-        if (status !== "all" && s.status !== status) return false;
+        if (status === "current" ? s.status === "dropped" || s.status === "inactive" : status !== "all" && s.status !== status) return false;
         if (cls !== "all" && s.class !== cls) return false;
         if (batchId !== "all" && (s.batch_id ?? "none") !== batchId) return false;
         if (approval !== "all" && s.approval_status !== approval) return false;
@@ -110,7 +123,7 @@ function StudentsPage() {
   );
 
   const activeFilters =
-    (status !== "all" ? 1 : 0) +
+    (status !== "current" ? 1 : 0) +
     (cls !== "all" ? 1 : 0) +
     (batchId !== "all" ? 1 : 0) +
     (approval !== "all" ? 1 : 0) +
@@ -270,6 +283,27 @@ function StudentsPage() {
             >
               <Pencil className="h-4 w-4" />
             </Button>
+            {r.status === "dropped" ? (
+              <Button
+                size="icon"
+                variant="ghost"
+                title="Re-admit"
+                disabled={!canEdit || readmit.isPending}
+                onClick={() => readmit.mutate(r.id)}
+              >
+                <RotateCcw className="h-4 w-4 text-success" />
+              </Button>
+            ) : (
+              <Button
+                size="icon"
+                variant="ghost"
+                title="Drop / discontinue"
+                disabled={!canEdit}
+                onClick={() => setExiting(r)}
+              >
+                <LogOut className="h-4 w-4 text-warning" />
+              </Button>
+            )}
             <Button
               size="icon"
               variant="ghost"
@@ -317,6 +351,7 @@ function StudentsPage() {
         }
       />
       <PageBody>
+        <ExitStudentDialog student={exiting} onOpenChange={(o) => !o && setExiting(null)} />
         <DataTable
           rows={filtered}
           columns={columns}
@@ -360,6 +395,7 @@ function StudentsPage() {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="current">Current students</SelectItem>
                   <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>

@@ -2414,6 +2414,15 @@ export type Database = {
       }
       current_institute_id: { Args: never; Returns: string }
       default_institute_id: { Args: never; Returns: string }
+      exit_student: {
+        Args: {
+          _collect?: number
+          _method?: string
+          _reason?: string
+          _student_id: string
+        }
+        Returns: Json
+      }
       faculty_directory: {
         Args: never
         Returns: {
@@ -2652,6 +2661,7 @@ export type Database = {
         }[]
       }
       publish_timetable: { Args: never; Returns: number }
+      readmit_student: { Args: { _student_id: string }; Returns: undefined }
       reorder_syllabus_chapters: {
         Args: { _ids: string[] }
         Returns: undefined

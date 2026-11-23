@@ -420,7 +420,7 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
                   <SelectItem value="alumni">Alumni</SelectItem>
-                  <SelectItem value="dropped">Dropped</SelectItem>
+                  {form.status === "dropped" && <SelectItem value="dropped">Dropped</SelectItem>}
                 </SelectContent>
               </Select>
             </Field>
