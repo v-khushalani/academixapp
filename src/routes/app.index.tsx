@@ -16,7 +16,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { canAccess } from "@/lib/rbac";
 import { getInstitute } from "@/lib/academy-settings";
 import { AbsentAlerts } from "@/components/app/absent-alerts";
-import { SetupChecklist } from "@/components/app/setup-checklist";
 import { Metric, Panel, inr } from "@/components/app/dashboard/dashboard-cards";
 import { formatDate } from "@/lib/dates";
 
@@ -70,17 +69,9 @@ function DashboardPage() {
         description={`${institute} · ${formatDate(new Date())}`}
       />
       <PageBody>
-        <SetupChecklist
-          signals={{
-            batches: data?.batches ?? 0,
-            students: data?.students ?? 0,
-            firstActionDone:
-              (today?.batchesMarked ?? 0) > 0 || (money?.collectedThisMonth ?? 0) > 0,
-          }}
-        />
 
         {/* Four plain stats — same card treatment as the rest of the app. */}
-        <section className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatCard
             label="Students"
             value={dash ?? String(data?.students ?? 0)}
@@ -103,7 +94,7 @@ function DashboardPage() {
           <StatCard
             label="Absent today"
             value={dash ?? String(today?.absent ?? 0)}
-            sub={today?.absent ? "WhatsApp-ready below" : "All present"}
+            sub={today?.absent ? "Absent" : "All present"}
             to="/app/attendance"
             tone={(today?.absent ?? 0) > 0 ? "danger" : "default"}
           />
@@ -125,7 +116,7 @@ function DashboardPage() {
         </section>
 
         {/* Anything waiting on a human. */}
-        <Panel title="Needs you" className="mt-6">
+        <Panel title="Needs you" className="mt-4">
           <div className="space-y-2">
             <ActionRow
               icon={UserPlus}

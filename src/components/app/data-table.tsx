@@ -105,9 +105,9 @@ export function DataTable<T extends { id: string | number }>({
   }
 
   return (
-    <div>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="relative w-full flex-1 sm:min-w-[180px]">
+    <div className="min-w-0">
+      <div className="mb-3 flex min-w-0 flex-wrap items-center gap-2">
+        <div className="relative w-full min-w-0 basis-full sm:min-w-[180px] sm:flex-1 sm:basis-auto">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={q}
@@ -159,10 +159,10 @@ export function DataTable<T extends { id: string | number }>({
               onClick={onRowClick ? () => onRowClick(r) : undefined}
               className={`rounded-lg border border-border bg-card p-3 ${onRowClick ? "active:bg-muted/40" : ""}`}
             >
-              <div className="text-sm font-medium text-foreground">
-                {columns[0].cell
+              <div className="min-w-0 break-words text-sm font-medium text-foreground">
+                {columns[0]?.cell
                   ? columns[0].cell(r)
-                  : ((r as Record<string, unknown>)[columns[0].key] as ReactNode)}
+                  : columns[0] ? ((r as Record<string, unknown>)[columns[0].key] as ReactNode) : null}
               </div>
               <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
                 {columns.slice(1).map((c) => (
@@ -170,7 +170,7 @@ export function DataTable<T extends { id: string | number }>({
                     <dt className="text-[10px] uppercase tracking-wide text-muted-foreground">
                       {c.header}
                     </dt>
-                    <dd className="truncate text-sm">
+                    <dd className="min-w-0 break-words text-sm [&>div]:flex-wrap">
                       {c.cell ? c.cell(r) : ((r as Record<string, unknown>)[c.key] as ReactNode)}
                     </dd>
                   </div>
@@ -208,12 +208,12 @@ export function DataTable<T extends { id: string | number }>({
       </div>
 
       <div className="hidden overflow-hidden rounded-lg border border-border bg-card md:block">
-        <div className="overflow-x-auto">
+        <div className="max-w-full overflow-x-auto overscroll-x-contain">
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
               <tr>
                 {columns.map((c) => (
-                  <th key={c.key} className={`px-4 py-3 ${c.className ?? ""}`}>
+                  <th key={c.key} className={`px-3 py-2.5 ${c.className ?? ""}`}>
                     {c.sortable ? (
                       <button
                         onClick={() => toggleSort(c.key)}
@@ -264,7 +264,7 @@ export function DataTable<T extends { id: string | number }>({
                     onClick={onRowClick ? () => onRowClick(r) : undefined}
                   >
                     {columns.map((c) => (
-                      <td key={c.key} className={`px-4 py-3 ${c.className ?? ""}`}>
+                      <td key={c.key} className={`px-3 py-2.5 ${c.className ?? ""}`}>
                         {c.cell ? c.cell(r) : ((r as Record<string, unknown>)[c.key] as ReactNode)}
                       </td>
                     ))}

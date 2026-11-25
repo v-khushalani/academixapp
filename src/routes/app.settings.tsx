@@ -51,11 +51,11 @@ function SettingsPage() {
     <>
       <PageHeader
         title="Settings"
-        description="Configure your academy — everything here is live."
+        
       />
       <PageBody>
         <Tabs defaultValue="institute" className="w-full">
-          <TabsList className="mb-4 flex-wrap">
+          <TabsList className="mb-3 flex h-auto w-full flex-wrap justify-start gap-1">
             <TabsTrigger value="institute">Institute</TabsTrigger>
             <TabsTrigger value="academics">Academics</TabsTrigger>
             <TabsTrigger value="team">Team &amp; access</TabsTrigger>
@@ -165,7 +165,7 @@ function InstitutePanel() {
   return (
     <Card
       title="Institute details"
-      description="Used across receipts, WhatsApp messages, and printed reports."
+      
     >
       <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
         {!canUseOwnBranding() && (
@@ -183,11 +183,9 @@ function InstitutePanel() {
               <span className="text-xs text-muted-foreground">No logo</span>
             )}
           </div>
-          <div className="space-y-1.5">
+          <div className="min-w-0 space-y-1.5">
             <p className="text-sm font-medium">Institute logo</p>
-            <p className="text-xs text-muted-foreground">
-              Shown in the sidebar, receipts and shared reports. PNG or JPG, square works best.
-            </p>
+
             <div className="flex gap-2">
               <Input
                 type="file"
@@ -246,7 +244,7 @@ function InstitutePanel() {
           <Input
             value={s.upi_name}
             onChange={(e) => setS({ ...s, upi_name: e.target.value })}
-            placeholder="Shown inside the payer's UPI app"
+            placeholder="Payee name"
           />
         </F>
         <F label="Address" cls="sm:col-span-2">
@@ -325,7 +323,7 @@ function RoomsPanel() {
   return (
     <Card
       title="Classrooms"
-      description="Parallel batches run in separate rooms. Rooms are never tied to a teacher — you attach them per class in the timetable."
+      
     >
       <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2">
         <div className="text-sm">
@@ -448,7 +446,7 @@ function InstallmentDefaultsPanel() {
   return (
     <Card
       title="Installment plan (default)"
-      description="How every batch fee is split and when each part falls due. A batch can override this from its own edit dialog."
+      
     >
       <InstallmentPlanEditor plan={plan} onChange={setPlan} />
       <div className="mt-3 flex flex-wrap gap-2">
@@ -459,9 +457,7 @@ function InstallmentDefaultsPanel() {
           Reset to 50 / 50
         </Button>
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">
-        New admissions get one bill per installment with the due date calculated automatically.
-      </p>
+
     </Card>
   );
 }
@@ -491,7 +487,7 @@ function ShiftTimingsPanel() {
   return (
     <Card
       title="Class timings"
-      description="Default morning and evening windows used by the timetable. Change them any time — existing classes are untouched."
+      
     >
       <div className="grid gap-4 sm:grid-cols-2">
         {(["morning", "evening"] as const).map((k) => (
@@ -580,16 +576,12 @@ function FeesPanelInner() {
   return (
     <Card
       title="Fee structures"
-      description="Set every batch's fee right here. Each student in the batch inherits it automatically; scholarship % and flat discount stay per student."
+      
     >
       {isLoading && <p className="text-xs text-muted-foreground">Loading batches…</p>}
       {!isLoading && batches.length === 0 && (
         <p className="text-sm text-muted-foreground">
-          No batches yet — create one on the{" "}
-          <Link to="/app/batches" className="font-medium text-primary underline">
-            Batches
-          </Link>{" "}
-          page.
+No batches yet.
         </p>
       )}
       {batches.length > 0 && (
@@ -629,9 +621,7 @@ function FeesPanelInner() {
                 Reset
               </Button>
             )}
-            <p className="text-xs text-muted-foreground">
-              Per-student scholarship / discount lives on the student profile.
-            </p>
+
           </div>
         </>
       )}
@@ -750,7 +740,7 @@ function BrandingPanel() {
   return (
     <Card
       title="Branding"
-      description="Primary colour applies live across the app. Leave empty to use the default theme colour."
+      
     >
       <div className="flex flex-wrap items-end gap-3">
         <F label="Primary colour">
@@ -835,7 +825,7 @@ function ReceiptsPanel() {
   return (
     <Card
       title="Fee receipt template"
-      description="Pick a layout — the preview below uses sample data. Every download and WhatsApp share uses the saved template."
+      
     >
       <div className="grid gap-4 lg:grid-cols-[minmax(0,18rem)_1fr]">
         <div className="space-y-2">
@@ -892,7 +882,7 @@ function TemplatesPanel() {
   return (
     <Card
       title="WhatsApp message templates"
-      description="Placeholders like {{student_name}}, {{parent_name}}, {{batch_name}}, {{amount_due}}, {{due_date}} are auto-filled at send time."
+      
     >
       <div className="space-y-4">
         {keys.map((k) => (

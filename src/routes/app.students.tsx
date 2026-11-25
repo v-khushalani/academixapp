@@ -471,7 +471,7 @@ function StudentsPage() {
         open={importOpen}
         onOpenChange={setImportOpen}
         title="Import students"
-        description="Upload a CSV to add many students at once. Download the template first so the column names match."
+        description=""
         templateName="students"
         fields={[
           { key: "full_name", label: "Full name", required: true },

@@ -343,7 +343,7 @@ function FeesPage() {
     <>
       <PageHeader
         title="Fees"
-        description="Collect faster. Chase smarter."
+        
         actions={
           <div className="flex gap-2">
             {chaseRows.length > 0 && (
@@ -446,7 +446,7 @@ function FeesPage() {
         open={queueOpen}
         onOpenChange={setQueueOpen}
         title="Fee reminder queue"
-        description="Due and overdue bills, oldest first. One tap per parent."
+        
         items={chaseRows.map((r) => ({
           id: r.id,
           name: r.student?.full_name ?? "Student",

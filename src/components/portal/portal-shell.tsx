@@ -116,9 +116,9 @@ export function PortalShell({ children }: { children: ReactNode }) {
 
   return (
     <PortalContext.Provider value={value}>
-      <div className="flex min-h-screen flex-col bg-background pb-16 md:pb-0">
+      <div className="flex min-h-dvh min-w-0 flex-col bg-background pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
         <header className="sticky top-0 z-30 border-b border-border bg-card/90 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-3">
+          <div className="mx-auto grid w-full max-w-5xl grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-2 px-3 py-3 sm:flex sm:gap-3 sm:px-4">
             <BrandMark brand={brand} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold leading-tight">{institute}</p>
@@ -128,7 +128,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
             </div>
             {students.length > 1 && (
               <Select value={student?.id ?? ""} onValueChange={value.setStudentId}>
-                <SelectTrigger className="h-9 w-[9.5rem] text-sm">
+                <SelectTrigger className="col-span-4 row-start-2 h-9 w-full min-w-0 text-sm sm:w-[9.5rem] sm:shrink-0">
                   <SelectValue placeholder="Select child" />
                 </SelectTrigger>
                 <SelectContent>
@@ -170,7 +170,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
           </nav>
         </header>
 
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5">{children}</main>
+        <main className="mx-auto w-full min-w-0 max-w-5xl flex-1 px-3 py-3 sm:px-4 sm:py-4">{children}</main>
 
         <footer className="mx-auto w-full max-w-5xl px-4 pb-4 pt-2">
           <div className="flex flex-col items-center gap-2">
@@ -215,11 +215,11 @@ export function PortalCard({
 }) {
   return (
     <section className="overflow-hidden rounded-xl border border-border bg-card">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <h2 className="text-sm font-semibold">{title}</h2>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-border px-3 py-2.5 sm:px-4">
+        <h2 className="min-w-0 break-words text-sm font-semibold">{title}</h2>
         {action}
       </div>
-      <div className="p-4">{children}</div>
+      <div className="min-w-0 p-3 sm:p-4">{children}</div>
     </section>
   );
 }

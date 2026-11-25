@@ -120,7 +120,7 @@ function ExpensesPage() {
     <>
       <PageHeader
         title="Expenses"
-        description="Salaries, rent, bills — every rupee going out, in one ledger."
+        
         actions={
           canWrite ? (
             <div className="flex gap-2">

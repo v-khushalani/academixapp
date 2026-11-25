@@ -481,7 +481,7 @@ function TimetablePage() {
     <>
       <PageHeader
         title="Timetable"
-        description="Build the week once. Teachers get their day sheet, students get their class timetable — both from the same plan."
+        
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {canWrite && (
@@ -517,9 +517,7 @@ function TimetablePage() {
                     </DialogHeader>
                     <p className="text-sm text-muted-foreground">
                       {daySlots.length} class{daySlots.length === 1 ? "" : "es"} on the selected day
-                      will be removed from the draft. Other days stay as they are. Attendance,
-                      syllabus logs and past records are never deleted. Students keep seeing the last
-                      published timetable until you press Publish.
+                      will be removed from the draft. Other days and past records stay unchanged.
                     </p>
                     <DialogFooter>
                       <Button variant="outline" onClick={() => setConfirmClear(false)}>
@@ -621,9 +619,7 @@ function TimetablePage() {
                   </button>
                 ))}
               </div>
-              <p className="ml-auto text-[11px] text-muted-foreground">
-                Timings come from Settings → Classrooms &amp; timings
-              </p>
+
               {canWrite && (
                 <Button
                   size="sm"
@@ -868,7 +864,7 @@ function PlanRail({
           </button>
         ))}
       </div>
-      <div className="flex max-h-[46vh] flex-wrap content-start gap-1.5 overflow-y-auto p-2.5">
+      <div className="flex max-h-48 flex-wrap content-start gap-1.5 overflow-y-auto overscroll-contain p-2.5 lg:max-h-[min(32rem,calc(100dvh-16rem))]">
         {step === 0 &&
           (batches.length ? (
             batches.map((b) => {

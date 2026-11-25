@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { BarChart3, Download, FileText, MessageCircle } from "lucide-react";
+import { Download, FileText, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { openWhatsApp, renderTemplate } from "@/lib/whatsapp";
 import { getInstitute, getTemplates } from "@/lib/academy-settings";
@@ -36,7 +36,7 @@ function ReportsPage() {
 
   return (
     <>
-      <PageHeader title="Reports" description="Revenue, attendance and admissions with export." />
+      <PageHeader title="Reports"  />
       <PageBody>
         <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-3">
           <div className="space-y-1.5">
@@ -57,9 +57,7 @@ function ReportsPage() {
               onChange={(e) => setTo(e.target.value)}
             />
           </div>
-          <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
-            <BarChart3 className="h-4 w-4" /> Filters apply to all reports below
-          </div>
+
         </div>
 
         <Tabs defaultValue="revenue">

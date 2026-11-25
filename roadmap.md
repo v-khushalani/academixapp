@@ -9,3 +9,7 @@
 - [x] Share A4 pagination between preview and print; repeat bottom footer and logo watermark.
 - [x] Remove difficulty adjectives from new and existing MCQ level headings.
 - [x] Verify multi-page content and printing with browser/PDF fixtures and front/back regression test; actual institute drafts remain unverified because hosted account access is unavailable.
+- [ ] Audit page layouts and instructional copy across admin, teacher, family and public screens.
+- [ ] Tighten shared spacing, mobile safe areas, table layouts and dialog sizing without hiding real content.
+- [ ] Remove training-only guidance while retaining labels, statuses, errors and financial/destructive confirmations.
+- [ ] Verify mobile, iPad and desktop layouts; authenticated screens require an available institute session.

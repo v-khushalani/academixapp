@@ -183,7 +183,7 @@ function SyllabusPage() {
     <>
       <PageHeader
         title="Syllabus"
-        description="Chapter-wise coverage per batch — what is running now and what is still left."
+        
         actions={
           <>
             <Button variant="outline" className="gap-1.5" onClick={() => setCopyOpen(true)}>

@@ -178,7 +178,7 @@ function AttendancePage() {
     <>
       <PageHeader
         title="Attendance"
-        description="Mark today’s attendance in seconds."
+        
         actions={
           canWrite && roster.length > 0 ? (
             <Button
@@ -376,7 +376,7 @@ function AttendancePage() {
         open={Boolean(queueIds)}
         onOpenChange={(v) => !v && setQueueIds(null)}
         title={`${queueIds?.length ?? 0} absent today`}
-        description="Notify parents on WhatsApp now? One tap per parent."
+        
         items={(queueIds ?? []).flatMap((id) => {
           const s = roster.find((r) => r.id === id);
           return s ? [{ id, name: s.full_name, sub: batchName }] : [];

@@ -17,3 +17,4 @@
 - Protect the whole student's fee schedule after audited adjustments and skip automatic rebuilds of protected schedules; preserving negotiated amounts takes precedence over regeneration.
 - Plan catalog edits never propagate automatically; explicit pushes fill missing feature defaults and preserve institute limits and switches.
 - Study material preview and print use the same browser-measured A4 page shells and isolated document styles; keep pagination in the browser-safe material-pages module so fonts, equations, headers and footers use identical measurements.
+- Keep screen spacing and safe-area reservations in shared shells, headers, tables and dialogs; preserve natural document scrolling for long content instead of clipping pages to viewport height.

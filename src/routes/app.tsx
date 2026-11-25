@@ -56,11 +56,11 @@ function AppLayout() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
+      <div className="flex min-h-dvh w-full min-w-0 bg-background">
         <AppSidebar />
-        <SidebarInset className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
+        <SidebarInset className="flex min-w-0 flex-1 flex-col pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
           <TopBar />
-          <main className="flex-1">
+          <main className="min-w-0 flex-1">
             <FeatureGate pathname={pathname}>
               <Outlet />
             </FeatureGate>

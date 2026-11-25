@@ -70,7 +70,7 @@ function TeachLayout() {
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
 
   return (
-    <div className="flex min-h-screen flex-col bg-background pb-16 md:pb-0">
+    <div className="flex min-h-dvh min-w-0 flex-col bg-background pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
       <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-card px-4 py-3">
         <BrandMark brand={brand} size={32} />
         <div className="min-w-0 flex-1">
@@ -93,7 +93,7 @@ function TeachLayout() {
         </Button>
       </header>
 
-      <main className="flex-1">
+      <main className="min-w-0 flex-1">
         {locked ? <FeatureLocked feature={locked} backTo="/teach" /> : <Outlet />}
       </main>
       <footer className="px-4 pb-4 pt-2">

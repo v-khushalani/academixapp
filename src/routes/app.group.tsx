@@ -59,7 +59,7 @@ function GroupPage() {
     <>
       <PageHeader
         title="Group overview"
-        description="Head office and every branch, side by side."
+        
       />
       <PageBody>
         <div className="grid gap-3 sm:grid-cols-4">

@@ -73,7 +73,7 @@ function AdmissionsPage() {
     <>
       <PageHeader
         title="Admissions"
-        description="One QR → parent fills the form → you approve and give a batch. Everything not admitted stays in follow-ups."
+        
         actions={
           canWrite ? (
             <Button size="sm" className="gap-1.5" onClick={() => setWalkIn(true)}>
@@ -485,10 +485,7 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
                 </SelectContent>
               </Select>
             </div>
-            <p className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
-              The batch fee is applied automatically once admitted. Payments, scholarship and
-              discount are handled from the Fees page.
-            </p>
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAdmitting(null)}>
@@ -535,7 +532,7 @@ function CredentialsDialog({
           <DialogTitle>Portal logins created</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          Share these credentials over WhatsApp. Passwords are shown only once.
+          Passwords are shown only once.
         </p>
         <div className="space-y-3">
           {accounts.map((a) => (

@@ -135,7 +135,7 @@ function StudentDetail() {
                 value="overview"
                 className="mt-4 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground"
               >
-                Overview of this student’s recent activity will appear here as data is added.
+                No recent activity.
               </TabsContent>
               <TabsContent
                 value="attendance"
@@ -147,13 +147,13 @@ function StudentDetail() {
                 value="fees"
                 className="mt-4 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground"
               >
-                Fee history — record payments from the Fees page.
+                Fee history
               </TabsContent>
               <TabsContent
                 value="performance"
                 className="mt-4 rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground"
               >
-                Test results — added automatically from the Tests page.
+                Test results
               </TabsContent>
             </Tabs>
           </div>

@@ -68,7 +68,7 @@ function MessagesPage() {
     <>
       <PageHeader
         title="Messages"
-        description="Every WhatsApp message Academix has prepared for you, and who it went to."
+        
         actions={
           <Button className="gap-1.5" onClick={() => setComposeOpen(true)}>
             <Send className="h-4 w-4" /> Send message
@@ -349,11 +349,7 @@ function ComposeDialog({
         <div className="space-y-1.5">
           <Label htmlFor="msg-body">Message</Label>
           <Textarea id="msg-body" rows={6} value={body} onChange={(e) => setBody(e.target.value)} />
-          <p className="text-[11px] text-muted-foreground">
-            {
-              "{{student_name}}, {{parent_name}}, {{batch_name}}, {{academy_name}} fill in automatically."
-            }
-          </p>
+
         </div>
 
         <div className="space-y-1.5">

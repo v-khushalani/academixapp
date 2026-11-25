@@ -170,7 +170,7 @@ function MaterialsPage() {
 
   return (
     <>
-      <PageHeader title="Study Material Engine" description="Upload sources, draft original branded notes, questions and formula sheets." />
+      <PageHeader title="Study Material Engine"  />
       <PageBody>
         <Tabs defaultValue="library">
           <TabsList>
@@ -200,7 +200,7 @@ function MaterialsPage() {
                 </Select>
               </div>
               <div className="sm:col-span-3">
-                <Label>Reference text (optional — paste chapter text or topics)</Label>
+                <Label>Reference text (optional)</Label>
                 <Textarea rows={3} value={form.extracted_text} onChange={(e) => setForm({ ...form, extracted_text: e.target.value })} />
               </div>
               <div className="sm:col-span-3 flex justify-end">
@@ -238,7 +238,7 @@ function MaterialsPage() {
           </TabsContent>
 
           <TabsContent value="outputs" className="space-y-2">
-            {outputs.data?.length === 0 && <p className="text-sm text-muted-foreground">Generate from a source to see drafts here.</p>}
+            {outputs.data?.length === 0 && <p className="text-sm text-muted-foreground">No drafts yet.</p>}
             {outputs.data?.map((o) => (
               <OutputCard key={o.id} o={o} open={open === o.id} onToggle={() => setOpen(open === o.id ? null : o.id)}
                 onSave={(c) => save(o.id, c)} onApprove={() => approve(o)} onPrint={(c) => print(o, c)} onDelete={() => del("material_outputs", o.id)} />
@@ -287,7 +287,7 @@ function OutputCard({ o, open, onToggle, onSave, onApprove, onPrint, onDelete }:
             {isSlides(text) ? <SlidesPreview brand={brand} content={text} /> : <MaterialPreview brand={brand} content={text} />}
           </TabsContent>
           <TabsContent value="edit" className="space-y-2">
-            {isSlides(text) && <p className="text-xs text-muted-foreground">Each "## Title" line is one slide. "- " lines are points, "&gt; " is the highlighted tip. Save, then Download PPT — the file also opens fully editable in PowerPoint / Google Slides.</p>}
+
             <Textarea rows={18} value={text} onChange={(e) => setText(e.target.value)} className="font-mono text-xs" />
             <div className="flex justify-end"><Button size="sm" onClick={() => onSave(text)}>Save edits</Button></div>
           </TabsContent>
