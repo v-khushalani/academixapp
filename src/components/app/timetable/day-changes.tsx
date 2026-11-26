@@ -119,10 +119,6 @@ export function DayChanges({
         )}
       </div>
 
-      <p className="text-[11px] text-muted-foreground">
-        Change only this date. The weekly plan stays the same for every other day.
-      </p>
-
       {daySlots.length === 0 && extras.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
           No classes planned for {DAY_FULL[weekday]}.

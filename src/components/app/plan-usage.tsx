@@ -19,8 +19,7 @@ export function PlanUsageCard() {
         </a>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">
-        {plan?.tagline} Limits are advisory — nothing stops working, we&apos;ll just talk when you
-        cross one.
+        {plan?.tagline}
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {rows.map((r) => {

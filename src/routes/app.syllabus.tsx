@@ -231,8 +231,7 @@ function SyllabusPage() {
               {!isLoading && groups.length === 0 && (
                 <div className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">
                   <BookOpen className="mb-2 h-5 w-5" />
-                  No chapters for {batch?.name} yet. Add the subject-wise chapter list once and
-                  teachers will keep it updated from their phones.
+                  No chapters for {batch?.name} yet.
                 </div>
               )}
               {groups.map((g) => (
@@ -337,9 +336,6 @@ function SyllabusPage() {
                   "# Part A: Mechanics\nUnits and Measurements\nKinematics\n# Part B: Optics\nRay Optics"
                 }
               />
-              <p className="text-[11px] text-muted-foreground">
-                Start a line with # to begin a new section — numbering restarts at 1 inside it.
-              </p>
             </F>
 
           </div>

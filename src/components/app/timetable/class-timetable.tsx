@@ -192,10 +192,6 @@ export function ClassTimetable({ slots, batches }: { slots: SlotRow[]; batches: 
           </table>
         </div>
       )}
-      <p className="text-[11px] text-muted-foreground">
-        This is the student/parent view — same schedule as the weekly plan, laid out like a school
-        timetable. Share it on WhatsApp or print it for the notice board.
-      </p>
     </div>
   );
 }

@@ -166,7 +166,7 @@ export function PendingQueue() {
           <li className="px-4 py-10 text-center text-sm text-muted-foreground">Loading…</li>
         ) : visible.length === 0 ? (
           <li className="px-4 py-10 text-center text-sm text-muted-foreground">
-            Nothing pending. Absent alerts and fee reminders show up here automatically.
+            Nothing pending.
           </li>
         ) : (
           visible.map((i) => (

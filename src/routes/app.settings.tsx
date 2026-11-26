@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { PageHeader, PageBody } from "@/components/app/page-header";
-import { PlanUsageCard, LoginsHelpCard } from "@/components/app/plan-usage";
+import { PlanUsageCard } from "@/components/app/plan-usage";
 import { DevicesPanel } from "@/components/app/devices-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -77,7 +77,7 @@ function SettingsPage() {
             <div className="space-y-4">
               <UsersPanel />
               <PlanUsageCard />
-              <LoginsHelpCard />
+              
               {getInstitute().attendance_devices ? (
                 <DevicesPanel />
               ) : (

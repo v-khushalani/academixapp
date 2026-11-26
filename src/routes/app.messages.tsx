@@ -307,9 +307,7 @@ function ComposeDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Send a message</DialogTitle>
-          <DialogDescription>
-            WhatsApp opens with the text ready — you press send. Each one is recorded here.
-          </DialogDescription>
+          <DialogDescription className="sr-only">Send message</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-3 sm:grid-cols-2">

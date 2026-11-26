@@ -112,9 +112,6 @@ function TeachSyllabus() {
   return (
     <div className="mx-auto w-full max-w-3xl p-4 sm:p-6">
       <h1 className="text-xl font-semibold">My syllabus</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Tap a chapter to mark what you are teaching now, and tick it when it is finished.
-      </p>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Select value={batchId} onValueChange={setBatchId}>

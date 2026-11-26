@@ -313,10 +313,7 @@ export function SubjectCard({
         <DialogContent className="max-h-[85dvh] max-w-md overflow-y-auto">
           <DialogHeader>
             <DialogTitle>New section in {group.subject}</DialogTitle>
-            <DialogDescription>
-              Pick the chapters that belong to it — numbering restarts at 1 inside a section, and
-              you can drag more chapters in afterwards.
-            </DialogDescription>
+            <DialogDescription className="sr-only">Choose chapters</DialogDescription>
           </DialogHeader>
           <Input
             value={sectionName}

@@ -373,9 +373,6 @@ function ApplicationsList({ canWrite }: { canWrite: boolean }) {
     return (
       <div className="rounded-lg border border-dashed border-border bg-card p-8 text-center">
         <p className="text-sm font-medium">No pending applications</p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Share the QR from the "Public QR" tab to start collecting applications.
-        </p>
       </div>
     );
 
@@ -662,9 +659,6 @@ function QrPanel() {
     <div className="mx-auto w-full max-w-3xl">
       <div className="mb-5 text-center">
         <h3 className="text-base font-semibold">Print these two codes at your front desk</h3>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Parents scan with any phone camera — the form opens straight away.
-        </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <QrCard

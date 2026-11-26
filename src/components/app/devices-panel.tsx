@@ -135,10 +135,7 @@ export function DevicesPanel() {
     <div className="space-y-4">
       <div className="rounded-lg border border-border bg-card p-5">
         <h3 className="text-sm font-semibold">Attendance machines</h3>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Works with ESSL, Mantra, Realtime and any machine that can push punches to a URL. Point
-          the device at the address below and paste its token.
-        </p>
+
         <div className="mt-3 flex gap-2">
           <Input readOnly value={ingestUrl} className="text-xs" />
           <Button
@@ -234,10 +231,7 @@ export function DevicesPanel() {
 
       <div className="rounded-lg border border-border bg-card p-5">
         <h3 className="text-sm font-semibold">Cards & fingerprints</h3>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Tap a card on the reader, copy the ID it shows, and link it to a student. First punch of
-          the day marks present; a punch after the batch starts marks late.
-        </p>
+
         <form
           className="mt-3 grid gap-3 sm:grid-cols-3"
           onSubmit={(e: FormEvent) => {

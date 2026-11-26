@@ -76,9 +76,7 @@ export function AbsentAlerts() {
             <UserX className="h-4 w-4 text-destructive" />
             {pending.length} absent today
           </DialogTitle>
-          <DialogDescription>
-            Tap to message each parent on WhatsApp. Messaged rows disappear from this list.
-          </DialogDescription>
+          <DialogDescription className="sr-only">Absent students</DialogDescription>
         </DialogHeader>
         <ul className="max-h-[50vh] divide-y divide-border overflow-y-auto">
           {pending.map((r) => (

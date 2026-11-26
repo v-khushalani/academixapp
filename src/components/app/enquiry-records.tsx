@@ -66,10 +66,6 @@ export function EnquiryRecords({ canWrite }: { canWrite: boolean }) {
       {rows.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border bg-card p-8 text-center">
           <p className="text-sm font-medium">No enquiry records yet</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Walk-ins who chose "just enquiring", and applications you reject, land here for
-            follow-up.
-          </p>
         </div>
       ) : (
         <div className="grid gap-3 md:grid-cols-2">

@@ -140,10 +140,7 @@ export function BatchFormDialog({ open, onOpenChange, batch }: Props) {
               value={f.default_fee ?? 0}
               onChange={(e) => setF({ ...f, default_fee: Number(e.target.value) })}
             />
-            <p className="text-[11px] text-muted-foreground">
-              Auto-applied to every student in this batch. Scholarship/discount per student adjusts
-              it.
-            </p>
+
           </F>
           <F label="Installments" cls="sm:col-span-2">
             {customPlan ? (

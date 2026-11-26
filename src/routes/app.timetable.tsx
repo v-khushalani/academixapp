@@ -939,10 +939,6 @@ function PlanRail({
             </p>
           ))}
       </div>
-      <p className="border-t border-border px-2.5 py-2 text-[10px] text-muted-foreground">
-        Drag onto the board — no long press needed. Step 1 fills the period, steps 2 and 3 drop onto
-        that class. Drag a placed class to another period to move it, or back here to unassign.
-      </p>
     </aside>
   );
 }

@@ -383,10 +383,7 @@ export function StudentFormDialog({ open, onOpenChange, student }: Props) {
                     })}
                   </div>
                 )}
-                <p className="mt-1 px-1 text-[11px] text-muted-foreground">
-                  Tick every batch the student attends — schooling and regular both, if needed. Each
-                  batch bills its own fees, and the timetable shows all of them.
-                </p>
+
               </div>
             </Field>
             <Field label="Scholarship (%)">
@@ -535,9 +532,7 @@ function SelfFillLink({ onDone }: { onDone: () => void }) {
       <Field label="WhatsApp number">
         <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="10-digit" />
       </Field>
-      <p className="text-xs text-muted-foreground">
-        The student fills class, parents, address and photo themselves through the link.
-      </p>
+
       <DialogFooter>
         <Button type="submit" disabled={mut.isPending}>
           {mut.isPending ? "Creating…" : "Create & get link"}
