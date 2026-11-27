@@ -2661,7 +2661,15 @@ export type Database = {
         }[]
       }
       publish_timetable: { Args: never; Returns: number }
-      readmit_student: { Args: { _student_id: string }; Returns: undefined }
+      readmit_student: {
+        Args: {
+          _custom_amount?: number
+          _new_due_date?: string
+          _restore_fees?: boolean
+          _student_id: string
+        }
+        Returns: Json
+      }
       reorder_syllabus_chapters: {
         Args: { _ids: string[] }
         Returns: undefined
@@ -2708,6 +2716,7 @@ export type Database = {
         Args: { _student_id: string }
         Returns: string
       }
+      student_waived_on_exit: { Args: { _student_id: string }; Returns: number }
       submit_admission_application: {
         Args: {
           _aadhaar_edited_fields?: string[]

@@ -19,6 +19,7 @@ import { StudentInviteDialog } from "@/components/app/student-invite-dialog";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { BulkImportDialog } from "@/components/app/bulk-import-dialog";
 import { ExitStudentDialog } from "@/components/app/exit-student-dialog";
+import { ReadmitStudentDialog } from "@/components/app/readmit-student-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { studentsApi, batchesApi, type Student } from "@/lib/api";
 import { studentInvitesApi, portalStatus } from "@/lib/api/invites";
@@ -46,17 +47,7 @@ function StudentsPage() {
 
   const [status, setStatus] = useState<string>("current");
   const [exiting, setExiting] = useState<Row | null>(null);
-  const readmit = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.rpc("readmit_student" as never, { _student_id: id } as never);
-      if (error) throw new Error(error.message);
-    },
-    onSuccess: () => {
-      toast.success("Student re-admitted");
-      qc.invalidateQueries();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
+  const [readmitting, setReadmitting] = useState<Row | null>(null);
   const [cls, setCls] = useState<string>("all");
   const [batchId, setBatchId] = useState<string>("all");
   const [approval, setApproval] = useState<string>("all");
@@ -288,8 +279,8 @@ function StudentsPage() {
                 size="icon"
                 variant="ghost"
                 title="Re-admit"
-                disabled={!canEdit || readmit.isPending}
-                onClick={() => readmit.mutate(r.id)}
+                disabled={!canEdit}
+                onClick={() => setReadmitting(r)}
               >
                 <RotateCcw className="h-4 w-4 text-success" />
               </Button>
@@ -352,6 +343,7 @@ function StudentsPage() {
       />
       <PageBody>
         <ExitStudentDialog student={exiting} onOpenChange={(o) => !o && setExiting(null)} />
+        <ReadmitStudentDialog student={readmitting} onOpenChange={(o) => !o && setReadmitting(null)} />
         <DataTable
           rows={filtered}
           columns={columns}
